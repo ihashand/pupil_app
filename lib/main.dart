@@ -4,8 +4,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/auth/login_or_register.dart';
+import 'package:pet_diary/src/screens/home_screen.dart';
+import 'package:pet_diary/src/screens/my_animals_screen.dart';
+import 'package:pet_diary/src/screens/settings_screen.dart';
+import 'package:pet_diary/src/screens/users_screen.dart';
 import 'package:pet_diary/src/theme/light_mode.dart';
 
+import 'src/screens/profile_screen.dart';
 import 'src/theme/dark_mode.dart';
 
 Future<void> main() async {
@@ -27,10 +32,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const AuthWidget(),
-      theme: lightMode,
-      darkTheme: darkMode,
-    );
+        debugShowCheckedModeBanner: false,
+        home: const AuthWidget(),
+        theme: lightMode,
+        darkTheme: darkMode,
+        routes: {
+          '/login_register_screen': (context) => const LoginOrRegister(),
+          '/home_screen': (context) => const HomeScreen(),
+          '/profile_screen': (context) => const ProfileScreen(),
+          '/settings_screen': (context) => const SettingsScreen(),
+          '/users_screen': (context) => const UsersScreen(),
+          '/my_animals_screen': (context) => const MyAnimalsScreen(),
+        });
   }
 }
