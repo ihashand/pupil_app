@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "405118452244",
+    "project_id": "pupilapp-3e192",
+    "storage_bucket": "pupilapp-3e192.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:405118452244:android:3a976ccd0c5c140d199d01",
+        "android_client_info": {
+          "package_name": "com.example.pet_diary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKBfmf-pC1YfOVjopB4rP6gPYiEPu5XF0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
