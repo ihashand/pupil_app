@@ -13,7 +13,7 @@ class AuthWidget extends StatelessWidget {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           // If user is loged in
-          if (!snapshot.hasData) {
+          if (snapshot.hasData) {
             return const HomeScreen();
           }
           // If user is NOT logged in

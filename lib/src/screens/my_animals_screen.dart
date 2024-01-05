@@ -10,13 +10,13 @@ class MyAnimalsScreen extends StatefulWidget {
 }
 
 class MyAnimalsScreenState extends State<MyAnimalsScreen> {
-  late Box<Pet> _petBox;
+  Box<Pet>? _petBox;
   final TextEditingController _newPetController = TextEditingController();
 
   @override
   void initState() {
-    super.initState();
     _openPetBox();
+    super.initState();
   }
 
   Future<void> _openPetBox() async {
@@ -29,7 +29,7 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
     if (newName.isNotEmpty) {
       Pet newPet = Pet(
           id: DateTime.now().millisecondsSinceEpoch.toString(), name: newName);
-      await _petBox.add(newPet);
+      await _petBox?.add(newPet);
       _newPetController.clear();
       setState(() {});
     }
@@ -75,16 +75,16 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
   }
 
   Widget _buildPetTable() {
-    if (_petBox.isEmpty) {
+    if (_petBox == null || _petBox!.isEmpty) {
       return const Center(
         child: Text('No pets available.'),
       );
     }
 
     return ListView.builder(
-      itemCount: _petBox.length,
+      itemCount: _petBox!.length,
       itemBuilder: (context, index) {
-        final pet = _petBox.getAt(index);
+        final pet = _petBox!.getAt(index);
         return ListTile(
           title: Text(pet!.name),
         );
