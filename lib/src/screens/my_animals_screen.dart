@@ -12,27 +12,41 @@ class MyAnimalsScreen extends StatefulWidget {
 class MyAnimalsScreenState extends State<MyAnimalsScreen> {
   Box<Pet>? _petBox;
   final TextEditingController _newPetController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
 
   @override
   void initState() {
-    _openPetBox();
     super.initState();
+    _openPetBox();
   }
 
   Future<void> _openPetBox() async {
     _petBox = await Hive.openBox<Pet>('pets');
-    setState(() {});
   }
 
   Future<void> _addNewPet() async {
     String newName = _newPetController.text.trim();
-    if (newName.isNotEmpty) {
+    String petAge = _ageController.text.trim();
+
+    if (newName.isNotEmpty && petAge.isNotEmpty) {
       Pet newPet = Pet(
-          id: DateTime.now().millisecondsSinceEpoch.toString(), name: newName);
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: newName,
+        image:
+            'assets/images/lilu.png', // TODO replace with adding image function
+        age: petAge,
+      );
+
       await _petBox?.add(newPet);
       _newPetController.clear();
-      setState(() {});
+      _ageController.clear();
+      await _openPetBox();
     }
+  }
+
+  Future<void> _deletePet(int index) async {
+    await _petBox?.deleteAt(index);
+    setState(() {});
   }
 
   @override
@@ -54,20 +68,38 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
   Widget _buildAddPetField() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _newPetController,
-              decoration: const InputDecoration(
-                hintText: 'Enter new pet name',
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _newPetController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter new pet name',
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: _addNewPet,
+                child: const Text('Add Pet'),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: _addNewPet,
-            child: const Text('Add Pet'),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _ageController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter pet age',
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -86,7 +118,11 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
       itemBuilder: (context, index) {
         final pet = _petBox!.getAt(index);
         return ListTile(
-          title: Text(pet!.name),
+          title: Text('${pet!.name} - Age: ${pet.age}'),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () => _deletePet(index),
+          ),
         );
       },
     );

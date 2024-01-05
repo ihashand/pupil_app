@@ -1,6 +1,6 @@
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-part 'pet_model.g.dart'; // Generated file
+part 'pet_model.g.dart';
 
 @HiveType(typeId: 0)
 class Pet extends HiveObject {
@@ -10,5 +10,16 @@ class Pet extends HiveObject {
   @HiveField(1)
   late String name;
 
-  Pet({required this.id, required this.name});
+  @HiveField(2)
+  late String image;
+
+  @HiveField(3)
+  late String age;
+
+  Pet({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.age,
+  });
 }

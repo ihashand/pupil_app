@@ -16,6 +16,7 @@ import 'src/screens/profile_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final hiveService = HiveService();
