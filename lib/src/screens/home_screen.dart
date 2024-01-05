@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
             title: const Text('Home'),
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            backgroundColor: Colors.transparent,
             actions: [
               IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
             ]),
