@@ -26,10 +26,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     try {
+      // Sign in with email and password
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
 
-      // pop loading circle
+      // Pop loading circle
       if (context.mounted) {
         Navigator.pop(context);
       }

@@ -5,11 +5,13 @@ import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/auth/login_or_register.dart';
 import 'package:pet_diary/src/data/services/hive_service.dart';
+import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/my_animals_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:pet_diary/src/screens/users_screen.dart';
 import 'package:pet_diary/src/theme/light_mode.dart';
+import 'package:provider/provider.dart';
 
 import 'src/screens/profile_screen.dart';
 import 'src/theme/dark_mode.dart';
@@ -22,12 +24,14 @@ Future<void> main() async {
   final hiveService = HiveService();
   await hiveService.initHive();
 
-  runApp(EasyLocalization(
-    supportedLocales: const [Locale('en'), Locale('de'), Locale('pl')],
-    path: 'assets/translations',
-    fallbackLocale: const Locale('en'),
-    child: const MyApp(),
-  ));
+  runApp(ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: EasyLocalization(
+        supportedLocales: const [Locale('en'), Locale('de'), Locale('pl')],
+        path: 'assets/translations',
+        fallbackLocale: const Locale('en'),
+        child: const MyApp(),
+      )));
 }
 
 class MyApp extends StatelessWidget {
@@ -38,8 +42,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: const AuthWidget(),
-        theme: lightMode,
-        darkTheme: darkMode,
+        theme: Provider.of<ThemeProvider>(context).themeData,
         routes: {
           '/login_register_screen': (context) => const LoginOrRegister(),
           '/home_screen': (context) => const HomeScreen(),
