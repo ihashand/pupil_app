@@ -10,11 +10,8 @@ import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/my_animals_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:pet_diary/src/screens/users_screen.dart';
-import 'package:pet_diary/src/theme/light_mode.dart';
 import 'package:provider/provider.dart';
-
 import 'src/screens/profile_screen.dart';
-import 'src/theme/dark_mode.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
