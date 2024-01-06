@@ -19,17 +19,23 @@ class PetAdapter extends TypeAdapter<Pet> {
     return Pet(
       id: fields[0] as String,
       name: fields[1] as String,
+      image: fields[2] as String,
+      age: fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Pet obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.name);
+      ..write(obj.name)
+      ..writeByte(2)
+      ..write(obj.image)
+      ..writeByte(3)
+      ..write(obj.age);
   }
 
   @override
