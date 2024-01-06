@@ -21,7 +21,7 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
   }
 
   Future<void> _openPetBox() async {
-    _petBox = await Hive.openBox<Pet>('pets');
+    _petBox = await Hive.openBox<Pet>('petBox');
   }
 
   Future<void> _addNewPet() async {
@@ -59,7 +59,16 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
       body: Column(
         children: [
           _buildAddPetField(),
-          Expanded(child: _buildPetTable()),
+          FutureBuilder(
+            future: _buildPetTable(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Expanded(child: snapshot.data!);
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          ),
         ],
       ),
     );
@@ -106,7 +115,9 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
     );
   }
 
-  Widget _buildPetTable() {
+  Future<Widget> _buildPetTable() async {
+    _petBox = await Hive.openBox<Pet>('petBox');
+
     if (_petBox == null || _petBox!.isEmpty) {
       return const Center(
         child: Text('No pets available.'),
