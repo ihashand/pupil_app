@@ -52,10 +52,6 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('MY ANIMALS'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-      ),
       body: Column(
         children: [
           _buildAddPetField(),
