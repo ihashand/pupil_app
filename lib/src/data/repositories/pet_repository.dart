@@ -1,40 +1,33 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:pet_diary/src/data/services/hive_service.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 
 class PetRepository {
-  final HiveService hiveService = HiveService();
+  late Box<Pet> _hive;
+  late List<Pet> _box;
+  PetRepository();
 
-  Future<void> init() async {
-    await hiveService.initHive();
+  List<Pet> getPets() {
+    _hive = Hive.box<Pet>('pets');
+    _box = _hive.values.toList();
+    return _box;
   }
 
-  Future<Box<Pet>> openPetBox() async {
-    return Hive.openBox<Pet>('pets');
+  List<Pet> addPet(Pet pet) {
+    _hive.add(pet);
+    return _hive.values.toList();
   }
 
-  Future<void> addPet(Pet pet) async {
-    final Box<Pet> petBox = await openPetBox();
-    await petBox.put(pet.id, pet);
+  List<Pet> updatePet(Pet pet) {
+    _hive.put(pet.id, pet);
+    return _hive.values.toList();
   }
 
-  Future<void> updatePet(Pet pet) async {
-    final Box<Pet> petBox = await openPetBox();
-    await petBox.put(pet.id, pet);
+  List<Pet> deletePet(String petId) {
+    _hive.delete(petId);
+    return _hive.values.toList();
   }
 
-  Future<void> deletePet(String petId) async {
-    final Box<Pet> petBox = await openPetBox();
-    await petBox.delete(petId);
-  }
-
-  Future<List<Pet>> getAllPets() async {
-    final Box<Pet> petBox = await openPetBox();
-    return petBox.values.toList();
-  }
-
-  Future<Pet?> getPetById(String petId) async {
-    final Box<Pet> petBox = await openPetBox();
-    return petBox.get(petId);
+  Pet? getPetById(String petId) {
+    return _hive.get(petId);
   }
 }
