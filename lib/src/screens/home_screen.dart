@@ -23,7 +23,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openPetBox() async {
-    _petBox = await Hive.openBox<Pet>('pets');
+    _petBox = await Hive.openBox<Pet>('petBox');
   }
 
   // Logout user
@@ -72,7 +72,7 @@ class HomeScreenState extends State<HomeScreen> {
             SizedBox(
               height: 240,
               child: FutureBuilder(
-                future: Hive.openBox<Pet>('pets'),
+                future: Hive.openBox<Pet>('petBox'),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       _petBox != null &&
