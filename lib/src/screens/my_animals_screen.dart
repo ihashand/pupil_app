@@ -13,6 +13,8 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
   Box<Pet>? _petBox;
   final TextEditingController _newPetController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
+  String _selectedAvatar =
+      'assets/images/dog_avatar_01.png'; // Default avatar path
 
   @override
   void initState() {
@@ -32,8 +34,7 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
       Pet newPet = Pet(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: newName,
-        image:
-            'assets/images/lilu.png', // TODO replace with adding image function
+        image: _selectedAvatar, // Use the selected avatar path
         age: petAge,
       );
 
@@ -49,11 +50,60 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
     setState(() {});
   }
 
+  Future<void> _selectAvatarImage() async {
+    final List<String> avatarOptions = [
+      'assets/images/dog_avatar_01.png',
+      'assets/images/dog_avatar_02.png',
+      'assets/images/dog_avatar_03.png',
+      'assets/images/dog_avatar_04.png',
+      'assets/images/dog_avatar_05.png',
+      'assets/images/dog_avatar_06.png',
+      'assets/images/dog_avatar_07.png',
+      'assets/images/dog_avatar_09.png',
+      'assets/images/dog_avatar_010.png',
+      'assets/images/dog_avatar_011.png',
+      'assets/images/dog_avatar_012.png',
+      'assets/images/dog_avatar_013.png',
+      'assets/images/dog_avatar_014.png',
+      'assets/images/dog_avatar_015.png',
+
+      // Add more image paths from assets as needed
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Avatar'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              itemCount: avatarOptions.length,
+              itemBuilder: (context, index) {
+                final avatarPath = avatarOptions[index];
+                return ListTile(
+                  title: Image.asset(avatarPath),
+                  onTap: () {
+                    setState(() {
+                      _selectedAvatar = avatarPath;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
+          const SizedBox(height: 50),
           _buildAddPetField(),
           FutureBuilder(
             future: _buildPetTable(),
@@ -105,6 +155,11 @@ class MyAnimalsScreenState extends State<MyAnimalsScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: _selectAvatarImage,
+            child: const Text('Select Avatar'),
           ),
         ],
       ),
