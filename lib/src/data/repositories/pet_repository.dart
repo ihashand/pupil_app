@@ -4,30 +4,37 @@ import 'package:pet_diary/src/models/pet_model.dart';
 class PetRepository {
   late Box<Pet> _hive;
   late List<Pet> _box;
-  PetRepository();
+  PetRepository._create();
+
+  static Future<PetRepository> create() async {
+    final component = PetRepository._create();
+    await component._init();
+    return component;
+  }
+
+  _init() async {
+    _hive = await Hive.openBox<Pet>('pets');
+    _box = _hive.values.toList();
+  }
 
   List<Pet> getPets() {
-    _hive = Hive.box<Pet>('pets');
-    _box = _hive.values.toList();
     return _box;
   }
 
-  List<Pet> addPet(Pet pet) {
-    _hive.add(pet);
-    return _hive.values.toList();
+  Future<void> addPet(Pet pet) async {
+    await _hive.put(pet.id, pet);
+    await _init();
   }
 
-  List<Pet> updatePet(Pet pet) {
-    _hive.put(pet.id, pet);
-    return _hive.values.toList();
+  Future<void> updatePet(Pet pet) async {
+    await _hive.put(pet.id, pet);
   }
 
-  List<Pet> deletePet(String petId) {
-    _hive.delete(petId);
-    return _hive.values.toList();
+  Future<void> deletePet(int index) async {
+    await _hive.deleteAt(index);
   }
 
-  Pet? getPetById(String petId) {
+  Future<Pet?> getPetById(String petId) async {
     return _hive.get(petId);
   }
 }

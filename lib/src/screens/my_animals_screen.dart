@@ -8,18 +8,12 @@ class MyAnimalsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pets = ref.watch(petHiveData);
-    final petsRepository = ref.watch(petRepositoryProvider);
+    var pets = ref.watch(petRepositoryProvider).value?.getPets();
     final namePetController = ref.watch(petNameControllerProvider);
     final ageController = ref.watch(ageControllerProvider);
     final selectedAvatar = ref.watch(selectedAvatarProvider);
 
-    print("<<<<<1");
-    print(pets);
-    print("<<<<<2");
-    print(petsRepository.getPets());
-
-    void addNewPet() {
+    Future<void> addNewPet() async {
       String newName = namePetController.text.trim();
       String petAge = ageController.text.trim();
 
@@ -30,14 +24,16 @@ class MyAnimalsScreen extends ConsumerWidget {
           image: selectedAvatar, // Use the selected avatar path
           age: petAge,
         );
-        petsRepository.addPet(newPet);
+        await ref.watch(petRepositoryProvider).value?.addPet(newPet);
         namePetController.clear();
         ageController.clear();
       }
+      pets = ref.refresh(petRepositoryProvider).value?.getPets();
     }
 
-    void deletePet(int index) {
-      petsRepository.deletePet(index.toString());
+    Future<void> deletePet(int index) async {
+      await ref.watch(petRepositoryProvider).value?.deletePet(index);
+      pets = ref.refresh(petRepositoryProvider).value?.getPets();
     }
 
     void selectAvatarImage() {
@@ -133,17 +129,17 @@ class MyAnimalsScreen extends ConsumerWidget {
       );
     }
 
-    Widget buildPetTable() {
-      if (pets == null || pets.isEmpty) {
+    Future<Widget> buildPetTable() async {
+      if (pets == null || pets!.isEmpty) {
         return const Center(
           child: Text('No pets available.'),
         );
       }
 
       return ListView.builder(
-        itemCount: pets.length,
+        itemCount: pets!.length,
         itemBuilder: (context, index) {
-          final pet = pets[index];
+          final pet = pets![index];
           return ListTile(
             title: Text('${pet.name} - Age: ${pet.age}'),
             trailing: IconButton(
@@ -160,7 +156,16 @@ class MyAnimalsScreen extends ConsumerWidget {
         children: [
           const SizedBox(height: 50),
           buildAddPetField(),
-          buildPetTable(),
+          FutureBuilder(
+            future: buildPetTable(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Expanded(child: snapshot.data!);
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          ),
         ],
       ),
     );
