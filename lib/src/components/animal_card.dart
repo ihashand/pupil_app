@@ -21,12 +21,11 @@ class AnimalCard extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               children: [
                 Container(
-                  width: 233,
-                  height: 233,
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color.fromARGB(255, 157, 222, 235)
-                        .withOpacity(0.23),
+                    color: Color.fromARGB(255, 171, 214, 223).withOpacity(0.23),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(23.0),
@@ -35,24 +34,9 @@ class AnimalCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: 15,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      size: 30,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 2),
             Text(
               convertToUpperCase(pet.name),
               style: TextStyle(

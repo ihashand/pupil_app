@@ -40,37 +40,38 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    getAppBarTitle(),
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: GNav(
-        gap: 8,
+        gap: 5,
         tabs: const [
-          GButton(icon: Icons.home, text: "Home"),
-          GButton(icon: Icons.pets, text: "Pupils"),
-          GButton(icon: Icons.person, text: "Profile"),
-          GButton(icon: Icons.settings, text: "Settings"),
+          GButton(
+            icon: Icons.home,
+            text: "Home",
+            iconColor: Color.fromARGB(255, 103, 146, 167),
+            hoverColor: Color.fromARGB(255, 103, 146, 167),
+            iconActiveColor: Color.fromARGB(255, 103, 146, 167),
+          ),
+          GButton(
+            icon: Icons.pets,
+            text: "Pupils",
+            iconColor: Color.fromARGB(255, 103, 146, 167),
+            hoverColor: Color.fromARGB(255, 103, 146, 167),
+            iconActiveColor: Color.fromARGB(255, 103, 146, 167),
+          ),
+          GButton(
+            icon: Icons.calendar_month,
+            text: "Callendar",
+            iconColor: Color.fromARGB(255, 103, 146, 167),
+            hoverColor: Color.fromARGB(255, 103, 146, 167),
+            iconActiveColor: Color.fromARGB(255, 103, 146, 167),
+          ),
+          GButton(
+            icon: Icons.settings,
+            text: "Settings",
+            iconColor: Color.fromARGB(255, 103, 146, 167),
+            hoverColor: Color.fromARGB(255, 103, 146, 167),
+            iconActiveColor: Color.fromARGB(255, 103, 146, 167),
+          ),
         ],
         selectedIndex: _currentIndex,
         onTabChange: (index) {

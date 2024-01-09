@@ -12,6 +12,7 @@ import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:pet_diary/src/screens/users_screen.dart';
 import 'package:provider/provider.dart';
 import 'src/screens/profile_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ Future<void> main() async {
 
   final hiveService = HiveService();
   await hiveService.initHive();
+  initializeDateFormatting('en_US', null);
 
   runApp(ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
@@ -32,14 +34,9 @@ Future<void> main() async {
       )));
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

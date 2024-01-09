@@ -57,3 +57,64 @@ class MyButtonWidget extends StatelessWidget {
     );
   }
 }
+
+class MyRectangleWidget extends StatelessWidget {
+  final Widget? content;
+  final String? text;
+  final VoidCallback onTap;
+  final Color color;
+  final double opacity;
+  final double borderRadius;
+  final double width;
+  final double height;
+  final double fontSize;
+  final String fontFamily;
+
+  const MyRectangleWidget({
+    super.key,
+    this.content,
+    this.text,
+    required this.onTap,
+    this.color = Colors.blue,
+    this.opacity = 1.0,
+    this.borderRadius = 10.0,
+    this.width = 100.0,
+    this.height = 50.0,
+    this.fontSize = 16.0,
+    this.fontFamily = 'Arial',
+  }) : assert(content != null || text != null,
+            'You have to set either content or text');
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: width,
+            height: height,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withOpacity(opacity),
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Center(
+              child: content ??
+                  Text(
+                    text ?? '',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontFamily: fontFamily,
+                    ),
+                  ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
