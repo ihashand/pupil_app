@@ -5,12 +5,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-            title: const Text('Profile'),
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary),
-        body: const Center(
-          child: Text('Profile screen'),
-        ));
+    return const Scaffold(
+        body: Center(
+      child: Text('Profile screen'),
+    ));
   }
 }
