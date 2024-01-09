@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class MyAnimalsScreen extends ConsumerWidget {
+class MyAnimalsScreen extends StatefulHookConsumerWidget {
   const MyAnimalsScreen({super.key});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _MyAnimalsScreenState();
+}
+
+class _MyAnimalsScreenState extends ConsumerState<MyAnimalsScreen> {
+  @override
+  Widget build(BuildContext context) {
     final pets = ref.watch(petHiveData);
     final petsRepository = ref.watch(petRepositoryProvider);
     final namePetController = ref.watch(petNameControllerProvider);
@@ -139,6 +145,10 @@ class MyAnimalsScreen extends ConsumerWidget {
           child: Text('No pets available.'),
         );
       }
+
+      return const Center(
+        child: Text('No pets available.'),
+      );
 
       return ListView.builder(
         itemCount: pets.length,
