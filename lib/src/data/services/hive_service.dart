@@ -8,6 +8,7 @@ class HiveService {
     if (!_isHiveInitialized) {
       await Hive.initFlutter();
       Hive.registerAdapter<Pet>(PetAdapter());
+      await Hive.openBox<Pet>('pets');
       _isHiveInitialized = true;
     }
   }

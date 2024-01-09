@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/data/repositories/pet_repository.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-
-final petRepositoryProvider = Provider<PetRepository>((ref) => PetRepository());
+import 'package:pet_diary/src/providers/pet_provider.dart';
 
 class PetHiveController extends StateNotifier<List<Pet>?> {
   PetHiveController(this.ref) : super(null) {

@@ -16,3 +16,7 @@ final petNameControllerProvider = Provider<TextEditingController>((ref) {
 final ageControllerProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
 });
+
+final selectedAvatarProvider = StateProvider<String>((ref) {
+  return 'assets/images/dog_avatar_01.png';
+});
