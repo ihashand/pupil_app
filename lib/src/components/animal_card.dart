@@ -11,17 +11,34 @@ class AnimalCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: Container(
-        width: 300,
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor.withOpacity(0.40),
-          //todo dodac transparentnosc
-          borderRadius: BorderRadius.circular(41),
+          borderRadius: BorderRadius.circular(100),
         ),
         child: Column(
           children: [
+            const SizedBox(height: 8),
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color.fromARGB(255, 171, 214, 223).withOpacity(0.23),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(23.0),
+                    child: ClipOval(
+                      child: Image.asset(pet.image, fit: BoxFit.cover),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
             Text(
-              pet.name,
+              convertToUpperCase(pet.name),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -36,14 +53,13 @@ class AnimalCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.inversePrimary,
               ),
             ),
-            const SizedBox(height: 8),
-            CircleAvatar(
-              backgroundImage: AssetImage(pet.image),
-              radius: 50,
-            ),
           ],
         ),
       ),
     );
   }
+}
+
+String convertToUpperCase(String input) {
+  return input.split('').map((char) => char.toUpperCase()).join(' ');
 }
