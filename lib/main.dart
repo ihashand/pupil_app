@@ -6,6 +6,7 @@ import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/auth/login_or_register.dart';
 import 'package:pet_diary/src/data/services/hive_service.dart';
+import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/my_animals_screen.dart';
@@ -22,6 +23,7 @@ Future<void> main() async {
 
   final hiveService = HiveService();
   await hiveService.initHive();
+  await LocalNotificationService().setup();
   initializeDateFormatting('en_US', null);
 
   runApp(ProviderScope(
