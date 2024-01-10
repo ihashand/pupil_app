@@ -5,34 +5,31 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import 'new_event_screen.dart';
+
 class MyCalendarScreen extends ConsumerWidget {
   const MyCalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Fetching all events
     var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
     var dateController = ref.watch(eventDateControllerProvider);
     var nameController = ref.watch(eventNameControllerProvider);
     var descriptionController = ref.watch(eventDescriptionControllerProvider);
 
-    // Filtering events based on selected date
     var eventsOnSelectedDate = allEvents?.where((event) {
       return DateFormat('yyyy-MM-dd').format(event.date) ==
           DateFormat('yyyy-MM-dd').format(dateController);
     }).toList();
 
-    // Function to handle date selection
     void selectDate(DateTime date, DateTime focusedDate) {
       ref.read(eventDateControllerProvider.notifier).state = date;
-      // Refresh events for the selected date
       eventsOnSelectedDate = allEvents?.where((event) {
         return DateFormat('yyyy-MM-dd').format(event.date) ==
             DateFormat('yyyy-MM-dd').format(date);
       }).toList();
     }
 
-    // Function to add new event
     Future<void> addNewEvent() async {
       String eventName = nameController.text.trim();
       String eventDescription = descriptionController.text.trim();
@@ -52,7 +49,6 @@ class MyCalendarScreen extends ConsumerWidget {
       }
     }
 
-    // Function to delete an event
     Future<void> deleteEvent(int index) async {
       await ref.watch(eventRepositoryProvider).value?.deleteEvent(index);
       allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
@@ -66,11 +62,22 @@ class MyCalendarScreen extends ConsumerWidget {
           TableCalendar(
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2035, 12, 31),
-            startingDayOfWeek: StartingDayOfWeek.monday,
             focusedDay: dateController,
             calendarFormat: CalendarFormat.month,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            selectedDayPredicate: (day) {
+              return isSameDay(dateController, day);
+            },
             onDaySelected: selectDate,
-            selectedDayPredicate: (day) => isSameDay(day, dateController),
+            locale: 'en_US',
+            headerStyle: HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              leftChevronIcon: Icon(Icons.chevron_left,
+                  color: Theme.of(context).colorScheme.inversePrimary),
+              rightChevronIcon: Icon(Icons.chevron_right,
+                  color: Theme.of(context).colorScheme.inversePrimary),
+            ),
           ),
           const SizedBox(height: 20),
           Text(
@@ -103,47 +110,50 @@ class MyCalendarScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Add New Event'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    TextField(
-                      controller: nameController,
-                      decoration:
-                          const InputDecoration(labelText: 'Event Name'),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration:
-                          const InputDecoration(labelText: 'Event Description'),
-                    ),
-                  ],
-                ),
-                actions: <Widget>[
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      addNewEvent();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Add'),
-                  ),
-                ],
-              );
-            },
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => NewEventScreen(),
+            ),
           );
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Future<dynamic> AddEventTemporaryTest(
+      BuildContext context,
+      TextEditingController nameController,
+      TextEditingController descriptionController) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add New Event'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Event Name'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration:
+                    const InputDecoration(labelText: 'Event Description'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

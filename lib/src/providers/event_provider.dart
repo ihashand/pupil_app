@@ -20,5 +20,5 @@ final eventSelectedAvatarProvider = StateProvider<String>((ref) {
 });
 
 final eventDateControllerProvider = StateProvider<DateTime>((ref) {
-  return DateTime.now(); // Domyślna wartość
+  return DateTime.now();
 });

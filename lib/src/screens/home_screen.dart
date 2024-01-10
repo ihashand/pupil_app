@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pet_diary/src/screens/home_page_screen.dart';
 import 'my_animals_screen.dart';
-import 'profile_screen.dart';
+import 'my_calendar_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
