@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/login_register_screen': (context) => const LoginOrRegister(),
             '/home_screen': (context) => const HomeScreen(),
-            '/profile_screen': (context) => const ProfileScreen(),
+            '/profile_screen': (context) => MyCalendarScreen(),
             '/settings_screen': (context) => const SettingsScreen(),
             '/users_screen': (context) => const UsersScreen(),
             '/my_animals_screen': (context) => const MyAnimalsScreen(),

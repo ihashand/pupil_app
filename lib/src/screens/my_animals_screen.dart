@@ -52,8 +52,6 @@ class MyAnimalsScreen extends ConsumerWidget {
         'assets/images/dog_avatar_013.png',
         'assets/images/dog_avatar_014.png',
         'assets/images/dog_avatar_015.png',
-
-        // Add more image paths from assets as needed
       ];
 
       showDialog(
