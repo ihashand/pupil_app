@@ -21,7 +21,7 @@ class MyAnimalsScreen extends ConsumerWidget {
         Pet newPet = Pet(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           name: newName,
-          image: selectedAvatar, // Use the selected avatar path
+          image: selectedAvatar,
           age: petAge,
         );
         await ref.watch(petRepositoryProvider).value?.addPet(newPet);
@@ -52,16 +52,14 @@ class MyAnimalsScreen extends ConsumerWidget {
         'assets/images/dog_avatar_013.png',
         'assets/images/dog_avatar_014.png',
         'assets/images/dog_avatar_015.png',
-
-        // Add more image paths from assets as needed
       ];
 
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Select Avatar'),
-            content: Container(
+            title: const Text('Select Avatar'),
+            content: SizedBox(
               width: double.maxFinite,
               child: ListView.builder(
                 itemCount: avatarOptions.length,

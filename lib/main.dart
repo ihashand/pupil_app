@@ -10,8 +10,8 @@ import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/my_animals_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
-import 'package:pet_diary/src/screens/users_screen.dart';
-import 'src/screens/profile_screen.dart';
+import 'package:pet_diary/src/screens/new_event_screen.dart';
+import 'src/screens/my_calendar_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
@@ -46,12 +46,12 @@ class MyApp extends StatelessWidget {
           home: const AuthWidget(),
           theme: theme.themeData,
           routes: {
-            '/login_register_screen': (context) => const LoginOrRegister(),
-            '/home_screen': (context) => const HomeScreen(),
-            '/profile_screen': (context) => const ProfileScreen(),
-            '/settings_screen': (context) => const SettingsScreen(),
-            '/users_screen': (context) => const UsersScreen(),
-            '/my_animals_screen': (context) => const MyAnimalsScreen(),
+            '/login_register_screen': (context) => LoginOrRegister(),
+            '/home_screen': (context) => HomeScreen(),
+            '/profile_screen': (context) => MyCalendarScreen(),
+            '/settings_screen': (context) => SettingsScreen(),
+            '/users_screen': (context) => NewEventScreen(),
+            '/my_animals_screen': (context) => MyAnimalsScreen(),
           });
     });
   }

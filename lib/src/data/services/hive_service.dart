@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 
 class HiveService {
@@ -8,7 +9,9 @@ class HiveService {
     if (!_isHiveInitialized) {
       await Hive.initFlutter();
       Hive.registerAdapter<Pet>(PetAdapter());
-      await Hive.openBox<Pet>('pets');
+      await Hive.openBox<Pet>('petBox');
+      Hive.registerAdapter<Event>(EventAdapter());
+      await Hive.openBox<Event>('eventBox');
       _isHiveInitialized = true;
     }
   }

@@ -17,3 +17,6 @@ samples, guidance on mobile development, and a full API reference.
 
 update db:
 flutter pub run build_runner build
+
+while previous update doesn't work
+flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs

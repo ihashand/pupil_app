@@ -13,7 +13,7 @@ class PetRepository {
   }
 
   _init() async {
-    _hive = await Hive.openBox<Pet>('pets');
+    _hive = await Hive.openBox<Pet>('petBox');
     _box = _hive.values.toList();
   }
 
