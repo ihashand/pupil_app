@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/auth/login_or_register.dart';
@@ -10,7 +11,6 @@ import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/my_animals_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:pet_diary/src/screens/users_screen.dart';
-import 'package:provider/provider.dart';
 import 'src/screens/profile_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -24,14 +24,13 @@ Future<void> main() async {
   await hiveService.initHive();
   initializeDateFormatting('en_US', null);
 
-  runApp(ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+  runApp(ProviderScope(
       child: EasyLocalization(
-        supportedLocales: const [Locale('en'), Locale('de'), Locale('pl')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en'),
-        child: const MyApp(),
-      )));
+    supportedLocales: const [Locale('en'), Locale('de'), Locale('pl')],
+    path: 'assets/translations',
+    fallbackLocale: const Locale('en'),
+    child: const MyApp(),
+  )));
 }
 
 class MyApp extends StatelessWidget {
@@ -39,17 +38,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: const AuthWidget(),
-        theme: Provider.of<ThemeProvider>(context).themeData,
-        routes: {
-          '/login_register_screen': (context) => const LoginOrRegister(),
-          '/home_screen': (context) => const HomeScreen(),
-          '/profile_screen': (context) => const ProfileScreen(),
-          '/settings_screen': (context) => const SettingsScreen(),
-          '/users_screen': (context) => const UsersScreen(),
-          '/my_animals_screen': (context) => const MyAnimalsScreen(),
-        });
+    return Consumer(builder: (context, watch, _) {
+      final theme = watch.watch(themeProvider);
+
+      return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: const AuthWidget(),
+          theme: theme.themeData,
+          routes: {
+            '/login_register_screen': (context) => const LoginOrRegister(),
+            '/home_screen': (context) => const HomeScreen(),
+            '/profile_screen': (context) => const ProfileScreen(),
+            '/settings_screen': (context) => const SettingsScreen(),
+            '/users_screen': (context) => const UsersScreen(),
+            '/my_animals_screen': (context) => const MyAnimalsScreen(),
+          });
+    });
   }
 }

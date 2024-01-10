@@ -1,14 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
-import 'package:provider/provider.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
     return Scaffold(
         body: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -25,12 +26,9 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     const Text("Dark Mode"),
                     CupertinoSwitch(
-                        value:
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .isDarkMode,
-                        onChanged: ((value) =>
-                            Provider.of<ThemeProvider>(context, listen: false)
-                                .toggleTheme())),
+                      value: theme.isDarkMode,
+                      onChanged: ((value) => theme.toggleTheme()),
+                    ),
                   ]),
             ),
           ]),

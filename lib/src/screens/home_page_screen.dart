@@ -1,42 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class HomePageScreen extends StatefulWidget {
-  const HomePageScreen({
-    super.key,
-  });
+class HomePageScreen extends ConsumerWidget {
+  const HomePageScreen({super.key});
 
   @override
-  State<HomePageScreen> createState() => _HomePageScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pets = ref.watch(petRepositoryProvider).value?.getPets();
+    const int counter = 0;
+    final String formattedDate =
+        DateFormat('EEEE, d MMMM', 'en_US').format(DateTime.now());
+    final pageController = PageController();
 
-class _HomePageScreenState extends State<HomePageScreen> {
-  Box<Pet>? _petBox;
-  int counter = 0;
-  String formattedDate =
-      DateFormat('EEEE, d MMMM', 'en_US').format(DateTime.now());
-
-  final _pageController = PageController();
-  Future<void> _openPetBox() async {
-    _petBox = await Hive.openBox<Pet>('petBox');
-    setState(() {
-      counter = _petBox!.length;
-    });
-  }
-
-  @override
-  void initState() {
-    _openPetBox();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
@@ -58,15 +40,15 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 future: Hive.openBox<Pet>('petBox'),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
-                      _petBox != null &&
-                      _petBox!.isNotEmpty) {
+                      pets != null &&
+                      pets.isNotEmpty) {
                     return PageView.builder(
-                      controller: _pageController,
+                      controller: pageController,
                       scrollDirection: Axis.horizontal,
-                      itemCount: _petBox!.length,
+                      itemCount: pets.length,
                       itemBuilder: (context, index) {
-                        final pet = _petBox!.getAt(index);
-                        return AnimalCard(pet: pet!);
+                        final pet = pets[index];
+                        return AnimalCard(pet: pet);
                       },
                     );
                   } else {
@@ -79,7 +61,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
             ),
             const SizedBox(height: 10),
             SmoothPageIndicator(
-              controller: _pageController,
+              controller: pageController,
               count: counter,
               effect: ExpandingDotsEffect(
                   activeDotColor: Colors.grey.shade800,
