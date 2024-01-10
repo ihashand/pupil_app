@@ -8,7 +8,7 @@ import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class HomePageScreen extends ConsumerWidget {
-  const HomePageScreen({Key? key}) : super(key: key);
+  const HomePageScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,7 +17,6 @@ class HomePageScreen extends ConsumerWidget {
     final String formattedDate =
         DateFormat('EEEE, d MMMM', 'en_US').format(DateTime.now());
     final pageController = PageController();
-    int counter = 0;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -42,7 +41,6 @@ class HomePageScreen extends ConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       itemCount: pets.length,
                       itemBuilder: (context, index) {
-                        counter = pets.length;
                         final pet = pets[index];
                         return AnimalCard(pet: pet);
                       },
@@ -118,7 +116,7 @@ class HomePageScreen extends ConsumerWidget {
                   print('Widget tapped');
                 }
               },
-              color: Color.fromARGB(255, 103, 146, 167),
+              color: const Color.fromARGB(255, 103, 146, 167),
               borderRadius: 20.0,
               width: 360.0,
               height: 100.0,
@@ -133,7 +131,7 @@ class HomePageScreen extends ConsumerWidget {
                   print('Widget tapped');
                 }
               },
-              color: Color.fromARGB(255, 103, 146, 167),
+              color: const Color.fromARGB(255, 103, 146, 167),
               borderRadius: 20.0,
               width: 360.0,
               height: 250.0,
@@ -148,7 +146,7 @@ class HomePageScreen extends ConsumerWidget {
                   print('Widget tapped');
                 }
               },
-              color: Color.fromARGB(255, 103, 146, 167),
+              color: const Color.fromARGB(255, 103, 146, 167),
               borderRadius: 20.0,
               width: 360.0,
               height: 200.0,

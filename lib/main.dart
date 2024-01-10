@@ -46,12 +46,12 @@ class MyApp extends StatelessWidget {
           home: const AuthWidget(),
           theme: theme.themeData,
           routes: {
-            '/login_register_screen': (context) => LoginOrRegister(),
-            '/home_screen': (context) => HomeScreen(),
-            '/profile_screen': (context) => MyCalendarScreen(),
-            '/settings_screen': (context) => SettingsScreen(),
+            '/login_register_screen': (context) => const LoginOrRegister(),
+            '/home_screen': (context) => const HomeScreen(),
+            '/profile_screen': (context) => const MyCalendarScreen(),
+            '/settings_screen': (context) => const SettingsScreen(),
             '/users_screen': (context) => NewEventScreen(),
-            '/my_animals_screen': (context) => MyAnimalsScreen(),
+            '/my_animals_screen': (context) => const MyAnimalsScreen(),
           });
     });
   }

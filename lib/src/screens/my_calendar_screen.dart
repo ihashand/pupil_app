@@ -30,6 +30,7 @@ class MyCalendarScreen extends ConsumerWidget {
       }).toList();
     }
 
+//todo nie wywalac, potrzebne mi to na potem - patrys
     Future<void> addNewEvent() async {
       String eventName = nameController.text.trim();
       String eventDescription = descriptionController.text.trim();
@@ -120,6 +121,7 @@ class MyCalendarScreen extends ConsumerWidget {
       ),
     );
   }
+//todo nie wywalac, potrzebne mi to na potem - patrys
 
   Future<dynamic> AddEventTemporaryTest(
       BuildContext context,

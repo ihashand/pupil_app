@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/modules_provider.dart';
 
 class NewEventScreen extends ConsumerWidget {
-  const NewEventScreen({Key? key});
+  NewEventScreen({super.key, Key? anotherKey});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

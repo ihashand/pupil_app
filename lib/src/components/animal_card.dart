@@ -25,7 +25,8 @@ class AnimalCard extends StatelessWidget {
                   height: 160,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color.fromARGB(255, 171, 214, 223).withOpacity(0.23),
+                    color: const Color.fromARGB(255, 171, 214, 223)
+                        .withOpacity(0.23),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(23.0),
