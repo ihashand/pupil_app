@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
@@ -12,6 +13,7 @@ class MyAnimalsScreen extends ConsumerWidget {
     final namePetController = ref.watch(petNameControllerProvider);
     final ageController = ref.watch(ageControllerProvider);
     final selectedAvatar = ref.watch(selectedAvatarProvider);
+    final localNotificationService = LocalNotificationService();
 
     Future<void> addNewPet() async {
       String newName = namePetController.text.trim();
@@ -27,6 +29,10 @@ class MyAnimalsScreen extends ConsumerWidget {
         await ref.watch(petRepositoryProvider).value?.addPet(newPet);
         namePetController.clear();
         ageController.clear();
+        localNotificationService.showLocalNotification(
+          'Yay you did it!',
+          'Congrats on your first local notification',
+        );
       }
       pets = ref.refresh(petRepositoryProvider).value?.getPets();
     }
