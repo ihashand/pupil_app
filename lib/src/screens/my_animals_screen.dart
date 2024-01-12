@@ -1,3 +1,4 @@
+import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/data/services/local_notification_service.dart';
@@ -33,6 +34,28 @@ class MyAnimalsScreen extends ConsumerWidget {
           'Yay you did it!',
           'Congrats on your first local notification',
         );
+
+        DateTime now = DateTime.now().toLocal();
+        DateTime(now.year, now.month, now.day + 1, 9, 0);
+
+        final Event event = Event(
+          title: 'Spacer z $newName',
+          description: 'Nie ma lipy, idziemy na spacer!',
+          location: 'Dwór (chyba że jesteś w Krakowie to pole)',
+          startDate: DateTime(now.year, now.month, now.day + 1, 9, 0),
+          endDate: DateTime(now.year, now.month, now.day + 1, 9, 30),
+          iosParams: const IOSParams(
+            reminder: Duration(
+              minutes: 15,
+            ),
+          ),
+          recurrence: Recurrence(
+            frequency: Frequency.daily,
+            interval: 1,
+            ocurrences: 30,
+          ),
+        );
+        Add2Calendar.addEvent2Cal(event);
       }
       pets = ref.refresh(petRepositoryProvider).value?.getPets();
     }
