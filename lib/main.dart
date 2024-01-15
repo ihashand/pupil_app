@@ -52,7 +52,6 @@ class MyApp extends StatelessWidget {
             '/home_screen': (context) => const HomeScreen(),
             '/profile_screen': (context) => const MyCalendarScreen(),
             '/settings_screen': (context) => const SettingsScreen(),
-            '/users_screen': (context) => NewEventScreen(),
             '/my_animals_screen': (context) => const MyAnimalsScreen(),
           });
     });

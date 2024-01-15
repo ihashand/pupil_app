@@ -30,31 +30,8 @@ class MyCalendarScreen extends ConsumerWidget {
       }).toList();
     }
 
-//todo nie wywalac, potrzebne mi to na potem - patrys
-    Future<void> addNewEvent() async {
-      String eventName = nameController.text.trim();
-      String eventDescription = descriptionController.text.trim();
-
-      if (eventName.isNotEmpty && eventDescription.isNotEmpty) {
-        Event newEvent = Event(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          title: eventName,
-          description: eventDescription,
-          date: dateController,
-        );
-        await ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
-        nameController.clear();
-        descriptionController.clear();
-        allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
-        selectDate(dateController, dateController);
-      }
-    }
-
-    Future<void> deleteEvent(int index) async {
-      await ref.watch(eventRepositoryProvider).value?.deleteEvent(index);
-      allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
-      selectDate(dateController, dateController);
-    }
+    allEvents = addNewEvent(nameController, descriptionController,
+        dateController, ref, allEvents, selectDate);
 
     return Scaffold(
       body: Column(
@@ -100,7 +77,8 @@ class MyCalendarScreen extends ConsumerWidget {
                     subtitle: Text(eventsOnSelectedDate![index].description),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () => deleteEvent(index),
+                      onPressed: () => deleteEvent(
+                          ref, allEvents, selectDate, dateController, index),
                     ),
                   );
                 }
@@ -113,7 +91,14 @@ class MyCalendarScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => NewEventScreen(),
+              builder: (context) => NewEventScreen(
+                  context,
+                  nameController,
+                  descriptionController,
+                  dateController,
+                  ref,
+                  allEvents,
+                  selectDate),
             ),
           );
         },
@@ -121,41 +106,93 @@ class MyCalendarScreen extends ConsumerWidget {
       ),
     );
   }
-//todo nie wywalac, potrzebne mi to na potem - patrys
 
-  Future<dynamic> AddEventTemporaryTest(
-      BuildContext context,
-      TextEditingController nameController,
-      TextEditingController descriptionController) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Event'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Event Name'),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration:
-                    const InputDecoration(labelText: 'Event Description'),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
+  void deleteEvent(
+    WidgetRef ref,
+    List<Event>? allEvents,
+    void Function(DateTime date, DateTime focusedDate) selectDate,
+    DateTime dateController,
+    int index,
+  ) async {
+    await ref.watch(eventRepositoryProvider).value?.deleteEvent(index);
+    allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
+    selectDate(dateController, dateController);
+  }
+
+//todo nie wywalac, potrzebne mi to na potem - patrys
+}
+
+List<Event>? addNewEvent(
+  TextEditingController nameController,
+  TextEditingController descriptionController,
+  DateTime dateController,
+  WidgetRef ref,
+  List<Event>? allEvents,
+  void Function(DateTime date, DateTime focusedDate) selectDate,
+) {
+  String eventName = nameController.text.trim();
+  String eventDescription = descriptionController.text.trim();
+
+  if (eventName.isNotEmpty && eventDescription.isNotEmpty) {
+    Event newEvent = Event(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: eventName,
+      description: eventDescription,
+      date: dateController,
+    );
+    ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
+    nameController.clear();
+    descriptionController.clear();
+    allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
+    selectDate(dateController, dateController);
+  }
+
+  return allEvents;
+}
+
+Future<dynamic> AddEventTemporaryTest(
+    BuildContext context,
+    TextEditingController nameController,
+    TextEditingController descriptionController,
+    DateTime dateController,
+    WidgetRef ref,
+    List<Event>? allEvents,
+    void Function(DateTime date, DateTime focusedDate) selectDate) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Add New Event'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Event Name'),
+            ),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(labelText: 'Event Description'),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+            onPressed: () {
+              addNewEvent(nameController, descriptionController, dateController,
+                  ref, allEvents, selectDate);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Add'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
 }
