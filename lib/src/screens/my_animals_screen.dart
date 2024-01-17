@@ -22,11 +22,18 @@ class MyAnimalsScreen extends ConsumerWidget {
 
       if (newName.isNotEmpty && petAge.isNotEmpty) {
         Pet newPet = Pet(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          name: newName,
-          image: selectedAvatar,
-          age: petAge,
-        );
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: newName,
+            image: selectedAvatar,
+            age: petAge,
+            gender: '',
+            color: '',
+            weights: [],
+            temperatures: [],
+            pills: [],
+            walks: [],
+            events: []);
+
         await ref.watch(petRepositoryProvider).value?.addPet(newPet);
         namePetController.clear();
         ageController.clear();

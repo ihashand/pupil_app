@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/components/events/walk_event.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:pet_diary/src/screens/my_calendar_screen.dart';
-
 import '../components/my_button_widget.dart';
 import '../models/events_icons_module_model.dart';
+import 'weight_screen.dart';
 
 class NewEventScreen extends ConsumerWidget {
   BuildContext context;
@@ -98,15 +98,8 @@ List<EventsIconsModule> createModules(
         iconData: FontAwesomeIcons.walking,
         label: 'W A L K',
         onTap: () {
-          AddEventTemporaryTest(
-            context,
-            nameController,
-            descriptionController,
-            dateController,
-            ref,
-            allEvents,
-            (date, focusedDate) {},
-          );
+          walkEvent(context, nameController, descriptionController,
+              dateController, ref, allEvents, (date, focusedDate) {}, 0, 0);
         },
         color: const Color.fromARGB(255, 103, 146, 167),
         opacity: 0.6,
@@ -119,7 +112,11 @@ List<EventsIconsModule> createModules(
         iconData: FontAwesomeIcons.weightScale,
         label: 'W E I G H T',
         onTap: () {
-          //todo dodac zapisywanie wagi + zapisanie pomiaru w kalendarzu
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => WeightScreen(),
+            ),
+          );
         },
         color: const Color.fromARGB(255, 103, 146, 167),
         opacity: 0.6,

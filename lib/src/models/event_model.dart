@@ -16,9 +16,18 @@ class Event extends HiveObject {
   @HiveField(3)
   String description;
 
+  @HiveField(4)
+  int durationTime;
+
+  @HiveField(5)
+  double weight;
+
   Event(
       {required this.title,
       required this.date,
       this.description = '',
-      required this.id});
+      required this.id,
+      r,
+      this.durationTime = 0,
+      this.weight = 0});
 }

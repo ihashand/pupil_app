@@ -1,47 +1,34 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'event_model.dart';
+part of 'temperature_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class EventAdapter extends TypeAdapter<Event> {
+class TemperatureAdapter extends TypeAdapter<Temperature> {
   @override
-  final int typeId = 1;
+  final int typeId = 4;
 
   @override
-  Event read(BinaryReader reader) {
+  Temperature read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Event(
-      title: fields[1] as String,
-      date: fields[2] as DateTime,
-      description: fields[3] as String,
-      id: fields[0] as String,
-      durationTime: fields[4] as int,
-      weight: fields[5] as double,
-    );
+    return Temperature()
+      ..id = fields[0] as String
+      ..temperature = fields[1] as double;
   }
 
   @override
-  void write(BinaryWriter writer, Event obj) {
+  void write(BinaryWriter writer, Temperature obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(2)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.title)
-      ..writeByte(2)
-      ..write(obj.date)
-      ..writeByte(3)
-      ..write(obj.description)
-      ..writeByte(4)
-      ..write(obj.durationTime)
-      ..writeByte(5)
-      ..write(obj.weight);
+      ..write(obj.temperature);
   }
 
   @override
@@ -50,7 +37,7 @@ class EventAdapter extends TypeAdapter<Event> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is EventAdapter &&
+      other is TemperatureAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -1,46 +1,33 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'event_model.dart';
+part of 'weight_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class EventAdapter extends TypeAdapter<Event> {
+class WeightAdapter extends TypeAdapter<Weight> {
   @override
-  final int typeId = 1;
+  final int typeId = 5;
 
   @override
-  Event read(BinaryReader reader) {
+  Weight read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Event(
-      title: fields[1] as String,
-      date: fields[2] as DateTime,
-      description: fields[3] as String,
-      id: fields[0] as String,
-      durationTime: fields[4] as int,
-      weight: fields[5] as double,
-    );
+    return Weight()
+      ..id = fields[0] as String
+      ..weight = fields[1] as double;
   }
 
   @override
-  void write(BinaryWriter writer, Event obj) {
+  void write(BinaryWriter writer, Weight obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(2)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.title)
-      ..writeByte(2)
-      ..write(obj.date)
-      ..writeByte(3)
-      ..write(obj.description)
-      ..writeByte(4)
-      ..write(obj.durationTime)
-      ..writeByte(5)
       ..write(obj.weight);
   }
 
@@ -50,7 +37,7 @@ class EventAdapter extends TypeAdapter<Event> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is EventAdapter &&
+      other is WeightAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 import 'new_event_screen.dart';
 
 class MyCalendarScreen extends ConsumerWidget {
@@ -30,8 +29,13 @@ class MyCalendarScreen extends ConsumerWidget {
       }).toList();
     }
 
-    allEvents = addNewEvent(nameController, descriptionController,
-        dateController, ref, allEvents, selectDate);
+    String formatDuration(int durationInMinutes) {
+      int hours = durationInMinutes ~/ 60;
+      int minutes = durationInMinutes % 60;
+
+      String formattedDuration = '$hours:${minutes.toString().padLeft(2, '0')}';
+      return formattedDuration;
+    }
 
     return Scaffold(
       body: Column(
@@ -74,7 +78,22 @@ class MyCalendarScreen extends ConsumerWidget {
                 } else {
                   return ListTile(
                     title: Text(eventsOnSelectedDate![index].title),
-                    subtitle: Text(eventsOnSelectedDate![index].description),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        eventsOnSelectedDate![index].durationTime == 0
+                            ? eventsOnSelectedDate![index].weight == 0
+                                ? Text(eventsOnSelectedDate![index].description)
+                                : Text(
+                                    'Kg: ${(eventsOnSelectedDate![index].weight)}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold))
+                            : Text(
+                                'Duration: ${formatDuration(eventsOnSelectedDate![index].durationTime)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () => deleteEvent(
@@ -118,81 +137,4 @@ class MyCalendarScreen extends ConsumerWidget {
     allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
     selectDate(dateController, dateController);
   }
-
-//todo nie wywalac, potrzebne mi to na potem - patrys
-}
-
-List<Event>? addNewEvent(
-  TextEditingController nameController,
-  TextEditingController descriptionController,
-  DateTime dateController,
-  WidgetRef ref,
-  List<Event>? allEvents,
-  void Function(DateTime date, DateTime focusedDate) selectDate,
-) {
-  String eventName = nameController.text.trim();
-  String eventDescription = descriptionController.text.trim();
-
-  if (eventName.isNotEmpty && eventDescription.isNotEmpty) {
-    Event newEvent = Event(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: eventName,
-      description: eventDescription,
-      date: dateController,
-    );
-    ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
-    nameController.clear();
-    descriptionController.clear();
-    allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
-    selectDate(dateController, dateController);
-  }
-
-  return allEvents;
-}
-
-Future<dynamic> AddEventTemporaryTest(
-    BuildContext context,
-    TextEditingController nameController,
-    TextEditingController descriptionController,
-    DateTime dateController,
-    WidgetRef ref,
-    List<Event>? allEvents,
-    void Function(DateTime date, DateTime focusedDate) selectDate) {
-  return showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Add New Event'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Event Name'),
-            ),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(labelText: 'Event Description'),
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          ElevatedButton(
-            onPressed: () {
-              addNewEvent(nameController, descriptionController, dateController,
-                  ref, allEvents, selectDate);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Add'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      );
-    },
-  );
 }
