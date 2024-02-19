@@ -20,3 +20,6 @@ flutter pub run build_runner build
 
 while previous update doesn't work
 flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
+
+Real device relese version for testing
+flutter run --release

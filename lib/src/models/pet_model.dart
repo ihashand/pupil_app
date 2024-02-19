@@ -1,7 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/gender_enum.dart';
-import 'package:pet_diary/src/models/pet_color_enum.dart';
 import 'package:pet_diary/src/models/pet_walk_model.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
@@ -44,6 +42,9 @@ class Pet extends HiveObject {
   @HiveField(10)
   late List<Event> events;
 
+  @HiveField(11)
+  late String userId;
+
   Pet({
     required this.id,
     required this.name,
@@ -56,5 +57,6 @@ class Pet extends HiveObject {
     required this.pills,
     required this.walks,
     required this.events,
+    required this.userId,
   });
 }

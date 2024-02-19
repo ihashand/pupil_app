@@ -8,7 +8,10 @@ import 'package:pet_diary/src/components/my_button_widget.dart';
 import 'package:pet_diary/src/components/events/walk_event.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:pet_diary/src/providers/user_provider.dart';
+import 'package:pet_diary/src/screens/my_animals_screen.dart';
 import '../providers/event_provider.dart';
+import 'settings_screen.dart';
 
 class HomePageScreen extends ConsumerWidget {
   const HomePageScreen({super.key});
@@ -21,8 +24,7 @@ class HomePageScreen extends ConsumerWidget {
     var dateController = ref.watch(eventDateControllerProvider);
     var nameController = ref.watch(eventNameControllerProvider);
     var descriptionController = ref.watch(eventDescriptionControllerProvider);
-    User? user = FirebaseAuth.instance.currentUser;
-    String? displayName = user?.email;
+    User? user = ref.watch(userProvider); // Watch the user provider
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -47,7 +49,7 @@ class HomePageScreen extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            displayName ??
+                            FirebaseAuth.instance.currentUser?.email ??
                                 'Brak dostępnych informacji o użytkowniku',
                             style: const TextStyle(
                               fontSize: 20,
@@ -59,36 +61,97 @@ class HomePageScreen extends ConsumerWidget {
                       ),
                     ),
                     if (user != null)
-                      const Padding(
-                        padding: EdgeInsets.only(
-                          right: 12.0,
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SettingsScreen()),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            right: 12.0,
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor:
+                                const Color.fromARGB(255, 201, 120, 197),
+                            backgroundImage:
+                                ExactAssetImage(user.photoURL ?? ''),
+                            radius: 40,
+                          ),
                         ),
-                        child: CircleAvatar(
-                          backgroundColor: Color.fromARGB(255, 201, 120, 197),
-                          backgroundImage: ExactAssetImage(
-                              'assets/images/dog_avatar_07.png'),
-                          radius: 40,
-                        ),
-                      ),
+                      )
                   ]),
             ),
             const SizedBox(height: 10),
-            SizedBox(
-              height: 220,
-              // Ustaw konkretną wysokość dla ListView
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: pets?.length ?? 0,
-                itemBuilder: (context, index) {
-                  final currentPet = pets![index];
-                  return SizedBox(
-                    height: 200,
-                    width: 165,
-                    child: AnimalCard(pet: currentPet),
+            if (pets != null && pets.isEmpty)
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MyAnimalsScreen()),
                   );
                 },
+                child: Container(
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent, // Dostosuj kolor tła ikony
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    size: 80, // Dostosuj rozmiar ikony
+                    color: Colors.purple, // Dostosuj kolor ikony
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 220,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: pets?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final currentPet = pets![index];
+                    final petLenght = pets.length;
+                    return Row(
+                      children: [
+                        SizedBox(
+                          height: 220,
+                          width: 165,
+                          child: AnimalCard(pet: currentPet),
+                        ),
+                        if (petLenght - 1 == index)
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const MyAnimalsScreen()),
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors
+                                    .transparent, // Dostosuj kolor tła ikony
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 80, // Dostosuj rozmiar ikony
+                                color: Colors.purple, // Dostosuj kolor ikony
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
             const SizedBox(height: 30),
             Column(
               children: [
@@ -96,12 +159,13 @@ class HomePageScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'Invitation for a walk                ', //todo tu musze cos wymyslic, ale nie wiem jak to ogarnac nie chce zadzialac normalniej.
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'San Francisco',
+                          color: Theme.of(context).primaryColorDark,
                         ),
                       ),
                       TextButton(
@@ -128,7 +192,7 @@ class HomePageScreen extends ConsumerWidget {
                   width: 350.0,
                   fontSize: 14.0,
                   opacity: 0.6,
-                  bottomColor: Colors.white,
+                  bottomColor: Theme.of(context).colorScheme.primary,
                   topHeight: 130,
                   bottomHeight: 80,
                   bottomContent: Padding(
@@ -136,7 +200,7 @@ class HomePageScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
@@ -145,6 +209,7 @@ class HomePageScreen extends ConsumerWidget {
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'San Francisco',
+                                color: Theme.of(context).primaryColorDark,
                               ),
                             ),
                             Text(
@@ -152,6 +217,7 @@ class HomePageScreen extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontFamily: 'San Francisco',
+                                color: Theme.of(context).primaryColorDark,
                               ),
                             ),
                           ],
@@ -162,14 +228,13 @@ class HomePageScreen extends ConsumerWidget {
                                 const Color.fromARGB(255, 201, 120, 197),
                             minimumSize: const Size(20, 35),
                           ),
-                          onPressed: () {
-                            // Obsługa przycisku "Details"
-                          },
-                          child: const Text(
+                          onPressed: () {},
+                          child: Text(
                             'Route',
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: 'San Francisco',
+                              color: Theme.of(context).primaryColorDark,
                             ),
                           ),
                         ),

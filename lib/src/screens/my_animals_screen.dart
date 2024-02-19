@@ -1,4 +1,5 @@
 import 'package:add_2_calendar/add_2_calendar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/data/services/local_notification_service.dart';
@@ -10,10 +11,11 @@ class MyAnimalsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var currentUser = FirebaseAuth.instance.currentUser;
     var pets = ref.watch(petRepositoryProvider).value?.getPets();
-    final namePetController = ref.watch(petNameControllerProvider);
-    final ageController = ref.watch(ageControllerProvider);
-    final selectedAvatar = ref.watch(selectedAvatarProvider);
+    final namePetController = ref.watch(petNameProvider);
+    final ageController = ref.watch(petAgeProvider);
+    final selectedAvatar = ref.watch(petImageProvider);
     final localNotificationService = LocalNotificationService();
 
     Future<void> addNewPet() async {
@@ -21,7 +23,10 @@ class MyAnimalsScreen extends ConsumerWidget {
       String petAge = ageController.text.trim();
 
       if (newName.isNotEmpty && petAge.isNotEmpty) {
-        Pet newPet = Pet(
+        if (currentUser != null) {
+          String userId = currentUser.uid;
+
+          Pet newPet = Pet(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
             name: newName,
             image: selectedAvatar,
@@ -32,37 +37,41 @@ class MyAnimalsScreen extends ConsumerWidget {
             temperatures: [],
             pills: [],
             walks: [],
-            events: []);
+            events: [],
+            userId: userId,
+          );
 
-        await ref.watch(petRepositoryProvider).value?.addPet(newPet);
-        namePetController.clear();
-        ageController.clear();
-        localNotificationService.showLocalNotification(
-          'Yay you did it!',
-          'Congrats on your first local notification',
-        );
+          await ref.watch(petRepositoryProvider).value?.addPet(newPet);
+          namePetController.clear();
+          ageController.clear();
+          localNotificationService.showLocalNotification(
+            'Yay you did it!',
+            'Congrats on your first local notification',
+          );
 
-        DateTime now = DateTime.now().toLocal();
-        DateTime(now.year, now.month, now.day + 1, 9, 0);
+          DateTime now = DateTime.now().toLocal();
+          DateTime(now.year, now.month, now.day + 1, 9, 0);
 
-        final Event event = Event(
-          title: 'Spacer z $newName',
-          description: 'Nie ma lipy, idziemy na spacer!',
-          location: 'Dwór (chyba że jesteś w Krakowie to pole)',
-          startDate: DateTime(now.year, now.month, now.day + 1, 9, 0),
-          endDate: DateTime(now.year, now.month, now.day + 1, 9, 30),
-          iosParams: const IOSParams(
-            reminder: Duration(
-              minutes: 15,
+          final Event event = Event(
+            title: 'Spacer z $newName',
+            description: 'Nie ma lipy, idziemy na spacer!',
+            location: 'Dwór (chyba że jesteś w Krakowie to pole)',
+            startDate: DateTime(now.year, now.month, now.day + 1, 9, 0),
+            endDate: DateTime(now.year, now.month, now.day + 1, 9, 30),
+            iosParams: const IOSParams(
+              reminder: Duration(
+                minutes: 15,
+              ),
             ),
-          ),
-          recurrence: Recurrence(
-            frequency: Frequency.daily,
-            interval: 1,
-            ocurrences: 30,
-          ),
-        );
-        Add2Calendar.addEvent2Cal(event);
+            recurrence: Recurrence(
+              frequency: Frequency.daily,
+              interval: 1,
+              ocurrences: 30,
+            ),
+          );
+
+          // Add2Calendar.addEvent2Cal(event); //todo add to phone calendar
+        }
       }
       pets = ref.refresh(petRepositoryProvider).value?.getPets();
     }
@@ -104,8 +113,7 @@ class MyAnimalsScreen extends ConsumerWidget {
                   return ListTile(
                     title: Image.asset(avatarPath),
                     onTap: () {
-                      ref.read(selectedAvatarProvider.notifier).state =
-                          avatarPath;
+                      ref.read(petImageProvider.notifier).state = avatarPath;
                       Navigator.of(context).pop();
                     },
                   );
@@ -133,10 +141,6 @@ class MyAnimalsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: addNewPet,
-                  child: const Text('Add Pet'),
-                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -156,7 +160,21 @@ class MyAnimalsScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: selectAvatarImage,
-              child: const Text('Select Avatar'),
+              child: Text(
+                'Select Avatar',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: addNewPet,
+              child: Text(
+                'Add Pet',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
             ),
           ],
         ),
@@ -173,9 +191,9 @@ class MyAnimalsScreen extends ConsumerWidget {
       return ListView.builder(
         itemCount: pets!.length,
         itemBuilder: (context, index) {
-          final pet = pets![index];
+          final pet = pets?[index];
           return ListTile(
-            title: Text('${pet.name} - Age: ${pet.age}'),
+            title: Text('${pet?.name} - Age: ${pet?.age}'),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => deletePet(index),
@@ -186,6 +204,9 @@ class MyAnimalsScreen extends ConsumerWidget {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+      ),
       body: Column(
         children: [
           const SizedBox(height: 50),

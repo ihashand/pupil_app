@@ -28,13 +28,14 @@ class PetAdapter extends TypeAdapter<Pet> {
       pills: (fields[8] as List).cast<Pill>(),
       walks: (fields[9] as List).cast<PetWalk>(),
       events: (fields[10] as List).cast<Event>(),
+      userId: fields[11] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Pet obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class PetAdapter extends TypeAdapter<Pet> {
       ..writeByte(9)
       ..write(obj.walks)
       ..writeByte(10)
-      ..write(obj.events);
+      ..write(obj.events)
+      ..writeByte(11)
+      ..write(obj.userId);
   }
 
   @override

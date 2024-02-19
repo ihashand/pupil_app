@@ -22,6 +22,7 @@ Future<void> main() async {
 
   final hiveService = HiveService();
   await hiveService.initHive();
+
   await LocalNotificationService().setup();
   initializeDateFormatting('en_US', null);
 

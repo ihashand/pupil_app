@@ -9,6 +9,7 @@ ThemeData darkMode = ThemeData(
         secondary: Colors.grey.shade700,
         tertiary: Colors.grey.shade800,
         inversePrimary: Colors.grey.shade300),
+    primaryColorDark: Colors.white,
     cardColor: const Color.fromARGB(255, 214, 188, 225),
     textTheme: ThemeData.dark()
         .textTheme

@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:pet_diary/src/components/my_textfield.dart';
 import 'package:pet_diary/src/components/signin_button.dart';
 import 'package:pet_diary/src/helper/helper_functions.dart';
+import 'package:pet_diary/src/models/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function()? onTap;
@@ -29,6 +31,12 @@ class _LoginScreenState extends State<LoginScreen> {
       // Sign in with email and password
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
+      var currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        var userBox = await Hive.openBox<LocalUser>('localUserBox');
+        userBox.put('currentUser', LocalUser(currentUser.uid, '', ''));
+      }
 
       // Pop loading circle
       if (context.mounted) {

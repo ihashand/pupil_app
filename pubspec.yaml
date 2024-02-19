@@ -26,7 +26,8 @@ dependencies:
   intl: ^0.18.1
   table_calendar: ^3.0.9
   flutter_local_notifications: ^16.3.0
-  fl_chart: ^0.40.0
+  fl_chart: ^0.66.2
+  image_picker: ^1.0.7
 
 dev_dependencies:
   flutter_test:
@@ -35,7 +36,7 @@ dev_dependencies:
   hive_generator: ^2.0.0
   build_runner: ^2.4.7
   riverpod_generator: ^2.3.9
-  custom_lint: ^0.5.7
+  custom_lint: ^0.6.0
   riverpod_lint: ^2.3.7
   font_awesome_flutter: ^10.6.0
 

@@ -1,9 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 
 class PetRepository {
   late Box<Pet> _hive;
   late List<Pet> _box;
+
+  var currentUser = FirebaseAuth.instance.currentUser;
+
   PetRepository._create();
 
   static Future<PetRepository> create() async {
@@ -18,7 +22,9 @@ class PetRepository {
   }
 
   List<Pet> getPets() {
-    return _box;
+    List<Pet> test =
+        _box.where((element) => element.userId == currentUser?.uid).toList();
+    return test;
   }
 
   Future<void> addPet(Pet pet) async {
