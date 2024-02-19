@@ -12,7 +12,14 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeProvider);
-    User? user = ref.watch(userProvider); // Watch the user provider
+    User? user = ref.watch(userProvider);
+
+    Future<void> _updateAvatar(String? filePath, WidgetRef ref) async {
+      if (filePath != null) {
+        await user?.updatePhotoURL(filePath);
+        ref.refresh(userProvider);
+      }
+    }
 
     Future<void> showAvatarSelectionDialog() async {
       final picker = ImagePicker();
@@ -31,8 +38,7 @@ class SettingsScreen extends ConsumerWidget {
                     source: ImageSource.gallery,
                   );
                   if (pickedFile != null) {
-                    await user?.updatePhotoURL(pickedFile.path);
-                    ref.refresh(userProvider);
+                    await _updateAvatar(pickedFile.path, ref);
                   }
                 },
               ),
@@ -45,8 +51,18 @@ class SettingsScreen extends ConsumerWidget {
                     source: ImageSource.camera,
                   );
                   if (pickedFile != null) {
-                    await user?.updatePhotoURL(pickedFile.path);
-                    ref.refresh(userProvider);
+                    await _updateAvatar(pickedFile.path, ref);
+                  }
+                },
+              ),
+              // Display a loading indicator while updating avatar
+              FutureBuilder<void>(
+                future: _updateAvatar(null, ref),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else {
+                    return const SizedBox.shrink();
                   }
                 },
               ),
@@ -117,7 +133,7 @@ class SettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 25.0, bottom: 25),
             child: ListTile(
-              title: const Text("L O G O U T"),
+              title: const Text("LOGOUT"),
               onTap: () async {
                 Navigator.pop(context);
                 await FirebaseAuth.instance.signOut();

@@ -13,26 +13,33 @@ class MyAnimalsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var currentUser = FirebaseAuth.instance.currentUser;
     var pets = ref.watch(petRepositoryProvider).value?.getPets();
-    final namePetController = ref.watch(petNameProvider);
-    final ageController = ref.watch(petAgeProvider);
-    final selectedAvatar = ref.watch(petImageProvider);
+    final petNameController = ref.watch(petNameProvider);
+    final petAgeController = ref.watch(petAgeProvider);
+    final petGenderController = ref.watch(petGenderProvider);
+    final petColorController = ref.watch(petColorProvider);
+    final petSelectedAvatar = ref.watch(petImageProvider);
     final localNotificationService = LocalNotificationService();
 
     Future<void> addNewPet() async {
-      String newName = namePetController.text.trim();
-      String petAge = ageController.text.trim();
+      String petName = petNameController.text.trim();
+      String petAge = petAgeController.text.trim();
+      String petColor = petColorController.text.trim();
+      String petGender = petGenderController.text.trim();
 
-      if (newName.isNotEmpty && petAge.isNotEmpty) {
+      if (petName.isNotEmpty &&
+          petAge.isNotEmpty &&
+          petGender.isNotEmpty &&
+          petColor.isNotEmpty) {
         if (currentUser != null) {
           String userId = currentUser.uid;
 
           Pet newPet = Pet(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            name: newName,
-            image: selectedAvatar,
+            name: petName,
+            image: petSelectedAvatar,
             age: petAge,
-            gender: '',
-            color: '',
+            gender: petGender,
+            color: petColor,
             weights: [],
             temperatures: [],
             pills: [],
@@ -42,8 +49,11 @@ class MyAnimalsScreen extends ConsumerWidget {
           );
 
           await ref.watch(petRepositoryProvider).value?.addPet(newPet);
-          namePetController.clear();
-          ageController.clear();
+          petNameController.clear();
+          petAgeController.clear();
+          petGenderController.clear();
+          petColorController.clear();
+
           localNotificationService.showLocalNotification(
             'Yay you did it!',
             'Congrats on your first local notification',
@@ -53,7 +63,7 @@ class MyAnimalsScreen extends ConsumerWidget {
           DateTime(now.year, now.month, now.day + 1, 9, 0);
 
           final Event event = Event(
-            title: 'Spacer z $newName',
+            title: 'Spacer z $petName',
             description: 'Nie ma lipy, idziemy na spacer!',
             location: 'Dwór (chyba że jesteś w Krakowie to pole)',
             startDate: DateTime(now.year, now.month, now.day + 1, 9, 0),
@@ -125,30 +135,110 @@ class MyAnimalsScreen extends ConsumerWidget {
       );
     }
 
+    void selectColor() {
+      List<String> colorOptions = [
+        'black',
+        'brown',
+        'chocolate',
+        'white',
+        'gray',
+        'red',
+        'fawn',
+        'sable',
+        'blue',
+        'cream,',
+        'brindle',
+        'merle',
+        'tan',
+        'gold',
+        'yellow',
+        'orange',
+        'green',
+        'brown',
+        'black',
+      ];
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select color'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                itemCount: colorOptions.length,
+                itemBuilder: (context, index) {
+                  final color = colorOptions[index];
+                  return ListTile(
+                    title: Text(color),
+                    onTap: () {
+                      petColorController.text = color;
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    void selectGender() {
+      List<String> genders = [
+        'male',
+        'female',
+      ];
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select gender'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                itemCount: genders.length,
+                itemBuilder: (context, index) {
+                  final petGender = genders[index];
+                  return ListTile(
+                    title: Text(petGender),
+                    onTap: () {
+                      petGenderController.text = petGender;
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     Widget buildAddPetField() {
       return Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: namePetController,
+                    controller: petNameController,
                     decoration: const InputDecoration(
                       hintText: 'Enter new pet name',
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: ageController,
+                    controller: petAgeController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       hintText: 'Enter pet age',
@@ -167,6 +257,27 @@ class MyAnimalsScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: selectColor,
+              child: Text(
+                'Select Color',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: selectGender,
+              child: Text(
+                'Select gender',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: addNewPet,
               child: Text(
@@ -193,7 +304,8 @@ class MyAnimalsScreen extends ConsumerWidget {
         itemBuilder: (context, index) {
           final pet = pets?[index];
           return ListTile(
-            title: Text('${pet?.name} - Age: ${pet?.age}'),
+            title: Text(
+                '${pet?.name} - Age: ${pet?.age} - G: ${pet?.gender} - C: ${pet?.color}'),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () => deletePet(index),

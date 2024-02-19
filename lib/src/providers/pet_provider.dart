@@ -30,12 +30,12 @@ final petAgeProvider = Provider<TextEditingController>((ref) {
   return TextEditingController(); // Initial value for pet name
 });
 
-final petGenderProvider = StateProvider<String>((ref) {
-  return 'Male'; // Initial value for pet gender
+final petGenderProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController();
 });
 
-final petColorProvider = StateProvider<String>((ref) {
-  return 'Brown'; // Initial value for pet color
+final petColorProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController(); // Initial value for pet name
 });
 
 final petWeightsProvider = StateProvider<List<Weight>>((ref) {
@@ -66,8 +66,8 @@ final petProvider = Provider<Pet>((ref) {
     name: ref.watch(petNameProvider).text,
     image: ref.watch(petImageProvider),
     age: ref.watch(petAgeProvider).text,
-    gender: ref.watch(petGenderProvider),
-    color: ref.watch(petColorProvider),
+    gender: ref.watch(petGenderProvider).text,
+    color: ref.watch(petColorProvider).text,
     weights: ref.watch(petWeightsProvider),
     temperatures: ref.watch(petTemperaturesProvider),
     pills: ref.watch(petPillsProvider),
