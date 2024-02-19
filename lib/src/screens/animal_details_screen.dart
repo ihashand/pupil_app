@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/screens/my_calendar_screen.dart';
 
 class AnimalDetailsScreen extends ConsumerWidget {
   final Pet pet;
 
   const AnimalDetailsScreen({
-    Key? key,
+    super.key,
     required this.pet,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0, // Usunięcie cienia z AppBar
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height:
-                  200, // Możesz dostosować wysokość obrazu do swoich potrzeb
+              height: 200,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
@@ -47,8 +48,27 @@ class AnimalDetailsScreen extends ConsumerWidget {
                       fontFamily: 'San Francisco',
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    pet.name,
+                    'Name: ${pet.name}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'San Francisco',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Gender: ${pet.gender}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'San Francisco',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Color: ${pet.color}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -56,13 +76,22 @@ class AnimalDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Tutaj możesz dodać więcej informacji na temat zwierzaka
                 ],
               ),
             ),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyCalendarScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

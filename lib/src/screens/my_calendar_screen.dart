@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/components/events/create_event_module.dart';
+import 'package:pet_diary/src/components/events/delete_event_module.dart';
+import 'package:pet_diary/src/components/events/event_modules.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'new_event_screen.dart';
 
 class MyCalendarScreen extends ConsumerWidget {
   const MyCalendarScreen({super.key});
@@ -32,41 +33,52 @@ class MyCalendarScreen extends ConsumerWidget {
     String formatDuration(int durationInMinutes) {
       int hours = durationInMinutes ~/ 60;
       int minutes = durationInMinutes % 60;
-
       String formattedDuration = '$hours:${minutes.toString().padLeft(2, '0')}';
       return formattedDuration;
     }
 
+    // Creating modules using the provided function
+    var modules = createEventModule(context, nameController,
+        descriptionController, dateController, ref, allEvents!);
+
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          DateFormat(
+            'MMMM',
+            'en_US',
+          ).format(dateController),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        toolbarHeight: 33,
+      ),
       body: Column(
         children: <Widget>[
-          const SizedBox(height: 60),
-          TableCalendar(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2035, 12, 31),
-            focusedDay: dateController,
-            calendarFormat: CalendarFormat.month,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            selectedDayPredicate: (day) {
-              return isSameDay(dateController, day);
-            },
-            onDaySelected: selectDate,
-            locale: 'en_US',
-            headerStyle: HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-              leftChevronIcon: Icon(Icons.chevron_left,
-                  color: Theme.of(context).colorScheme.inversePrimary),
-              rightChevronIcon: Icon(Icons.chevron_right,
-                  color: Theme.of(context).colorScheme.inversePrimary),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+            child: TableCalendar(
+              firstDay: DateTime.now().subtract(const Duration(days: 7)),
+              lastDay: DateTime.now().add(const Duration(days: 7)),
+              focusedDay: dateController,
+              calendarFormat: CalendarFormat.week,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              selectedDayPredicate: (day) {
+                return isSameDay(dateController, day);
+              },
+              onDaySelected: selectDate,
+              locale: 'en_US',
+              headerVisible: false,
             ),
           ),
-          const SizedBox(height: 20),
           Text(
             'Events for ${DateFormat('dd/MM/yyyy').format(dateController)}:',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          Expanded(
+          // First ListView.builder for displaying events
+          SizedBox(
+            height: 133,
             child: ListView.builder(
               itemCount: eventsOnSelectedDate?.length ?? 0,
               itemBuilder: (context, index) {
@@ -96,7 +108,7 @@ class MyCalendarScreen extends ConsumerWidget {
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () => deleteEvent(
+                      onPressed: () => deleteEventModule(
                           ref, allEvents, selectDate, dateController, index),
                     ),
                   );
@@ -104,37 +116,10 @@ class MyCalendarScreen extends ConsumerWidget {
               },
             ),
           ),
+
+          EventModules(modules: modules),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => NewEventScreen(
-                  context,
-                  nameController,
-                  descriptionController,
-                  dateController,
-                  ref,
-                  allEvents,
-                  selectDate),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
     );
-  }
-
-  void deleteEvent(
-    WidgetRef ref,
-    List<Event>? allEvents,
-    void Function(DateTime date, DateTime focusedDate) selectDate,
-    DateTime dateController,
-    int index,
-  ) async {
-    await ref.watch(eventRepositoryProvider).value?.deleteEvent(index);
-    allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
-    selectDate(dateController, dateController);
   }
 }

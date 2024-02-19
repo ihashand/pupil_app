@@ -87,8 +87,5 @@ Future<void> walkEvent(
     },
   );
 
-  if (!isHomeEvent) {
-    Navigator.of(context).pop();
-  }
   return Future.value();
 }
