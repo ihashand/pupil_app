@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
-import 'package:pet_diary/src/components/events/walk_event.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pet_diary/src/providers/user_provider.dart';
 import 'package:pet_diary/src/screens/new_pet_screen.dart';
-import '../providers/event_provider.dart';
 import 'settings_screen.dart';
 
 class HomePageScreen extends ConsumerWidget {
@@ -19,10 +16,7 @@ class HomePageScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final petState = ref.watch(petRepositoryProvider);
     final pets = petState.value?.getPets();
-    var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
-    var dateController = ref.watch(eventDateControllerProvider);
-    var nameController = ref.watch(eventNameControllerProvider);
-    var descriptionController = ref.watch(eventDescriptionControllerProvider);
+
     User? user = ref.watch(userProvider); // Watch the user provider
 
     return SafeArea(

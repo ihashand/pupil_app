@@ -6,9 +6,9 @@ class AnimalCard extends StatelessWidget {
   final Pet pet;
 
   const AnimalCard({
-    Key? key,
+    super.key,
     required this.pet,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

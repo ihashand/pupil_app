@@ -17,6 +17,7 @@ class SettingsScreen extends ConsumerWidget {
     Future<void> _updateAvatar(String? filePath, WidgetRef ref) async {
       if (filePath != null) {
         await user?.updatePhotoURL(filePath);
+        // ignore: unused_result
         ref.refresh(userProvider);
       }
     }

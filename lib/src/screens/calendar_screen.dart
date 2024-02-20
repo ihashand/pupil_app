@@ -45,7 +45,7 @@ class CalendarScreen extends ConsumerWidget {
 
     // Creating modules using the provided function
     var modules = createEventModule(context, nameController,
-        descriptionController, dateController, ref, allEvents!, pet);
+        descriptionController, dateController, ref, allEvents, pet);
 
     return Scaffold(
       appBar: AppBar(
@@ -125,7 +125,7 @@ class CalendarScreen extends ConsumerWidget {
               },
             ),
           ),
-          EventModules(modules: modules),
+          EventModules(modules: modules!),
         ],
       ),
     );

@@ -155,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     else {
       try {
         // Create user
+        // ignore: unused_local_variable
         UserCredential? userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
                 email: emailController.text, password: passwordController.text);
