@@ -3,13 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/animal_card.dart';
-import 'package:pet_diary/src/components/events/weight_event.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
 import 'package:pet_diary/src/components/events/walk_event.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pet_diary/src/providers/user_provider.dart';
-import 'package:pet_diary/src/screens/my_animals_screen.dart';
+import 'package:pet_diary/src/screens/new_pet_screen.dart';
 import '../providers/event_provider.dart';
 import 'settings_screen.dart';
 
@@ -91,11 +90,11 @@ class HomePageScreen extends ConsumerWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const MyAnimalsScreen()),
+                        builder: (context) => const NewPetScreen()),
                   );
                 },
                 child: Container(
-                  padding: EdgeInsets.all(5),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: Colors.transparent, // Dostosuj kolor tła ikony
                     borderRadius: BorderRadius.circular(10),
@@ -129,12 +128,11 @@ class HomePageScreen extends ConsumerWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                        const MyAnimalsScreen()),
+                                    builder: (context) => const NewPetScreen()),
                               );
                             },
                             child: Container(
-                              padding: EdgeInsets.all(5),
+                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                 color: Colors
                                     .transparent, // Dostosuj kolor tła ikony
@@ -160,7 +158,7 @@ class HomePageScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Invitation for a walk                ', //todo tu musze cos wymyslic, ale nie wiem jak to ogarnac nie chce zadzialac normalniej.
+                        'Invitation for a walk                ',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -241,82 +239,6 @@ class HomePageScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                MyButtonWidget(
-                  iconData: Icons.nordic_walking_sharp,
-                  label: 'W A L K',
-                  onTap: () {
-                    walkEvent(
-                        isHomeEvent: true,
-                        context,
-                        nameController,
-                        descriptionController,
-                        dateController,
-                        ref,
-                        allEvents,
-                        (date, focusedDate) {},
-                        0,
-                        0);
-                  },
-                  color: const Color.fromARGB(255, 201, 120, 197),
-                  opacity: 0.6,
-                  borderRadius: 20.0,
-                  iconSize: 30.0,
-                  fontSize: 12.0,
-                  fontFamily: 'San Francisco',
-                ),
-                MyButtonWidget(
-                  iconData: FontAwesomeIcons.weightScale,
-                  label: 'W E I G H T',
-                  onTap: () {
-                    weightEvent(
-                        context,
-                        nameController,
-                        descriptionController,
-                        dateController,
-                        ref,
-                        allEvents,
-                        isHomeEvent: true,
-                        (date, focusedDate) {},
-                        0,
-                        0);
-                  },
-                  color: const Color.fromARGB(255, 201, 120, 197),
-                  opacity: 0.6,
-                  borderRadius: 20.0,
-                  iconSize: 30.0,
-                  fontSize: 12.0,
-                  fontFamily: 'San Francisco',
-                ),
-                MyButtonWidget(
-                  iconData: Icons.check,
-                  label: 'R E M I N D E R',
-                  onTap: () {},
-                  color: const Color.fromARGB(255, 201, 120, 197),
-                  opacity: 0.6,
-                  borderRadius: 20.0,
-                  iconSize: 30.0,
-                  fontSize: 12.0,
-                  fontFamily: 'San Francisco',
-                ),
-                MyButtonWidget(
-                  iconData: Icons.person,
-                  label: 'V E T',
-                  onTap: () {},
-                  color: const Color.fromARGB(255, 201, 120, 197),
-                  opacity: 0.6,
-                  borderRadius: 20.0,
-                  iconSize: 30.0,
-                  fontSize: 12.0,
-                  fontFamily: 'San Francisco',
                 ),
               ],
             ),

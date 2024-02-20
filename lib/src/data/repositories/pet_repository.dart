@@ -22,9 +22,9 @@ class PetRepository {
   }
 
   List<Pet> getPets() {
-    List<Pet> test =
+    List<Pet> pets =
         _box.where((element) => element.userId == currentUser?.uid).toList();
-    return test;
+    return pets;
   }
 
   Future<void> addPet(Pet pet) async {

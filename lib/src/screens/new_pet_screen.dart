@@ -6,8 +6,8 @@ import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
-class MyAnimalsScreen extends ConsumerWidget {
-  const MyAnimalsScreen({super.key});
+class NewPetScreen extends ConsumerWidget {
+  const NewPetScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

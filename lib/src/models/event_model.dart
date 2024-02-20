@@ -22,12 +22,19 @@ class Event extends HiveObject {
   @HiveField(5)
   double weight;
 
+  @HiveField(6)
+  String userId;
+
+  @HiveField(7)
+  String petId;
+
   Event(
       {required this.title,
       required this.date,
-      this.description = '',
+      required this.description,
       required this.id,
-      r,
-      this.durationTime = 0,
-      this.weight = 0});
+      required this.durationTime,
+      required this.weight,
+      required this.userId,
+      required this.petId});
 }

@@ -15,6 +15,8 @@ Future<void> walkEvent(
     int durationTime,
     double
         weight, // if it is not set, default value is description no duration time. Check it in my_calendar_screen
+    String userId,
+    String petId,
     {bool isHomeEvent = false}) async {
   nameController.text = "Walk";
 
@@ -77,8 +79,17 @@ Future<void> walkEvent(
                 );
                 if (!confirm) return;
               }
-              addNewEvent(nameController, descriptionController, dateController,
-                  ref, allEvents, selectDate, durationTime, weight);
+              addNewEvent(
+                  nameController,
+                  descriptionController,
+                  dateController,
+                  ref,
+                  allEvents,
+                  selectDate,
+                  durationTime,
+                  weight,
+                  userId,
+                  petId);
               Navigator.of(context).pop();
             },
           ),

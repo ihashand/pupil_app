@@ -4,20 +4,26 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/create_event_module.dart';
 import 'package:pet_diary/src/components/events/delete_event_module.dart';
 import 'package:pet_diary/src/components/events/event_modules.dart';
+import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class MyCalendarScreen extends ConsumerWidget {
-  const MyCalendarScreen({super.key});
+class CalendarScreen extends ConsumerWidget {
+  const CalendarScreen(this.pet, {super.key});
+  final Pet pet;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    // .where((element) => element.petId == pet.id).toList()
     var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
     var dateController = ref.watch(eventDateControllerProvider);
     var nameController = ref.watch(eventNameControllerProvider);
     var descriptionController = ref.watch(eventDescriptionControllerProvider);
-
-    var eventsOnSelectedDate = allEvents?.where((event) {
+    var petEvents = allEvents?.where((element) => element.petId == pet.id);
+    var eventsOnSelectedDate = petEvents?.where((event) {
       return DateFormat('yyyy-MM-dd').format(event.date) ==
           DateFormat('yyyy-MM-dd').format(dateController);
     }).toList();
@@ -39,7 +45,7 @@ class MyCalendarScreen extends ConsumerWidget {
 
     // Creating modules using the provided function
     var modules = createEventModule(context, nameController,
-        descriptionController, dateController, ref, allEvents!);
+        descriptionController, dateController, ref, allEvents!, pet);
 
     return Scaffold(
       appBar: AppBar(
@@ -76,7 +82,6 @@ class MyCalendarScreen extends ConsumerWidget {
             'Events for ${DateFormat('dd/MM/yyyy').format(dateController)}:',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          // First ListView.builder for displaying events
           SizedBox(
             height: 133,
             child: ListView.builder(
@@ -116,7 +121,6 @@ class MyCalendarScreen extends ConsumerWidget {
               },
             ),
           ),
-
           EventModules(modules: modules),
         ],
       ),

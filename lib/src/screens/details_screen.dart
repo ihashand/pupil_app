@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/screens/my_calendar_screen.dart';
+import 'package:pet_diary/src/screens/calendar_screen.dart';
 
-class AnimalDetailsScreen extends ConsumerWidget {
+class DetailsScreen extends ConsumerWidget {
   final Pet pet;
 
-  const AnimalDetailsScreen({
+  const DetailsScreen({
     super.key,
     required this.pet,
   });
@@ -86,7 +86,7 @@ class AnimalDetailsScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const MyCalendarScreen()),
+            MaterialPageRoute(builder: (context) => CalendarScreen(pet)),
           );
         },
         child: const Icon(Icons.add),

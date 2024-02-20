@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/screens/animal_details_screen.dart';
+import 'package:pet_diary/src/screens/details_screen.dart';
 
 class AnimalCard extends StatelessWidget {
   final Pet pet;
@@ -86,7 +86,7 @@ class AnimalCard extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AnimalDetailsScreen(pet: pet),
+                            builder: (context) => DetailsScreen(pet: pet),
                           ),
                         );
                       },

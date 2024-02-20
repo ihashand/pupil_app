@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pet_diary/src/screens/home_page_screen.dart';
-import 'my_animals_screen.dart';
-import 'my_calendar_screen.dart';
+import 'new_pet_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,8 +14,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const HomePageScreen(),
-    const MyAnimalsScreen(),
-    const MyCalendarScreen(),
+    const NewPetScreen(),
     const SettingsScreen(),
   ];
 
@@ -28,9 +26,8 @@ class HomeScreenState extends State<HomeScreen> {
         return "Home";
       case 1:
         return "My Animals";
+
       case 2:
-        return "Profile";
-      case 3:
         return "Settings";
       default:
         return "My Pupils";
@@ -54,13 +51,6 @@ class HomeScreenState extends State<HomeScreen> {
           GButton(
             icon: Icons.pets,
             text: "Pupils",
-            iconColor: Color.fromARGB(255, 103, 146, 167),
-            hoverColor: Color.fromARGB(255, 103, 146, 167),
-            iconActiveColor: Color.fromARGB(255, 103, 146, 167),
-          ),
-          GButton(
-            icon: Icons.calendar_month,
-            text: "Callendar",
             iconColor: Color.fromARGB(255, 103, 146, 167),
             hoverColor: Color.fromARGB(255, 103, 146, 167),
             iconActiveColor: Color.fromARGB(255, 103, 146, 167),

@@ -11,7 +11,9 @@ List<Event>? addNewEvent(
     List<Event>? allEvents,
     void Function(DateTime date, DateTime focusedDate) selectDate,
     int durationTime,
-    double weight) {
+    double weight,
+    String userId,
+    String petId) {
   String eventName = nameController.text.trim();
   String eventDescription = descriptionController.text.trim();
 
@@ -22,7 +24,9 @@ List<Event>? addNewEvent(
         description: eventDescription,
         date: dateController,
         durationTime: durationTime,
-        weight: weight);
+        weight: weight,
+        userId: userId,
+        petId: petId);
     ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
     nameController.clear();
     descriptionController.clear();
