@@ -7,9 +7,12 @@ void deleteEventModule(
   List<Event>? allEvents,
   void Function(DateTime date, DateTime focusedDate) selectDate,
   DateTime dateController,
-  int index,
+  String id,
 ) async {
-  await ref.watch(eventRepositoryProvider).value?.deleteEvent(index);
+  final int indexToDelete =
+      allEvents?.indexWhere((event) => event.id == id) ?? -1;
+
+  await ref.watch(eventRepositoryProvider).value?.deleteEvent(indexToDelete);
   allEvents = ref.refresh(eventRepositoryProvider).value?.getEvents();
   selectDate(dateController, dateController);
 }

@@ -114,7 +114,11 @@ class CalendarScreen extends ConsumerWidget {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () => deleteEventModule(
-                          ref, allEvents, selectDate, dateController, index),
+                          ref,
+                          allEvents,
+                          selectDate,
+                          dateController,
+                          eventsOnSelectedDate![index].id),
                     ),
                   );
                 }

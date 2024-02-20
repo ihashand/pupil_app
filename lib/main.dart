@@ -11,7 +11,6 @@ import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/new_pet_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
-import 'src/screens/calendar_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Future<void> main() async {
