@@ -125,7 +125,7 @@ class CalendarScreen extends ConsumerWidget {
               },
             ),
           ),
-          EventModules(modules: modules!),
+          EventModules(modules: modules),
         ],
       ),
     );

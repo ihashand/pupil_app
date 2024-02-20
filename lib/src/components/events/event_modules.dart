@@ -21,6 +21,7 @@ class EventModules extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
+                  height: 130,
                   decoration: BoxDecoration(
                     color: module.moduleColor,
                     borderRadius: BorderRadius.circular(module.borderRadius),

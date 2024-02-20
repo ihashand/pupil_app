@@ -11,20 +11,30 @@ class MyButtonWidget extends StatelessWidget {
   final double iconSize;
   final double fontSize;
   final String fontFamily;
+  final double iconWeight;
+  final double iconFill;
+  final double iconGrade;
+  final double iconOpticalSize;
+  final Color iconColor;
 
-  const MyButtonWidget({
-    Key? key,
-    this.iconData,
-    this.assetName,
-    required this.label,
-    required this.onTap,
-    this.color = Colors.blue,
-    this.opacity = 1.0,
-    this.borderRadius = 10.0,
-    this.iconSize = 40.0,
-    this.fontSize = 16.0,
-    this.fontFamily = 'San Francisco',
-  }) : assert(iconData != null || assetName != null,
+  const MyButtonWidget(
+      {Key? key,
+      this.iconData,
+      this.assetName,
+      required this.label,
+      required this.onTap,
+      this.color = Colors.blue,
+      this.opacity = 1.0,
+      this.borderRadius = 10.0,
+      this.iconSize = 40.0,
+      this.fontSize = 16.0,
+      this.fontFamily = 'San Francisco',
+      this.iconWeight = 1,
+      this.iconFill = 1,
+      this.iconGrade = 1,
+      this.iconOpticalSize = 1,
+      this.iconColor = Colors.white})
+      : assert(iconData != null || assetName != null,
             'You have to set iconData, or assetName');
 
   @override
@@ -35,13 +45,21 @@ class MyButtonWidget extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(1),
             decoration: BoxDecoration(
               color: color.withOpacity(opacity),
               borderRadius: BorderRadius.circular(borderRadius),
             ),
             child: iconData != null
-                ? Icon(iconData, color: Colors.white, size: iconSize)
+                ? Icon(
+                    iconData,
+                    color: iconColor,
+                    size: iconSize,
+                    weight: iconWeight,
+                    fill: iconFill,
+                    grade: iconGrade,
+                    opticalSize: iconOpticalSize,
+                  )
                 : Image.asset(assetName!, width: iconSize, height: iconSize),
           ),
           const SizedBox(height: 8),
