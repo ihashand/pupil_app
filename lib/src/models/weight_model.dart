@@ -8,4 +8,10 @@ class Weight extends HiveObject {
 
   @HiveField(1)
   late double weight;
+
+  @HiveField(2)
+  late String eventId;
+
+  @HiveField(3)
+  late String petId;
 }

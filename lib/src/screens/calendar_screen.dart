@@ -4,25 +4,23 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/create_event_module.dart';
 import 'package:pet_diary/src/components/events/delete_event_module.dart';
 import 'package:pet_diary/src/components/events/event_modules.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends ConsumerWidget {
-  const CalendarScreen(this.pet, {super.key});
-  final Pet pet;
+  const CalendarScreen(this.petId, {super.key});
+  final String petId;
 
   @override
   Widget build(
     BuildContext context,
     WidgetRef ref,
   ) {
-    // .where((element) => element.petId == pet.id).toList()
     var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
     var dateController = ref.watch(eventDateControllerProvider);
     var nameController = ref.watch(eventNameControllerProvider);
     var descriptionController = ref.watch(eventDescriptionControllerProvider);
-    var petEvents = allEvents?.where((element) => element.petId == pet.id);
+    var petEvents = allEvents?.where((element) => element.petId == petId);
     var eventsOnSelectedDate = petEvents?.where((event) {
       return DateFormat('yyyy-MM-dd').format(event.date) ==
           DateFormat('yyyy-MM-dd').format(dateController);
@@ -42,10 +40,6 @@ class CalendarScreen extends ConsumerWidget {
       String formattedDuration = '$hours:${minutes.toString().padLeft(2, '0')}';
       return formattedDuration;
     }
-
-    // Creating modules using the provided function
-    var modules = createEventModule(context, nameController,
-        descriptionController, dateController, ref, allEvents, pet);
 
     return Scaffold(
       appBar: AppBar(
@@ -118,14 +112,24 @@ class CalendarScreen extends ConsumerWidget {
                           allEvents,
                           selectDate,
                           dateController,
-                          eventsOnSelectedDate![index].id),
+                          eventsOnSelectedDate![index].id,
+                          petId),
                     ),
                   );
                 }
               },
             ),
           ),
-          EventModules(modules: modules),
+          EventModules(
+              modules: createEventModule(
+            context,
+            nameController,
+            descriptionController,
+            dateController,
+            ref,
+            allEvents,
+            petId,
+          )),
         ],
       ),
     );

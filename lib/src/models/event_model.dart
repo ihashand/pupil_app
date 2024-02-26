@@ -28,6 +28,9 @@ class Event extends HiveObject {
   @HiveField(7)
   String petId;
 
+  @HiveField(8)
+  String weightId;
+
   Event(
       {required this.title,
       required this.date,
@@ -36,5 +39,6 @@ class Event extends HiveObject {
       required this.durationTime,
       required this.weight,
       required this.userId,
-      required this.petId});
+      required this.petId,
+      required this.weightId});
 }

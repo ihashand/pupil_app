@@ -40,7 +40,7 @@ class PetRepository {
     await _hive.deleteAt(index);
   }
 
-  Future<Pet?> getPetById(String petId) async {
+  Pet? getPetById(String petId) {
     return _hive.get(petId);
   }
 }

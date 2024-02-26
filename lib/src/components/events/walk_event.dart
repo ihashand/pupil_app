@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/add_new_event.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/providers/pet_provider.dart';
 
 Future<void> walkEvent(
   BuildContext context,
@@ -14,12 +15,11 @@ Future<void> walkEvent(
   void Function(DateTime date, DateTime focusedDate) selectDate,
   int durationTime,
   double weight,
-  String userId,
   String petId, {
   bool isHomeEvent = false,
 }) async {
+  var pet = ref.watch(petRepositoryProvider).value?.getPetById(petId);
   nameController.text = "Walk";
-
   int selectedHours = 0;
   int selectedMinutes = 0;
 
@@ -74,7 +74,6 @@ Future<void> walkEvent(
         ),
         actions: <Widget>[
           Center(
-            // Center the button
             child: TextButton(
               child: Text(
                 'S A V E',
@@ -83,19 +82,87 @@ Future<void> walkEvent(
                 ),
               ),
               onPressed: () async {
-                if ((selectedHours * 60 + selectedMinutes) > 6 * 60) {
+                if (selectedHours == 0 && selectedMinutes == 0) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Error',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 24)),
+                        content: Text('Please select a valid walk duration.',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 16)),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('OK',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 20)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  return;
+                }
+
+                int totalDurationInSeconds =
+                    selectedHours * 60 + selectedMinutes;
+
+                if (totalDurationInSeconds < 1) {
+                  // Wyświetl komunikat o błędzie, jeśli czas spaceru jest mniejszy niż 1 minuta
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Error',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 24)),
+                        content: Text(
+                            'Walk duration must be at least 1 minute.',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 16)),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text(
+                              'OK',
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark,
+                                  fontSize: 20),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  return;
+                }
+
+                if (totalDurationInSeconds > 6 * 60) {
+                  // Jeśli czas spaceru przekracza 6 godzin, poproś o potwierdzenie
                   bool confirm = await showDialog(
                     context: context,
                     builder: (BuildContext context) {
                       return ManyHoursAlert(
-                          selectedHours: selectedHours,
-                          selectedMinutes: selectedMinutes);
+                        selectedHours: selectedHours,
+                        selectedMinutes: selectedMinutes,
+                      );
                     },
                   );
+
                   if (!confirm) return;
                 }
-                int totalDurationInSeconds =
-                    selectedHours * 60 + selectedMinutes;
 
                 addNewEvent(
                   nameController,
@@ -106,10 +173,9 @@ Future<void> walkEvent(
                   selectDate,
                   totalDurationInSeconds,
                   weight,
-                  userId,
-                  petId,
+                  pet!.id,
                 );
-                // ignore: use_build_context_synchronously
+
                 Navigator.of(context).pop();
               },
             ),
@@ -135,18 +201,21 @@ class ManyHoursAlert extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Confirmation'),
+      title: Text('Confirmation',
+          style: TextStyle(
+              color: Theme.of(context).primaryColorDark, fontSize: 24)),
       content: Text(
-        'Are you sure the walk lasted $selectedHours hours and $selectedMinutes minutes?',
-      ),
+          'Are you sure the walk lasted $selectedHours hours and $selectedMinutes minutes?',
+          style: TextStyle(
+              color: Theme.of(context).primaryColorDark, fontSize: 16)),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
             'No',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.inverseSurface,
-            ),
+                color: Theme.of(context).colorScheme.inverseSurface,
+                fontSize: 20),
           ),
         ),
         TextButton(
@@ -154,8 +223,8 @@ class ManyHoursAlert extends StatelessWidget {
           child: Text(
             'Yes',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.inverseSurface,
-            ),
+                color: Theme.of(context).colorScheme.inverseSurface,
+                fontSize: 20),
           ),
         ),
       ],
@@ -174,12 +243,12 @@ Widget _buildTimeSelector(
       Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 16,
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       SizedBox(
-        height: 50,
+        height: 40,
         width: 40, // Set a fixed width here
         child: ListWheelScrollView(
           itemExtent: 40,

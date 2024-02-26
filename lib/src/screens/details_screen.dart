@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/providers/weight_provider.dart';
 import 'package:pet_diary/src/screens/calendar_screen.dart';
 
 class DetailsScreen extends ConsumerWidget {
-  final Pet pet;
+  final String petId;
 
   const DetailsScreen({
     super.key,
-    required this.pet,
+    required this.petId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var pet = ref.watch(petRepositoryProvider).value?.getPetById(petId);
+
+    var weight = ref
+        .watch(weightRepositoryProvider)
+        .value
+        ?.getWeights()
+        .where((w) => w.petId == pet!.id);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -42,7 +51,7 @@ class DetailsScreen extends ConsumerWidget {
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    '${pet.age} years old',
+                    '${pet?.age} years old',
                     style: const TextStyle(
                       fontSize: 16,
                       fontFamily: 'San Francisco',
@@ -50,7 +59,7 @@ class DetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Name: ${pet.name}',
+                    'Name: ${pet?.name}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -59,7 +68,7 @@ class DetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Gender: ${pet.gender}',
+                    'Gender: ${pet?.gender}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -68,13 +77,23 @@ class DetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Color: ${pet.color}',
+                    'Color: ${pet?.color}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'San Francisco',
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  if (weight != null && weight.isNotEmpty)
+                    Text(
+                      'Weight: ${weight.last.weight}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'San Francisco',
+                      ),
+                    ),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -86,7 +105,7 @@ class DetailsScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CalendarScreen(pet)),
+            MaterialPageRoute(builder: (context) => CalendarScreen(petId)),
           );
         },
         child: const Icon(Icons.add),

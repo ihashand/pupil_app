@@ -1,9 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/pet_walk_model.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
-import 'package:pet_diary/src/models/weight_model.dart';
 
 part 'pet_model.g.dart';
 
@@ -28,21 +26,15 @@ class Pet extends HiveObject {
   late String color;
 
   @HiveField(6)
-  late List<Weight> weights;
-
-  @HiveField(7)
   late List<Temperature> temperatures;
 
-  @HiveField(8)
+  @HiveField(7)
   late List<Pill> pills;
 
-  @HiveField(9)
-  late List<PetWalk> walks;
-
-  @HiveField(10)
+  @HiveField(8)
   late List<Event> events;
 
-  @HiveField(11)
+  @HiveField(9)
   late String userId;
 
   Pet({
@@ -52,10 +44,8 @@ class Pet extends HiveObject {
     required this.age,
     required this.gender,
     required this.color,
-    required this.weights,
     required this.temperatures,
     required this.pills,
-    required this.walks,
     required this.events,
     required this.userId,
   });

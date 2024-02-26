@@ -86,7 +86,7 @@ class PetDetailsScreen extends ConsumerWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CalendarScreen(pet)),
+            MaterialPageRoute(builder: (context) => CalendarScreen(pet.id)),
           );
         },
         child: const Icon(Icons.add),

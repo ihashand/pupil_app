@@ -25,13 +25,14 @@ class EventAdapter extends TypeAdapter<Event> {
       weight: fields[5] as double,
       userId: fields[6] as String,
       petId: fields[7] as String,
+      weightId: fields[8] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Event obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class EventAdapter extends TypeAdapter<Event> {
       ..writeByte(6)
       ..write(obj.userId)
       ..writeByte(7)
-      ..write(obj.petId);
+      ..write(obj.petId)
+      ..writeByte(8)
+      ..write(obj.weightId);
   }
 
   @override

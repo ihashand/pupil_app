@@ -39,10 +39,8 @@ class NewPetScreen extends ConsumerWidget {
             age: petAge,
             gender: petGender,
             color: petColor,
-            weights: [],
             temperatures: [],
             pills: [],
-            walks: [],
             events: [],
             userId: userId,
           );

@@ -19,19 +19,25 @@ class PetWalkAdapter extends TypeAdapter<PetWalk> {
     return PetWalk()
       ..id = fields[0] as String
       ..walkTime = fields[1] as int
-      ..walkDistance = fields[2] as double;
+      ..walkDistance = fields[2] as double
+      ..eventId = fields[3] as String
+      ..petId = fields[4] as String;
   }
 
   @override
   void write(BinaryWriter writer, PetWalk obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.walkTime)
       ..writeByte(2)
-      ..write(obj.walkDistance);
+      ..write(obj.walkDistance)
+      ..writeByte(3)
+      ..write(obj.eventId)
+      ..writeByte(4)
+      ..write(obj.petId);
   }
 
   @override

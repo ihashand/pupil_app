@@ -18,17 +18,23 @@ class WeightAdapter extends TypeAdapter<Weight> {
     };
     return Weight()
       ..id = fields[0] as String
-      ..weight = fields[1] as double;
+      ..weight = fields[1] as double
+      ..eventId = fields[2] as String
+      ..petId = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, Weight obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.weight);
+      ..write(obj.weight)
+      ..writeByte(2)
+      ..write(obj.eventId)
+      ..writeByte(3)
+      ..write(obj.petId);
   }
 
   @override

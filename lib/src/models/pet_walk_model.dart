@@ -12,4 +12,10 @@ class PetWalk extends HiveObject {
 
   @HiveField(2)
   late double walkDistance;
+
+  @HiveField(3)
+  late String eventId;
+
+  @HiveField(4)
+  late String petId;
 }

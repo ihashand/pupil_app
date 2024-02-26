@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/data/repositories/pet_repository.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-
 import '../models/pet_walk_model.dart';
 import '../models/pill_model.dart';
 import '../models/temperature_model.dart';
@@ -68,10 +67,8 @@ final petProvider = Provider<Pet>((ref) {
     age: ref.watch(petAgeProvider).text,
     gender: ref.watch(petGenderProvider).text,
     color: ref.watch(petColorProvider).text,
-    weights: ref.watch(petWeightsProvider),
     temperatures: ref.watch(petTemperaturesProvider),
     pills: ref.watch(petPillsProvider),
-    walks: ref.watch(petWalksProvider),
     events: ref.watch(petEventsProvider),
     userId: FirebaseAuth.instance.currentUser?.uid ?? "",
   );

@@ -86,7 +86,7 @@ class AnimalCard extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DetailsScreen(pet: pet),
+                            builder: (context) => DetailsScreen(petId: pet.id),
                           ),
                         );
                       },
