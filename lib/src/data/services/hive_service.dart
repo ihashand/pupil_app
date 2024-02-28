@@ -1,7 +1,9 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/user_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 
 class HiveService {
@@ -22,6 +24,12 @@ class HiveService {
 
       Hive.registerAdapter<Weight>(WeightAdapter());
       await Hive.openBox<Weight>('weightAdapter');
+
+      Hive.registerAdapter<Temperature>(TemperatureAdapter());
+      await Hive.openBox<Temperature>('temperatureBox');
+
+      Hive.registerAdapter<Walk>(WalkAdapter());
+      await Hive.openBox<Walk>('walkBox');
 
       _isHiveInitialized = true;
     }

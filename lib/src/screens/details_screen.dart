@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/providers/temperature_provider.dart';
+import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
 import 'package:pet_diary/src/screens/calendar_screen.dart';
 
@@ -20,6 +22,18 @@ class DetailsScreen extends ConsumerWidget {
         .watch(weightRepositoryProvider)
         .value
         ?.getWeights()
+        .where((w) => w.petId == pet!.id);
+
+    var temperature = ref
+        .watch(temperatureRepositoryProvider)
+        .value
+        ?.getTemperature()
+        .where((w) => w.petId == pet!.id);
+
+    var walk = ref
+        .watch(walkRepositoryProvider)
+        .value
+        ?.getWalks()
         .where((w) => w.petId == pet!.id);
 
     return Scaffold(
@@ -87,7 +101,27 @@ class DetailsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   if (weight != null && weight.isNotEmpty)
                     Text(
-                      'Weight: ${weight.last.weight}',
+                      'Weight: ${weight.last.weight} kg',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'San Francisco',
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  if (temperature != null && temperature.isNotEmpty)
+                    Text(
+                      'Temperature: ${temperature.last.temperature} C',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'San Francisco',
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  if (walk != null && walk.isNotEmpty)
+                    Text(
+                      'Walk: ${walk.last.walkDistance} km',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

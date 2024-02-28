@@ -93,10 +93,10 @@ class CalendarScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         eventsOnSelectedDate![index].durationTime == 0
-                            ? eventsOnSelectedDate![index].weight == 0
+                            ? eventsOnSelectedDate![index].value == 0
                                 ? Text(eventsOnSelectedDate![index].description)
                                 : Text(
-                                    'Kg: ${(eventsOnSelectedDate![index].weight)}',
+                                    'Kg: ${(eventsOnSelectedDate![index].value)}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold))
                             : Text(

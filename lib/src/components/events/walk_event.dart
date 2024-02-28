@@ -2,7 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/add_new_event.dart';
+import 'package:pet_diary/src/components/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/temperature_model.dart';
+import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
 Future<void> walkEvent(
@@ -24,7 +28,11 @@ Future<void> walkEvent(
   int selectedMinutes = 0;
 
   double maxHeight = MediaQuery.of(context).size.height *
-      0.119; // Set max height for the dialog
+      0.21; // Set max height for the dialog
+
+  TextEditingController walkDistanceController = TextEditingController();
+
+  double walkDistance = 0;
 
   await showDialog(
     context: context,
@@ -46,21 +54,45 @@ Future<void> walkEvent(
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildTimeSelector(
-                    context,
-                    'HOURS',
-                    selectedHours,
-                    (value) {
-                      selectedHours = value;
-                    },
-                  ),
-                  _buildTimeSelector(
-                    context,
-                    'MINUTES',
-                    selectedMinutes,
-                    (value) {
-                      selectedMinutes = value;
-                    },
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          _buildTimeSelector(
+                            context,
+                            'H O U R S  ',
+                            selectedHours,
+                            (value) {
+                              selectedHours = value;
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          _buildTimeSelector(
+                            context,
+                            'M I N U T E S',
+                            selectedMinutes,
+                            (value) {
+                              selectedMinutes = value;
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: 117,
+                        child: TextFormField(
+                          controller: walkDistanceController,
+                          decoration: const InputDecoration(
+                            labelText: 'Walk distance',
+                            hintText: 'Enter distance',
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            walkDistance = double.tryParse(value) ?? 0.0;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -86,24 +118,30 @@ Future<void> walkEvent(
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Error',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 24)),
-                        content: Text('Please select a valid walk duration.',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16)),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('OK',
+                      return Row(
+                        children: [
+                          AlertDialog(
+                            title: Text('Error',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
-                                    fontSize: 20)),
+                                    fontSize: 24)),
+                            content: Text(
+                                'Please select a valid walk duration.',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 16)),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('OK',
+                                    style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                        fontSize: 20)),
+                              ),
+                            ],
                           ),
                         ],
                       );
@@ -164,18 +202,26 @@ Future<void> walkEvent(
                   if (!confirm) return;
                 }
 
-                addNewEvent(
-                  nameController,
-                  descriptionController,
-                  dateController,
-                  ref,
-                  allEvents,
-                  selectDate,
-                  totalDurationInSeconds,
-                  weight,
-                  pet!.id,
-                );
+                String newWalkId = generateUniqueId();
+                Walk newWalk = Walk();
+                newWalk.id = newWalkId;
+                newWalk.walkDistance = walkDistance;
 
+                addNewEvent(
+                    nameController,
+                    descriptionController,
+                    dateController,
+                    ref,
+                    allEvents,
+                    selectDate,
+                    totalDurationInSeconds,
+                    weight,
+                    pet!.id,
+                    Temperature(),
+                    Weight(),
+                    newWalk);
+
+                // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();
               },
             ),

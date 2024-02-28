@@ -1,31 +1,31 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'pet_walk_model.dart';
+part of 'walk_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class PetWalkAdapter extends TypeAdapter<PetWalk> {
+class WalkAdapter extends TypeAdapter<Walk> {
   @override
   final int typeId = 2;
 
   @override
-  PetWalk read(BinaryReader reader) {
+  Walk read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return PetWalk()
+    return Walk()
       ..id = fields[0] as String
-      ..walkTime = fields[1] as int
+      ..walkTime = fields[1] as double
       ..walkDistance = fields[2] as double
       ..eventId = fields[3] as String
       ..petId = fields[4] as String;
   }
 
   @override
-  void write(BinaryWriter writer, PetWalk obj) {
+  void write(BinaryWriter writer, Walk obj) {
     writer
       ..writeByte(5)
       ..writeByte(0)
@@ -46,7 +46,7 @@ class PetWalkAdapter extends TypeAdapter<PetWalk> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PetWalkAdapter &&
+      other is WalkAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

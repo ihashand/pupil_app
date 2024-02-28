@@ -1,14 +1,14 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-part 'pet_walk_model.g.dart';
+part 'walk_model.g.dart';
 
 @HiveType(typeId: 2)
-class PetWalk extends HiveObject {
+class Walk extends HiveObject {
   @HiveField(0)
-  late String id;
+  String id = '';
 
   @HiveField(1)
-  late int walkTime;
+  late double walkTime;
 
   @HiveField(2)
   late double walkDistance;

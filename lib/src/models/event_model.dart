@@ -20,7 +20,7 @@ class Event extends HiveObject {
   int durationTime;
 
   @HiveField(5)
-  double weight;
+  double value;
 
   @HiveField(6)
   String userId;
@@ -31,14 +31,22 @@ class Event extends HiveObject {
   @HiveField(8)
   String weightId;
 
+  @HiveField(9)
+  String temperatureId;
+
+  @HiveField(10)
+  String walkId;
+
   Event(
       {required this.title,
       required this.date,
       required this.description,
       required this.id,
       required this.durationTime,
-      required this.weight,
+      required this.value,
       required this.userId,
       required this.petId,
-      required this.weightId});
+      required this.weightId,
+      required this.temperatureId,
+      required this.walkId});
 }

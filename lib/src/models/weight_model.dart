@@ -4,7 +4,7 @@ part 'weight_model.g.dart';
 @HiveType(typeId: 5)
 class Weight extends HiveObject {
   @HiveField(0)
-  late String id;
+  String id = '';
 
   @HiveField(1)
   late double weight;

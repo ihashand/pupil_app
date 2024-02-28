@@ -18,17 +18,23 @@ class TemperatureAdapter extends TypeAdapter<Temperature> {
     };
     return Temperature()
       ..id = fields[0] as String
-      ..temperature = fields[1] as double;
+      ..temperature = fields[1] as double
+      ..eventId = fields[2] as String
+      ..petId = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, Temperature obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.temperature);
+      ..write(obj.temperature)
+      ..writeByte(2)
+      ..write(obj.eventId)
+      ..writeByte(3)
+      ..write(obj.petId);
   }
 
   @override

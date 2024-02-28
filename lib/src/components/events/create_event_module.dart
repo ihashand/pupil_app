@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/components/events/temperature_event.dart';
 import 'package:pet_diary/src/components/events/walk_event.dart';
 import 'package:pet_diary/src/components/events/weight_event.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
@@ -21,6 +22,8 @@ List<EventsIconsModule> createEventModule(
       walkIconMethod(context, nameController, descriptionController,
           dateController, ref, allEvents, petId),
       weightIconMethod(context, nameController, descriptionController,
+          dateController, ref, allEvents, petId),
+      temperatureIconMethod(context, nameController, descriptionController,
           dateController, ref, allEvents, petId),
     ],
     moduleColor: const Color.fromARGB(85, 85, 88, 190),
@@ -78,6 +81,46 @@ MyButtonWidget weightIconMethod(
     label: 'W E I G H T',
     onTap: () {
       weightEvent(
+        context,
+        nameController,
+        descriptionController,
+        dateController,
+        ref,
+        allEvents,
+        (date, focusedDate) {},
+        0,
+        0,
+        petId,
+      );
+    },
+    color: const Color.fromARGB(85, 85, 88, 190),
+    opacity: 0.0,
+    borderRadius: 20.0,
+    iconSize: 50.0,
+    fontSize: 13.0,
+    fontFamily: 'San Francisco',
+    iconColor: const Color.fromARGB(255, 223, 254, 70),
+    iconFill: 0.1,
+    iconGrade: 1,
+    iconOpticalSize: 25,
+    iconWeight: 20,
+  );
+}
+
+MyButtonWidget temperatureIconMethod(
+  BuildContext context,
+  TextEditingController nameController,
+  TextEditingController descriptionController,
+  DateTime dateController,
+  WidgetRef ref,
+  List<Event>? allEvents,
+  String petId,
+) {
+  return MyButtonWidget(
+    iconData: Icons.thermostat,
+    label: 'T E M P',
+    onTap: () {
+      temperatureEvent(
         context,
         nameController,
         descriptionController,

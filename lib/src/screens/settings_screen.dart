@@ -61,7 +61,7 @@ class SettingsScreen extends ConsumerWidget {
                 future: _updateAvatar(null, ref),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return const CircularProgressIndicator();
                   } else {
                     return const SizedBox.shrink();
                   }

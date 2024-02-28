@@ -8,7 +8,7 @@ import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 
-Future<void> weightEvent(
+Future<void> temperatureEvent(
   BuildContext context,
   TextEditingController nameController,
   TextEditingController descriptionController,
@@ -17,11 +17,12 @@ Future<void> weightEvent(
   List<Event>? allEvents,
   void Function(DateTime date, DateTime focusedDate) selectDate,
   int durationTime,
-  double initialWeight,
+  double initialValue,
   String petId, {
   bool isHomeEvent = false,
 }) async {
-  TextEditingController weightName = TextEditingController(text: "W E I G H T");
+  TextEditingController weightName =
+      TextEditingController(text: "T E M P E R A T U R E");
   nameController.text = "";
 
   await showDialog(
@@ -30,19 +31,19 @@ Future<void> weightEvent(
       return AlertDialog(
         title: const Center(
           child: Text(
-            'A D D  W E I G H T',
+            'A D D  T E M P E R A T U R E',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
         ),
         content: TextFormField(
           controller: nameController,
           decoration: const InputDecoration(
-            labelText: 'Pet Weight',
-            hintText: 'Enter weight',
+            labelText: 'Pet temperature',
+            hintText: 'Enter temperature',
           ),
           keyboardType: TextInputType.number,
           onChanged: (value) {
-            initialWeight = double.tryParse(value) ?? 0.0;
+            initialValue = double.tryParse(value) ?? 0.0;
           },
         ),
         actions: <Widget>[
@@ -55,8 +56,7 @@ Future<void> weightEvent(
                     fontSize: 20),
               ),
               onPressed: () async {
-                if (nameController.text.trim().isEmpty ||
-                    initialWeight <= 0.0) {
+                if (nameController.text.trim().isEmpty || initialValue <= 0.0) {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -65,7 +65,7 @@ Future<void> weightEvent(
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 24)),
-                        content: Text('Weight field cannot be empty.',
+                        content: Text('Temperature field cannot be empty.',
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 16)),
@@ -87,10 +87,9 @@ Future<void> weightEvent(
                   );
                   return;
                 }
-                String weightId = generateUniqueId();
-                Weight newWeight = Weight();
-                newWeight.id = weightId;
 
+                Temperature newTemperature = Temperature();
+                newTemperature.id = generateUniqueId();
                 addNewEvent(
                     weightName,
                     descriptionController,
@@ -99,10 +98,10 @@ Future<void> weightEvent(
                     allEvents,
                     selectDate,
                     0,
-                    initialWeight,
+                    initialValue,
                     petId,
-                    Temperature(),
-                    newWeight,
+                    newTemperature,
+                    Weight(),
                     Walk());
                 Navigator.of(context).pop();
               },
