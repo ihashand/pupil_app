@@ -39,9 +39,12 @@ List<EventsIconsModule> createEventModule(
 
   final module_2 = EventsIconsModule(
     name: 'N O T E S',
-    icons: [],
+    icons: [
+      noteIconMethod(context, nameController, descriptionController,
+          dateController, ref, allEvents, petId),
+    ],
     moduleColor: const Color.fromARGB(85, 85, 88, 190),
-    padding: const EdgeInsets.all(8.0),
+    padding: const EdgeInsets.all(10.0),
     borderRadius: 15.0,
     fontSize: 16.0,
     fontFamily: 'San Francisco',
@@ -105,7 +108,6 @@ MyButtonWidget walkIconMethod(
     borderRadius: 20.0,
     iconSize: 50.0,
     fontSize: 13.0,
-    fontFamily: 'San Francisco',
     iconColor: const Color.fromARGB(255, 40, 169, 40),
     iconFill: 0.1,
     iconGrade: 1,
@@ -145,8 +147,7 @@ MyButtonWidget weightIconMethod(
     borderRadius: 20.0,
     iconSize: 50.0,
     fontSize: 13.0,
-    fontFamily: 'San Francisco',
-    iconColor: Color.fromARGB(248, 209, 213, 0),
+    iconColor: const Color.fromARGB(248, 209, 213, 0),
     iconFill: 0.1,
     iconGrade: 1,
     iconOpticalSize: 25,
@@ -185,7 +186,6 @@ MyButtonWidget temperatureIconMethod(
     borderRadius: 20.0,
     iconSize: 50.0,
     fontSize: 13.0,
-    fontFamily: 'San Francisco',
     iconColor: const Color.fromARGB(255, 235, 70, 89),
     iconFill: 0.1,
     iconGrade: 1,
@@ -205,7 +205,7 @@ MyButtonWidget waterIconMethod(
 ) {
   return MyButtonWidget(
     iconData: Icons.water_drop,
-    label: 'W A T  E R',
+    label: 'W A T E R',
     onTap: () {
       waterEvent(
         context,
@@ -225,11 +225,49 @@ MyButtonWidget waterIconMethod(
     borderRadius: 20.0,
     iconSize: 50.0,
     fontSize: 13.0,
-    fontFamily: 'San Francisco',
     iconColor: const Color.fromARGB(255, 40, 111, 241),
     iconFill: 0.1,
     iconGrade: 1,
     iconOpticalSize: 25,
     iconWeight: 20,
+  );
+}
+
+MyButtonWidget noteIconMethod(
+  BuildContext context,
+  TextEditingController nameController,
+  TextEditingController descriptionController,
+  DateTime dateController,
+  WidgetRef ref,
+  List<Event>? allEvents,
+  String petId,
+) {
+  return MyButtonWidget(
+    iconData: Icons.notes,
+    label: 'C R E A T E  Y O U R S  N O T E',
+    onTap: () {
+      waterEvent(
+        context,
+        nameController,
+        descriptionController,
+        dateController,
+        ref,
+        allEvents,
+        (date, focusedDate) {},
+        0,
+        0,
+        petId,
+      );
+    },
+    color: const Color.fromARGB(85, 85, 88, 190),
+    opacity: 0.0,
+    borderRadius: 20.0,
+    iconSize: 60.0,
+    fontSize: 16.0,
+    iconColor: const Color.fromARGB(255, 255, 255, 255),
+    iconFill: 0.1,
+    iconGrade: 1,
+    iconOpticalSize: 25,
+    iconWeight: 30,
   );
 }

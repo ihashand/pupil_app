@@ -25,4 +25,4 @@ Real device relese version for testing
 flutter run --release
 
 database used numbers:
-0, 1, 2, 3, 4, 5, 6, 7
+0, 1, 2, 3, 4, 5, 6, 7, 8

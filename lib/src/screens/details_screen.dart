@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/providers/note_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
@@ -41,6 +42,12 @@ class DetailsScreen extends ConsumerWidget {
         .watch(waterRepositoryProvider)
         .value
         ?.getWater()
+        .where((w) => w.petId == pet!.id);
+
+    var note = ref
+        .watch(noteRepositoryProvider)
+        .value
+        ?.getNotes()
         .where((w) => w.petId == pet!.id);
 
     return Scaffold(
@@ -131,6 +138,15 @@ class DetailsScreen extends ConsumerWidget {
                   if (water != null && water.isNotEmpty)
                     Text(
                       'Water: ${water.last.water} L',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  if (note != null && note.isNotEmpty)
+                    Text(
+                      'Note: ${note.last.note} ',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

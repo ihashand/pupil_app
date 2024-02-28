@@ -57,8 +57,6 @@ final petProvider = Provider<Pet>((ref) {
     age: ref.watch(petAgeProvider).text,
     gender: ref.watch(petGenderProvider).text,
     color: ref.watch(petColorProvider).text,
-    pills: ref.watch(petPillsProvider),
-    events: ref.watch(petEventsProvider),
     userId: FirebaseAuth.instance.currentUser?.uid ?? "",
   );
 });

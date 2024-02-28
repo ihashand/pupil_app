@@ -3,6 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/note_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
@@ -22,6 +23,7 @@ void deleteEventModule(
   var allTemperatures =
       ref.watch(temperatureRepositoryProvider).value?.getTemperature();
   var allWater = ref.watch(waterRepositoryProvider).value?.getWater();
+  var allNotes = ref.watch(noteRepositoryProvider).value?.getNotes();
 
   final int indexToDeleteEvent =
       allEvents?.indexWhere((e) => e.id == eventId) ?? -1;
@@ -37,6 +39,9 @@ void deleteEventModule(
 
   final int indexToDeleteWater =
       allWater?.indexWhere((w) => w.id == event!.waterId) ?? -1;
+
+  final int indexToDeleteNote =
+      allNotes?.indexWhere((w) => w.id == event!.noteId) ?? -1;
 
   if (indexToDeleteEvent != -1) {
     await ref
@@ -76,6 +81,14 @@ void deleteEventModule(
         .value
         ?.deleteWater(indexToDeleteWater);
     ref.refresh(waterRepositoryProvider);
+  }
+
+  if (indexToDeleteNote != -1) {
+    await ref
+        .watch(noteRepositoryProvider)
+        .value
+        ?.deleteNote(indexToDeleteNote);
+    ref.refresh(noteRepositoryProvider);
   }
 
   selectDate(dateController, dateController);

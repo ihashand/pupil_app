@@ -2,8 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/add_new_event.dart';
-import 'package:pet_diary/src/components/generate_unique_id.dart';
+import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/note_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
@@ -119,30 +120,24 @@ Future<void> walkEvent(
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      return Row(
-                        children: [
-                          AlertDialog(
-                            title: Text('Error',
+                      return AlertDialog(
+                        title: Text('Error',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 24)),
+                        content: Text('Walk fields cannot be empty.',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 16)),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('OK',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
-                                    fontSize: 24)),
-                            content: Text(
-                                'Please select a valid walk duration.',
-                                style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: 16)),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text('OK',
-                                    style: TextStyle(
-                                        color:
-                                            Theme.of(context).primaryColorDark,
-                                        fontSize: 20)),
-                              ),
-                            ],
+                                    fontSize: 20)),
                           ),
                         ],
                       );
@@ -221,7 +216,8 @@ Future<void> walkEvent(
                     Temperature(),
                     Weight(),
                     newWalk,
-                    Water());
+                    Water(),
+                    Note());
 
                 // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();

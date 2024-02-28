@@ -1,50 +1,40 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'pet_model.dart';
+part of 'note_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class PetAdapter extends TypeAdapter<Pet> {
+class NoteAdapter extends TypeAdapter<Note> {
   @override
-  final int typeId = 0;
+  final int typeId = 8;
 
   @override
-  Pet read(BinaryReader reader) {
+  Note read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Pet(
-      id: fields[0] as String,
-      name: fields[1] as String,
-      image: fields[2] as String,
-      age: fields[3] as String,
-      gender: fields[4] as String,
-      color: fields[5] as String,
-      userId: fields[6] as String,
-    );
+    return Note()
+      ..id = fields[0] as String
+      ..note = fields[1] as String
+      ..eventId = fields[2] as String
+      ..petId = fields[3] as String;
   }
 
   @override
-  void write(BinaryWriter writer, Pet obj) {
+  void write(BinaryWriter writer, Note obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.name)
+      ..write(obj.note)
       ..writeByte(2)
-      ..write(obj.image)
+      ..write(obj.eventId)
       ..writeByte(3)
-      ..write(obj.age)
-      ..writeByte(4)
-      ..write(obj.gender)
-      ..writeByte(5)
-      ..write(obj.color)
-      ..writeByte(6)
-      ..write(obj.userId);
+      ..write(obj.petId);
   }
 
   @override
@@ -53,7 +43,7 @@ class PetAdapter extends TypeAdapter<Pet> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PetAdapter &&
+      other is NoteAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

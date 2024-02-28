@@ -2,8 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/add_new_event.dart';
-import 'package:pet_diary/src/components/generate_unique_id.dart';
+import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/note_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
@@ -105,7 +106,8 @@ Future<void> weightEvent(
                     Temperature(),
                     newWeight,
                     Walk(),
-                    Water());
+                    Water(),
+                    Note());
                 Navigator.of(context).pop();
               },
             ),

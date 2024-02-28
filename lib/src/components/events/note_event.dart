@@ -10,7 +10,7 @@ import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 
-Future<void> waterEvent(
+Future<void> noteEvent(
   BuildContext context,
   TextEditingController nameController,
   TextEditingController descriptionController,
@@ -23,8 +23,7 @@ Future<void> waterEvent(
   String petId, {
   bool isHomeEvent = false,
 }) async {
-  TextEditingController temperatureName =
-      TextEditingController(text: "W A T E R");
+  TextEditingController noteName = TextEditingController(text: "N O T E");
   nameController.text = "";
 
   await showDialog(
@@ -33,19 +32,18 @@ Future<void> waterEvent(
       return AlertDialog(
         title: const Center(
           child: Text(
-            'A D D  W A T E R',
+            'A D D  N O T E',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
         ),
         content: TextFormField(
           controller: nameController,
           decoration: const InputDecoration(
-            labelText: 'Pet Water',
-            hintText: 'Enter water',
+            hintText: 'Enter your things',
           ),
-          keyboardType: TextInputType.number,
+          keyboardType: TextInputType.text,
           onChanged: (value) {
-            initialWeight = double.tryParse(value) ?? 0.0;
+            descriptionController.text = value;
           },
         ),
         actions: <Widget>[
@@ -58,8 +56,7 @@ Future<void> waterEvent(
                     fontSize: 20),
               ),
               onPressed: () async {
-                if (nameController.text.trim().isEmpty ||
-                    initialWeight <= 0.0) {
+                if (nameController.text == '') {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -68,7 +65,7 @@ Future<void> waterEvent(
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 24)),
-                        content: Text('Water field cannot be empty.',
+                        content: Text('Note field cannot be empty.',
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 16)),
@@ -90,26 +87,25 @@ Future<void> waterEvent(
                   );
                   return;
                 }
-
-                Water newWater = Water();
-                newWater.id = generateUniqueId();
+                String noteId = generateUniqueId();
+                Note newNote = Note();
+                newNote.id = noteId;
 
                 addNewEvent(
-                    temperatureName,
+                    noteName,
                     descriptionController,
                     dateController,
                     ref,
                     allEvents,
                     selectDate,
                     0,
-                    initialWeight,
+                    0,
                     petId,
                     Temperature(),
                     Weight(),
                     Walk(),
-                    newWater,
-                    Note());
-
+                    Water(),
+                    newNote);
                 Navigator.of(context).pop();
               },
             ),

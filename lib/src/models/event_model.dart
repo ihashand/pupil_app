@@ -40,6 +40,12 @@ class Event extends HiveObject {
   @HiveField(11)
   String waterId;
 
+  @HiveField(12)
+  String noteId;
+
+  @HiveField(13)
+  String pillId;
+
   Event(
       {required this.title,
       required this.date,
@@ -52,5 +58,7 @@ class Event extends HiveObject {
       required this.weightId,
       required this.temperatureId,
       required this.walkId,
-      required this.waterId});
+      required this.waterId,
+      required this.noteId,
+      required this.pillId});
 }

@@ -2,13 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/generate_unique_id.dart';
+import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/note_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/note_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
@@ -28,7 +30,8 @@ List<Event>? addNewEvent(
     Temperature newTemperature,
     Weight newWeight,
     Walk newWalk,
-    Water newWater) {
+    Water newWater,
+    Note newNote) {
   var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
   var pet = ref.watch(petRepositoryProvider).value?.getPetById(petId);
 
@@ -54,7 +57,9 @@ List<Event>? addNewEvent(
         weightId: '',
         temperatureId: newTemperature.id,
         walkId: '',
-        waterId: '');
+        waterId: '',
+        noteId: '',
+        pillId: '');
 
     ref
         .watch(temperatureRepositoryProvider)
@@ -87,7 +92,9 @@ List<Event>? addNewEvent(
         weightId: newWeight.id,
         temperatureId: '',
         walkId: '',
-        waterId: '');
+        waterId: '',
+        noteId: '',
+        pillId: '');
 
     ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
     ref.watch(weightRepositoryProvider).value?.addWeight(newWeight);
@@ -117,7 +124,9 @@ List<Event>? addNewEvent(
         weightId: '',
         temperatureId: '',
         walkId: newWalk.id,
-        waterId: '');
+        waterId: '',
+        noteId: '',
+        pillId: '');
 
     ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
     ref.watch(walkRepositoryProvider).value?.addWalk(newWalk);
@@ -148,7 +157,9 @@ List<Event>? addNewEvent(
         weightId: newWeight.id,
         temperatureId: '',
         walkId: '',
-        waterId: newWater.id);
+        waterId: newWater.id,
+        noteId: '',
+        pillId: '');
 
     ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
     ref.watch(waterRepositoryProvider).value?.addWater(newWater);
@@ -158,6 +169,39 @@ List<Event>? addNewEvent(
 
     ref.refresh(waterRepositoryProvider);
     ref.refresh(eventRepositoryProvider);
+  }
+
+  // note
+  if (newNote.id != '') {
+    newNote.eventId = eventId;
+    newNote.petId = petId;
+    newNote.note = descriptionController.text;
+
+    Event newEvent = Event(
+        id: eventId,
+        title: eventName,
+        description: eventDescription,
+        date: dateController,
+        durationTime: durationTime,
+        value: initialValue,
+        userId: pet!.userId,
+        petId: petId,
+        weightId: '',
+        temperatureId: '',
+        walkId: '',
+        waterId: '',
+        noteId: newNote.id,
+        pillId: '');
+
+    ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
+    ref.watch(noteRepositoryProvider).value?.addNote(newNote);
+
+    nameController.clear();
+    descriptionController.clear();
+
+    ref.refresh(eventRepositoryProvider);
+    ref.refresh(noteRepositoryProvider);
+    selectDate(dateController, dateController);
   }
 
   return allEvents;
