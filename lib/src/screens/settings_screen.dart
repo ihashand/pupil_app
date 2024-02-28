@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pet_diary/src/providers/user_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
+  // ignore: use_key_in_widget_constructors
   const SettingsScreen({Key? key});
 
   @override
@@ -14,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
     User? user = ref.watch(userProvider);
 
-    Future<void> _updateAvatar(String? filePath, WidgetRef ref) async {
+    Future<void> updateAvatar(String? filePath, WidgetRef ref) async {
       if (filePath != null) {
         await user?.updatePhotoURL(filePath);
         // ignore: unused_result
@@ -39,7 +40,7 @@ class SettingsScreen extends ConsumerWidget {
                     source: ImageSource.gallery,
                   );
                   if (pickedFile != null) {
-                    await _updateAvatar(pickedFile.path, ref);
+                    await updateAvatar(pickedFile.path, ref);
                   }
                 },
               ),
@@ -52,13 +53,13 @@ class SettingsScreen extends ConsumerWidget {
                     source: ImageSource.camera,
                   );
                   if (pickedFile != null) {
-                    await _updateAvatar(pickedFile.path, ref);
+                    await updateAvatar(pickedFile.path, ref);
                   }
                 },
               ),
               // Display a loading indicator while updating avatar
               FutureBuilder<void>(
-                future: _updateAvatar(null, ref),
+                future: updateAvatar(null, ref),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();

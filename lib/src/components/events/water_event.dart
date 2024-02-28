@@ -9,7 +9,7 @@ import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 
-Future<void> temperatureEvent(
+Future<void> waterEvent(
   BuildContext context,
   TextEditingController nameController,
   TextEditingController descriptionController,
@@ -18,12 +18,12 @@ Future<void> temperatureEvent(
   List<Event>? allEvents,
   void Function(DateTime date, DateTime focusedDate) selectDate,
   int durationTime,
-  double initialValue,
+  double initialWeight,
   String petId, {
   bool isHomeEvent = false,
 }) async {
   TextEditingController temperatureName =
-      TextEditingController(text: "T E M P E R A T U R E");
+      TextEditingController(text: "W A T E R");
   nameController.text = "";
 
   await showDialog(
@@ -32,19 +32,19 @@ Future<void> temperatureEvent(
       return AlertDialog(
         title: const Center(
           child: Text(
-            'A D D  T E M P E R A T U R E',
+            'A D D  W A T E R',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
         ),
         content: TextFormField(
           controller: nameController,
           decoration: const InputDecoration(
-            labelText: 'Pet temperature',
-            hintText: 'Enter temperature',
+            labelText: 'Pet Water',
+            hintText: 'Enter water',
           ),
           keyboardType: TextInputType.number,
           onChanged: (value) {
-            initialValue = double.tryParse(value) ?? 0.0;
+            initialWeight = double.tryParse(value) ?? 0.0;
           },
         ),
         actions: <Widget>[
@@ -57,7 +57,8 @@ Future<void> temperatureEvent(
                     fontSize: 20),
               ),
               onPressed: () async {
-                if (nameController.text.trim().isEmpty || initialValue <= 0.0) {
+                if (nameController.text.trim().isEmpty ||
+                    initialWeight <= 0.0) {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -66,7 +67,7 @@ Future<void> temperatureEvent(
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 24)),
-                        content: Text('Temperature field cannot be empty.',
+                        content: Text('Water field cannot be empty.',
                             style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 16)),
@@ -89,8 +90,9 @@ Future<void> temperatureEvent(
                   return;
                 }
 
-                Temperature newTemperature = Temperature();
-                newTemperature.id = generateUniqueId();
+                Water newWater = Water();
+                newWater.id = generateUniqueId();
+
                 addNewEvent(
                     temperatureName,
                     descriptionController,
@@ -99,12 +101,13 @@ Future<void> temperatureEvent(
                     allEvents,
                     selectDate,
                     0,
-                    initialValue,
+                    initialWeight,
                     petId,
-                    newTemperature,
+                    Temperature(),
                     Weight(),
                     Walk(),
-                    Water());
+                    newWater);
+
                 Navigator.of(context).pop();
               },
             ),

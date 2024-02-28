@@ -5,6 +5,7 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
+import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
 
 void deleteEventModule(
@@ -20,6 +21,7 @@ void deleteEventModule(
   var allWalks = ref.watch(walkRepositoryProvider).value?.getWalks();
   var allTemperatures =
       ref.watch(temperatureRepositoryProvider).value?.getTemperature();
+  var allWater = ref.watch(waterRepositoryProvider).value?.getWater();
 
   final int indexToDeleteEvent =
       allEvents?.indexWhere((e) => e.id == eventId) ?? -1;
@@ -32,6 +34,9 @@ void deleteEventModule(
 
   final int indexToDeleteTemperature =
       allTemperatures?.indexWhere((w) => w.id == event!.temperatureId) ?? -1;
+
+  final int indexToDeleteWater =
+      allWater?.indexWhere((w) => w.id == event!.waterId) ?? -1;
 
   if (indexToDeleteEvent != -1) {
     await ref
@@ -63,6 +68,14 @@ void deleteEventModule(
         .value
         ?.deleteTemperature(indexToDeleteTemperature);
     ref.refresh(temperatureRepositoryProvider);
+  }
+
+  if (indexToDeleteWater != -1) {
+    await ref
+        .watch(waterRepositoryProvider)
+        .value
+        ?.deleteWater(indexToDeleteWater);
+    ref.refresh(waterRepositoryProvider);
   }
 
   selectDate(dateController, dateController);

@@ -23,3 +23,6 @@ flutter pub get && flutter pub run build_runner build --delete-conflicting-outpu
 
 Real device relese version for testing
 flutter run --release
+
+database used numbers:
+0, 1, 2, 3, 4, 5, 6, 7

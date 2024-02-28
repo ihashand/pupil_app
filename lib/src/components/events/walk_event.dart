@@ -6,6 +6,7 @@ import 'package:pet_diary/src/components/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
+import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
@@ -219,7 +220,8 @@ Future<void> walkEvent(
                     pet!.id,
                     Temperature(),
                     Weight(),
-                    newWalk);
+                    newWalk,
+                    Water());
 
                 // ignore: use_build_context_synchronously
                 Navigator.of(context).pop();

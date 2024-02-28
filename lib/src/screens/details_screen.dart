@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
+import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
 import 'package:pet_diary/src/screens/calendar_screen.dart';
 
@@ -36,10 +37,15 @@ class DetailsScreen extends ConsumerWidget {
         ?.getWalks()
         .where((w) => w.petId == pet!.id);
 
+    var water = ref
+        .watch(waterRepositoryProvider)
+        .value
+        ?.getWater()
+        .where((w) => w.petId == pet!.id);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0, // Usunięcie cienia z AppBar
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -68,7 +74,6 @@ class DetailsScreen extends ConsumerWidget {
                     '${pet?.age} years old',
                     style: const TextStyle(
                       fontSize: 16,
-                      fontFamily: 'San Francisco',
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -77,7 +82,6 @@ class DetailsScreen extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'San Francisco',
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -86,7 +90,6 @@ class DetailsScreen extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'San Francisco',
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -95,7 +98,6 @@ class DetailsScreen extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'San Francisco',
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -105,7 +107,6 @@ class DetailsScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'San Francisco',
                       ),
                     ),
                   const SizedBox(height: 16),
@@ -115,7 +116,6 @@ class DetailsScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'San Francisco',
                       ),
                     ),
                   const SizedBox(height: 16),
@@ -125,7 +125,15 @@ class DetailsScreen extends ConsumerWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'San Francisco',
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  if (water != null && water.isNotEmpty)
+                    Text(
+                      'Water: ${water.last.water} L',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   const SizedBox(height: 16),

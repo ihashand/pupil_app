@@ -96,11 +96,11 @@ class CalendarScreen extends ConsumerWidget {
                             ? eventsOnSelectedDate![index].value == 0
                                 ? Text(eventsOnSelectedDate![index].description)
                                 : Text(
-                                    'Kg: ${(eventsOnSelectedDate![index].value)}',
+                                    '${(eventsOnSelectedDate![index].value)}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold))
                             : Text(
-                                'Duration: ${formatDuration(eventsOnSelectedDate![index].durationTime)}',
+                                ' ${formatDuration(eventsOnSelectedDate![index].durationTime)}',
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                       ],

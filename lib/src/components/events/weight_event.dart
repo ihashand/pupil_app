@@ -6,6 +6,7 @@ import 'package:pet_diary/src/components/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
+import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 
 Future<void> weightEvent(
@@ -103,7 +104,8 @@ Future<void> weightEvent(
                     petId,
                     Temperature(),
                     newWeight,
-                    Walk());
+                    Walk(),
+                    Water());
                 Navigator.of(context).pop();
               },
             ),

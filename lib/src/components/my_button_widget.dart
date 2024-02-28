@@ -17,6 +17,7 @@ class MyButtonWidget extends StatelessWidget {
   final double iconOpticalSize;
   final Color iconColor;
 
+  // ignore: use_key_in_widget_constructors
   const MyButtonWidget(
       {Key? key,
       this.iconData,
@@ -92,6 +93,7 @@ class MyRectangleWidget extends StatelessWidget {
   final double fontSize;
   final String fontFamily;
 
+  // ignore: use_key_in_widget_constructors
   const MyRectangleWidget({
     Key? key,
     this.topContent,
