@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:pet_diary/src/models/module_item.dart';
 
 class EventsIconsModule {
-  final String name;
-  final List<Widget> icons;
-  final Color moduleColor;
-  final EdgeInsets padding;
-  final double borderRadius;
-  final double fontSize;
-  final String fontFamily;
-  final EdgeInsets margin;
+  String name;
+  List<ModuleItem> items; // Zaktualizowane z icons do items
+  Color moduleColor;
+  EdgeInsets padding;
+  double borderRadius;
+  double fontSize;
+  String fontFamily;
+  EdgeInsets margin;
 
   EventsIconsModule({
     required this.name,
-    required this.icons,
+    required this.items, // Zaktualizowane
     required this.moduleColor,
     required this.padding,
     required this.borderRadius,

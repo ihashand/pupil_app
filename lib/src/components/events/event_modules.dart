@@ -21,9 +21,7 @@ class EventModules extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  margin: const EdgeInsets.symmetric(
-                      vertical: 5), // Add vertical margin
-                  height: module.icons.length > 1 ? 140 : 160,
+                  margin: const EdgeInsets.symmetric(vertical: 5),
                   decoration: BoxDecoration(
                     color: module.moduleColor,
                     borderRadius: BorderRadius.circular(module.borderRadius),
@@ -41,42 +39,11 @@ class EventModules extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      if (module.icons.length == 1)
-                        SizedBox(
-                          height: 100,
-                          width: 400,
-                          child: module.icons.first,
-                        ),
-                      if (module.icons.length > 1)
-                        Expanded(
-                          child: GridView.builder(
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 100,
-                              mainAxisSpacing: 2,
-                              crossAxisSpacing: 10,
-                            ),
-                            itemCount: module.icons.length,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, iconIndex) {
-                              final icon = module.icons[iconIndex];
-                              return AspectRatio(
-                                aspectRatio: 2,
-                                child: Center(
-                                  child: SizedBox(
-                                    height: 150,
-                                    width: 100,
-                                    child: icon,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                      const SizedBox(height: 5),
+                      ...module.items.map((item) {
+                        // Renderowanie ikony
+                        return item.content;
+                      }),
                     ],
                   ),
                 ),
