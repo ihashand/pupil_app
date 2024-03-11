@@ -5,6 +5,7 @@ import 'package:pet_diary/src/components/events/icons_buttons/lifestyle_icon_mod
 import 'package:pet_diary/src/components/events/icons_buttons/note_button_module_item.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/events_icons_module.dart';
+import 'package:pet_diary/src/screens/medicine_screen.dart';
 
 List<EventsIconsModule> createEventModule(
   BuildContext context,
@@ -62,5 +63,30 @@ List<EventsIconsModule> createEventModule(
     margin: const EdgeInsets.all(10.0),
   );
 
-  return [module_1, module_2];
+  final module_3 = EventsIconsModule(
+    name: 'M  E  D  I  C  I  N  E',
+    items: [
+      noteButtonModuleItem(
+        buttonText: "Add pills",
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MedicineScreen(petId)),
+          );
+        },
+        buttonColor: const Color.fromARGB(255, 112, 162, 169),
+        buttonWidth: 400.0,
+        buttonHeight: 60.0,
+        textStyle: const TextStyle(fontSize: 12),
+      ),
+    ],
+    moduleColor: const Color.fromARGB(255, 255, 255, 255),
+    padding: const EdgeInsets.all(8.0),
+    borderRadius: 10.0,
+    fontSize: 16.0,
+    fontFamily: 'Arial',
+    margin: const EdgeInsets.all(10.0),
+  );
+
+  return [module_1, module_2, module_3];
 }

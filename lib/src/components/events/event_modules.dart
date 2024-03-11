@@ -41,7 +41,6 @@ class EventModules extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       ...module.items.map((item) {
-                        // Renderowanie ikony
                         return item.content;
                       }),
                     ],

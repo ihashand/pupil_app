@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
+import 'package:pet_diary/src/providers/pills_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
@@ -24,9 +25,7 @@ void deleteEventModule(
       ref.watch(temperatureRepositoryProvider).value?.getTemperature();
   var allWater = ref.watch(waterRepositoryProvider).value?.getWater();
   var allNotes = ref.watch(noteRepositoryProvider).value?.getNotes();
-
-  final int indexToDeleteEvent =
-      allEvents?.indexWhere((e) => e.id == eventId) ?? -1;
+  var allPills = ref.watch(pillRepositoryProvider).value?.getPills();
 
   final int indexToDeleteWeight =
       allWeights?.indexWhere((w) => w.id == event!.weightId) ?? -1;
@@ -43,13 +42,13 @@ void deleteEventModule(
   final int indexToDeleteNote =
       allNotes?.indexWhere((w) => w.id == event!.noteId) ?? -1;
 
-  if (indexToDeleteEvent != -1) {
-    await ref
-        .watch(eventRepositoryProvider)
-        .value
-        ?.deleteEvent(indexToDeleteEvent);
-    ref.refresh(eventRepositoryProvider);
-  }
+  final int indexToDeletePill =
+      allPills?.indexWhere((w) => w.id == event!.pillId) ?? -1;
+
+  final String pillId = event!.pillId;
+
+  ref.watch(eventRepositoryProvider).value?.deleteEvent(eventId);
+  ref.refresh(eventRepositoryProvider);
 
   if (indexToDeleteWeight != -1) {
     await ref
@@ -88,6 +87,11 @@ void deleteEventModule(
         .watch(noteRepositoryProvider)
         .value
         ?.deleteNote(indexToDeleteNote);
+    ref.refresh(noteRepositoryProvider);
+  }
+
+  if (indexToDeletePill != -1) {
+    await ref.watch(pillRepositoryProvider).value?.deletePill(pillId);
     ref.refresh(noteRepositoryProvider);
   }
 

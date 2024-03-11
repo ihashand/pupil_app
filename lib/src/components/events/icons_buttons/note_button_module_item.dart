@@ -20,7 +20,7 @@ ModuleItem noteButtonModuleItem({
           backgroundColor: buttonColor,
           textStyle: textStyle,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
         ),
         child: Text(buttonText),
       ),

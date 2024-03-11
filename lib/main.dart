@@ -7,15 +7,20 @@ import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/auth/login_or_register.dart';
 import 'package:pet_diary/src/data/services/hive_service.dart';
 import 'package:pet_diary/src/data/services/local_notification_service.dart';
+import 'package:pet_diary/src/helper/notifier_service.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/home_screen.dart';
 import 'package:pet_diary/src/screens/new_pet_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
+// ignore: depend_on_referenced_packages
+import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await NotificationService().initNotification();
+  tz.initializeTimeZones();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

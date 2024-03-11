@@ -30,11 +30,12 @@ class EventRepository {
     await _hive.put(event.id, event);
   }
 
-  Future<void> deleteEvent(int index) async {
-    await _hive.deleteAt(index);
+  Future<void> deleteEvent(String eventId) async {
+    await _hive.delete(eventId); // Usuń tabletkę na podstawie jej ID
+    await _init(); // Opcjonalnie odśwież listę tabletek  }
   }
 
-  Future<Event?> getEventById(String petId) async {
+  Event? getEventById(String petId) {
     return _hive.get(petId);
   }
 }

@@ -10,5 +10,58 @@ class Pill extends HiveObject {
   late String name;
 
   @HiveField(2)
-  late DateTime date;
+  DateTime? addDate;
+
+  @HiveField(3)
+  String? note;
+
+  @HiveField(4)
+  String? frequency;
+
+  @HiveField(5)
+  List<String>? times;
+
+  @HiveField(6)
+  String? dosage;
+
+  @HiveField(7)
+  String? icon; // Nazwa ikony lub jej kod
+
+  @HiveField(8)
+  int? color; // Kolor jako wartość ARGB przechowywana w int
+
+  @HiveField(9)
+  late String eventId;
+
+  @HiveField(10)
+  late String petId;
+
+  @HiveField(11)
+  DateTime? endDate;
+
+  @HiveField(12)
+  DateTime? startDate;
+
+  @HiveField(13)
+  String? timesPerDay;
+
+  @HiveField(14)
+  bool remindersEnabled = true;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'key': key,
+      'name': name,
+      'expirationDate': addDate?.toIso8601String(),
+      'note': note,
+      'frequency': frequency,
+      'times': times,
+      'dosage': dosage,
+      'icon': icon,
+      'color': color,
+      'eventId': eventId,
+      'petId': petId,
+    };
+  }
 }
