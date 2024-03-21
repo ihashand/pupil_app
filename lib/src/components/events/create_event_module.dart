@@ -5,7 +5,7 @@ import 'package:pet_diary/src/components/events/icons_buttons/lifestyle_icon_mod
 import 'package:pet_diary/src/components/events/icons_buttons/note_button_module_item.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/events_icons_module.dart';
-import 'package:pet_diary/src/screens/medicine_screen.dart';
+import 'package:pet_diary/src/screens/pills_screen.dart';
 
 List<EventsIconsModule> createEventModule(
   BuildContext context,
@@ -71,7 +71,7 @@ List<EventsIconsModule> createEventModule(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => MedicineScreen(petId)),
+            MaterialPageRoute(builder: (context) => PillsScreen(petId)),
           );
         },
         buttonColor: const Color.fromARGB(255, 112, 162, 169),

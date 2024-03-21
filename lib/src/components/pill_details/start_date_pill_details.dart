@@ -37,17 +37,20 @@ class StartDatePillDetails extends ConsumerWidget {
           ref.watch(pillStartDateControllerProvider.notifier).state = picked;
         }
       },
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'S t a r t  d a t e',
-          hintText: 'DD-MM-YYYY',
-          border: OutlineInputBorder(),
-          labelStyle: TextStyle(
-            fontSize: 21, // Ustaw rozmiar czcionki dla tekstu etykiety
+      child: SizedBox(
+        width: 150, // Ograniczenie szerokości InputDecorator
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'S t a r t',
+            hintText: 'DD-MM-YYYY',
+            border: OutlineInputBorder(),
+            labelStyle: TextStyle(
+              fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+            ),
           ),
-        ),
-        child: Text(
-          '${startDate.day.toString().padLeft(2, '0')}-${startDate.month.toString().padLeft(2, '0')}-${startDate.year}',
+          child: Text(
+            '${startDate.day.toString().padLeft(2, '0')}-${startDate.month.toString().padLeft(2, '0')}-${startDate.year}',
+          ),
         ),
       ),
     );

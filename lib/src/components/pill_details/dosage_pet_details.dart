@@ -9,6 +9,7 @@ class DosagePetDetails extends ConsumerWidget {
   const DosagePetDetails({
     super.key,
   });
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
@@ -41,19 +42,22 @@ class DosagePetDetails extends ConsumerWidget {
           },
         );
       },
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'D o s a g e',
-          border: OutlineInputBorder(),
-          labelStyle: TextStyle(
-            fontSize: 21, // Ustaw rozmiar czcionki dla tekstu etykiety
+      child: SizedBox(
+        width: 150, // Ograniczenie szerokości InputDecorator
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'D o s a g e',
+            border: OutlineInputBorder(),
+            labelStyle: TextStyle(
+              fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+            ),
           ),
-        ),
-        child: Consumer(
-          builder: (context, ref, child) {
-            final deprecatedStorageInfo = ref.watch(pillDosageProvider);
-            return Text(deprecatedStorageInfo?.toString() ?? 'Select');
-          },
+          child: Consumer(
+            builder: (context, ref, child) {
+              final deprecatedStorageInfo = ref.watch(pillDosageProvider);
+              return Text(deprecatedStorageInfo?.toString() ?? 'Select');
+            },
+          ),
         ),
       ),
     );

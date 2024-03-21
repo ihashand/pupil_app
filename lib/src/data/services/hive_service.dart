@@ -1,7 +1,9 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pet_diary/src/models/adapter/time_of_day_adapter.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/user_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
@@ -42,6 +44,11 @@ class HiveService {
 
       Hive.registerAdapter<Pill>(PillAdapter());
       await Hive.openBox<Pill>('pillBox');
+
+      Hive.registerAdapter(TimeOfDayAdapter());
+
+      Hive.registerAdapter<Reminder>(ReminderAdapter());
+      await Hive.openBox<Reminder>('reminderBox');
 
       _isHiveInitialized = true;
     }

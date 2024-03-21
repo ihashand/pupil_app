@@ -46,7 +46,10 @@ class Pill extends HiveObject {
   String? timesPerDay;
 
   @HiveField(14)
-  bool remindersEnabled = true;
+  bool remindersEnabled = false;
+
+  @HiveField(15)
+  String emoji = '';
 
   Map<String, dynamic> toJson() {
     return {

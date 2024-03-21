@@ -31,8 +31,8 @@ class EventRepository {
   }
 
   Future<void> deleteEvent(String eventId) async {
-    await _hive.delete(eventId); // Usuń tabletkę na podstawie jej ID
-    await _init(); // Opcjonalnie odśwież listę tabletek  }
+    await _hive.delete(eventId);
+    await _init();
   }
 
   Event? getEventById(String petId) {

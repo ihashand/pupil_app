@@ -9,7 +9,6 @@ class FrequencyPillDetails extends ConsumerWidget {
   const FrequencyPillDetails({
     super.key,
   });
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
@@ -43,19 +42,23 @@ class FrequencyPillDetails extends ConsumerWidget {
           },
         );
       },
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'F r e q u e n c y',
-          border: OutlineInputBorder(),
-          labelStyle: TextStyle(
-            fontSize: 21, // Ustaw rozmiar czcionki dla tekstu etykiety
+      child: SizedBox(
+        width: 150, // Ograniczenie szerokości InputDecorator
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'F r e q u e n c y',
+            border: OutlineInputBorder(),
+            labelStyle: TextStyle(
+              fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+            ),
           ),
-        ),
-        child: Consumer(
-          builder: (context, ref, child) {
-            final frequency = ref.watch(pillFrequencyProvider);
-            return Text(frequency?.toString() ?? 'Select');
-          },
+          child: Consumer(
+            builder: (context, ref, child) {
+              var frequencyStorageInfo = ref.watch(pillFrequencyProvider);
+
+              return Text(frequencyStorageInfo?.toString() ?? 'Select');
+            },
+          ),
         ),
       ),
     );

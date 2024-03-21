@@ -25,3 +25,5 @@ final pillEndDateControllerProvider = StateProvider<DateTime>((ref) {
 final pillFrequencyProvider = StateProvider<int?>((ref) => null);
 
 final pillDosageProvider = StateProvider<int?>((ref) => null);
+
+final pillRemindersEnabledProvider = StateProvider<bool>((ref) => false);

@@ -15,6 +15,10 @@ import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 // ignore: depend_on_referenced_packages
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

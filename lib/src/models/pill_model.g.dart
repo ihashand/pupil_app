@@ -31,13 +31,14 @@ class PillAdapter extends TypeAdapter<Pill> {
       ..endDate = fields[11] as DateTime?
       ..startDate = fields[12] as DateTime?
       ..timesPerDay = fields[13] as String?
-      ..remindersEnabled = fields[14] as bool;
+      ..remindersEnabled = fields[14] as bool
+      ..emoji = fields[15] as String;
   }
 
   @override
   void write(BinaryWriter writer, Pill obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -67,7 +68,9 @@ class PillAdapter extends TypeAdapter<Pill> {
       ..writeByte(13)
       ..write(obj.timesPerDay)
       ..writeByte(14)
-      ..write(obj.remindersEnabled);
+      ..write(obj.remindersEnabled)
+      ..writeByte(15)
+      ..write(obj.emoji);
   }
 
   @override
