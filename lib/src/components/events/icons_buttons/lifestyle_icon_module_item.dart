@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/temperature_event.dart';
-import 'package:pet_diary/src/components/events/walk_event.dart';
+import 'package:pet_diary/src/components/walk/walk_event.dart';
 import 'package:pet_diary/src/components/events/water_event.dart';
 import 'package:pet_diary/src/components/events/weight_event.dart';
 import 'package:pet_diary/src/components/events/icons_buttons/clickable_icons_row.dart';

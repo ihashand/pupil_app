@@ -5,6 +5,7 @@ import 'package:pet_diary/src/components/events/create_event_module.dart';
 import 'package:pet_diary/src/components/events/delete_event_module.dart';
 import 'package:pet_diary/src/components/events/event_modules.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends ConsumerWidget {
@@ -16,11 +17,14 @@ class CalendarScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) {
+    // Pobierz wszystkie wydarzenia
     var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
     var dateController = ref.watch(eventDateControllerProvider);
     var nameController = ref.watch(eventNameControllerProvider);
     var descriptionController = ref.watch(eventDescriptionControllerProvider);
+    // Filtruj wydarzenia dla zwierzaka o danym petId
     var petEvents = allEvents?.where((element) => element.petId == petId);
+    // Pobierz wydarzenia dla wybranej daty
     var eventsOnSelectedDate = petEvents?.where((event) {
       return DateFormat('yyyy-MM-dd').format(event.date) ==
           DateFormat('yyyy-MM-dd').format(dateController);
@@ -28,6 +32,7 @@ class CalendarScreen extends ConsumerWidget {
 
     void selectDate(DateTime date, DateTime focusedDate) {
       ref.read(eventDateControllerProvider.notifier).state = date;
+      // Zaktualizuj wydarzenia dla wybranej daty
       eventsOnSelectedDate = allEvents?.where((event) {
         return DateFormat('yyyy-MM-dd').format(event.date) ==
             DateFormat('yyyy-MM-dd').format(date);
@@ -77,32 +82,55 @@ class CalendarScreen extends ConsumerWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           SizedBox(
-            height: 133,
+            height: 200,
             child: ListView.builder(
               itemCount: eventsOnSelectedDate?.length ?? 0,
               itemBuilder: (context, index) {
+                var walk = ref
+                    .watch(walkRepositoryProvider)
+                    .value
+                    ?.getWalkById(eventsOnSelectedDate![index].walkId);
+
+                // Sprawdź, czy lista wydarzeń dla wybranej daty jest pusta
                 if (eventsOnSelectedDate == null ||
                     eventsOnSelectedDate!.isEmpty) {
                   return const ListTile(
                     title: Text("No events on this date"),
                   );
                 } else {
+                  // Wyświetl szczegóły wydarzenia
                   return ListTile(
                     title: Text(eventsOnSelectedDate![index].title),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        eventsOnSelectedDate![index].durationTime == 0
-                            ? eventsOnSelectedDate![index].value == 0
-                                ? Text(eventsOnSelectedDate![index].description)
-                                : Text(
-                                    '${(eventsOnSelectedDate![index].value)}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold))
-                            : Text(
-                                ' ${formatDuration(eventsOnSelectedDate![index].durationTime)}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
+                        if (eventsOnSelectedDate![index].walkId.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'Time: ${formatDuration(walk!.walkTime.toInt())}'),
+                              Text('Distance: ${(walk!.walkDistance)}'),
+                            ],
+                          ),
+                        // Warunkowo wyświetlaj inne szczegóły w zależności od dostępności danych
+                        if (eventsOnSelectedDate![index].durationTime == 0)
+                          if (eventsOnSelectedDate![index].value == 0)
+                            // Wyświetl opis wydarzenia, jeśli dostępny
+                            Text(eventsOnSelectedDate![index].description)
+                          else
+                            // Wyświetl wartość, jeśli dostępna
+                            Text(
+                              '${(eventsOnSelectedDate![index].value)}',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            )
+                        else
+                          // Wyświetl czas trwania wydarzenia, jeśli dostępny
+                          Text(
+                            ' ${formatDuration(eventsOnSelectedDate![index].durationTime)}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                       ],
                     ),
                     trailing: IconButton(
@@ -120,6 +148,7 @@ class CalendarScreen extends ConsumerWidget {
               },
             ),
           ),
+          // Dodaj moduł tworzenia nowego wydarzenia
           EventModules(
               modules: createEventModule(
             context,

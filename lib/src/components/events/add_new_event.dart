@@ -106,11 +106,11 @@ List<Event>? addNewEvent(
     ref.refresh(eventRepositoryProvider);
   }
 
+//todo
   // walk
-  if (newWalk.id != '') {
+  if (newWalk.id.isNotEmpty) {
     newWalk.eventId = eventId;
     newWalk.petId = petId;
-    newWalk.walkTime = initialValue;
 
     Event newEvent = Event(
         id: eventId,
@@ -118,7 +118,7 @@ List<Event>? addNewEvent(
         description: eventDescription,
         date: dateController,
         durationTime: durationTime,
-        value: initialValue,
+        value: newWalk.walkTime,
         userId: pet!.userId,
         petId: petId,
         weightId: '',
