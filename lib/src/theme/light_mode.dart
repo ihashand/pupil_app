@@ -8,6 +8,7 @@ ThemeData lightMode = ThemeData(
       primary: Colors.grey.shade200,
       secondary: Colors.grey.shade400,
       inversePrimary: Colors.grey.shade500),
+  primaryColorLight: Color.fromARGB(255, 40, 40, 40),
   primaryColorDark: Colors.black,
   cardColor: const Color.fromARGB(255, 214, 188, 225),
   textTheme: ThemeData.light()

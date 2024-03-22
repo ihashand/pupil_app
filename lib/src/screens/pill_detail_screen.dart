@@ -6,6 +6,7 @@ import 'package:pet_diary/src/components/pill_details/dosage_pet_details.dart';
 import 'package:pet_diary/src/components/pill_details/end_date_pill_details.dart';
 import 'package:pet_diary/src/components/pill_details/frequency_pill_details.dart';
 import 'package:pet_diary/src/components/pill_details/name_pill_details.dart';
+import 'package:pet_diary/src/components/pill_details/pill_emoji_details.dart';
 import 'package:pet_diary/src/components/pill_details/start_date_pill_details.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/schedule_notification.dart';
@@ -66,6 +67,10 @@ class PillDetailScreen extends ConsumerWidget {
               pill!.endDate ?? DateTime.now();
         }
 
+        if (pill!.emoji.isNotEmpty) {
+          ref.read(pillEmojiProvider).text = pill!.emoji;
+        }
+
         // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
         cleanerOfFields = true;
       });
@@ -90,6 +95,8 @@ class PillDetailScreen extends ConsumerWidget {
         ref.read(reminderDescriptionControllerProvider).text = '';
         ref.read(reminderTimeOfDayControllerProvider.notifier).state =
             timeOfDay;
+        ref.read(pillEmojiProvider).text = ' ';
+
         // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
         cleanerOfFields = false;
       });
@@ -111,7 +118,7 @@ class PillDetailScreen extends ConsumerWidget {
         child: Scaffold(
           appBar: AppBar(
             title: Text(
-              pill == null ? 'A d d  p i l l' : 'E d i t  p i l l',
+              pill == null ? 'N e w  p i l l' : 'E d i t  p i l l',
               style: const TextStyle(fontSize: 20),
             ),
             backgroundColor: Colors.transparent,
@@ -147,6 +154,8 @@ class PillDetailScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  const EmojiPillDetails(),
+                  const SizedBox(height: 30),
                   buildRemindersUI(
                       ref, context, petId, newPillId, pill, tempReminderIds),
                 ],
@@ -166,14 +175,14 @@ class PillDetailScreen extends ConsumerWidget {
                     style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Colors.blue),
                         minimumSize:
-                            MaterialStateProperty.all(const Size(340, 50)),
+                            MaterialStateProperty.all(const Size(300, 50)),
                         textStyle: MaterialStateProperty.all(
                           TextStyle(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: 18),
                         ),
                         shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                          borderRadius: BorderRadius.circular(15.0),
                         ))),
                     child: Text(
                       'S a v e',
@@ -267,6 +276,7 @@ class PillDetailScreen extends ConsumerWidget {
         newPill.petId = petId;
         newPill.frequency = ref.read(pillFrequencyProvider).toString();
         newPill.dosage = ref.read(pillDosageProvider).toString();
+        newPill.emoji = ref.read(pillEmojiProvider).text;
 
         final Event newEvent = Event(
             id: eventId,
@@ -310,6 +320,7 @@ class PillDetailScreen extends ConsumerWidget {
         pill?.endDate = ref.read(pillEndDateControllerProvider);
         pill?.frequency = ref.read(pillFrequencyProvider).toString();
         pill?.dosage = ref.read(pillDosageProvider).toString();
+        pill?.emoji = ref.read(pillEmojiProvider).text;
 
         ref.refresh(eventRepositoryProvider);
 
@@ -364,14 +375,14 @@ Widget buildRemindersUI(WidgetRef ref, BuildContext context, String petId,
         children: [
           SizedBox(
             height: 50,
-            width: 400,
+            width: 230,
             child: FloatingActionButton.extended(
               onPressed: () {
                 _showAddReminderDialog(
                     context, ref, petId, newPillId, pill, tempReminderIds);
               },
               label: Text(
-                'Add new remind',
+                ' N e w  r e m i n d',
                 style: TextStyle(color: Theme.of(context).primaryColorDark),
               ),
               icon: Icon(
@@ -380,7 +391,12 @@ Widget buildRemindersUI(WidgetRef ref, BuildContext context, String petId,
               ),
               backgroundColor: Colors.blue, // Customize color
               extendedPadding: const EdgeInsets.symmetric(
-                  horizontal: 20.0), // Adjust padding
+                horizontal: 10.0, // Adjust padding
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                    15.0), // Adjust border radius as needed
+              ),
             ),
           ),
           const SizedBox(
@@ -424,7 +440,7 @@ Future<void> _showAddReminderDialog(
       ?.getReminders()
       .where((element) => element.objectId == newPillId)
       .toList();
-  var labelStyle = const TextStyle(color: Colors.black);
+  var labelStyle = TextStyle(color: Theme.of(context).primaryColorDark);
 
   if (reminders!.length >= 10) {
     ScaffoldMessenger.of(context).showSnackBar(

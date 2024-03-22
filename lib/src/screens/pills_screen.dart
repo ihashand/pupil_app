@@ -29,28 +29,14 @@ class PillsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Medicine Management"),
+        title: const Text(
+          "M e d i c i n e",
+          style: TextStyle(fontSize: 20),
+        ),
         backgroundColor: Colors.transparent,
       ),
       body: Column(
         children: [
-          SizedBox(
-            width: 250,
-            child: ElevatedButton(
-              onPressed: () => addOrEditPill(context, ref, petId),
-              style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.blue)),
-              child: Text(
-                "A d d  P i l l",
-                style: TextStyle(
-                  color: Theme.of(context).primaryColorDark,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
           Expanded(
             child: ListView.builder(
               itemCount: allPills?.length,
@@ -73,6 +59,37 @@ class PillsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => addOrEditPill(context, ref, petId),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.blue),
+                    minimumSize: MaterialStateProperty.all(const Size(300, 50)),
+                    textStyle: MaterialStateProperty.all(
+                      TextStyle(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: 18),
+                    ),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15.0),
+                    ))),
+                child: Text(
+                  'N e w  p i l l',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -150,26 +167,30 @@ class _PillTileState extends State<PillTile> {
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      color: Colors.grey[200],
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      color: Theme.of(context).colorScheme.primary,
       child: Column(
         children: [
           ListTile(
             title: Text(widget.pill.name),
             leading: Text(
-              '💊', // Emotikona tabletki
-              style: TextStyle(fontSize: 24), // Rozmiar emotikony
+              widget.pill.emoji, // Emotikona tabletki
+              style: const TextStyle(fontSize: 24),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit),
+                  icon: Icon(
+                    Icons.edit,
+                    color: Theme.of(context).primaryColorLight,
+                  ),
                   onPressed: widget.onEdit,
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: widget.onDelete,
+                  color: Theme.of(context).primaryColorLight,
                 ),
               ],
             ),
@@ -180,12 +201,14 @@ class _PillTileState extends State<PillTile> {
             },
           ),
           AnimatedSize(
-            duration: Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 250),
             child: ConstrainedBox(
-              constraints:
-                  isExpanded ? BoxConstraints() : BoxConstraints(maxHeight: 0),
+              constraints: isExpanded
+                  ? const BoxConstraints()
+                  : const BoxConstraints(maxHeight: 0),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
 
-class NamePillDetails extends ConsumerWidget {
-  const NamePillDetails({
+class EmojiPillDetails extends ConsumerWidget {
+  const EmojiPillDetails({
     super.key,
   });
 
@@ -15,18 +15,17 @@ class NamePillDetails extends ConsumerWidget {
       height: 60,
       child: InputDecorator(
         decoration: const InputDecoration(
-          fillColor: Colors.black,
-          labelText: 'N a m e',
+          labelText: 'E m o j i',
           border: OutlineInputBorder(),
           labelStyle: TextStyle(
             fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
           ),
         ),
         child: TextFormField(
-          controller: ref.read(pillNameControllerProvider),
+          controller: ref.read(pillEmojiProvider),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter a name';
+              return 'Please enter emoji or one letter';
             }
             return null;
           },

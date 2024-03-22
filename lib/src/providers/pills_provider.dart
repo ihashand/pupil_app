@@ -27,3 +27,7 @@ final pillFrequencyProvider = StateProvider<int?>((ref) => null);
 final pillDosageProvider = StateProvider<int?>((ref) => null);
 
 final pillRemindersEnabledProvider = StateProvider<bool>((ref) => false);
+
+final pillEmojiProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
