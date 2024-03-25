@@ -26,7 +26,6 @@ void deleteEventModule(
       ref.watch(temperatureRepositoryProvider).value?.getTemperature();
   var allWater = ref.watch(waterRepositoryProvider).value?.getWater();
   var allNotes = ref.watch(noteRepositoryProvider).value?.getNotes();
-  var allPills = ref.watch(pillRepositoryProvider).value?.getPills();
 
   final int indexToDeleteWeight =
       allWeights?.indexWhere((w) => w.id == event!.weightId) ?? -1;
@@ -42,9 +41,6 @@ void deleteEventModule(
 
   final int indexToDeleteNote =
       allNotes?.indexWhere((w) => w.id == event!.noteId) ?? -1;
-
-  final int indexToDeletePill =
-      allPills?.indexWhere((w) => w.id == event!.pillId) ?? -1;
 
   final String pillId = event!.pillId;
 
@@ -94,7 +90,7 @@ void deleteEventModule(
   if (pillId.isNotEmpty) {
     var reminders = ref.watch(reminderRepositoryProvider).value?.getReminders();
 
-    if (reminders!.isNotEmpty) {
+    if (reminders != null && reminders.isNotEmpty) {
       for (var reminder in reminders) {
         if (reminder.objectId == pillId) {
           await ref

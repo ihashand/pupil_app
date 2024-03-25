@@ -24,94 +24,111 @@ Future<void> weightEvent(
   String petId, {
   bool isHomeEvent = false,
 }) async {
-  TextEditingController weightName = TextEditingController(text: "W E I G H T");
+  TextEditingController weightName = TextEditingController(text: "Weight");
   nameController.text = "";
 
   await showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Center(
-          child: Text(
-            'A D D  W E I G H T',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        content: SizedBox(
+          width: 250,
+          height: 70,
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Weight',
+              border: OutlineInputBorder(),
+            ),
+            child: TextFormField(
+              controller: nameController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (value) {
+                final fixedValue = value.replaceAll(',', '.');
+                initialWeight = double.tryParse(fixedValue) ?? 0.0;
+              },
+            ),
           ),
-        ),
-        content: TextFormField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Pet Weight',
-            hintText: 'Enter weight',
-          ),
-          keyboardType: TextInputType.number,
-          onChanged: (value) {
-            initialWeight = double.tryParse(value) ?? 0.0;
-          },
         ),
         actions: <Widget>[
           Center(
-            child: TextButton(
-              child: Text(
-                'S A V E',
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.inverseSurface,
-                    fontSize: 20),
-              ),
-              onPressed: () async {
-                if (nameController.text.trim().isEmpty ||
-                    initialWeight <= 0.0) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Error',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 24)),
-                        content: Text('Weight field cannot be empty.',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16)),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              'OK',
-                              style: TextStyle(
-                                  color: Theme.of(context).primaryColorDark,
-                                  fontSize: 20),
-                            ),
-                          ),
-                        ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text(
+                    'OK',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.inverseSurface),
+                  ),
+                  onPressed: () async {
+                    if (nameController.text.trim().isEmpty ||
+                        initialWeight <= 0.0) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Error',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 24)),
+                            content: Text('Weight field cannot be empty.',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 16)),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  'OK',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 20),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       );
-                    },
-                  );
-                  return;
-                }
-                String weightId = generateUniqueId();
-                Weight newWeight = Weight();
-                newWeight.id = weightId;
+                      return;
+                    }
+                    String weightId = generateUniqueId();
+                    Weight newWeight = Weight();
+                    newWeight.id = weightId;
 
-                addNewEvent(
-                    weightName,
-                    descriptionController,
-                    dateController,
-                    ref,
-                    allEvents,
-                    selectDate,
-                    0,
-                    initialWeight,
-                    petId,
-                    Temperature(),
-                    newWeight,
-                    Walk(),
-                    Water(),
-                    Note(),
-                    Pill());
-                Navigator.of(context).pop();
-              },
+                    addNewEvent(
+                        weightName,
+                        descriptionController,
+                        dateController,
+                        ref,
+                        allEvents,
+                        selectDate,
+                        0,
+                        initialWeight,
+                        petId,
+                        Temperature(),
+                        newWeight,
+                        Walk(),
+                        Water(),
+                        Note(),
+                        Pill());
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
           ),
         ],

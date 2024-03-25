@@ -94,7 +94,7 @@ class PillDetailScreen extends ConsumerWidget {
         ref.read(reminderDescriptionControllerProvider).text = '';
         ref.read(reminderTimeOfDayControllerProvider.notifier).state =
             timeOfDay;
-        ref.read(pillEmojiProvider).text = ' ';
+        ref.read(pillEmojiProvider).text = '';
 
         // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
         cleanerOfFields = false;
@@ -205,7 +205,7 @@ class PillDetailScreen extends ConsumerWidget {
     var name = ref.read(pillNameControllerProvider).text;
     var frequency = ref.read(pillFrequencyProvider);
     var dosage = ref.read(pillDosageProvider);
-
+    var emoji = ref.read(pillEmojiProvider);
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all required fields.')),
@@ -215,14 +215,14 @@ class PillDetailScreen extends ConsumerWidget {
 
     if (dosage == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dosage can not be zero.')),
+        const SnackBar(content: Text('Dosage is not selected.')),
       );
       return;
     }
 
     if (frequency == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Frequency can not be zero.')),
+        const SnackBar(content: Text('Frequency is not selected.')),
       );
       return;
     }
@@ -231,6 +231,14 @@ class PillDetailScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('End date cannot be earlier than start date.')),
+      );
+      return;
+    }
+
+    if (emoji.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Emoji is not selected. Please enter an emoji.')),
       );
       return;
     }

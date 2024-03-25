@@ -60,7 +60,7 @@ Future<void> walkEvent(
                         height: 70,
                         child: InputDecorator(
                           decoration: const InputDecoration(
-                            labelText: 'Walk distance',
+                            labelText: 'Distance',
                             border: OutlineInputBorder(),
                           ),
                           child: TextFormField(
