@@ -65,6 +65,9 @@ Future<void> walkEvent(
                           ),
                           child: TextFormField(
                             controller: walkDistanceController,
+                            cursorColor: Theme.of(context)
+                                .primaryColorDark
+                                .withOpacity(0.5),
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
                             onChanged: (value) {
@@ -140,25 +143,23 @@ Future<void> walkEvent(
                     ),
                   ),
                   onPressed: () async {
-                    // Dodaj logikę zapisu tutaj
-                    if (selectedHours == 0 && selectedMinutes == 0) {
+                    int totalDurationInSeconds =
+                        selectedHours * 60 + selectedMinutes;
+                    if (walkDistance > 120.0) {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text(
-                              'Error',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 24,
-                              ),
-                            ),
-                            content: Text(
-                              'Walk fields cannot be empty.',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16,
-                              ),
+                            title: Text('Invalid Input',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 24)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text('Walk distance cannot exceed 120 km.',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 16)),
                             ),
                             actions: <Widget>[
                               TextButton(
@@ -168,9 +169,8 @@ Future<void> walkEvent(
                                 child: Text(
                                   'OK',
                                   style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: 20,
-                                  ),
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 20),
                                 ),
                               ),
                             ],
@@ -180,27 +180,25 @@ Future<void> walkEvent(
                       return;
                     }
 
-                    int totalDurationInSeconds =
-                        selectedHours * 60 + selectedMinutes;
-
-                    if (totalDurationInSeconds < 1) {
-                      // Wyświetl komunikat o błędzie, jeśli czas spaceru jest mniejszy niż 1 minuta
+                    if (selectedHours == 0 && selectedMinutes == 0) {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text(
-                              'Error',
+                              'Invalid Input',
                               style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
-                                fontSize: 24,
+                                fontSize: 20,
                               ),
                             ),
-                            content: Text(
-                              'Walk duration must be at least 1 minute.',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16,
+                            content: SizedBox(
+                              width: 270,
+                              child: Text(
+                                'Walk fields cannot be empty.',
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
                               ),
                             ),
                             actions: <Widget>[
@@ -212,7 +210,6 @@ Future<void> walkEvent(
                                   'OK',
                                   style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
-                                    fontSize: 20,
                                   ),
                                 ),
                               ),
@@ -224,7 +221,6 @@ Future<void> walkEvent(
                     }
 
                     if (totalDurationInSeconds > 6 * 60) {
-                      // Jeśli czas spaceru przekracza 6 godzin, poproś o potwierdzenie
                       bool confirm = await showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -261,7 +257,7 @@ Future<void> walkEvent(
                         Pill());
 
                     // ignore: use_build_context_synchronously
-                    Navigator.of(context).pop(); // Zamknij dialog po zapisie
+                    Navigator.of(context).pop();
                   },
                 ),
               ],

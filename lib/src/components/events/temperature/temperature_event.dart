@@ -42,6 +42,7 @@ Future<void> temperatureEvent(
             ),
             child: TextFormField(
               controller: nameController,
+              cursorColor: Theme.of(context).primaryColorDark.withOpacity(0.5),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               onChanged: (value) {
@@ -81,14 +82,53 @@ Future<void> temperatureEvent(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('Error',
+                            title: Text('Invalid Input',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 20)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text('Temperature field cannot be empty.',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                  )),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  'OK',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 20),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      return;
+                    }
+
+                    if (initialValue > 50.0) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Invalid Input',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
                                     fontSize: 24)),
-                            content: Text('Temperature field cannot be empty.',
-                                style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: 16)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text(
+                                  'Temperature cannot exceed 50 degrees.',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 16)),
+                            ),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () {

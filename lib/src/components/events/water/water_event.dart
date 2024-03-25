@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/add_new_event.dart';
+import 'package:pet_diary/src/components/events/add_delete_event/add_new_event.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
@@ -41,6 +41,7 @@ Future<void> waterEvent(
             ),
             child: TextFormField(
               controller: nameController,
+              cursorColor: Theme.of(context).primaryColorDark.withOpacity(0.5),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               onChanged: (value) {
@@ -79,14 +80,52 @@ Future<void> waterEvent(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('Error',
+                            title: Text('Invalid Input',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 20)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text('Water field cannot be empty.',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                  )),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  'OK',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 20),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      return;
+                    }
+
+                    if (initialWater > 50.0) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Invalid Input',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
                                     fontSize: 24)),
-                            content: Text('Water field cannot be empty.',
-                                style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: 16)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text('Water cannot exceed 50 liters.',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 16)),
+                            ),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () {

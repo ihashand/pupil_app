@@ -15,11 +15,10 @@ class ManyHoursAlert extends StatelessWidget {
     return AlertDialog(
       title: Text('Confirmation',
           style: TextStyle(
-              color: Theme.of(context).primaryColorDark, fontSize: 24)),
+              color: Theme.of(context).primaryColorDark, fontSize: 20)),
       content: Text(
           'Are you sure that your walk time was $selectedHours:$selectedMinutes ?',
-          style: TextStyle(
-              color: Theme.of(context).primaryColorDark, fontSize: 16)),
+          style: TextStyle(color: Theme.of(context).primaryColorDark)),
       actions: <Widget>[
         TextButton(
           child: Text(

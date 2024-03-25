@@ -41,6 +41,7 @@ Future<void> weightEvent(
             ),
             child: TextFormField(
               controller: nameController,
+              cursorColor: Theme.of(context).primaryColorDark.withOpacity(0.5),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               onChanged: (value) {
@@ -79,14 +80,17 @@ Future<void> weightEvent(
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('Error',
+                            title: Text('Invalid Input',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
                                     fontSize: 24)),
-                            content: Text('Weight field cannot be empty.',
-                                style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: 16)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text('Weight field cannot be empty.',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 16)),
+                            ),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () {
@@ -105,6 +109,42 @@ Future<void> weightEvent(
                       );
                       return;
                     }
+
+                    if (initialWeight > 200.0) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Invalid Input',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 24)),
+                            content: SizedBox(
+                              width: 250,
+                              child: Text('Weight cannot exceed 200 kg.',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 16)),
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  'OK',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 20),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      return;
+                    }
+
                     String weightId = generateUniqueId();
                     Weight newWeight = Weight();
                     newWeight.id = weightId;

@@ -5,7 +5,11 @@ import 'package:pet_diary/src/components/events/event_modules/create_event_modul
 import 'package:pet_diary/src/components/events/add_delete_event/delete_event_module.dart';
 import 'package:pet_diary/src/components/events/event_modules/event_modules.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/pills_provider.dart';
+import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
+import 'package:pet_diary/src/providers/water_provider.dart';
+import 'package:pet_diary/src/providers/weight_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends ConsumerWidget {
@@ -73,7 +77,7 @@ class CalendarScreen extends ConsumerWidget {
                 return isSameDay(dateController, day);
               },
               onDaySelected: selectDate,
-              locale: 'en_US',
+              locale: 'pl_PL',
               headerVisible: false,
             ),
           ),
@@ -90,47 +94,72 @@ class CalendarScreen extends ConsumerWidget {
                     .watch(walkRepositoryProvider)
                     .value
                     ?.getWalkById(eventsOnSelectedDate![index].walkId);
+                var weight = ref
+                    .watch(weightRepositoryProvider)
+                    .value
+                    ?.getWeightById(eventsOnSelectedDate![index].weightId);
 
-                // Sprawdź, czy lista wydarzeń dla wybranej daty jest pusta
+                var water = ref
+                    .watch(waterRepositoryProvider)
+                    .value
+                    ?.getWaterById(eventsOnSelectedDate![index].waterId);
+
+                var pill = ref
+                    .watch(pillRepositoryProvider)
+                    .value
+                    ?.getPillById(eventsOnSelectedDate![index].pillId);
+
+                var temperature = ref
+                    .watch(temperatureRepositoryProvider)
+                    .value
+                    ?.getTemperatureById(
+                        eventsOnSelectedDate![index].temperatureId);
+
                 if (eventsOnSelectedDate == null ||
                     eventsOnSelectedDate!.isEmpty) {
                   return const ListTile(
                     title: Text("No events on this date"),
                   );
                 } else {
-                  // Wyświetl szczegóły wydarzenia
                   return ListTile(
                     title: Text(eventsOnSelectedDate![index].title),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (eventsOnSelectedDate![index].walkId.isNotEmpty)
+                        if (walk != null)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  'Time: ${formatDuration(walk!.walkTime.toInt())}'),
-                              Text('Distance: ${(walk.walkDistance)}'),
+                                  'Time: ${formatDuration(walk.walkTime.toInt())}'),
+                              Text('Kilometers: ${(walk.walkDistance)}'),
                             ],
                           ),
-                        // Warunkowo wyświetlaj inne szczegóły w zależności od dostępności danych
-                        if (eventsOnSelectedDate![index].durationTime == 0)
-                          if (eventsOnSelectedDate![index].value == 0)
-                            // Wyświetl opis wydarzenia, jeśli dostępny
-                            Text(eventsOnSelectedDate![index].description)
-                          else
-                            // Wyświetl wartość, jeśli dostępna
-                            Text(
-                              '${(eventsOnSelectedDate![index].value)}',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            )
-                        else
-                          // Wyświetl czas trwania wydarzenia, jeśli dostępny
-                          Text(
-                            ' ${formatDuration(eventsOnSelectedDate![index].durationTime)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                        if (weight != null)
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [Text('Kilograms: ${weight.weight}')]),
+                        if (water != null)
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [Text('Liter: ${water.water}')]),
+                        if (temperature != null)
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Celcius: ${temperature.temperature}')
+                              ]),
+                        if (pill != null)
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Frequency: ${pill.frequency}'),
+                                Text('Dosage: ${pill.dosage}'),
+                                Text(
+                                    'Start: ${pill.startDate!.day}-${pill.startDate!.month}-${pill.startDate!.year}'),
+                                Text(
+                                    'End: ${pill.endDate!.day}-${pill.startDate!.month}-${pill.startDate!.year}')
+                              ]),
                       ],
                     ),
                     trailing: IconButton(
