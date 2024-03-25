@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/add_new_event.dart';
+import 'package:pet_diary/src/components/events/add_delete_event/add_new_event.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
@@ -11,7 +11,7 @@ import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 
-Future<void> weightEvent(
+Future<void> temperatureEvent(
   BuildContext context,
   TextEditingController nameController,
   TextEditingController descriptionController,
@@ -20,11 +20,12 @@ Future<void> weightEvent(
   List<Event>? allEvents,
   void Function(DateTime date, DateTime focusedDate) selectDate,
   int durationTime,
-  double initialWeight,
+  double initialValue,
   String petId, {
   bool isHomeEvent = false,
 }) async {
-  TextEditingController weightName = TextEditingController(text: "Weight");
+  TextEditingController temperatureName =
+      TextEditingController(text: "Temperature");
   nameController.text = "";
 
   await showDialog(
@@ -36,7 +37,7 @@ Future<void> weightEvent(
           height: 70,
           child: InputDecorator(
             decoration: const InputDecoration(
-              labelText: 'Weight',
+              labelText: 'Temperature',
               border: OutlineInputBorder(),
             ),
             child: TextFormField(
@@ -45,7 +46,7 @@ Future<void> weightEvent(
                   const TextInputType.numberWithOptions(decimal: true),
               onChanged: (value) {
                 final fixedValue = value.replaceAll(',', '.');
-                initialWeight = double.tryParse(fixedValue) ?? 0.0;
+                initialValue = double.tryParse(fixedValue) ?? 0.0;
               },
             ),
           ),
@@ -68,13 +69,14 @@ Future<void> weightEvent(
                 ),
                 TextButton(
                   child: Text(
-                    'Ok',
+                    'OK',
                     style: TextStyle(
-                        color: Theme.of(context).colorScheme.inverseSurface),
+                      color: Theme.of(context).colorScheme.inverseSurface,
+                    ),
                   ),
                   onPressed: () async {
                     if (nameController.text.trim().isEmpty ||
-                        initialWeight <= 0.0) {
+                        initialValue <= 0.0) {
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -83,7 +85,7 @@ Future<void> weightEvent(
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
                                     fontSize: 24)),
-                            content: Text('Weight field cannot be empty.',
+                            content: Text('Temperature field cannot be empty.',
                                 style: TextStyle(
                                     color: Theme.of(context).primaryColorDark,
                                     fontSize: 16)),
@@ -105,22 +107,21 @@ Future<void> weightEvent(
                       );
                       return;
                     }
-                    String weightId = generateUniqueId();
-                    Weight newWeight = Weight();
-                    newWeight.id = weightId;
 
+                    Temperature newTemperature = Temperature();
+                    newTemperature.id = generateUniqueId();
                     addNewEvent(
-                        weightName,
+                        temperatureName,
                         descriptionController,
                         dateController,
                         ref,
                         allEvents,
                         selectDate,
                         0,
-                        initialWeight,
+                        initialValue,
                         petId,
-                        Temperature(),
-                        newWeight,
+                        newTemperature,
+                        Weight(),
                         Walk(),
                         Water(),
                         Note(),

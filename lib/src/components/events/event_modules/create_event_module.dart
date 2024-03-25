@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/note_event.dart';
+import 'package:pet_diary/src/components/events/note/note_event.dart';
 import 'package:pet_diary/src/components/events/icons_buttons/lifestyle_icon_module_item.dart';
 import 'package:pet_diary/src/components/events/icons_buttons/note_button_module_item.dart';
 import 'package:pet_diary/src/models/event_model.dart';

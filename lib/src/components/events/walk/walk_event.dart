@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/add_new_event.dart';
-import 'package:pet_diary/src/components/walk/_build_time_selector.dart';
-import 'package:pet_diary/src/components/walk/cancel_walk.dart';
-import 'package:pet_diary/src/components/walk/many_hours_alert.dart';
+import 'package:pet_diary/src/components/events/add_delete_event/add_new_event.dart';
+import 'package:pet_diary/src/components/events/walk/_build_time_selector.dart';
+import 'package:pet_diary/src/components/events/walk/cancel_walk.dart';
+import 'package:pet_diary/src/components/events/walk/many_hours_alert.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';

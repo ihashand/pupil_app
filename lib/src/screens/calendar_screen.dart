@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/create_event_module.dart';
-import 'package:pet_diary/src/components/events/delete_event_module.dart';
-import 'package:pet_diary/src/components/events/event_modules.dart';
+import 'package:pet_diary/src/components/events/event_modules/create_event_module.dart';
+import 'package:pet_diary/src/components/events/add_delete_event/delete_event_module.dart';
+import 'package:pet_diary/src/components/events/event_modules/event_modules.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
