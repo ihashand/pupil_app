@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
+import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
@@ -31,7 +32,8 @@ List<Event>? addNewEvent(
     Weight newWeight,
     Walk newWalk,
     Water newWater,
-    Note newNote) {
+    Note newNote,
+    Pill newPill) {
   var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
   var pet = ref.watch(petRepositoryProvider).value?.getPetById(petId);
 
@@ -173,6 +175,39 @@ List<Event>? addNewEvent(
 
   // note
   if (newNote.id != '') {
+    newNote.eventId = eventId;
+    newNote.petId = petId;
+    newNote.note = descriptionController.text;
+
+    Event newEvent = Event(
+        id: eventId,
+        title: eventName,
+        description: eventDescription,
+        date: dateController,
+        durationTime: durationTime,
+        value: initialValue,
+        userId: pet!.userId,
+        petId: petId,
+        weightId: '',
+        temperatureId: '',
+        walkId: '',
+        waterId: '',
+        noteId: newNote.id,
+        pillId: '');
+
+    ref.watch(eventRepositoryProvider).value?.addEvent(newEvent);
+    ref.watch(noteRepositoryProvider).value?.addNote(newNote);
+
+    nameController.clear();
+    descriptionController.clear();
+
+    ref.refresh(eventRepositoryProvider);
+    ref.refresh(noteRepositoryProvider);
+    selectDate(dateController, dateController);
+  }
+
+  // note
+  if (newPill.id != '') {
     newNote.eventId = eventId;
     newNote.petId = petId;
     newNote.note = descriptionController.text;

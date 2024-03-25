@@ -24,8 +24,7 @@ class Reminder extends HiveObject {
       objectId; // np. moze to byc pill, zwierze, cokolwiek z czym chcemy powiazac powiadomienie NIE USUWAC --- patryk
 
   @HiveField(6)
-  String
-      repeatType; // np. moze to byc pill, zwierze, cokolwiek z czym chcemy powiazac powiadomienie NIE USUWAC --- patryk
+  String repeatType;
 
   Reminder(
       {required this.time,

@@ -25,10 +25,10 @@ class Pill extends HiveObject {
   String? dosage;
 
   @HiveField(7)
-  String? icon; // Nazwa ikony lub jej kod
+  String? icon;
 
   @HiveField(8)
-  int? color; // Kolor jako wartość ARGB przechowywana w int
+  int? color;
 
   @HiveField(9)
   late String eventId;

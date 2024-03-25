@@ -8,6 +8,7 @@ import 'package:pet_diary/src/components/walk/many_hours_alert.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
+import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
@@ -256,8 +257,10 @@ Future<void> walkEvent(
                         Weight(),
                         newWalk,
                         Water(),
-                        Note());
+                        Note(),
+                        Pill());
 
+                    // ignore: use_build_context_synchronously
                     Navigator.of(context).pop(); // Zamknij dialog po zapisie
                   },
                 ),

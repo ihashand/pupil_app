@@ -5,6 +5,7 @@ import 'package:pet_diary/src/components/events/add_new_event.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
+import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
@@ -106,7 +107,8 @@ Future<void> temperatureEvent(
                     Weight(),
                     Walk(),
                     Water(),
-                    Note());
+                    Note(),
+                    Pill());
                 Navigator.of(context).pop();
               },
             ),

@@ -14,7 +14,6 @@ import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
@@ -32,7 +31,6 @@ class PillDetailScreen extends ConsumerWidget {
   TimeOfDay? selectedTime;
   String? reminderTitle;
   String? reminderDescription;
-  List<Reminder> reminders = [];
   var newPillId = generateUniqueId();
   List<String> tempReminderIds = [];
 

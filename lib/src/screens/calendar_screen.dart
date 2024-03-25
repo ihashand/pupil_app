@@ -110,7 +110,7 @@ class CalendarScreen extends ConsumerWidget {
                             children: [
                               Text(
                                   'Time: ${formatDuration(walk!.walkTime.toInt())}'),
-                              Text('Distance: ${(walk!.walkDistance)}'),
+                              Text('Distance: ${(walk.walkDistance)}'),
                             ],
                           ),
                         // Warunkowo wyświetlaj inne szczegóły w zależności od dostępności danych

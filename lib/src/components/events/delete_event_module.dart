@@ -5,6 +5,7 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
+import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
@@ -90,7 +91,20 @@ void deleteEventModule(
     ref.refresh(noteRepositoryProvider);
   }
 
-  if (indexToDeletePill != -1) {
+  if (pillId.isNotEmpty) {
+    var reminders = ref.watch(reminderRepositoryProvider).value?.getReminders();
+
+    if (reminders!.isNotEmpty) {
+      for (var reminder in reminders) {
+        if (reminder.objectId == pillId) {
+          await ref
+              .watch(reminderRepositoryProvider)
+              .value
+              ?.deleteReminder(reminder.id);
+        }
+      }
+    }
+
     await ref.watch(pillRepositoryProvider).value?.deletePill(pillId);
     ref.refresh(noteRepositoryProvider);
   }
