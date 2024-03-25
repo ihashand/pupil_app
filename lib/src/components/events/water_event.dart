@@ -20,100 +20,116 @@ Future<void> waterEvent(
   List<Event>? allEvents,
   void Function(DateTime date, DateTime focusedDate) selectDate,
   int durationTime,
-  double initialWeight,
+  double initialWater,
   String petId, {
   bool isHomeEvent = false,
 }) async {
-  TextEditingController temperatureName =
-      TextEditingController(text: "W A T E R");
+  TextEditingController temperatureName = TextEditingController(text: "Water");
   nameController.text = "";
 
   await showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Center(
-          child: Text(
-            'A D D  W A T E R',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        content: SizedBox(
+          width: 250,
+          height: 70,
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              labelText: 'Water',
+              border: OutlineInputBorder(),
+            ),
+            child: TextFormField(
+              controller: nameController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (value) {
+                final fixedValue = value.replaceAll(',', '.');
+                initialWater = double.tryParse(fixedValue) ?? 0.0;
+              },
+            ),
           ),
-        ),
-        content: TextFormField(
-          controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Pet Water',
-            hintText: 'Enter water',
-          ),
-          keyboardType: TextInputType.number,
-          onChanged: (value) {
-            initialWeight = double.tryParse(value) ?? 0.0;
-          },
         ),
         actions: <Widget>[
           Center(
-            child: TextButton(
-              child: Text(
-                'S A V E',
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.inverseSurface,
-                    fontSize: 20),
-              ),
-              onPressed: () async {
-                if (nameController.text.trim().isEmpty ||
-                    initialWeight <= 0.0) {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Error',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 24)),
-                        content: Text('Water field cannot be empty.',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16)),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text(
-                              'OK',
-                              style: TextStyle(
-                                  color: Theme.of(context).primaryColorDark,
-                                  fontSize: 20),
-                            ),
-                          ),
-                        ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text(
+                    'OK',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.inverseSurface),
+                  ),
+                  onPressed: () async {
+                    if (nameController.text.trim().isEmpty ||
+                        initialWater <= 0.0) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Error',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 24)),
+                            content: Text('Water field cannot be empty.',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 16)),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text(
+                                  'OK',
+                                  style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                      fontSize: 20),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       );
-                    },
-                  );
-                  return;
-                }
+                      return;
+                    }
 
-                Water newWater = Water();
-                newWater.id = generateUniqueId();
+                    Water newWater = Water();
+                    newWater.id = generateUniqueId();
 
-                addNewEvent(
-                    temperatureName,
-                    descriptionController,
-                    dateController,
-                    ref,
-                    allEvents,
-                    selectDate,
-                    0,
-                    initialWeight,
-                    petId,
-                    Temperature(),
-                    Weight(),
-                    Walk(),
-                    newWater,
-                    Note(),
-                    Pill());
+                    addNewEvent(
+                        temperatureName,
+                        descriptionController,
+                        dateController,
+                        ref,
+                        allEvents,
+                        selectDate,
+                        0,
+                        initialWater,
+                        petId,
+                        Temperature(),
+                        Weight(),
+                        Walk(),
+                        newWater,
+                        Note(),
+                        Pill());
 
-                Navigator.of(context).pop();
-              },
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
           ),
         ],

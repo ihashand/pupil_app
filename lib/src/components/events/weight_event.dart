@@ -68,7 +68,7 @@ Future<void> weightEvent(
                 ),
                 TextButton(
                   child: Text(
-                    'OK',
+                    'Ok',
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.inverseSurface),
                   ),
