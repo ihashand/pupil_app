@@ -21,14 +21,11 @@ class CalendarScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
   ) {
-    // Pobierz wszystkie wydarzenia
     var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
     var dateController = ref.watch(eventDateControllerProvider);
     var nameController = ref.watch(eventNameControllerProvider);
     var descriptionController = ref.watch(eventDescriptionControllerProvider);
-    // Filtruj wydarzenia dla zwierzaka o danym petId
     var petEvents = allEvents?.where((element) => element.petId == petId);
-    // Pobierz wydarzenia dla wybranej daty
     var eventsOnSelectedDate = petEvents?.where((event) {
       return DateFormat('yyyy-MM-dd').format(event.date) ==
           DateFormat('yyyy-MM-dd').format(dateController);
@@ -36,7 +33,6 @@ class CalendarScreen extends ConsumerWidget {
 
     void selectDate(DateTime date, DateTime focusedDate) {
       ref.read(eventDateControllerProvider.notifier).state = date;
-      // Zaktualizuj wydarzenia dla wybranej daty
       eventsOnSelectedDate = allEvents?.where((event) {
         return DateFormat('yyyy-MM-dd').format(event.date) ==
             DateFormat('yyyy-MM-dd').format(date);

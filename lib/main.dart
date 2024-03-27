@@ -10,7 +10,6 @@ import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/helper/notifier_service.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/home_screen.dart';
-import 'package:pet_diary/src/screens/new_pet_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 // ignore: depend_on_referenced_packages
@@ -58,9 +57,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/login_register_screen': (context) => const LoginOrRegister(),
             '/home_screen': (context) => const HomeScreen(),
-            //'/profile_screen': (context) => const MyCalendarScreen(),
             '/settings_screen': (context) => const SettingsScreen(),
-            '/my_animals_screen': (context) => const NewPetScreen(),
           });
     });
   }

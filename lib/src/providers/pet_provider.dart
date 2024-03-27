@@ -20,7 +20,7 @@ final petNameProvider = Provider<TextEditingController>((ref) {
 });
 
 final petImageProvider = StateProvider<String>((ref) {
-  return 'assets/images/dog_avatar_01.png'; // Initial value for pet image
+  return ''; // Initial value for pet image
 });
 
 final petAgeProvider = Provider<TextEditingController>((ref) {
@@ -29,10 +29,6 @@ final petAgeProvider = Provider<TextEditingController>((ref) {
 
 final petGenderProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
-});
-
-final petColorProvider = Provider<TextEditingController>((ref) {
-  return TextEditingController(); // Initial value for pet name
 });
 
 final petWeightsProvider = StateProvider<List<Weight>>((ref) {
@@ -56,7 +52,7 @@ final petProvider = Provider<Pet>((ref) {
     image: ref.watch(petImageProvider),
     age: ref.watch(petAgeProvider).text,
     gender: ref.watch(petGenderProvider).text,
-    color: ref.watch(petColorProvider).text,
     userId: FirebaseAuth.instance.currentUser?.uid ?? "",
+    breed: "",
   );
 });

@@ -67,14 +67,6 @@ class PetDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Color: ${pet.color}',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'San Francisco',
-                    ),
-                  ),
                   const SizedBox(height: 16),
                 ],
               ),

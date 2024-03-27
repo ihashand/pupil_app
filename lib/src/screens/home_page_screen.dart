@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
+import 'package:pet_diary/src/components/new_pet/add_pet_step1.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/user_provider.dart';
-import 'package:pet_diary/src/screens/new_pet_screen.dart';
 import 'settings_screen.dart';
 
 class HomePageScreen extends ConsumerWidget {
@@ -16,8 +16,7 @@ class HomePageScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final petState = ref.watch(petRepositoryProvider);
     final pets = petState.value?.getPets();
-
-    User? user = ref.watch(userProvider); // Watch the user provider
+    User? user = ref.watch(userProvider);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -81,22 +80,20 @@ class HomePageScreen extends ConsumerWidget {
             if (pets != null && pets.isEmpty)
               InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const NewPetScreen()),
-                  );
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => AddPetStep1(ref: ref),
+                  ));
                 },
                 child: Container(
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: Colors.transparent, // Dostosuj kolor tła ikony
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.add,
-                    size: 80, // Dostosuj rozmiar ikony
-                    color: Colors.purple, // Dostosuj kolor ikony
+                    size: 80,
+                    color: Colors.purple,
                   ),
                 ),
               )
@@ -119,11 +116,9 @@ class HomePageScreen extends ConsumerWidget {
                         if (petLenght - 1 == index)
                           InkWell(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const NewPetScreen()),
-                              );
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => AddPetStep1(ref: ref),
+                              ));
                             },
                             child: Container(
                               padding: const EdgeInsets.all(5),

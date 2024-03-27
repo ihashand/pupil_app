@@ -2,13 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/main.dart';
-import 'package:pet_diary/src/components/pill_details/dosage_pet_details.dart';
-import 'package:pet_diary/src/components/pill_details/end_date_pill_details.dart';
-import 'package:pet_diary/src/components/pill_details/frequency_pill_details.dart';
-import 'package:pet_diary/src/components/pill_details/name_pill_details.dart';
-import 'package:pet_diary/src/components/pill_details/pill_emoji_details.dart';
-import 'package:pet_diary/src/components/pill_details/reminders_pill_details.dart';
-import 'package:pet_diary/src/components/pill_details/start_date_pill_details.dart';
+import 'package:pet_diary/src/components/events/pill/dosage_pet_details.dart';
+import 'package:pet_diary/src/components/events/pill/end_date_pill_details.dart';
+import 'package:pet_diary/src/components/events/pill/frequency_pill_details.dart';
+import 'package:pet_diary/src/components/events/pill/name_pill_details.dart';
+import 'package:pet_diary/src/components/events/pill/pill_emoji_details.dart';
+import 'package:pet_diary/src/components/events/pill/reminders_pill_details.dart';
+import 'package:pet_diary/src/components/events/pill/start_date_pill_details.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
@@ -22,7 +22,6 @@ import '../providers/pills_provider.dart';
 // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
 bool cleanerOfFields = false;
 
-// A screen for adding or editing pill details.
 // ignore: must_be_immutable
 class PillDetailScreen extends ConsumerWidget {
   final Pill? pill;
@@ -41,7 +40,6 @@ class PillDetailScreen extends ConsumerWidget {
     if (pill != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(pillNameControllerProvider).text = pill!.name;
-        // Setting the date only if it differs from the default value, to avoid overwriting user changes.
         if (ref.read(pillDateControllerProvider.notifier).state !=
             pill!.addDate) {
           ref.read(pillDateControllerProvider.notifier).state =
@@ -103,15 +101,12 @@ class PillDetailScreen extends ConsumerWidget {
 
     return WillPopScope(
         onWillPop: () async {
-          // Tu możesz dodać logikę, którą chcesz wykonać, gdy użytkownik próbuje opuścić ekran
-          // Na przykład, usuwanie niezapisanych powiadomień
           for (var id in tempReminderIds) {
             await ref
                 .read(reminderRepositoryProvider)
                 .value
                 ?.deleteReminder(id);
           }
-          // Zwróć true, aby zezwolić na opuszczenie ekranu
           return true;
         },
         child: Scaffold(
@@ -269,7 +264,6 @@ class PillDetailScreen extends ConsumerWidget {
         }
       }
       if (isNewPill) {
-        // Creating a new pill.
         final Pet? pet =
             ref.watch(petRepositoryProvider).value?.getPetById(petId);
         final String eventId = generateUniqueId();
@@ -309,7 +303,6 @@ class PillDetailScreen extends ConsumerWidget {
 
         Navigator.of(context).pop(newPill);
       } else {
-        // Updating an existing pill.
         Event? eventToUpdate = ref
             .watch(eventRepositoryProvider)
             .value

@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/pill_details/reminder_item.dart';
-import 'package:pet_diary/src/components/pill_details/show_add_reminder_dialog.dart';
+import 'package:pet_diary/src/components/events/pill/reminder_item.dart';
+import 'package:pet_diary/src/components/events/pill/show_add_reminder_dialog.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';

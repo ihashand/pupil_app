@@ -39,7 +39,6 @@ class AnimalCard extends StatelessWidget {
                 ),
               ),
             ),
-            // 2. Avatar
             Positioned(
               width: 90,
               height: 90,
@@ -48,7 +47,6 @@ class AnimalCard extends StatelessWidget {
                 child: Image.asset(pet.image, fit: BoxFit.cover),
               ),
             ),
-            // 3. Dane
             Positioned(
               left: 15,
               bottom: 0,

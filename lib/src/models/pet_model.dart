@@ -20,10 +20,10 @@ class Pet extends HiveObject {
   late String gender;
 
   @HiveField(5)
-  late String color;
+  late String userId;
 
   @HiveField(6)
-  late String userId;
+  late String breed;
 
   Pet({
     required this.id,
@@ -31,7 +31,7 @@ class Pet extends HiveObject {
     required this.image,
     required this.age,
     required this.gender,
-    required this.color,
     required this.userId,
+    required this.breed,
   });
 }
