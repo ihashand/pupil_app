@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:pet_diary/src/components/new_pet/add_pet_step5.dart';
-import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
-import 'package:pet_diary/src/components/new_pet/dog_groups.dart';
-import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_step5_avatar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 
-class AddPetStep4 extends StatelessWidget {
+class AddPetStep4Breed extends StatelessWidget {
   final WidgetRef ref;
   final String petName;
   final String petAge;
   final String petGender;
 
-  const AddPetStep4({
+  const AddPetStep4Breed({
     super.key,
     required this.ref,
     required this.petName,
@@ -25,12 +25,12 @@ class AddPetStep4 extends StatelessWidget {
     final TextEditingController petBreedController = TextEditingController();
 
     return Scaffold(
-      appBar: buildAppBar(context, showCloseButton: true),
+      appBar: addPetAppBar(context, showCloseButton: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            SegmentedProgressBar(
+            AddPetSegmentProgressBar(
               totalSegments: 5,
               filledSegments: 4, // Ponieważ to drugi krok
               backgroundColor: Theme.of(context).colorScheme.primary,
@@ -90,7 +90,7 @@ class AddPetStep4 extends StatelessWidget {
                   return; // Przerywamy dalsze działanie przycisku
                 }
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => AddPetStep5(
+                  builder: (_) => AddPetStep5Avatar(
                     ref: ref,
                     petName: petName,
                     petAge: petAge,

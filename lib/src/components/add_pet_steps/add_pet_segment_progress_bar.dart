@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class SegmentedProgressBar extends StatelessWidget {
+class AddPetSegmentProgressBar extends StatelessWidget {
   final int totalSegments;
   final int filledSegments;
   final Color backgroundColor;
   final Color fillColor;
 
-  const SegmentedProgressBar({
+  const AddPetSegmentProgressBar({
     super.key,
     required this.totalSegments,
     required this.filledSegments,

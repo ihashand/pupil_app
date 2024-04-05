@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pet_diary/src/screens/home_page_screen.dart';
-import 'settings_screen.dart';
+import 'src/screens/settings_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class BotomAppBar extends StatefulWidget {
+  const BotomAppBar({super.key});
 
   @override
-  HomeScreenState createState() => HomeScreenState();
+  BotomAppBarState createState() => BotomAppBarState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class BotomAppBarState extends State<BotomAppBar> {
   final List<Widget> _screens = [
     const HomePageScreen(),
     const SettingsScreen(),
@@ -23,10 +23,10 @@ class HomeScreenState extends State<HomeScreen> {
       case 0:
         return "Home";
       case 1:
-        return "My Animals";
+        return "Section 2";
 
       case 2:
-        return "Settings";
+        return "Section 3";
       default:
         return "My Pupils";
     }

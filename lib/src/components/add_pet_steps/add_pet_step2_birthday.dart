@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/new_pet/add_pet_step3.dart';
-import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
-import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_step3_gender.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 
-class AddPetStep2 extends StatefulWidget {
+class AddPetStep2Birthday extends StatefulWidget {
   final WidgetRef ref;
   final String petName;
-  const AddPetStep2({super.key, required this.ref, required this.petName});
+  const AddPetStep2Birthday(
+      {super.key, required this.ref, required this.petName});
 
   @override
   // ignore: library_private_types_in_public_api
-  _AddPetStep2State createState() => _AddPetStep2State();
+  _AddPetStep2BirthdayState createState() => _AddPetStep2BirthdayState();
 }
 
-class _AddPetStep2State extends State<AddPetStep2> {
+class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
   late DateTime selectedDate;
 
   @override
@@ -27,7 +28,7 @@ class _AddPetStep2State extends State<AddPetStep2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: buildAppBar(context, showCloseButton: true),
+      appBar: addPetAppBar(context, showCloseButton: true),
       body: Column(
         children: [
           Expanded(
@@ -38,7 +39,7 @@ class _AddPetStep2State extends State<AddPetStep2> {
                 children: [
                   Column(
                     children: [
-                      SegmentedProgressBar(
+                      AddPetSegmentProgressBar(
                         totalSegments: 5,
                         filledSegments: 2,
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -98,7 +99,7 @@ class _AddPetStep2State extends State<AddPetStep2> {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => AddPetStep3(
+                        builder: (_) => AddPetStep3Gender(
                           ref: widget.ref,
                           petName: widget.petName,
                           petAge: DateFormat('dd/MM/yyyy').format(selectedDate),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/screens/home_screen.dart';
+import 'package:pet_diary/bottom_app_bar.dart';
 
-AppBar buildAppBar(BuildContext context, {required bool showCloseButton}) {
+AppBar addPetAppBar(BuildContext context, {required bool showCloseButton}) {
   return AppBar(
     actions: [
       if (showCloseButton)
@@ -11,7 +11,7 @@ AppBar buildAppBar(BuildContext context, {required bool showCloseButton}) {
             color: Theme.of(context).primaryColorDark.withOpacity(0.5),
           ),
           onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            MaterialPageRoute(builder: (_) => const BotomAppBar()),
             (Route<dynamic> route) => false,
           ),
         ),

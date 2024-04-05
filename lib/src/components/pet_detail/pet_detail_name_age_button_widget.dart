@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/screens/calendar_screen.dart';
+import 'package:pet_diary/src/screens/events_screen.dart';
 
 class PetDetailNameAgeButtonWidget extends StatelessWidget {
   const PetDetailNameAgeButtonWidget({
@@ -53,8 +53,7 @@ class PetDetailNameAgeButtonWidget extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => CalendarScreen(petId)),
+                  MaterialPageRoute(builder: (context) => EventsScreen(petId)),
                 );
               },
               child: const Icon(

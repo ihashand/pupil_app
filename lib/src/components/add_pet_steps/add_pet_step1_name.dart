@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/new_pet/add_pet_step2.dart';
-import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
-import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_step2_birthday.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 
-class AddPetStep1 extends StatelessWidget {
+class AddPetStep1Name extends StatelessWidget {
   final WidgetRef ref;
-  const AddPetStep1({super.key, required this.ref});
+  const AddPetStep1Name({super.key, required this.ref});
 
   @override
   Widget build(BuildContext context) {
     TextEditingController petNameController = TextEditingController();
 
     return Scaffold(
-      appBar: buildAppBar(context, showCloseButton: true),
+      appBar: addPetAppBar(context, showCloseButton: true),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -21,7 +21,7 @@ class AddPetStep1 extends StatelessWidget {
           children: [
             Column(
               children: [
-                SegmentedProgressBar(
+                AddPetSegmentProgressBar(
                   totalSegments: 5,
                   filledSegments: 1, // Ponieważ to drugi krok
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -79,7 +79,7 @@ class AddPetStep1 extends StatelessWidget {
                   return; // Przerywamy dalsze działanie przycisku
                 }
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => AddPetStep2(
+                    builder: (_) => AddPetStep2Birthday(
                           ref: ref,
                           petName: petNameController.text,
                         )));

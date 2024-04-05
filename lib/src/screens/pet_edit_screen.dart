@@ -3,22 +3,22 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/new_events/delete_event.dart';
-import 'package:pet_diary/src/components/new_pet/dog_groups.dart';
+import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
+import 'package:pet_diary/src/components/events/delete_event.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
-class EditPetScreen extends ConsumerStatefulWidget {
+class PetEditScreen extends ConsumerStatefulWidget {
   final String petId;
 
-  const EditPetScreen({super.key, required this.petId});
+  const PetEditScreen({super.key, required this.petId});
 
   @override
-  EditPetScreenState createState() => EditPetScreenState();
+  PetEditScreenState createState() => PetEditScreenState();
 }
 
-class EditPetScreenState extends ConsumerState<EditPetScreen> {
+class PetEditScreenState extends ConsumerState<PetEditScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _birthDateController;

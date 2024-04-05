@@ -13,7 +13,7 @@ import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
-import 'package:pet_diary/src/screens/edit_pet_screen.dart';
+import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 
 class DetailsScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -155,7 +155,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => EditPetScreen(petId: pet.id)),
+                      builder: (context) => PetEditScreen(petId: pet.id)),
                 );
               },
             ),

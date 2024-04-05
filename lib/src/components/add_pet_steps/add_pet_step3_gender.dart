@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/new_pet/add_pet_step4.dart';
-import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
-import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_step4_breed.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 
-class AddPetStep3 extends StatelessWidget {
+class AddPetStep3Gender extends StatelessWidget {
   final WidgetRef ref;
   final String petName;
   final String petAge;
-  const AddPetStep3(
+  const AddPetStep3Gender(
       {super.key,
       required this.ref,
       required this.petName,
@@ -19,7 +19,7 @@ class AddPetStep3 extends StatelessWidget {
     TextEditingController petGenderController = TextEditingController();
 
     return Scaffold(
-      appBar: buildAppBar(context, showCloseButton: true),
+      appBar: addPetAppBar(context, showCloseButton: true),
       body: Column(
         children: [
           Expanded(
@@ -30,9 +30,9 @@ class AddPetStep3 extends StatelessWidget {
                 children: [
                   Column(
                     children: [
-                      SegmentedProgressBar(
+                      AddPetSegmentProgressBar(
                         totalSegments: 5,
-                        filledSegments: 3, // Ponieważ to trzeci krok
+                        filledSegments: 3,
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         fillColor: Colors.blue,
                       ),
@@ -79,10 +79,10 @@ class AddPetStep3 extends StatelessWidget {
                           const SnackBar(
                               content: Text('Please select pet gender.')),
                         );
-                        return; // Przerywamy dalsze działanie przycisku
+                        return;
                       }
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => AddPetStep4(
+                        builder: (_) => AddPetStep4Breed(
                           ref: ref,
                           petName: petName,
                           petAge: petAge,

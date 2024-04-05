@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/animal_card.dart';
-import 'package:pet_diary/src/components/new_pet/add_pet_step1.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/user_provider.dart';
 import 'settings_screen.dart';
@@ -84,7 +84,7 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
               InkWell(
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => AddPetStep1(ref: ref),
+                    builder: (_) => AddPetStep1Name(ref: ref),
                   ));
                 },
                 child: Container(
@@ -120,7 +120,7 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                           InkWell(
                             onTap: () {
                               Navigator.of(context).push(MaterialPageRoute(
-                                builder: (_) => AddPetStep1(ref: ref),
+                                builder: (_) => AddPetStep1Name(ref: ref),
                               ));
                             },
                             child: Container(

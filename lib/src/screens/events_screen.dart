@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/new_events/delete_event.dart';
-import 'package:pet_diary/src/components/new_events/new_note_event.dart';
-import 'package:pet_diary/src/components/new_events/new_temperature_event.dart';
-import 'package:pet_diary/src/components/new_events/new_walk_event.dart';
-import 'package:pet_diary/src/components/new_events/new_water_event.dart';
-import 'package:pet_diary/src/components/new_events/new_weight_event.dart';
+import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/components/events/new_note_event.dart';
+import 'package:pet_diary/src/components/events/new_temperature_event.dart';
+import 'package:pet_diary/src/components/events/new_walk_event.dart';
+import 'package:pet_diary/src/components/events/new_water_event.dart';
+import 'package:pet_diary/src/components/events/new_weight_event.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
@@ -17,15 +17,15 @@ import 'package:pet_diary/src/providers/weight_provider.dart';
 import 'package:pet_diary/src/screens/pills_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class CalendarScreen extends ConsumerStatefulWidget {
-  const CalendarScreen(this.petId, {super.key});
+class EventsScreen extends ConsumerStatefulWidget {
+  const EventsScreen(this.petId, {super.key});
   final String petId;
 
   @override
-  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+  ConsumerState<EventsScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+class _CalendarScreenState extends ConsumerState<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     List<Event>? allEvents =

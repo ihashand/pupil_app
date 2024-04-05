@@ -9,7 +9,7 @@ import 'package:pet_diary/src/data/services/hive_service.dart';
 import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/helper/notifier_service.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
-import 'package:pet_diary/src/screens/home_screen.dart';
+import 'package:pet_diary/bottom_app_bar.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 // ignore: depend_on_referenced_packages
@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
           theme: theme.themeData,
           routes: {
             '/login_register_screen': (context) => const LoginOrRegister(),
-            '/home_screen': (context) => const HomeScreen(),
+            '/home_screen': (context) => const BotomAppBar(),
             '/settings_screen': (context) => const SettingsScreen(),
           });
     });

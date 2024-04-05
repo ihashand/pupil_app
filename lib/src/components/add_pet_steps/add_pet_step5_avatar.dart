@@ -1,19 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
-import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
+import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
-class AddPetStep5 extends StatefulWidget {
+class AddPetStep5Avatar extends StatefulWidget {
   final WidgetRef ref;
   final String petName;
   final String petAge;
   final String petGender;
   final String petBreed;
-  const AddPetStep5(
+  const AddPetStep5Avatar(
       {super.key,
       required this.ref,
       required this.petName,
@@ -21,10 +21,10 @@ class AddPetStep5 extends StatefulWidget {
       required this.petGender,
       required this.petBreed});
   @override
-  AddPetStep5State createState() => AddPetStep5State();
+  AddPetStep5AvatarState createState() => AddPetStep5AvatarState();
 }
 
-class AddPetStep5State extends State<AddPetStep5> {
+class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
   late String petSelectedAvatar;
 
   @override
@@ -45,7 +45,7 @@ class AddPetStep5State extends State<AddPetStep5> {
     }
 
     return Scaffold(
-      appBar: buildAppBar(context, showCloseButton: true),
+      appBar: addPetAppBar(context, showCloseButton: true),
       body: Column(
         children: [
           Expanded(
@@ -56,7 +56,7 @@ class AddPetStep5State extends State<AddPetStep5> {
                 children: [
                   Column(
                     children: [
-                      SegmentedProgressBar(
+                      AddPetSegmentProgressBar(
                         totalSegments: 5,
                         filledSegments: 5, // Ponieważ to trzeci krok
                         backgroundColor: Theme.of(context).colorScheme.primary,
