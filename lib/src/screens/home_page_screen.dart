@@ -112,8 +112,8 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                     return Row(
                       children: [
                         SizedBox(
-                          height: 220,
-                          width: 165,
+                          height: 300,
+                          width: 180,
                           child: AnimalCard(petId: currentPet.id),
                         ),
                         if (petLenght - 1 == index)

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
+import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/details_screen.dart';
 
@@ -19,10 +20,20 @@ class AnimalCard extends ConsumerStatefulWidget {
 class _AnimalCardState extends ConsumerState<AnimalCard> {
   @override
   Widget build(BuildContext context) {
-    var pet = ref.read(petRepositoryProvider).value?.getPetById(widget.petId);
+    Pet? pet = ref.read(petRepositoryProvider).value?.getPetById(widget.petId);
     if (pet == null) {
       return const SizedBox.shrink();
     }
+
+    var buttonColor = Colors.black;
+    var maleColor = const Color(0xff1d6273);
+    var femaleColor = const Color(0xffff8a70);
+    if (pet.gender == 'Male') {
+      buttonColor = maleColor;
+    } else if (pet.gender == 'Female') {
+      buttonColor = femaleColor;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -34,9 +45,6 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
           alignment: Alignment.topCenter,
           children: [
             Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
               child: Container(
                 height: 115,
                 decoration: BoxDecoration(
@@ -53,65 +61,66 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
             Positioned(
               width: 90,
               height: 90,
-              top: 10,
+              top: 12,
               child: ClipOval(
                 child: Image.asset(pet.avatarImage, fit: BoxFit.cover),
               ),
             ),
             Positioned(
-              left: 15,
+              left: 20,
               bottom: 0,
-              top: 110,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(
-                      height: 5,
+              top: 100,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(
+                    height: 19,
+                  ),
+                  Text(
+                    calculateAge(pet.age),
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 11,
                     ),
-                    Text(
-                      calculateAge(pet.age),
-                      style: const TextStyle(
-                        color: Colors.grey,
-                      ),
+                  ),
+                  Text(
+                    pet.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'San Francisco',
                     ),
-                    Text(
-                      pet.name,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'San Francisco',
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(255, 201, 120, 197),
-                        minimumSize: const Size(115, 40),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailsScreen(petId: pet.id),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
+                    child: SizedBox(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: buttonColor,
+                          minimumSize: const Size(30, 30),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DetailsScreen(petId: pet.id),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          'Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: 'San Francisco',
+                            color: Theme.of(context).primaryColorDark,
                           ),
-                        );
-                      },
-                      child: Text(
-                        'Details',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'San Francisco',
-                          color: Theme.of(context).primaryColorDark,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ),
             ),
           ],

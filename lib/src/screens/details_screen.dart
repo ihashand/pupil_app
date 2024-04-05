@@ -117,8 +117,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
 
     if (pet.gender == 'Male') {
       buttonColor = const Color(0xff1d6273);
-      buttonColor = const Color(0xff1d6273);
-      rectangleColor = const Color(0xff68a2b6);
       rectangleColor = const Color(0xff68a2b6);
 
       diagramFirst = const Color(0xffffcec2);

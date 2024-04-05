@@ -13,12 +13,12 @@ String calculateAge(String birthDate) {
 
   if (months < 0 || (months == 0 && days < 0)) {
     years--;
-    months += 12; // Korygujemy miesiące do poprawnej wartości
+    months += 12;
   }
 
   if (days < 0) {
     final lastMonth = DateTime(now.year, now.month, 0);
-    days += lastMonth.day; // Korygujemy dni do poprawnej wartości
+    days += lastMonth.day;
     months--;
   }
 
