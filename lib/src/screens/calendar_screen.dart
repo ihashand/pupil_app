@@ -1,40 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/event_modules/create_event_module.dart';
-import 'package:pet_diary/src/components/events/add_delete_event/delete_event_module.dart';
-import 'package:pet_diary/src/components/events/event_modules/event_modules.dart';
+import 'package:pet_diary/src/components/new_events/delete_event.dart';
+import 'package:pet_diary/src/components/new_events/new_note_event.dart';
+import 'package:pet_diary/src/components/new_events/new_temperature_event.dart';
+import 'package:pet_diary/src/components/new_events/new_walk_event.dart';
+import 'package:pet_diary/src/components/new_events/new_water_event.dart';
+import 'package:pet_diary/src/components/new_events/new_weight_event.dart';
+import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
+import 'package:pet_diary/src/screens/pills_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class CalendarScreen extends ConsumerWidget {
+class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen(this.petId, {super.key});
   final String petId;
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    var allEvents = ref.watch(eventRepositoryProvider).value?.getEvents();
-    var dateController = ref.watch(eventDateControllerProvider);
-    var nameController = ref.watch(eventNameControllerProvider);
-    var descriptionController = ref.watch(eventDescriptionControllerProvider);
-    var petEvents = allEvents?.where((element) => element.petId == petId);
-    var eventsOnSelectedDate = petEvents?.where((event) {
-      return DateFormat('yyyy-MM-dd').format(event.date) ==
-          DateFormat('yyyy-MM-dd').format(dateController);
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+  @override
+  Widget build(BuildContext context) {
+    List<Event>? allEvents =
+        ref.watch(eventRepositoryProvider).value?.getEvents();
+    DateTime eventDateTime = ref.watch(eventDateControllerProvider);
+    Iterable<Event>? petEvents =
+        allEvents?.where((element) => element.petId == widget.petId);
+    List<Event>? eventsOnSelectedDate = petEvents?.where((event) {
+      return DateFormat('yyyy-MM-dd').format(event.eventDate) ==
+          DateFormat('yyyy-MM-dd').format(eventDateTime);
     }).toList();
 
     void selectDate(DateTime date, DateTime focusedDate) {
       ref.read(eventDateControllerProvider.notifier).state = date;
       eventsOnSelectedDate = allEvents?.where((event) {
-        return DateFormat('yyyy-MM-dd').format(event.date) ==
+        return DateFormat('yyyy-MM-dd').format(event.eventDate) ==
             DateFormat('yyyy-MM-dd').format(date);
       }).toList();
     }
@@ -52,7 +59,7 @@ class CalendarScreen extends ConsumerWidget {
           DateFormat(
             'MMMM',
             'en_US',
-          ).format(dateController),
+          ).format(eventDateTime),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -66,11 +73,11 @@ class CalendarScreen extends ConsumerWidget {
             child: TableCalendar(
               firstDay: DateTime.now().subtract(const Duration(days: 7)),
               lastDay: DateTime.now().add(const Duration(days: 7)),
-              focusedDay: dateController,
+              focusedDay: eventDateTime,
               calendarFormat: CalendarFormat.week,
               startingDayOfWeek: StartingDayOfWeek.monday,
               selectedDayPredicate: (day) {
-                return isSameDay(dateController, day);
+                return isSameDay(eventDateTime, day);
               },
               onDaySelected: selectDate,
               locale: 'pl_PL',
@@ -78,7 +85,7 @@ class CalendarScreen extends ConsumerWidget {
             ),
           ),
           Text(
-            'Events for ${DateFormat('dd/MM/yyyy').format(dateController)}:',
+            'Events for ${DateFormat('dd/MM/yyyy').format(eventDateTime)}:',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           SizedBox(
@@ -160,30 +167,81 @@ class CalendarScreen extends ConsumerWidget {
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
-                      onPressed: () => deleteEventModule(
-                          ref,
-                          allEvents,
-                          selectDate,
-                          dateController,
-                          eventsOnSelectedDate![index].id,
-                          petId),
+                      onPressed: () => deleteEvents(ref, allEvents, selectDate,
+                          eventsOnSelectedDate![index].id, widget.petId),
                     ),
                   );
                 }
               },
             ),
           ),
-          // Dodaj moduł tworzenia nowego wydarzenia
-          EventModules(
-              modules: createEventModule(
-            context,
-            nameController,
-            descriptionController,
-            dateController,
-            ref,
-            allEvents,
-            petId,
-          )),
+          Column(
+            children: [
+              Container(
+                color: Colors.grey.withOpacity(0.4),
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      NewWalkEventWidget(
+                        iconSize: 60,
+                        iconColor: Colors.black,
+                        petId: widget.petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                      NewWaterEvent(
+                        iconSize: 60,
+                        iconColor: Colors.black,
+                        petId: widget.petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                      NewTemperatureEvent(
+                        iconSize: 60,
+                        iconColor: Colors.black,
+                        petId: widget.petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                      NewWeightEvent(
+                        iconSize: 60,
+                        iconColor: Colors.black,
+                        petId: widget.petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              NewNoteEvent(
+                iconSize: 60,
+                iconColor: Colors.black,
+                petId: widget.petId,
+                eventDateTime: eventDateTime,
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => PillsScreen(widget.petId),
+                  ));
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    size: 80,
+                    color: Colors.purple,
+                  ),
+                ),
+              )
+            ],
+          ),
         ],
       ),
     );

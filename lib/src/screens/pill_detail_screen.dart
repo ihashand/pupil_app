@@ -1,4 +1,3 @@
-// ignore_for_file: unused_result, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/main.dart';
@@ -22,21 +21,17 @@ import '../providers/pills_provider.dart';
 // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
 bool cleanerOfFields = false;
 
-// ignore: must_be_immutable
 class PillDetailScreen extends ConsumerWidget {
   final Pill? pill;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final String petId;
-  TimeOfDay? selectedTime;
-  String? reminderTitle;
-  String? reminderDescription;
-  var newPillId = generateUniqueId();
-  List<String> tempReminderIds = [];
 
   PillDetailScreen(this.petId, {super.key, this.pill});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var newPillId = generateUniqueId();
+    List<String> tempReminderIds = [];
     if (pill != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(pillNameControllerProvider).text = pill!.name;
@@ -282,10 +277,8 @@ class PillDetailScreen extends ConsumerWidget {
         final Event newEvent = Event(
             id: eventId,
             title: newPill.name,
-            description: newPill.addDate.toString(),
-            date: DateTime.now(),
-            durationTime: 0,
-            value: 0,
+            eventDate: DateTime.now(),
+            dateWhenEventAdded: newPill.addDate!,
             userId: pet!.userId,
             petId: petId,
             weightId: '',
@@ -296,7 +289,7 @@ class PillDetailScreen extends ConsumerWidget {
             pillId: newPill.id);
 
         ref.read(eventRepositoryProvider).value?.addEvent(newEvent);
-        ref.refresh(eventRepositoryProvider);
+        ref.invalidate(eventRepositoryProvider);
 
         // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
         cleanerOfFields = true;
@@ -309,8 +302,6 @@ class PillDetailScreen extends ConsumerWidget {
             ?.getEventById(pill!.eventId);
 
         eventToUpdate!.title = nameController.text;
-        eventToUpdate.description =
-            ref.read(pillDateControllerProvider).toString();
 
         ref.read(eventRepositoryProvider).value?.updateEvent(eventToUpdate);
 
@@ -322,7 +313,7 @@ class PillDetailScreen extends ConsumerWidget {
         pill?.dosage = ref.read(pillDosageProvider).toString();
         pill?.emoji = ref.read(pillEmojiProvider).text;
 
-        ref.refresh(eventRepositoryProvider);
+        ref.invalidate(eventRepositoryProvider);
 
         var editingPillRemindersList = ref
             .read(reminderRepositoryProvider)

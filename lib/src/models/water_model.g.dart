@@ -20,13 +20,14 @@ class WaterAdapter extends TypeAdapter<Water> {
       ..id = fields[0] as String
       ..eventId = fields[1] as String
       ..petId = fields[2] as String
-      ..water = fields[3] as double;
+      ..water = fields[3] as double
+      ..dateTime = fields[4] as DateTime;
   }
 
   @override
   void write(BinaryWriter writer, Water obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -34,7 +35,9 @@ class WaterAdapter extends TypeAdapter<Water> {
       ..writeByte(2)
       ..write(obj.petId)
       ..writeByte(3)
-      ..write(obj.water);
+      ..write(obj.water)
+      ..writeByte(4)
+      ..write(obj.dateTime);
   }
 
   @override

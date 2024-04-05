@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart'; // Importuj pakiet intl
+import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/new_pet/add_pet_step3.dart';
 import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
 import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
@@ -8,10 +8,10 @@ import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
 class AddPetStep2 extends StatefulWidget {
   final WidgetRef ref;
   final String petName;
-  const AddPetStep2({Key? key, required this.ref, required this.petName})
-      : super(key: key);
+  const AddPetStep2({super.key, required this.ref, required this.petName});
 
   @override
+  // ignore: library_private_types_in_public_api
   _AddPetStep2State createState() => _AddPetStep2State();
 }
 
@@ -58,19 +58,17 @@ class _AddPetStep2State extends State<AddPetStep2> {
                       const SizedBox(height: 40),
                       ElevatedButton(
                         onPressed: () async {
-                          // Wyświetlanie okna wyboru daty
                           final pickedDate = await showDatePicker(
                             context: context,
                             initialDate: selectedDate,
-                            firstDate: DateTime(1900),
+                            firstDate: DateTime(2000),
                             lastDate: DateTime.now(),
                             builder: (BuildContext context, Widget? child) {
                               return Theme(
                                 data: ThemeData.light().copyWith(
                                   textButtonTheme: TextButtonThemeData(
                                     style: TextButton.styleFrom(
-                                      foregroundColor: Colors
-                                          .black, // Kolor tekstu przycisku 'OK'
+                                      foregroundColor: Colors.black,
                                     ),
                                   ),
                                 ),
@@ -92,8 +90,7 @@ class _AddPetStep2State extends State<AddPetStep2> {
                               horizontal: 40, vertical: 10),
                         ),
                         child: Text(
-                          DateFormat('dd/MM/yyyy')
-                              .format(selectedDate), // Formatowanie daty
+                          DateFormat('dd/MM/yyyy').format(selectedDate),
                         ),
                       ),
                     ],
@@ -104,8 +101,7 @@ class _AddPetStep2State extends State<AddPetStep2> {
                         builder: (_) => AddPetStep3(
                           ref: widget.ref,
                           petName: widget.petName,
-                          petAge: DateFormat('dd/MM/yyyy')
-                              .format(selectedDate), // Formatowanie daty
+                          petAge: DateFormat('dd/MM/yyyy').format(selectedDate),
                         ),
                       ));
                     },

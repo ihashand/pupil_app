@@ -7,11 +7,14 @@ class Weight extends HiveObject {
   String id = '';
 
   @HiveField(1)
-  late double weight;
+  late double weight = 0.0;
 
   @HiveField(2)
   late String eventId;
 
   @HiveField(3)
   late String petId;
+
+  @HiveField(4)
+  late DateTime dateTime;
 }

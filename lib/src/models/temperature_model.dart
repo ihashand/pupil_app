@@ -14,4 +14,7 @@ class Temperature extends HiveObject {
 
   @HiveField(3)
   late String petId;
+
+  @HiveField(4)
+  late DateTime dateTime;
 }

@@ -20,13 +20,14 @@ class TemperatureAdapter extends TypeAdapter<Temperature> {
       ..id = fields[0] as String
       ..temperature = fields[1] as double
       ..eventId = fields[2] as String
-      ..petId = fields[3] as String;
+      ..petId = fields[3] as String
+      ..dateTime = fields[4] as DateTime;
   }
 
   @override
   void write(BinaryWriter writer, Temperature obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -34,7 +35,9 @@ class TemperatureAdapter extends TypeAdapter<Temperature> {
       ..writeByte(2)
       ..write(obj.eventId)
       ..writeByte(3)
-      ..write(obj.petId);
+      ..write(obj.petId)
+      ..writeByte(4)
+      ..write(obj.dateTime);
   }
 
   @override

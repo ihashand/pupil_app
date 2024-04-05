@@ -7,11 +7,17 @@ class Note extends HiveObject {
   String id = '';
 
   @HiveField(1)
-  late String note;
+  late String title;
 
   @HiveField(2)
   late String eventId;
 
   @HiveField(3)
   late String petId;
+
+  @HiveField(4)
+  late DateTime dateTime;
+
+  @HiveField(5)
+  late String contentText;
 }

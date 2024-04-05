@@ -49,10 +49,12 @@ final petProvider = Provider<Pet>((ref) {
   return Pet(
     id: ref.watch(petIdProvider),
     name: ref.watch(petNameProvider).text,
-    image: ref.watch(petImageProvider),
+    avatarImage: ref.watch(petImageProvider),
     age: ref.watch(petAgeProvider).text,
     gender: ref.watch(petGenderProvider).text,
     userId: FirebaseAuth.instance.currentUser?.uid ?? "",
     breed: "",
+    dateTime: DateTime.now(),
+    backgroundImage: '',
   );
 });

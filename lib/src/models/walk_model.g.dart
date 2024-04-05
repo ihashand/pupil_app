@@ -21,13 +21,14 @@ class WalkAdapter extends TypeAdapter<Walk> {
       ..walkTime = fields[1] as double
       ..walkDistance = fields[2] as double
       ..eventId = fields[3] as String
-      ..petId = fields[4] as String;
+      ..petId = fields[4] as String
+      ..dateTime = fields[5] as DateTime;
   }
 
   @override
   void write(BinaryWriter writer, Walk obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -37,7 +38,9 @@ class WalkAdapter extends TypeAdapter<Walk> {
       ..writeByte(3)
       ..write(obj.eventId)
       ..writeByte(4)
-      ..write(obj.petId);
+      ..write(obj.petId)
+      ..writeByte(5)
+      ..write(obj.dateTime);
   }
 
   @override

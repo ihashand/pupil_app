@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
@@ -126,12 +124,11 @@ Future<void> showAddReminderDialog(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 15,
-                    ), // Odpowiednie paddingi dla Twojego designu
+                    ),
                   ),
                   child: SizedBox(
                     height: 30,
-                    width: double
-                        .infinity, // Aby przycisk rozciągał się na całą szerokość
+                    width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
                         final TimeOfDay? picked = await showTimePicker(
@@ -142,8 +139,7 @@ Future<void> showAddReminderDialog(
                               data: ThemeData.light().copyWith(
                                 textButtonTheme: TextButtonThemeData(
                                   style: TextButton.styleFrom(
-                                    foregroundColor: Colors
-                                        .black, // Kolor tekstu przycisku 'OK'
+                                    foregroundColor: Colors.black,
                                   ),
                                 ),
                               ),
@@ -165,8 +161,7 @@ Future<void> showAddReminderDialog(
                         ),
                       ),
                       child: Text(
-                        selectedTime.format(
-                            context), // Formatowanie czasu do czytelnej formy
+                        selectedTime.format(context),
                         style: TextStyle(
                           color: Theme.of(context).primaryColorDark,
                           fontSize: 17,
@@ -194,7 +189,6 @@ Future<void> showAddReminderDialog(
                 style: TextStyle(color: Theme.of(context).primaryColorDark),
               ),
               onPressed: () {
-                // Logika dodawania przypomnienia do repo
                 final Reminder newReminder = Reminder(
                   id: generateUniqueId(),
                   title: nameController.text,
@@ -220,7 +214,7 @@ Future<void> showAddReminderDialog(
                     .value
                     ?.addReminder(newReminder);
 
-                ref.refresh(reminderRepositoryProvider);
+                ref.invalidate(reminderRepositoryProvider);
 
                 DateTime today = DateTime.now();
                 TimeOfDay? timeOfDay =

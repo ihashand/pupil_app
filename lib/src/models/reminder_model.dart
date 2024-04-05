@@ -26,12 +26,16 @@ class Reminder extends HiveObject {
   @HiveField(6)
   String repeatType;
 
-  Reminder(
-      {required this.time,
-      required this.id,
-      required this.userId,
-      required this.objectId,
-      this.title = '',
-      this.description = '',
-      this.repeatType = 'daily'});
+  @HiveField(7)
+  DateTime dateTime = DateTime.now();
+
+  Reminder({
+    required this.time,
+    required this.id,
+    required this.userId,
+    required this.objectId,
+    this.title = '',
+    this.description = '',
+    this.repeatType = 'daily',
+  });
 }

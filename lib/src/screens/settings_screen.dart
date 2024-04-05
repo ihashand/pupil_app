@@ -6,20 +6,23 @@ import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet_diary/src/providers/user_provider.dart';
 
-class SettingsScreen extends ConsumerWidget {
-  // ignore: use_key_in_widget_constructors
-  const SettingsScreen({Key? key});
+class SettingsScreen extends ConsumerStatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  @override
+  Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
     User? user = ref.watch(userProvider);
 
     Future<void> updateAvatar(String? filePath, WidgetRef ref) async {
       if (filePath != null) {
         await user?.updatePhotoURL(filePath);
-        // ignore: unused_result
-        ref.refresh(userProvider);
+        ref.invalidate(userProvider);
       }
     }
 
@@ -31,6 +34,19 @@ class SettingsScreen extends ConsumerWidget {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a photo'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final pickedFile = await picker.pickImage(
+                    source: ImageSource.camera,
+                  );
+                  if (pickedFile != null) {
+                    await updateAvatar(pickedFile.path, ref);
+                  }
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.photo),
                 title: const Text('Choose from Gallery'),
@@ -44,19 +60,7 @@ class SettingsScreen extends ConsumerWidget {
                   }
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a Photo'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final pickedFile = await picker.pickImage(
-                    source: ImageSource.camera,
-                  );
-                  if (pickedFile != null) {
-                    await updateAvatar(pickedFile.path, ref);
-                  }
-                },
-              ),
+
               // Display a loading indicator while updating avatar
               FutureBuilder<void>(
                 future: updateAvatar(null, ref),

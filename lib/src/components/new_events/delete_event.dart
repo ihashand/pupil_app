@@ -1,7 +1,11 @@
-// ignore_for_file: unused_result
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/note_model.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/models/temperature_model.dart';
+import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/water_model.dart';
+import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
@@ -11,21 +15,21 @@ import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
 
-void deleteEventModule(
+void deleteEvents(
   WidgetRef ref,
   List<Event>? allEvents,
   void Function(DateTime date, DateTime focusedDate) selectDate,
-  DateTime dateController,
   String eventId,
   String petId,
 ) async {
-  var event = allEvents?.where((element) => element.id == eventId).first;
-  var allWeights = ref.watch(weightRepositoryProvider).value?.getWeights();
-  var allWalks = ref.watch(walkRepositoryProvider).value?.getWalks();
-  var allTemperatures =
+  Event? event = allEvents?.where((element) => element.id == eventId).first;
+  List<Weight>? allWeights =
+      ref.watch(weightRepositoryProvider).value?.getWeights();
+  List<Walk>? allWalks = ref.watch(walkRepositoryProvider).value?.getWalks();
+  List<Temperature>? allTemperatures =
       ref.watch(temperatureRepositoryProvider).value?.getTemperature();
-  var allWater = ref.watch(waterRepositoryProvider).value?.getWater();
-  var allNotes = ref.watch(noteRepositoryProvider).value?.getNotes();
+  List<Water>? allWater = ref.watch(waterRepositoryProvider).value?.getWater();
+  List<Note>? allNotes = ref.watch(noteRepositoryProvider).value?.getNotes();
 
   final int indexToDeleteWeight =
       allWeights?.indexWhere((w) => w.id == event!.weightId) ?? -1;
@@ -45,14 +49,14 @@ void deleteEventModule(
   final String pillId = event!.pillId;
 
   ref.watch(eventRepositoryProvider).value?.deleteEvent(eventId);
-  ref.refresh(eventRepositoryProvider);
+  ref.invalidate(eventRepositoryProvider);
 
   if (indexToDeleteWeight != -1) {
     await ref
         .watch(weightRepositoryProvider)
         .value
         ?.deleteWeight(indexToDeleteWeight);
-    ref.refresh(weightRepositoryProvider);
+    ref.invalidate(weightRepositoryProvider);
   }
 
   if (indexToDeleteWalk != -1) {
@@ -60,7 +64,7 @@ void deleteEventModule(
         .watch(walkRepositoryProvider)
         .value
         ?.deleteWalk(indexToDeleteWalk);
-    ref.refresh(walkRepositoryProvider);
+    ref.invalidate(walkRepositoryProvider);
   }
 
   if (indexToDeleteTemperature != -1) {
@@ -68,7 +72,7 @@ void deleteEventModule(
         .watch(temperatureRepositoryProvider)
         .value
         ?.deleteTemperature(indexToDeleteTemperature);
-    ref.refresh(temperatureRepositoryProvider);
+    ref.invalidate(temperatureRepositoryProvider);
   }
 
   if (indexToDeleteWater != -1) {
@@ -76,7 +80,7 @@ void deleteEventModule(
         .watch(waterRepositoryProvider)
         .value
         ?.deleteWater(indexToDeleteWater);
-    ref.refresh(waterRepositoryProvider);
+    ref.invalidate(waterRepositoryProvider);
   }
 
   if (indexToDeleteNote != -1) {
@@ -84,11 +88,12 @@ void deleteEventModule(
         .watch(noteRepositoryProvider)
         .value
         ?.deleteNote(indexToDeleteNote);
-    ref.refresh(noteRepositoryProvider);
+    ref.invalidate(noteRepositoryProvider);
   }
 
   if (pillId.isNotEmpty) {
-    var reminders = ref.watch(reminderRepositoryProvider).value?.getReminders();
+    List<Reminder>? reminders =
+        ref.watch(reminderRepositoryProvider).value?.getReminders();
 
     if (reminders != null && reminders.isNotEmpty) {
       for (var reminder in reminders) {
@@ -102,8 +107,6 @@ void deleteEventModule(
     }
 
     await ref.watch(pillRepositoryProvider).value?.deletePill(pillId);
-    ref.refresh(noteRepositoryProvider);
+    ref.invalidate(noteRepositoryProvider);
   }
-
-  selectDate(dateController, dateController);
 }

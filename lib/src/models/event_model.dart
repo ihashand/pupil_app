@@ -11,48 +11,40 @@ class Event extends HiveObject {
   String title;
 
   @HiveField(2)
-  DateTime date;
+  DateTime eventDate;
 
   @HiveField(3)
-  String description;
+  DateTime dateWhenEventAdded;
 
   @HiveField(4)
-  int durationTime;
-
-  @HiveField(5)
-  double value;
-
-  @HiveField(6)
   String userId;
 
-  @HiveField(7)
+  @HiveField(5)
   String petId;
 
-  @HiveField(8)
+  @HiveField(6)
   String weightId;
 
-  @HiveField(9)
+  @HiveField(7)
   String temperatureId;
 
-  @HiveField(10)
+  @HiveField(8)
   String walkId;
 
-  @HiveField(11)
+  @HiveField(9)
   String waterId;
 
-  @HiveField(12)
+  @HiveField(10)
   String noteId;
 
-  @HiveField(13)
+  @HiveField(11)
   String pillId;
 
   Event(
-      {required this.title,
-      required this.date,
-      required this.description,
-      required this.id,
-      required this.durationTime,
-      required this.value,
+      {required this.id,
+      required this.title,
+      required this.eventDate,
+      required this.dateWhenEventAdded,
       required this.userId,
       required this.petId,
       required this.weightId,

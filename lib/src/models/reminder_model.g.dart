@@ -24,13 +24,13 @@ class ReminderAdapter extends TypeAdapter<Reminder> {
       title: fields[2] as String,
       description: fields[3] as String,
       repeatType: fields[6] as String,
-    );
+    )..dateTime = fields[7] as DateTime;
   }
 
   @override
   void write(BinaryWriter writer, Reminder obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +44,9 @@ class ReminderAdapter extends TypeAdapter<Reminder> {
       ..writeByte(5)
       ..write(obj.objectId)
       ..writeByte(6)
-      ..write(obj.repeatType);
+      ..write(obj.repeatType)
+      ..writeByte(7)
+      ..write(obj.dateTime);
   }
 
   @override

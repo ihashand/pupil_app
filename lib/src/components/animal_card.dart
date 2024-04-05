@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/calculate_age.dart';
+import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/details_screen.dart';
 
-class AnimalCard extends StatelessWidget {
-  final Pet pet;
+class AnimalCard extends ConsumerStatefulWidget {
+  final String petId;
 
   const AnimalCard({
     super.key,
-    required this.pet,
+    required this.petId,
   });
 
   @override
+  ConsumerState<AnimalCard> createState() => _AnimalCardState();
+}
+
+class _AnimalCardState extends ConsumerState<AnimalCard> {
+  @override
   Widget build(BuildContext context) {
+    var pet = ref.read(petRepositoryProvider).value?.getPetById(widget.petId);
+    if (pet == null) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -28,12 +39,12 @@ class AnimalCard extends StatelessWidget {
               top: 0,
               child: Container(
                 height: 115,
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30)),
                   image: DecorationImage(
-                    image: ExactAssetImage('assets/images/background_05.jpg'),
+                    image: ExactAssetImage(pet.backgroundImage),
                     fit: BoxFit.fill,
                   ),
                 ),
@@ -44,7 +55,7 @@ class AnimalCard extends StatelessWidget {
               height: 90,
               top: 10,
               child: ClipOval(
-                child: Image.asset(pet.image, fit: BoxFit.cover),
+                child: Image.asset(pet.avatarImage, fit: BoxFit.cover),
               ),
             ),
             Positioned(
@@ -58,12 +69,13 @@ class AnimalCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
+                    const SizedBox(
+                      height: 5,
+                    ),
                     Text(
-                      '${pet.age} years old',
+                      calculateAge(pet.age),
                       style: const TextStyle(
-                        fontSize: 12,
-                        fontFamily: 'San Francisco',
+                        color: Colors.grey,
                       ),
                     ),
                     Text(

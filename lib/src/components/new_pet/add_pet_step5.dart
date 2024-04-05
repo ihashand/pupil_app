@@ -1,12 +1,9 @@
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pet_diary/src/components/new_pet/build_app_bar.dart';
 import 'package:pet_diary/src/components/new_pet/segmented_progress_bar.dart';
+import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
@@ -36,90 +33,17 @@ class AddPetStep5State extends State<AddPetStep5> {
     petSelectedAvatar = '';
   }
 
-  Future<void> showAvatarSelectionDialog(BuildContext context) async {
-    final picker = ImagePicker();
-
-    await showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              const ListTile(
-                title: Text(
-                  'Choose Default Avatar',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: 5, // Liczba domyślnych awatarów
-                itemBuilder: (BuildContext context, int index) {
-                  final avatarIndex = index + 1;
-                  final avatarPath =
-                      'assets/images/dog_avatar_${avatarIndex.toString().padLeft(2, '0')}.png';
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: AssetImage(avatarPath),
-                    ),
-                    title: Text('Avatar $avatarIndex'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      setState(() {
-                        petSelectedAvatar = avatarPath;
-                      });
-                    },
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo),
-                title: const Text('Choose from Gallery'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final pickedFile = await picker.pickImage(
-                    source: ImageSource.gallery,
-                  );
-                  if (pickedFile != null) {
-                    final savedImage = File(pickedFile.path);
-                    setState(() {
-                      petSelectedAvatar = savedImage.path;
-                    });
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a Photo'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  final pickedFile = await picker.pickImage(
-                    source: ImageSource.camera,
-                  );
-                  if (pickedFile != null) {
-                    final directory = await getApplicationDocumentsDirectory();
-                    final path = directory.path;
-
-                    final fileName = basename(pickedFile.path);
-                    final savedImage =
-                        await File(pickedFile.path).copy('$path/$fileName');
-                    setState(() {
-                      petSelectedAvatar = savedImage.path;
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    var currentUser = FirebaseAuth.instance.currentUser;
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    String backgroundImage = '';
+
+    if (widget.petGender == 'Male') {
+      backgroundImage = 'assets/images/dog_details_background_04.png';
+    } else if (widget.petGender == 'Female') {
+      backgroundImage = 'assets/images/dog_details_background_06.png';
+    }
+
     return Scaffold(
       appBar: buildAppBar(context, showCloseButton: true),
       body: Column(
@@ -151,7 +75,14 @@ class AddPetStep5State extends State<AddPetStep5> {
                       ),
                       const SizedBox(height: 40),
                       GestureDetector(
-                        onTap: () => showAvatarSelectionDialog(context),
+                        onTap: () => showAvatarSelectionDialog(
+                          context: context,
+                          onAvatarSelected: (String path) {
+                            setState(() {
+                              petSelectedAvatar = path;
+                            });
+                          },
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.only(
                             right: 12.0,
@@ -186,16 +117,17 @@ class AddPetStep5State extends State<AddPetStep5> {
                           String userId = currentUser.uid;
 
                           Pet newPet = Pet(
-                            id: DateTime.now()
-                                .millisecondsSinceEpoch
-                                .toString(),
-                            name: widget.petName,
-                            image: petSelectedAvatar,
-                            age: widget.petAge,
-                            gender: widget.petGender,
-                            userId: userId,
-                            breed: widget.petBreed,
-                          );
+                              id: DateTime.now()
+                                  .millisecondsSinceEpoch
+                                  .toString(),
+                              name: widget.petName,
+                              avatarImage: petSelectedAvatar,
+                              age: widget.petAge,
+                              gender: widget.petGender,
+                              userId: userId,
+                              breed: widget.petBreed,
+                              dateTime: DateTime.now(),
+                              backgroundImage: backgroundImage);
 
                           widget.ref
                               .watch(petRepositoryProvider)
@@ -203,10 +135,7 @@ class AddPetStep5State extends State<AddPetStep5> {
                               ?.addPet(newPet);
                         }
                       }
-                      widget.ref
-                          .refresh(petRepositoryProvider)
-                          .value
-                          ?.getPets();
+                      widget.ref.invalidate(petRepositoryProvider);
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     style: ElevatedButton.styleFrom(

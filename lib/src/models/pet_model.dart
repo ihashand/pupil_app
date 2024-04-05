@@ -11,7 +11,7 @@ class Pet extends HiveObject {
   late String name;
 
   @HiveField(2)
-  late String image;
+  late String avatarImage;
 
   @HiveField(3)
   late String age;
@@ -25,13 +25,21 @@ class Pet extends HiveObject {
   @HiveField(6)
   late String breed;
 
+  @HiveField(7)
+  late DateTime dateTime;
+
+  @HiveField(8)
+  late String backgroundImage;
+
   Pet({
     required this.id,
     required this.name,
-    required this.image,
+    required this.avatarImage,
     required this.age,
     required this.gender,
     required this.userId,
     required this.breed,
+    required this.dateTime,
+    required this.backgroundImage,
   });
 }

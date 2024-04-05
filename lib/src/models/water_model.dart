@@ -15,4 +15,7 @@ class Water extends HiveObject {
 
   @HiveField(3)
   late double water;
+
+  @HiveField(4)
+  late DateTime dateTime;
 }

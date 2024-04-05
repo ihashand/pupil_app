@@ -12,33 +12,31 @@ Future<void> schedulePillReminder(
   TimeOfDay time,
   DateTime endDate,
   String pillDescription,
-  String repeatType, // Nowy parametr określający typ powtarzalności
+  String repeatType,
 ) async {
-  tz.initializeTimeZones(); // Upewnij się, że strefy czasowe są zainicjowane
+  tz.initializeTimeZones();
   DateTime now = DateTime.now();
   DateTime startDate =
       DateTime(now.year, now.month, now.day, time.hour, time.minute);
   if (startDate.isBefore(now)) {
-    startDate = startDate.add(
-        const Duration(days: 1)); // Jeśli czas już minął, planujemy na jutro.
+    startDate = startDate.add(const Duration(days: 1));
   }
 
   tz.TZDateTime plannedNotificationDateTime =
       tz.TZDateTime.from(startDate, tz.local);
-  final tz.TZDateTime endDateTime =
-      tz.TZDateTime.from(endDate, tz.local); // Koniec zakresu dat
+  final tz.TZDateTime endDateTime = tz.TZDateTime.from(endDate, tz.local);
 
   int interval = 1;
 
   switch (repeatType) {
     case 'Once':
-      interval = 0; // Nie powtarzaj
+      interval = 0;
       break;
     case 'Daily':
-      interval = 1; // Codziennie
+      interval = 1;
       break;
     case 'Weekly':
-      interval = 7; // Co tydzień
+      interval = 7;
       break;
     case 'Monthly':
       //todo Tutaj będzie bardziej złożona logika, zależna od miesiąca
@@ -68,18 +66,14 @@ Future<void> schedulePillReminder(
         ),
         matchDateTimeComponents: interval == 1
             ? DateTimeComponents.time
-            : DateTimeComponents
-                .dayOfWeekAndTime, // Powtarza codziennie o tej samej godzinie lub co tydzień w ten sam dzień
+            : DateTimeComponents.dayOfWeekAndTime,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-        androidAllowWhileIdle: true,
       );
 
-      // Przejście do następnego okresu
       plannedNotificationDateTime = interval == 1 || interval == 7
           ? plannedNotificationDateTime.add(Duration(days: interval))
           : plannedNotificationDateTime;
-      // Dla miesięcznego i rocznego wymagana dodatkowa logika
     }
   } else if (interval == 0) {
     // Planuj jednorazowe powiadomienie
@@ -101,7 +95,6 @@ Future<void> schedulePillReminder(
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
     );
   }
 }
