@@ -40,6 +40,20 @@ class Event extends HiveObject {
   @HiveField(11)
   String pillId;
 
+  @HiveField(12)
+  String description;
+
+  @HiveField(13)
+  String proffesionId; //na pozniej, to jest potrzebne do ustawiania sptokan itp
+
+  @HiveField(14)
+  String personId; //na pozniej, to jest potrzebne do ustawiania sptokan itp
+
+  @HiveField(15)
+  String avatarImage;
+
+  @HiveField(16)
+  String emoticon;
   Event(
       {required this.id,
       required this.title,
@@ -52,5 +66,10 @@ class Event extends HiveObject {
       required this.walkId,
       required this.waterId,
       required this.noteId,
-      required this.pillId});
+      required this.pillId,
+      required this.description,
+      required this.proffesionId,
+      required this.personId,
+      required this.avatarImage,
+      required this.emoticon});
 }

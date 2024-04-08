@@ -153,8 +153,8 @@ class NewNoteEvent extends ConsumerWidget {
                           Event newEvent = Event(
                               id: eventId,
                               title: 'Note',
-                              eventDate: DateTime.now(),
-                              dateWhenEventAdded: eventDateTime,
+                              eventDate: eventDateTime,
+                              dateWhenEventAdded: DateTime.now(),
                               userId: pet!.userId,
                               petId: petId,
                               weightId: '',
@@ -162,7 +162,12 @@ class NewNoteEvent extends ConsumerWidget {
                               walkId: '',
                               waterId: '',
                               noteId: newNote.id,
-                              pillId: '');
+                              pillId: '',
+                              description: 'Title: ${newNote.title}',
+                              proffesionId: 'BRAK',
+                              personId: 'BRAK',
+                              avatarImage: 'assets/images/dog_avatar_014.png',
+                              emoticon: '📝');
 
                           ref
                               .read(eventRepositoryProvider)

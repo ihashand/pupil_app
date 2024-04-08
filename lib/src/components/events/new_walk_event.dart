@@ -288,9 +288,9 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
 
     Event newEvent = Event(
         id: eventId,
-        title: '',
-        eventDate: DateTime.now(),
-        dateWhenEventAdded: widget.eventDateTime,
+        title: 'Walk',
+        eventDate: widget.eventDateTime,
+        dateWhenEventAdded: DateTime.now(),
         userId: pet!.userId,
         petId: widget.petId,
         weightId: '',
@@ -298,7 +298,13 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
         walkId: newWalk.id,
         waterId: '',
         noteId: '',
-        pillId: '');
+        pillId: '',
+        description:
+            'Distance: ${walkDistance.toStringAsFixed(2)} km. \nTime: ${totalDurationInSeconds.toString()} min.',
+        proffesionId: 'BRAK',
+        personId: 'BRAK',
+        avatarImage: 'assets/images/dog_avatar_010.png',
+        emoticon: '🚶‍➡️');
 
     ref.read(eventRepositoryProvider).value?.addEvent(newEvent);
     ref.read(walkRepositoryProvider).value?.addWalk(newWalk);

@@ -44,9 +44,9 @@ class PetDetailNameAgeButtonWidget extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(15, 0, 15, 5),
+          padding: const EdgeInsets.fromLTRB(15, 15, 15, 5),
           child: SizedBox(
-            height: 50,
+            height: 40,
             width: 120,
             child: FloatingActionButton(
               backgroundColor: buttonColor,

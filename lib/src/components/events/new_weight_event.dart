@@ -172,8 +172,8 @@ class NewWeightEvent extends ConsumerWidget {
 
                           Event newEvent = Event(
                               id: eventId,
-                              eventDate: DateTime.now(),
-                              dateWhenEventAdded: eventDateTime,
+                              eventDate: eventDateTime,
+                              dateWhenEventAdded: DateTime.now(),
                               title: 'Weight',
                               userId: pet!.userId,
                               petId: petId,
@@ -182,7 +182,12 @@ class NewWeightEvent extends ConsumerWidget {
                               walkId: '',
                               waterId: '',
                               noteId: '',
-                              pillId: '');
+                              pillId: '',
+                              description: 'New weight: $initialWeight',
+                              proffesionId: 'BRAK',
+                              personId: 'BRAK',
+                              avatarImage: 'assets/images/dog_avatar_012.png',
+                              emoticon: '⚖️');
 
                           ref
                               .read(eventRepositoryProvider)

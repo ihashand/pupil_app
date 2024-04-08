@@ -26,8 +26,8 @@ class PetDetailWalkWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Expanded(
       child: SizedBox(
-        width: 180,
-        height: 130,
+        width: 140,
+        height: 110,
         child: Container(
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(

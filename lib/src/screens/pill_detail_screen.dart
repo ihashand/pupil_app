@@ -286,7 +286,12 @@ class PillDetailScreen extends ConsumerWidget {
             walkId: '',
             waterId: '',
             noteId: '',
-            pillId: newPill.id);
+            pillId: newPill.id,
+            description: 'Time to take pill!',
+            proffesionId: 'BRAK',
+            personId: 'BRAK',
+            avatarImage: 'assets/images/dog_avatar_014.png',
+            emoticon: '💊');
 
         ref.read(eventRepositoryProvider).value?.addEvent(newEvent);
         ref.invalidate(eventRepositoryProvider);

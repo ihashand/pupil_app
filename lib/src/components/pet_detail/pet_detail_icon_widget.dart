@@ -15,7 +15,7 @@ class PetDetailIconWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+      padding: const EdgeInsets.fromLTRB(15, 0, 15, 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
