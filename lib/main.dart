@@ -55,7 +55,6 @@ class MyApp extends StatelessWidget {
           home: const AuthWidget(),
           theme: theme.themeData,
           routes: {
-            '/login_register_screen': (context) => const LoginOrRegister(),
             '/home_screen': (context) => const BotomAppBar(),
             '/settings_screen': (context) => const SettingsScreen(),
           });

@@ -3,23 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
+import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/user_provider.dart';
 import 'settings_screen.dart';
 
-class HomePageScreen extends ConsumerStatefulWidget {
-  const HomePageScreen({super.key});
+// Provider do zarządzania URL awatara
+final avatarProvider = StateProvider<String>((ref) {
+  // Domyslnie ustawiamy awatar na wstępnie zdefiniowany obraz lub obraz z Firebase, jeśli istnieje
+  return FirebaseAuth.instance.currentUser?.photoURL ??
+      'assets/images/dog_avatar_09.png';
+});
+
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomePageScreen> createState() => _HomePageScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomePageScreenState extends ConsumerState<HomePageScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final petState = ref.watch(petRepositoryProvider);
-    final pets = petState.value?.getPets();
-    User? user = ref.watch(userProvider);
+    final pets = ref.watch(petRepositoryProvider).value?.getPets();
+    final avatarUrl = ref.watch(avatarProvider);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -55,13 +61,23 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                         ],
                       ),
                     ),
-                    if (user != null)
+                    if (FirebaseAuth.instance.currentUser != null)
                       InkWell(
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const SettingsScreen()),
+                          );
+                        },
+                        onLongPress: () {
+                          showAvatarSelectionDialog(
+                            context: context,
+                            onAvatarSelected: (String path) {
+                              ref.read(avatarProvider.notifier).state = path;
+                              FirebaseAuth.instance.currentUser
+                                  ?.updatePhotoURL(path);
+                            },
                           );
                         },
                         child: Padding(
@@ -71,8 +87,8 @@ class _HomePageScreenState extends ConsumerState<HomePageScreen> {
                           child: CircleAvatar(
                             backgroundColor:
                                 const Color.fromARGB(255, 201, 120, 197),
-                            backgroundImage:
-                                ExactAssetImage(user.photoURL ?? ''),
+                            backgroundImage: AssetImage(
+                                avatarUrl), // Używamy AssetImage dla lokalnych obrazów
                             radius: 40,
                           ),
                         ),

@@ -38,7 +38,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
 
     for (var event in events) {
       if (event.eventDate.isAfter(today)) {
-        if (nextEventDate == null || event.eventDate.isBefore(nextEventDate!)) {
+        if (nextEventDate == null || event.eventDate.isBefore(nextEventDate)) {
           nextEventDate = event.eventDate;
         }
       }
@@ -163,7 +163,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
 
     List<Event> todaysEvents = [];
 
-    // Sprawdź czy są wydarzenia na dzisiaj
     todaysEvents = ref
             .watch(eventRepositoryProvider)
             .value
@@ -175,9 +174,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             .toList() ??
         [];
 
-    // Jeżeli nie ma wydarzeń na dzisiaj, znajdź najbliższe wydarzenie i wyświetl je
     if (todaysEvents.isEmpty) {
-      // Znajdź najbliższe wydarzenie
       List<Event> allEvents =
           ref.watch(eventRepositoryProvider).value?.getEvents() ?? [];
       allEvents.sort((a, b) => a.eventDate.compareTo(b.eventDate));

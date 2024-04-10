@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:pet_diary/src/screens/home_page_screen.dart';
+import 'package:pet_diary/src/screens/home_screen.dart';
 import 'src/screens/settings_screen.dart';
 
 class BotomAppBar extends StatefulWidget {
@@ -12,7 +12,7 @@ class BotomAppBar extends StatefulWidget {
 
 class BotomAppBarState extends State<BotomAppBar> {
   final List<Widget> _screens = [
-    const HomePageScreen(),
+    const HomeScreen(),
     const SettingsScreen(),
   ];
 
@@ -23,10 +23,8 @@ class BotomAppBarState extends State<BotomAppBar> {
       case 0:
         return "Home";
       case 1:
-        return "Section 2";
+        return "Settings";
 
-      case 2:
-        return "Section 3";
       default:
         return "My Pupils";
     }
@@ -42,13 +40,6 @@ class BotomAppBarState extends State<BotomAppBar> {
           GButton(
             icon: Icons.home,
             text: "Home",
-            iconColor: Color.fromARGB(255, 103, 146, 167),
-            hoverColor: Color.fromARGB(255, 103, 146, 167),
-            iconActiveColor: Color.fromARGB(255, 103, 146, 167),
-          ),
-          GButton(
-            icon: Icons.pets,
-            text: "Pupils",
             iconColor: Color.fromARGB(255, 103, 146, 167),
             hoverColor: Color.fromARGB(255, 103, 146, 167),
             iconActiveColor: Color.fromARGB(255, 103, 146, 167),
