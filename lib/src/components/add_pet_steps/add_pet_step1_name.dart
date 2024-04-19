@@ -23,7 +23,7 @@ class AddPetStep1Name extends StatelessWidget {
               children: [
                 AddPetSegmentProgressBar(
                   totalSegments: 5,
-                  filledSegments: 1, // Ponieważ to drugi krok
+                  filledSegments: 1,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   fillColor: Colors.blue,
                 ),
@@ -63,7 +63,7 @@ class AddPetStep1Name extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please enter pet name.')),
                   );
-                  return; // Przerywamy dalsze działanie przycisku
+                  return;
                 }
                 if (petNameController.text.length > 50) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +76,7 @@ class AddPetStep1Name extends StatelessWidget {
                       ],
                     )),
                   );
-                  return; // Przerywamy dalsze działanie przycisku
+                  return;
                 }
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => AddPetStep2Birthday(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,9 +7,11 @@ import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart'
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_walk_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_water_widget.dart';
+import 'package:pet_diary/src/data/services/pet_services.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
@@ -47,9 +50,27 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     return nextEventDate;
   }
 
+  Pet? _pet;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final petService = ref.read(petServiceProvider);
+
+    _fetchPet(petService);
+  }
+
+  Future<void> _fetchPet(PetService petService) async {
+    final fetchedPet = await petService.getPetById(widget.petId);
+    setState(() {
+      _pet = fetchedPet;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    var pet = ref.watch(petRepositoryProvider).value?.getPetById(widget.petId);
+    var pet = _pet;
 
     if (pet == null) {
       return Scaffold(
@@ -69,61 +90,86 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     }
 
     String weight = '';
-    Weight? weightEntry = ref
-        .watch(weightRepositoryProvider)
-        .value
-        ?.getWeights()
-        .firstWhere((element) => element.petId == widget.petId,
-            orElse: () => Weight());
 
-    if (weightEntry != null && weightEntry.weight != 0) {
-      weight = '${weightEntry.weight}';
-    }
+    StreamBuilder<List<Weight?>>(
+      stream: ref.read(weightServiceProvider).getWeightsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Error fetching weights');
+        }
+        if (snapshot.hasData) {
+          weight = snapshot.data!
+              .firstWhere((element) => element!.petId == widget.petId)!
+              .weight
+              .toString();
+        }
+        return const Text('');
+      },
+    );
 
     String walk = '0 km';
     int maxNumberOfBars = 10;
 
-    List<Walk>? walks = ref
-        .watch(walkRepositoryProvider)
-        .value
-        ?.getWalks()
-        .where((element) => element.petId == widget.petId)
-        .toList();
+    List<Walk?> walks = [];
+    List<Walk?> lastTenWalks = List<Walk>.empty();
 
-    List<Walk> lastTenWalks = List<Walk>.empty();
+    StreamBuilder<List<Walk?>>(
+      stream: ref.read(walkServiceProvider).getWalksStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Error fetching walks');
+        }
+        if (snapshot.hasData) {
+          walks = snapshot.data!
+              .where((element) => element!.petId == widget.petId)
+              .toList();
+        }
+        return const Text('');
+      },
+    );
 
-    if (walks != null && walks.isNotEmpty) {
-      walks.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    if (walks.isNotEmpty) {
+      walks.sort((a, b) => b!.dateTime.compareTo(a!.dateTime));
       lastTenWalks = walks.take(maxNumberOfBars).toList();
       if (lastTenWalks.isNotEmpty) {
-        lastTenWalks.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        lastTenWalks.sort((a, b) => a!.dateTime.compareTo(b!.dateTime));
       }
       if (lastTenWalks.isNotEmpty) {
-        walk = '${lastTenWalks.last.walkDistance} km';
+        walk = '${lastTenWalks.last!.walkDistance} km';
       }
     }
 
     String water = '0 L';
 
-    List<Water>? waters = ref
-        .watch(waterRepositoryProvider)
-        .value
-        ?.getWater()
-        .where((element) => element.petId == widget.petId)
-        .toList();
+    List<Water?> waters = [];
 
-    List<Water> lastTenWaters = List<Water>.empty();
+    List<Water?> lastTenWaters = List<Water>.empty();
 
-    if (waters != null && waters.isNotEmpty) {
-      waters.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-      lastTenWaters = waters.take(maxNumberOfBars).toList();
-      if (lastTenWaters.isNotEmpty) {
-        lastTenWaters.sort((a, b) => a.dateTime.compareTo(b.dateTime));
-      }
-      if (lastTenWaters.isNotEmpty) {
-        water = '${lastTenWaters.last.water} L';
-      }
-    }
+    StreamBuilder<List<Water?>>(
+      stream: ref.read(waterServiceProvider).getWatersStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Error fetching waters');
+        }
+        if (snapshot.hasData) {
+          waters = snapshot.data!
+              .where((element) => element!.petId == widget.petId)
+              .toList();
+
+          if (waters.isNotEmpty) {
+            waters.sort((a, b) => b!.dateTime.compareTo(a!.dateTime));
+            lastTenWaters = waters.take(maxNumberOfBars).toList();
+            if (lastTenWaters.isNotEmpty) {
+              lastTenWaters.sort((a, b) => a!.dateTime.compareTo(b!.dateTime));
+            }
+            if (lastTenWaters.isNotEmpty) {
+              water = '${lastTenWaters.last!.water} L';
+            }
+          }
+        }
+        return const Text('');
+      },
+    );
 
     Color buttonColor = Colors.black;
     Color rectangleColor = Colors.black;
@@ -159,34 +205,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       appbarButtonsColor = Colors.black;
     }
 
-    DateTime today = DateTime.now();
-
-    List<Event> todaysEvents = [];
-
-    todaysEvents = ref
-            .watch(eventRepositoryProvider)
-            .value
-            ?.getEvents()
-            .where((event) =>
-                DateFormat('yyyy-MM-dd').format(event.eventDate) ==
-                    DateFormat('yyyy-MM-dd').format(today) &&
-                pet.id == event.petId)
-            .toList() ??
-        [];
-
-    if (todaysEvents.isEmpty) {
-      List<Event> allEvents =
-          ref.watch(eventRepositoryProvider).value?.getEvents() ?? [];
-      allEvents.sort((a, b) => a.eventDate.compareTo(b.eventDate));
-
-      for (var event in allEvents) {
-        if (event.eventDate.isAfter(today)) {
-          todaysEvents.add(event);
-          break;
-        }
-      }
-    }
-
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: appbarButtonsColor),
@@ -215,8 +233,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                 setState(() {
                   pet.backgroundImage = path;
                 });
-                ref.watch(petRepositoryProvider).value?.updatePet(pet);
-                ref.invalidate(petRepositoryProvider);
+                ref.watch(petServiceProvider).updatePet(pet);
               },
             );
           },
@@ -239,8 +256,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                       setState(() {
                         pet.avatarImage = path;
                       });
-                      ref.watch(petRepositoryProvider).value?.updatePet(pet);
-                      ref.invalidate(petRepositoryProvider);
+                      ref.watch(petServiceProvider).updatePet(pet);
                     },
                   ),
                   child: SizedBox(
@@ -285,11 +301,11 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PetDetailNameAgeButtonWidget(
-                    pet: pet, buttonColor: buttonColor, petId: widget.petId),
+                    buttonColor: buttonColor, petId: widget.petId),
                 const SizedBox(
                   height: 10,
                 ),
-                PetDetailIconWidget(pet: pet, weight: weight),
+                PetDetailIconWidget(petId: pet.id, weight: weight),
               ],
             ),
           ),
@@ -333,15 +349,45 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
               ),
             ),
           ),
-          if (todaysEvents.isNotEmpty)
-            Expanded(
-              child: ScheduleView(
-                events: todaysEvents,
-                backgroundColor: rectangleColor,
-              ),
-            ),
-          if (todaysEvents.isEmpty)
-            const Center(child: Text('No events for today or in the future')),
+          StreamBuilder<List<Event>>(
+            stream: ref.watch(eventServiceProvider).getEventsStream(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Text('Error fetching pets');
+              }
+              if (snapshot.hasData) {
+                final events = snapshot.data!
+                    .where((element) => element.petId == widget.petId)
+                    .toList();
+
+                return SizedBox(
+                  height: 220,
+                  child: ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      if (events.isEmpty) {
+                        return const Text(
+                          'No events for today or in the future',
+                        );
+                      } else {
+                        final currentEvent = events[index];
+                        return SizedBox(
+                          height: 87,
+                          width: 180,
+                          child: EventTile(
+                            event: currentEvent,
+                            backgroundColor: rectangleColor,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                );
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
         ],
       ),
     );
@@ -361,7 +407,7 @@ class EventTile extends StatelessWidget {
     String formattedDate = DateFormat('d MMM').format(event.eventDate);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 15.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

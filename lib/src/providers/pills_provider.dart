@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/repositories/pill_repository.dart';
+import 'package:pet_diary/src/data/services/pill_service.dart';
 
-final pillRepositoryProvider = FutureProvider<PillRepository>((_) async {
-  return await PillRepository.create();
+final pillServiceProvider = Provider((ref) {
+  return PillService();
 });
 
 final pillNameControllerProvider = Provider<TextEditingController>((ref) {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/repositories/water_repository.dart';
+import 'package:pet_diary/src/data/services/water_service.dart';
 
-final waterRepositoryProvider = FutureProvider<WaterRepository>((_) async {
-  return await WaterRepository.create();
+final waterServiceProvider = Provider((ref) {
+  return WaterService();
 });
 
 final waterNameControllerProvider = Provider<TextEditingController>((ref) {

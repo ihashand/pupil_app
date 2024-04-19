@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/repositories/weight_repository.dart';
+import '../data/services/weight_service.dart';
 
-final weightRepositoryProvider = FutureProvider<WeightRepository>((_) async {
-  return await WeightRepository.create();
+final weightServiceProvider = Provider((ref) {
+  return WeightService();
 });
 
 final weightNameControllerProvider = Provider<TextEditingController>((ref) {

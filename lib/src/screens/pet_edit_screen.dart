@@ -1,12 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
-import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/data/services/pet_services.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 
 class PetEditScreen extends ConsumerStatefulWidget {
@@ -20,10 +21,12 @@ class PetEditScreen extends ConsumerStatefulWidget {
 
 class PetEditScreenState extends ConsumerState<PetEditScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _birthDateController;
-  late TextEditingController _breedController;
-  late DateTime _selectedDate;
+  late final TextEditingController _nameController = TextEditingController();
+  late final TextEditingController _birthDateController =
+      TextEditingController();
+  late final TextEditingController _breedController = TextEditingController();
+
+  late DateTime _selectedDate = DateTime.now();
   String _gender = 'Male';
   String _selectedAvatar = '';
 
@@ -34,11 +37,11 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   }
 
   Future<void> _loadPetData() async {
-    var pet = ref.read(petRepositoryProvider).value?.getPetById(widget.petId);
+    var pet = await PetService().getPetById(widget.petId);
     if (pet != null) {
-      _nameController = TextEditingController(text: pet.name);
-      _birthDateController = TextEditingController(text: pet.age);
-      _breedController = TextEditingController(text: pet.breed);
+      _nameController.text = pet.name;
+      _birthDateController.text = pet.age;
+      _breedController.text = pet.breed;
       _selectedAvatar = pet.avatarImage;
       try {
         _selectedDate = DateFormat('dd/MM/yyyy').parse(pet.age);
@@ -149,8 +152,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                         child: Text(
                           DateFormat('dd/MM/yyyy').format(_selectedDate),
                           style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyLarge!.color),
+                              color: Theme.of(context).primaryColorDark),
                         ),
                       ),
                     ),
@@ -280,67 +282,37 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     );
   }
 
-  void _deletePet(BuildContext context) {
-    var currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      List<Pet>? pets = ref.read(petRepositoryProvider).value?.getPets();
-      var allEvents = ref
-          .read(eventRepositoryProvider)
-          .value
-          ?.getEvents()
-          .where((element) => element.petId == widget.petId)
-          .toList();
-
-      final int indexToDeletePet =
-          pets?.indexWhere((w) => w.id == widget.petId) ?? -1;
-      if (allEvents != null) {
-        for (var event in allEvents) {
-          deleteEvents(
-              ref, allEvents, (date, focusedDate) {}, event.id, widget.petId);
-        }
-      }
-
-      ref.watch(petRepositoryProvider).value?.deletePet(indexToDeletePet);
-      ref.invalidate(petRepositoryProvider);
-      Navigator.of(context).popUntil(ModalRoute.withName('/'));
-    }
+  void _deletePet(BuildContext context) async {
+    await PetService().deletePet(widget.petId);
+    Navigator.of(context).popUntil(ModalRoute.withName('/'));
   }
 
-  void _savePet() {
-    var currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      String userId = currentUser.uid;
-
-      if (_nameController.text.isEmpty ||
-          _breedController.text.isEmpty ||
-          _selectedAvatar.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please fill in all fields.'),
-          ),
-        );
-        return;
-      }
-
-      Pet updatedPet = Pet(
-        id: widget.petId,
-        name: _nameController.text,
-        avatarImage: _selectedAvatar,
-        age: DateFormat('dd/MM/yyyy').format(_selectedDate),
-        gender: _gender,
-        userId: userId,
-        breed: _breedController.text,
-        dateTime: DateTime.now(),
-        backgroundImage: ref
-            .read(petRepositoryProvider)
-            .value!
-            .getPetById(widget.petId)!
-            .backgroundImage,
+  void _savePet() async {
+    if (_nameController.text.isEmpty ||
+        _breedController.text.isEmpty ||
+        _selectedAvatar.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields.'),
+        ),
       );
-
-      ref.watch(petRepositoryProvider).value?.updatePet(updatedPet);
-      ref.invalidate(petRepositoryProvider);
-      Navigator.of(context).pop();
+      return;
     }
+    var pet = await ref.read(petServiceProvider).getPetById(widget.petId);
+
+    Pet updatedPet = Pet(
+      id: widget.petId,
+      name: _nameController.text,
+      avatarImage: _selectedAvatar,
+      age: DateFormat('dd/MM/yyyy').format(_selectedDate),
+      gender: _gender,
+      breed: _breedController.text,
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      dateTime: DateTime.now(),
+      backgroundImage: pet!.backgroundImage,
+    );
+    await ref.read(petServiceProvider).updatePet(updatedPet);
+
+    Navigator.of(context).pop();
   }
 }

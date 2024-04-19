@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:pet_diary/src/components/my_textfield.dart';
 import 'package:pet_diary/src/components/signin_button.dart';
 import 'package:pet_diary/src/helper/helper_functions.dart';
-import 'package:pet_diary/src/models/user_model.dart';
+import 'package:pet_diary/src/models/local_user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function()? onTap;

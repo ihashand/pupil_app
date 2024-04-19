@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
@@ -11,14 +9,15 @@ class EmojiPillDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      height: 60,
+    return Flexible(
+        child: SizedBox(
+      height: 70,
       child: InputDecorator(
         decoration: const InputDecoration(
-          labelText: 'E m o j i',
+          labelText: 'Emoji',
           border: OutlineInputBorder(),
           labelStyle: TextStyle(
-            fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+            fontSize: 20,
           ),
         ),
         child: TextFormField(
@@ -31,6 +30,6 @@ class EmojiPillDetails extends ConsumerWidget {
           },
         ),
       ),
-    );
+    ));
   }
 }

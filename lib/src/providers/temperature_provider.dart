@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/repositories/temperature_repository.dart';
+import 'package:pet_diary/src/data/services/temperature_service.dart';
 
-final temperatureRepositoryProvider =
-    FutureProvider<TemperatureRepository>((_) async {
-  return await TemperatureRepository.create();
+final temperatureServiceProvider = Provider((ref) {
+  return TemperatureService();
 });
 
 final temperatureNameControllerProvider =

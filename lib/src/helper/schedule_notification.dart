@@ -1,8 +1,8 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// ignore: depend_on_referenced_packages
 import 'package:timezone/data/latest.dart' as tz;
-// ignore: depend_on_referenced_packages
 import 'package:timezone/timezone.dart' as tz;
 
 Future<void> schedulePillReminder(
@@ -12,12 +12,15 @@ Future<void> schedulePillReminder(
   TimeOfDay time,
   DateTime endDate,
   String pillDescription,
-  String repeatType,
+  String repeatOption,
+  int? repeatInterval,
+  List<int> selectedDays,
 ) async {
   tz.initializeTimeZones();
   DateTime now = DateTime.now();
   DateTime startDate =
       DateTime(now.year, now.month, now.day, time.hour, time.minute);
+
   if (startDate.isBefore(now)) {
     startDate = startDate.add(const Duration(days: 1));
   }
@@ -26,9 +29,9 @@ Future<void> schedulePillReminder(
       tz.TZDateTime.from(startDate, tz.local);
   final tz.TZDateTime endDateTime = tz.TZDateTime.from(endDate, tz.local);
 
-  int interval = 1;
+  int interval = repeatInterval ?? 1;
 
-  switch (repeatType) {
+  switch (repeatOption) {
     case 'Once':
       interval = 0;
       break;
@@ -39,18 +42,46 @@ Future<void> schedulePillReminder(
       interval = 7;
       break;
     case 'Monthly':
-      //todo Tutaj będzie bardziej złożona logika, zależna od miesiąca
+      //todo: Obsługa powtarzania miesięcznego
       break;
     case 'Yearly':
-      //todo Tutaj będzie jeszcze bardziej złożona logika dla rocznego przypomnienia
+      //todo: Obsługa powtarzania rocznego
       break;
   }
 
   if (interval > 0) {
     while (plannedNotificationDateTime.isBefore(endDateTime)) {
-      await notificationsPlugin.zonedSchedule(
+      if (selectedDays.contains(plannedNotificationDateTime.weekday % 7)) {
+        await notificationsPlugin.zonedSchedule(
+            reminderId,
+            "Time to get: $pillName",
+            "Description: $pillDescription",
+            plannedNotificationDateTime,
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'your channel id',
+                'your channel name',
+                channelDescription: 'your channel description',
+                importance: Importance.max,
+                priority: Priority.high,
+                showWhen: true,
+              ),
+              iOS: DarwinNotificationDetails(),
+            ),
+            matchDateTimeComponents: DateTimeComponents.time,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            androidAllowWhileIdle: true);
+      }
+
+      plannedNotificationDateTime = interval == 1 || interval == 7
+          ? plannedNotificationDateTime.add(Duration(days: interval))
+          : plannedNotificationDateTime;
+    }
+  } else if (interval == 0) {
+    await notificationsPlugin.zonedSchedule(
         reminderId,
-        "Time to get: $pillName",
+        "Time to use: $pillName",
         "Description: $pillDescription",
         plannedNotificationDateTime,
         const NotificationDetails(
@@ -64,37 +95,8 @@ Future<void> schedulePillReminder(
           ),
           iOS: DarwinNotificationDetails(),
         ),
-        matchDateTimeComponents: interval == 1
-            ? DateTimeComponents.time
-            : DateTimeComponents.dayOfWeekAndTime,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-      );
-
-      plannedNotificationDateTime = interval == 1 || interval == 7
-          ? plannedNotificationDateTime.add(Duration(days: interval))
-          : plannedNotificationDateTime;
-    }
-  } else if (interval == 0) {
-    // Planuj jednorazowe powiadomienie
-    await notificationsPlugin.zonedSchedule(
-      reminderId,
-      "Time to use: $pillName",
-      "Description: $pillDescription",
-      plannedNotificationDateTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'your channel id',
-          'your channel name',
-          channelDescription: 'your channel description',
-          importance: Importance.max,
-          priority: Priority.high,
-          showWhen: true,
-        ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
+        androidAllowWhileIdle: true);
   }
 }

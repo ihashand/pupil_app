@@ -1,0 +1,394 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/generate_unique_id.dart';
+import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/providers/pills_provider.dart';
+import 'package:pet_diary/src/providers/reminder_provider.dart';
+
+class AddReminderScreen extends ConsumerStatefulWidget {
+  final String petId;
+  final String newPillId;
+  final Pill? pill;
+
+  const AddReminderScreen({
+    super.key,
+    required this.petId,
+    required this.newPillId,
+    this.pill,
+  });
+
+  @override
+  _AddReminderScreenState createState() => _AddReminderScreenState();
+}
+
+class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
+  late List<bool> selectedDays = List.filled(7, false);
+  late TextEditingController nameController;
+  late TextEditingController descriptionController;
+  late TimeOfDay selectedTime;
+  String repeatOption = 'Daily';
+  int? repeatInterval;
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController();
+    descriptionController = TextEditingController();
+    selectedTime = TimeOfDay.now();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'N e w   r e m i n d e r',
+          style: TextStyle(fontSize: 16),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(21.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Repeat',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  DropdownButton<String>(
+                    value: repeatOption,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        repeatOption = newValue!;
+                      });
+                    },
+                    items: <String>[
+                      'Daily',
+                      'Selected days',
+                      'Weekly',
+                      'Monthly',
+                      'Every x days',
+                    ].map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+              if (repeatOption == 'Selected days') ...[
+                Row(
+                  children: List.generate(7, (index) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedDays[index] = !selectedDays[index];
+                        });
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          border:
+                              Border.all(color: Colors.grey.withOpacity(0.5)),
+                          borderRadius: BorderRadius.circular(5),
+                          color: selectedDays[index]
+                              ? const Color(0xffffcb47)
+                              : Colors.white,
+                        ),
+                        child: Center(
+                          child: Text(
+                            [
+                              'Mon',
+                              'Tue',
+                              'Wed',
+                              'Thu',
+                              'Fri',
+                              'Sat',
+                              'Sun'
+                            ][index],
+                            style: TextStyle(
+                              color: selectedDays[index]
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+              if (repeatOption == 'Weekly' ||
+                  repeatOption == 'Every x days' ||
+                  repeatOption == 'Monthly') ...[
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Repeat Interval:',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      height: 45,
+                      width: 140,
+                      child: TextFormField(
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          setState(() {
+                            repeatInterval = int.tryParse(value);
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Interval',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            borderSide: BorderSide(
+                              color: Colors.black,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            borderSide: BorderSide(
+                              color: Colors.black,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                            borderSide: BorderSide(color: Color(0xffffcb47)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 10),
+              const Text(
+                'Time',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              GestureDetector(
+                onTap: () => _selectTime(context),
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.access_time),
+                      const SizedBox(width: 10),
+                      Text(
+                        '${selectedTime.hour}:${selectedTime.minute}',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                'Name',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              SizedBox(
+                height: 60,
+                width: 350,
+                child: TextFormField(
+                  controller: nameController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Default is Medicine name';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: nameController.text.isNotEmpty
+                        ? null
+                        : '''Optional: Enter title''',
+                    labelStyle: const TextStyle(fontSize: 12),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          color: Color(0xffffcb47), width: 2.0),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.black, width: 1.0),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Description',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              SizedBox(
+                height: 60,
+                width: 350,
+                child: TextFormField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: descriptionController.text.isNotEmpty
+                        ? null
+                        : 'Optional: Enter description',
+                    labelStyle: const TextStyle(fontSize: 12),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                          color: Color(0xffffcb47), width: 2.0),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          const BorderSide(color: Colors.black, width: 1.0),
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 7.0),
+          child: ElevatedButton.icon(
+            onPressed: () => _saveReminder(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xff117292),
+            ),
+            icon: const Icon(
+              Icons.save,
+              color: Colors.black,
+            ),
+            label: const Text(
+              'Save',
+              style: TextStyle(color: Colors.black, fontSize: 20),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: ThemeData(
+              textTheme: const TextTheme(
+                bodyLarge: TextStyle(color: Colors.black),
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black,
+                ),
+              ),
+              colorScheme: const ColorScheme.light(
+                primary: Color(0xffffcb47),
+                onPrimary: Colors.black,
+              ),
+            ),
+            child: child!,
+          ),
+        );
+      },
+    );
+
+    if (picked != null && picked != selectedTime) {
+      setState(() {
+        selectedTime = picked;
+      });
+    }
+  }
+
+  void _saveReminder() {
+    List<int> selectedDaysIndexes = [];
+    for (int i = 0; i < selectedDays.length; i++) {
+      if (selectedDays[i]) {
+        selectedDaysIndexes.add(i);
+      }
+    }
+    var repeatOptionText = '';
+    if (repeatOption == 'Daily') {
+      repeatOptionText = 'daily';
+    } else if (repeatOption == 'Weekly') {
+      repeatOptionText = 'every $repeatInterval week';
+    } else if (repeatOption == 'Monthly') {
+      repeatOptionText = 'every $repeatInterval month';
+    } else if (repeatOption == 'Selected days') {
+      List<String> selectedDayNames = selectedDaysIndexes.map((index) {
+        return [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+          'Sunday'
+        ][index];
+      }).toList();
+      repeatOptionText = 'on ${selectedDayNames.join(', ')}';
+    } else if (repeatOption == 'Every x days') {
+      repeatOptionText = 'every $repeatInterval days';
+    }
+    final Reminder newReminder = Reminder(
+      id: generateUniqueId(),
+      title: nameController.text.isNotEmpty
+          ? nameController.text
+          : ref.read(pillNameControllerProvider).text,
+      description: descriptionController.text.isNotEmpty
+          ? descriptionController.text
+          : 'Remember to use $repeatOptionText ',
+      time: selectedTime,
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      objectId: widget.newPillId,
+      selectedDays: selectedDaysIndexes,
+      repeatOption: repeatOption,
+      repeatInterval: repeatInterval,
+    );
+
+    if (widget.pill != null) {
+      newReminder.objectId = widget.pill!.id;
+    }
+
+    ref.read(reminderServiceProvider).addReminder(newReminder);
+
+    nameController.clear();
+    descriptionController.clear();
+
+    Navigator.pop(context);
+  }
+}

@@ -1,11 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
 
 class NewWeightEvent extends ConsumerWidget {
@@ -156,26 +155,21 @@ class NewWeightEvent extends ConsumerWidget {
                             return;
                           }
 
-                          Pet? pet = ref
-                              .read(petRepositoryProvider)
-                              .value
-                              ?.getPetById(petId);
-
                           String eventId = generateUniqueId();
                           String weightId = generateUniqueId();
-                          Weight newWeight = Weight();
-                          newWeight.id = weightId;
-                          newWeight.eventId = eventId;
-                          newWeight.petId = petId;
-                          newWeight.weight = initialWeight;
-                          newWeight.dateTime = DateTime.now();
+                          Weight newWeight = Weight(
+                              id: weightId,
+                              eventId: eventId,
+                              petId: petId,
+                              weight: initialWeight,
+                              dateTime: DateTime.now());
 
                           Event newEvent = Event(
                               id: eventId,
                               eventDate: eventDateTime,
                               dateWhenEventAdded: DateTime.now(),
                               title: 'Weight',
-                              userId: pet!.userId,
+                              userId: FirebaseAuth.instance.currentUser!.uid,
                               petId: petId,
                               weightId: newWeight.id,
                               temperatureId: '',
@@ -189,17 +183,8 @@ class NewWeightEvent extends ConsumerWidget {
                               avatarImage: 'assets/images/dog_avatar_012.png',
                               emoticon: '⚖️');
 
-                          ref
-                              .read(eventRepositoryProvider)
-                              .value
-                              ?.addEvent(newEvent);
-                          ref
-                              .read(weightRepositoryProvider)
-                              .value
-                              ?.addWeight(newWeight);
-
-                          ref.invalidate(weightRepositoryProvider);
-                          ref.invalidate(eventRepositoryProvider);
+                          ref.read(eventServiceProvider).addEvent(newEvent);
+                          ref.read(weightServiceProvider).addWeight(newWeight);
 
                           Navigator.of(context).pop();
                         },

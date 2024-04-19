@@ -1,34 +1,14 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-part 'pet_model.g.dart';
-
-@HiveType(typeId: 0)
-class Pet extends HiveObject {
-  @HiveField(0)
+class Pet {
   late String id;
-
-  @HiveField(1)
   late String name;
-
-  @HiveField(2)
   late String avatarImage;
-
-  @HiveField(3)
   late String age;
-
-  @HiveField(4)
   late String gender;
-
-  @HiveField(5)
   late String userId;
-
-  @HiveField(6)
   late String breed;
-
-  @HiveField(7)
   late DateTime dateTime;
-
-  @HiveField(8)
   late String backgroundImage;
 
   Pet({
@@ -42,4 +22,29 @@ class Pet extends HiveObject {
     required this.dateTime,
     required this.backgroundImage,
   });
+
+  Pet.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    name = doc.get('name') ?? '';
+    avatarImage = doc.get('avatarImage') ?? '';
+    age = doc.get('age') ?? '';
+    gender = doc.get('gender') ?? '';
+    userId = doc.get('userId') ?? '';
+    breed = doc.get('breed') ?? '';
+    dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+    backgroundImage = doc.get('backgroundImage') ?? '';
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'avatarImage': avatarImage,
+      'age': age,
+      'gender': gender,
+      'userId': userId,
+      'breed': breed,
+      'dateTime': dateTime,
+      'backgroundImage': backgroundImage,
+    };
+  }
 }

@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/details_screen.dart';
 
 class AnimalCard extends ConsumerStatefulWidget {
-  final String petId;
+  final Pet pet;
 
   const AnimalCard({
     super.key,
-    required this.petId,
+    required this.pet,
   });
 
   @override
@@ -19,15 +18,16 @@ class AnimalCard extends ConsumerStatefulWidget {
 
 class _AnimalCardState extends ConsumerState<AnimalCard> {
   @override
-  Widget build(BuildContext context) {
-    Pet? pet = ref.read(petRepositoryProvider).value?.getPetById(widget.petId);
-    if (pet == null) {
-      return const SizedBox.shrink();
-    }
+  void initState() {
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    var pet = widget.pet;
     var buttonColor = Colors.black;
-    var maleColor = const Color(0xff1d6273);
-    var femaleColor = const Color(0xffff8a70);
+    var maleColor = const Color(0xff68a2b6).withOpacity(0.6);
+    var femaleColor = const Color(0xffff8a70).withOpacity(0.8);
     if (pet.gender == 'Male') {
       buttonColor = maleColor;
     } else if (pet.gender == 'Female') {

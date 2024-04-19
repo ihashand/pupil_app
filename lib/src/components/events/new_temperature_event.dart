@@ -1,11 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/temperature_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 
 class NewTemperatureEvent extends ConsumerWidget {
@@ -158,26 +157,20 @@ class NewTemperatureEvent extends ConsumerWidget {
                             return;
                           }
 
-                          Pet? pet = ref
-                              .read(petRepositoryProvider)
-                              .value
-                              ?.getPetById(petId);
-
                           String eventId = generateUniqueId();
 
-                          Temperature newTemperature = Temperature();
-                          newTemperature.id = generateUniqueId();
-                          newTemperature.eventId = eventId;
-                          newTemperature.petId = petId;
-                          newTemperature.temperature = initialTemperature;
-                          newTemperature.dateTime = DateTime.now();
+                          Temperature newTemperature = Temperature(
+                              id: generateUniqueId(),
+                              eventId: eventId,
+                              petId: petId,
+                              temperature: initialTemperature);
 
                           Event newEvent = Event(
                               id: eventId,
                               eventDate: eventDateTime,
                               dateWhenEventAdded: DateTime.now(),
                               title: 'Temperature',
-                              userId: pet!.userId,
+                              userId: FirebaseAuth.instance.currentUser!.uid,
                               petId: petId,
                               weightId: '',
                               temperatureId: newTemperature.id,
@@ -193,16 +186,10 @@ class NewTemperatureEvent extends ConsumerWidget {
                               emoticon: '🌡️');
 
                           ref
-                              .read(temperatureRepositoryProvider)
-                              .value
-                              ?.addTemperature(newTemperature);
-                          ref
-                              .read(eventRepositoryProvider)
-                              .value
-                              ?.addEvent(newEvent);
+                              .read(temperatureServiceProvider)
+                              .addTemperature(newTemperature);
 
-                          ref.invalidate(temperatureRepositoryProvider);
-                          ref.invalidate(eventRepositoryProvider);
+                          ref.read(eventServiceProvider).addEvent(newEvent);
 
                           Navigator.of(context).pop();
                         },

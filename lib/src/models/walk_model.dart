@@ -1,24 +1,38 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-part 'walk_model.g.dart';
-
-@HiveType(typeId: 2)
-class Walk extends HiveObject {
-  @HiveField(0)
+class Walk {
   String id = '';
-
-  @HiveField(1)
   late double walkTime;
-
-  @HiveField(2)
   late double walkDistance = 0.0;
-
-  @HiveField(3)
   late String eventId;
-
-  @HiveField(4)
   late String petId;
-
-  @HiveField(5)
   late DateTime dateTime;
+
+  Walk(
+      {required this.id,
+      required this.walkTime,
+      required this.eventId,
+      required this.petId,
+      required this.walkDistance,
+      required this.dateTime});
+
+  Walk.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    walkTime = doc.get('walkTime');
+    walkDistance = doc.get('walkDistance') ?? 0.0;
+    eventId = doc.get('eventId') ?? '';
+    petId = doc.get('petId') ?? '';
+    dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'walkTime': walkTime,
+      'walkDistance': walkDistance,
+      'eventId': eventId,
+      'petId': petId,
+      'dateTime': Timestamp.fromDate(dateTime),
+    };
+  }
 }

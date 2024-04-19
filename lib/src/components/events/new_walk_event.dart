@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/walk/_build_time_selector.dart';
@@ -5,10 +6,8 @@ import 'package:pet_diary/src/components/events/walk/cancel_walk.dart';
 import 'package:pet_diary/src/components/events/walk/many_hours_alert.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 
 class NewWalkEventWidget extends ConsumerStatefulWidget {
@@ -274,13 +273,19 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
   }
 
   void saveWalkEvent(double walkDistance, int totalDurationInSeconds) {
-    Walk newWalk = Walk();
+    Walk newWalk = Walk(
+        id: generateUniqueId(),
+        walkTime: totalDurationInSeconds.toDouble(),
+        walkDistance: walkDistance,
+        eventId: generateUniqueId(),
+        petId: widget.petId,
+        dateTime: widget.eventDateTime);
+
     newWalk.id = generateUniqueId();
     newWalk.walkDistance = walkDistance;
     newWalk.walkTime = totalDurationInSeconds.toDouble();
 
     String eventId = generateUniqueId();
-    Pet? pet = ref.read(petRepositoryProvider).value?.getPetById(widget.petId);
 
     newWalk.eventId = eventId;
     newWalk.petId = widget.petId;
@@ -291,7 +296,7 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
         title: 'Walk',
         eventDate: widget.eventDateTime,
         dateWhenEventAdded: DateTime.now(),
-        userId: pet!.userId,
+        userId: FirebaseAuth.instance.currentUser!.uid,
         petId: widget.petId,
         weightId: '',
         temperatureId: '',
@@ -305,11 +310,8 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
         personId: 'BRAK',
         avatarImage: 'assets/images/dog_avatar_010.png',
         emoticon: '🚶‍➡️');
+    ref.read(eventServiceProvider).addEvent(newEvent);
 
-    ref.read(eventRepositoryProvider).value?.addEvent(newEvent);
-    ref.read(walkRepositoryProvider).value?.addWalk(newWalk);
-
-    ref.invalidate(eventRepositoryProvider);
-    ref.invalidate(walkRepositoryProvider);
+    ref.read(walkServiceProvider).addWalk(newWalk);
   }
 }

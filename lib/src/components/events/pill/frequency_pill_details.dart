@@ -11,7 +11,8 @@ class FrequencyPillDetails extends ConsumerWidget {
   });
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
+    return Flexible(
+        child: GestureDetector(
       onTap: () async {
         await showCupertinoModalPopup<void>(
           context: context,
@@ -43,13 +44,13 @@ class FrequencyPillDetails extends ConsumerWidget {
         );
       },
       child: SizedBox(
-        width: 150, // Ograniczenie szerokości InputDecorator
+        width: 150,
         child: InputDecorator(
           decoration: const InputDecoration(
-            labelText: 'F r e q u e n c y',
+            labelText: 'Frequency',
             border: OutlineInputBorder(),
             labelStyle: TextStyle(
-              fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+              fontSize: 20,
             ),
           ),
           child: Consumer(
@@ -61,6 +62,6 @@ class FrequencyPillDetails extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }

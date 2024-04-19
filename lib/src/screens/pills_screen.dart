@@ -1,31 +1,25 @@
-// ignore_for_file: unused_result
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/screens/pill_detail_screen.dart';
 
-// ignore: must_be_immutable
 class PillsScreen extends ConsumerWidget {
-  String petId;
+  final String petId;
 
-  PillsScreen(this.petId, {super.key});
+  const PillsScreen(this.petId, {super.key});
 
   @override
   Widget build(
     BuildContext context,
     WidgetRef ref,
   ) {
-    final allPills = ref
-        .watch(pillRepositoryProvider)
-        .value
-        ?.getPills()
-        .where((element) => element.petId == petId)
-        .toList();
+    var newPillId = generateUniqueId();
 
     return Scaffold(
       appBar: AppBar(
@@ -38,25 +32,58 @@ class PillsScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: allPills?.length,
-              itemBuilder: (context, index) {
-                final pill = allPills?[index];
-                if (pill != null) {
-                  return PillTile(
-                    pill: pill,
-                    onEdit: () => addOrEditPill(
-                      context,
-                      ref,
-                      petId,
-                      pill: pill,
-                    ),
-                    onDelete: () => deletePill(context, ref, petId, pill: pill),
-                  );
-                }
-                return null;
-              },
-            ),
+            child: StreamBuilder<List<Pill>>(
+                stream: ref.read(pillServiceProvider).getPills(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  if (snapshot.hasData) {
+                    final allPills = snapshot.data!
+                        .where((element) => element.petId == petId)
+                        .toList();
+                    if (allPills.isEmpty) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 10),
+                            Text(
+                              '💊',
+                              style: TextStyle(fontSize: 40),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: allPills.length,
+                      itemBuilder: (context, index) {
+                        if (allPills.isNotEmpty) {
+                          final pill = allPills[index];
+
+                          return PillTile(
+                            pill: pill,
+                            onEdit: () => addOrEditPill(
+                              context,
+                              ref,
+                              petId,
+                              newPillId,
+                              pill: pill,
+                            ),
+                            onDelete: () =>
+                                deletePill(context, ref, petId, pill: pill),
+                          );
+                        }
+                        return null;
+                      },
+                    );
+                  } else {
+                    return (const Text(
+                        'If you see this, please raport this to admin pills_screen'));
+                  }
+                }),
           ),
         ],
       ),
@@ -67,24 +94,32 @@ class PillsScreen extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () => addOrEditPill(context, ref, petId),
+              ElevatedButton.icon(
+                onPressed: () => addOrEditPill(context, ref, petId, newPillId),
                 style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.blue),
-                    minimumSize: MaterialStateProperty.all(const Size(300, 50)),
-                    textStyle: MaterialStateProperty.all(
-                      TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 18),
+                  backgroundColor:
+                      MaterialStateProperty.all(const Color(0xff117292)),
+                  minimumSize: MaterialStateProperty.all(const Size(350, 40)),
+                  textStyle: MaterialStateProperty.all(
+                    TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: 16,
                     ),
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15.0),
-                    ))),
-                child: Text(
-                  'N e w  p i l l',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
                   ),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                ),
+                icon: Icon(
+                  Icons.add,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+                label: Text(
+                  'Add new',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 22),
                 ),
               ),
             ],
@@ -94,53 +129,47 @@ class PillsScreen extends ConsumerWidget {
     );
   }
 
-  void addOrEditPill(BuildContext context, WidgetRef ref, String petId,
+  void addOrEditPill(
+      BuildContext context, WidgetRef ref, String petId, String newPillId,
       {Pill? pill}) async {
-    final bool isEditing = pill != null; // Check if editing or adding new
+    final bool isEditing = pill != null;
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => PillDetailScreen(
                 petId,
+                newPillId,
                 pill: pill,
               )),
     );
     if (result != null) {
       if (isEditing) {
-        ref.read(pillRepositoryProvider).value?.updatePill(result);
+        ref.read(pillServiceProvider).updatePill(result);
       } else {
-        ref.read(pillRepositoryProvider).value?.addPill(result);
+        ref.read(pillServiceProvider).addPill(result);
       }
-      ref.refresh(pillRepositoryProvider);
     }
   }
 
   void deletePill(BuildContext context, WidgetRef ref, String petId,
       {Pill? pill}) async {
-    var pillRemindersList = ref
-        .read(reminderRepositoryProvider)
-        .value!
-        .getReminders()
+    List<Reminder> pillRemindersList =
+        await ref.read(reminderServiceProvider).getReminders();
+
+    pillRemindersList = pillRemindersList
         .where((element) => element.objectId == pill!.id)
         .toList();
 
     if (pillRemindersList.isNotEmpty) {
       for (var reminder in pillRemindersList) {
-        await ref
-            .read(reminderRepositoryProvider)
-            .value
-            ?.deleteReminder(reminder.id);
+        await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
       }
     }
 
-    // Upewniamy się, że usunięcie zostało wykonane, zanim przejdziemy dalej
     await Future.delayed(const Duration(seconds: 1));
 
-    await ref.read(pillRepositoryProvider).value?.deletePill(pill!.id);
-    await ref.read(eventRepositoryProvider).value?.deleteEvent(pill!.eventId);
-
-    ref.refresh(pillRepositoryProvider);
-    ref.refresh(eventRepositoryProvider);
+    await ref.read(pillServiceProvider).deletePill(pill!.id);
+    await ref.read(eventServiceProvider).deleteEvent(pill.eventId);
   }
 }
 
@@ -170,12 +199,19 @@ class _PillTileState extends State<PillTile> {
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       color: Theme.of(context).colorScheme.primary,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
-            title: Text(widget.pill.name),
-            leading: Text(
-              widget.pill.emoji, // Emotikona tabletki
-              style: const TextStyle(fontSize: 24),
+            title: Row(
+              children: [
+                Text(
+                  widget.pill.emoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+                const SizedBox(width: 12),
+                Text(widget.pill.name),
+                const SizedBox(width: 12),
+              ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -200,32 +236,27 @@ class _PillTileState extends State<PillTile> {
               });
             },
           ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            child: ConstrainedBox(
-              constraints: isExpanded
-                  ? const BoxConstraints()
-                  : const BoxConstraints(maxHeight: 0),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Dosage: ${widget.pill.dosage}'),
-                    Text('Frequency: ${widget.pill.frequency}'),
-                    Text(
-                        'Date added: ${dateFormat.format(widget.pill.addDate!)}'),
-                    Text(
-                        'Start date: ${dateFormat.format(widget.pill.startDate!)}'),
-                    Text(
-                        'End date: ${dateFormat.format(widget.pill.endDate!)}'),
-                    // Możesz dodać więcej szczegółów związanych z lekiem
-                  ],
-                ),
+          if (isExpanded) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Dosage: ${widget.pill.dosage}'),
+                  Text('Frequency: ${widget.pill.frequency}'),
+                  Text(
+                    'Date added: ${dateFormat.format(widget.pill.addDate!)}',
+                  ),
+                  Text(
+                    'Start date: ${dateFormat.format(widget.pill.startDate!)}',
+                  ),
+                  Text(
+                    'End date: ${dateFormat.format(widget.pill.endDate!)}',
+                  ),
+                ],
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

@@ -1,23 +1,37 @@
-import 'package:hive_flutter/hive_flutter.dart';
-part 'note_model.g.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-@HiveType(typeId: 8)
-class Note extends HiveObject {
-  @HiveField(0)
-  String id = '';
-
-  @HiveField(1)
+class Note {
+  late String id;
   late String title;
-
-  @HiveField(2)
   late String eventId;
-
-  @HiveField(3)
   late String petId;
-
-  @HiveField(4)
   late DateTime dateTime;
-
-  @HiveField(5)
   late String contentText;
+
+  Note.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    title = doc.get('name') ?? '';
+    eventId = doc.get('eventId') ?? '';
+    petId = doc.get('petId') ?? '';
+    dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+    contentText = doc.get('contentText') ?? '';
+  }
+  Note({
+    required this.id,
+    required this.title,
+    required this.eventId,
+    required this.petId,
+    required this.dateTime,
+    required this.contentText,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'eventId': eventId,
+      'petId': petId,
+      'dateTime': dateTime,
+      'contentText': contentText,
+    };
+  }
 }

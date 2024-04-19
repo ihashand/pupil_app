@@ -1,70 +1,66 @@
-import 'package:hive_flutter/hive_flutter.dart';
-part 'pill_model.g.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-@HiveType(typeId: 3)
-class Pill extends HiveObject {
-  @HiveField(0)
+class Pill {
   late String id = '';
-
-  @HiveField(1)
   late String name;
-
-  @HiveField(2)
   DateTime? addDate;
-
-  @HiveField(3)
   String? note;
-
-  @HiveField(4)
   String? frequency;
-
-  @HiveField(5)
-  List<String>? times;
-
-  @HiveField(6)
   String? dosage;
-
-  @HiveField(7)
   String? icon;
-
-  @HiveField(8)
-  int? color;
-
-  @HiveField(9)
   late String eventId;
-
-  @HiveField(10)
   late String petId;
-
-  @HiveField(11)
   DateTime? endDate;
-
-  @HiveField(12)
   DateTime? startDate;
-
-  @HiveField(13)
-  String? timesPerDay;
-
-  @HiveField(14)
   bool remindersEnabled = false;
-
-  @HiveField(15)
   String emoji = '';
 
-  Map<String, dynamic> toJson() {
+  Pill({
+    required this.name,
+    required this.eventId,
+    required this.petId,
+    this.addDate,
+    this.note,
+    this.frequency,
+    this.dosage,
+    this.icon,
+    this.endDate,
+    this.startDate,
+    this.remindersEnabled = false,
+    this.emoji = '',
+  });
+
+  Pill.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    name = doc.get('name') ?? '';
+    eventId = doc.get('eventId') ?? '';
+    petId = doc.get('petId') ?? '';
+    addDate = (doc.get('addDate') as Timestamp?)?.toDate() ?? DateTime.now();
+    note = doc.get('note') ?? '';
+    frequency = doc.get('frequency') ?? '';
+    dosage = doc.get('dosage') ?? '';
+    icon = doc.get('icon') ?? '';
+    endDate = (doc.get('endDate') as Timestamp?)?.toDate() ?? DateTime.now();
+    startDate =
+        (doc.get('startDate') as Timestamp?)?.toDate() ?? DateTime.now();
+    remindersEnabled = doc.get('remindersEnabled') ?? false;
+    emoji = doc.get('emoji') ?? '';
+  }
+
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'key': key,
       'name': name,
-      'expirationDate': addDate?.toIso8601String(),
-      'note': note,
-      'frequency': frequency,
-      'times': times,
-      'dosage': dosage,
-      'icon': icon,
-      'color': color,
       'eventId': eventId,
       'petId': petId,
+      'addDate': addDate,
+      'note': note,
+      'frequency': frequency,
+      'dosage': dosage,
+      'icon': icon,
+      'endDate': endDate,
+      'startDate': startDate,
+      'remindersEnabled': remindersEnabled,
+      'emoji': emoji,
     };
   }
 }

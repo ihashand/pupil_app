@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/repositories/reminder_repository.dart';
+import 'package:pet_diary/src/data/services/reminder_service.dart';
 
-final reminderRepositoryProvider =
-    FutureProvider<ReminderRepository>((_) async {
-  return await ReminderRepository.create();
+final reminderServiceProvider = Provider((ref) {
+  return ReminderService();
 });
 
 final reminderNameControllerProvider = Provider<TextEditingController>((ref) {
@@ -22,4 +21,8 @@ final reminderTimeOfDayControllerProvider = StateProvider<TimeOfDay>((ref) {
 
 final reminderSelectedRepeatType = StateProvider<String>((ref) {
   return 'Once';
+});
+
+final temporaryReminderIds = StateProvider<List<String>?>((ref) {
+  return [];
 });

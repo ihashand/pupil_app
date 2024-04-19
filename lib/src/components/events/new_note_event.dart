@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
@@ -5,9 +6,8 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/note_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 
-class NewNoteEvent extends ConsumerWidget {
+class NewNoteEvent extends ConsumerStatefulWidget {
   final double iconSize;
   final Color iconColor;
   final String petId;
@@ -22,7 +22,12 @@ class NewNoteEvent extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NewNoteEvent> createState() => _NewNoteEventState();
+}
+
+class _NewNoteEventState extends ConsumerState<NewNoteEvent> {
+  @override
+  Widget build(BuildContext context) {
     const IconData iconData = Icons.note;
     var titleController = TextEditingController();
     var contentTextController = TextEditingController();
@@ -134,29 +139,24 @@ class NewNoteEvent extends ConsumerWidget {
                             return;
                           }
 
-                          var pet = ref
-                              .read(petRepositoryProvider)
-                              .value
-                              ?.getPetById(petId);
-
                           String eventId = generateUniqueId();
 
                           String noteId = generateUniqueId();
-                          Note newNote = Note();
-                          newNote.id = noteId;
-                          newNote.eventId = eventId;
-                          newNote.petId = petId;
-                          newNote.title = titleController.text;
-                          newNote.dateTime = DateTime.now();
-                          newNote.contentText = contentTextController.text;
+                          Note newNote = Note(
+                              id: noteId,
+                              title: titleController.text,
+                              eventId: eventId,
+                              petId: widget.petId,
+                              dateTime: DateTime.now(),
+                              contentText: contentTextController.text);
 
                           Event newEvent = Event(
                               id: eventId,
                               title: 'Note',
-                              eventDate: eventDateTime,
+                              eventDate: widget.eventDateTime,
                               dateWhenEventAdded: DateTime.now(),
-                              userId: pet!.userId,
-                              petId: petId,
+                              userId: FirebaseAuth.instance.currentUser!.uid,
+                              petId: widget.petId,
                               weightId: '',
                               temperatureId: '',
                               walkId: '',
@@ -169,17 +169,8 @@ class NewNoteEvent extends ConsumerWidget {
                               avatarImage: 'assets/images/dog_avatar_014.png',
                               emoticon: '📝');
 
-                          ref
-                              .read(eventRepositoryProvider)
-                              .value
-                              ?.addEvent(newEvent);
-                          ref
-                              .read(noteRepositoryProvider)
-                              .value
-                              ?.addNote(newNote);
-
-                          ref.invalidate(eventRepositoryProvider);
-                          ref.invalidate(noteRepositoryProvider);
+                          ref.read(eventServiceProvider).addEvent(newEvent);
+                          ref.read(noteServiceProvider).addNote(newNote);
 
                           Navigator.of(context).pop();
                         },
@@ -194,8 +185,8 @@ class NewNoteEvent extends ConsumerWidget {
       },
       child: Icon(
         iconData,
-        size: iconSize,
-        color: iconColor,
+        size: widget.iconSize,
+        color: widget.iconColor,
       ),
     );
   }

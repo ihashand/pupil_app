@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
-import 'package:pet_diary/src/auth/login_or_register.dart';
 import 'package:pet_diary/src/data/services/hive_service.dart';
 import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/helper/notifier_service.dart';

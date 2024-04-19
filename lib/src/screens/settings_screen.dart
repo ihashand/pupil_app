@@ -1,9 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
-import 'package:pet_diary/src/screens/login_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({
@@ -49,8 +50,6 @@ class SettingsScreen extends ConsumerWidget {
                 await FirebaseAuth.instance.signOut();
 
                 Navigator.popUntil(context, ModalRoute.withName("/"));
-
-                //todo podczas wylogowywania jest problem, nie chce ponownie zalogowac po nacisnieciu login
               },
             ),
           )

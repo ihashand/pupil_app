@@ -1,21 +1,34 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-part 'water_model.g.dart';
-
-@HiveType(typeId: 7)
-class Water extends HiveObject {
-  @HiveField(0)
+class Water {
   String id = '';
-
-  @HiveField(1)
   late String eventId;
-
-  @HiveField(2)
   late String petId;
-
-  @HiveField(3)
   late double water;
-
-  @HiveField(4)
   late DateTime dateTime;
+
+  Water(
+      {required this.id,
+      required this.eventId,
+      required this.petId,
+      required this.water,
+      required this.dateTime});
+
+  Water.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    eventId = doc.get('eventId') ?? '';
+    petId = doc.get('petId') ?? '';
+    water = doc.get('water') ?? 0.0;
+    dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'eventId': eventId,
+      'petId': petId,
+      'water': water,
+      'dateTime': Timestamp.fromDate(dateTime),
+    };
+  }
 }

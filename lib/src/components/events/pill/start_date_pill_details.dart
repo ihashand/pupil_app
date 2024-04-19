@@ -11,7 +11,8 @@ class StartDatePillDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var startDate = ref.watch(pillStartDateControllerProvider);
-    return GestureDetector(
+    return Flexible(
+        child: GestureDetector(
       onTap: () async {
         final DateTime? picked = await showDatePicker(
           context: context,
@@ -41,11 +42,11 @@ class StartDatePillDetails extends ConsumerWidget {
         width: 150, // Ograniczenie szerokości InputDecorator
         child: InputDecorator(
           decoration: const InputDecoration(
-            labelText: 'S t a r t',
+            labelText: 'Start',
             hintText: 'DD-MM-YYYY',
             border: OutlineInputBorder(),
             labelStyle: TextStyle(
-              fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+              fontSize: 20, // Ustaw rozmiar czcionki dla tekstu etykiety
             ),
           ),
           child: Text(
@@ -53,6 +54,6 @@ class StartDatePillDetails extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }

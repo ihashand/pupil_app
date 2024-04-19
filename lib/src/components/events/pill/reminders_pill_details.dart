@@ -1,75 +1,105 @@
-// ignore_for_file: unused_result, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/pill/reminder_item.dart';
-import 'package:pet_diary/src/components/events/pill/show_add_reminder_dialog.dart';
+import 'package:pet_diary/src/screens/add_reminders_screen.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 
-Widget remindersPillDetails(WidgetRef ref, BuildContext context, String petId,
-    String newPillId, final Pill? pill, List<String> tempReminderIds) {
-  final reminderRepoAsyncValue = ref.watch(reminderRepositoryProvider);
+Widget remindersPillDetails(
+  WidgetRef ref,
+  BuildContext context,
+  String petId,
+  String newPillId,
+  final Pill? pill,
+) {
+  return StreamBuilder<List<Reminder>>(
+    stream: ref.watch(reminderServiceProvider).getRemindersStream(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const CircularProgressIndicator();
+      }
 
-  return reminderRepoAsyncValue.when(
-    data: (reminderRepo) {
+      if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}');
+      }
+
       var perpetumMobile = newPillId;
-
       if (pill != null) {
         perpetumMobile = pill.id;
       }
 
-      List<Reminder> reminders = reminderRepo
-          .getReminders()
+      List<Reminder> reminders = snapshot.data!
           .where((element) => element.objectId == perpetumMobile)
           .toList();
 
-      return Column(
+      return Flexible(
+          child: Column(
         children: [
           SizedBox(
-            height: 50,
-            width: 230,
+            height: 40,
+            width: 350,
             child: FloatingActionButton.extended(
               onPressed: () {
-                showAddReminderDialog(
-                    context, ref, petId, newPillId, pill, tempReminderIds);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        AddReminderScreen(petId: petId, newPillId: newPillId),
+                  ),
+                );
               },
-              label: Text(
-                ' N e w  r e m i n d',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-              icon: Icon(
-                Icons.access_time,
-                color: Theme.of(context).primaryColorDark,
-              ),
-              backgroundColor: Colors.blue, // Customize color
-              extendedPadding: const EdgeInsets.symmetric(
-                horizontal: 10.0, // Adjust padding
-              ),
+              label: Text(' New reminder',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 16)),
+              icon: Icon(Icons.access_time,
+                  color: Theme.of(context).primaryColorDark),
+              backgroundColor: const Color(0xffffcb47),
+              extendedPadding: const EdgeInsets.symmetric(horizontal: 5.0),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                    15.0), // Adjust border radius as needed
-              ),
+                  borderRadius: BorderRadius.circular(10.0)),
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
-          SizedBox(
-            height: 300,
+          const SizedBox(height: 10),
+          Expanded(
             child: ListView.builder(
               itemCount: reminders.length,
               itemBuilder: (context, index) {
                 final reminder = reminders[index];
-                return reminderItem(reminder: reminder, ref: ref);
+                return ListTile(
+                  title: Text(
+                    reminder.title.isEmpty
+                        ? 'Medicine reminder'
+                        : '${reminder.title} reminder',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Time: ${reminder.time.hour}:${reminder.time.minute} ',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        reminder.description,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () async {
+                      await ref
+                          .read(reminderServiceProvider)
+                          .deleteReminder(reminder.id);
+                    },
+                  ),
+                );
               },
             ),
           ),
         ],
-      );
+      ));
     },
-    loading: () => const CircularProgressIndicator(),
-    error: (e, st) => Text('Error: $e'),
   );
 }

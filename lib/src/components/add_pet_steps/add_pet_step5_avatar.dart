@@ -1,11 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
+import 'package:pet_diary/src/data/services/pet_services.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 
 class AddPetStep5Avatar extends StatefulWidget {
   final WidgetRef ref;
@@ -58,7 +60,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                     children: [
                       AddPetSegmentProgressBar(
                         totalSegments: 5,
-                        filledSegments: 5, // Ponieważ to trzeci krok
+                        filledSegments: 5, // Because it's the fifth step
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         fillColor: Colors.blue,
                       ),
@@ -92,7 +94,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                                 const Color.fromARGB(255, 172, 170, 172),
                             backgroundImage: petSelectedAvatar.isNotEmpty
                                 ? AssetImage(
-                                    petSelectedAvatar) // Zmiana FileImage na AssetImage
+                                    petSelectedAvatar) // Use AssetImage for local images
                                 : null,
                             radius: 80,
                           ),
@@ -101,11 +103,12 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (petSelectedAvatar.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text('Please select pet avatar.')),
+                            content: Text('Please select pet avatar.'),
+                          ),
                         );
                         return;
                       }
@@ -116,12 +119,13 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                         if (currentUser != null) {
                           String userId = currentUser.uid;
 
-                          Pet newPet = Pet(
-                              id: DateTime.now()
-                                  .millisecondsSinceEpoch
-                                  .toString(),
+                          // Create a Pet instance
+                          final newPet = Pet(
+                              id: UniqueKey()
+                                  .toString(), // Use a unique ID generator
                               name: widget.petName,
-                              avatarImage: petSelectedAvatar,
+                              avatarImage:
+                                  petSelectedAvatar, // Store the path or URL
                               age: widget.petAge,
                               gender: widget.petGender,
                               userId: userId,
@@ -129,13 +133,15 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                               dateTime: DateTime.now(),
                               backgroundImage: backgroundImage);
 
-                          widget.ref
-                              .watch(petRepositoryProvider)
-                              .value
-                              ?.addPet(newPet);
+                          // Get the PetService instance (assuming you have one)
+                          final petService =
+                              PetService(); // Replace with your service instance
+
+                          // Add the pet to Firestore using the service
+                          await petService.addPet(newPet);
                         }
                       }
-                      widget.ref.invalidate(petRepositoryProvider);
+
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     style: ElevatedButton.styleFrom(

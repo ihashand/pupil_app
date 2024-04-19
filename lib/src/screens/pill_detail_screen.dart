@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/main.dart';
@@ -15,6 +13,7 @@ import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
@@ -27,13 +26,12 @@ class PillDetailScreen extends ConsumerWidget {
   final Pill? pill;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final String petId;
+  final String pillId;
 
-  PillDetailScreen(this.petId, {super.key, this.pill});
+  PillDetailScreen(this.petId, this.pillId, {super.key, this.pill});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var newPillId = generateUniqueId();
-    List<String> tempReminderIds = [];
     if (pill != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(pillNameControllerProvider).text = pill!.name;
@@ -98,18 +96,17 @@ class PillDetailScreen extends ConsumerWidget {
 
     return WillPopScope(
         onWillPop: () async {
-          for (var id in tempReminderIds) {
-            await ref
-                .read(reminderRepositoryProvider)
-                .value
-                ?.deleteReminder(id);
+          for (var id in ref.read(temporaryReminderIds.notifier).state!) {
+            await ref.read(reminderServiceProvider).deleteReminder(id);
           }
           return true;
         },
         child: Scaffold(
           appBar: AppBar(
             title: Text(
-              pill == null ? 'N e w  p i l l' : 'E d i t  p i l l',
+              pill == null
+                  ? 'N e w  m e d i c i n e'
+                  : 'E d i t  m e d i c i n e',
               style: const TextStyle(fontSize: 20),
             ),
             backgroundColor: Colors.transparent,
@@ -120,35 +117,40 @@ class PillDetailScreen extends ConsumerWidget {
               key: formKey,
               child: ListView(
                 children: [
-                  const SizedBox(height: 20),
-                  const NamePillDetails(),
-                  const SizedBox(height: 20),
-                  const Row(
-                    children: [
-                      FrequencyPillDetails(),
-                      SizedBox(
-                        height: 20,
-                        width: 23,
-                      ),
-                      DosagePetDetails(),
-                    ],
+                  SizedBox(
+                    height: 1000,
+                    width: 600,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 5),
+                        const NamePillDetails(),
+                        const SizedBox(height: 15),
+                        const Row(
+                          children: [
+                            FrequencyPillDetails(),
+                            SizedBox(
+                              width: 20,
+                            ),
+                            DosagePetDetails(),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        const Row(
+                          children: [
+                            StartDatePillDetails(),
+                            SizedBox(
+                              width: 20,
+                            ),
+                            EndDatePillDetails(),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        const EmojiPillDetails(),
+                        const SizedBox(height: 15),
+                        remindersPillDetails(ref, context, petId, pillId, pill),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  const Row(
-                    children: [
-                      StartDatePillDetails(),
-                      SizedBox(
-                        height: 20,
-                        width: 23,
-                      ),
-                      EndDatePillDetails(),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  const EmojiPillDetails(),
-                  const SizedBox(height: 30),
-                  remindersPillDetails(
-                      ref, context, petId, newPillId, pill, tempReminderIds),
                 ],
               ),
             ),
@@ -160,25 +162,35 @@ class PillDetailScreen extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: () =>
-                        savePill(context, ref, formKey, petId, newPillId),
+                        savePill(context, ref, formKey, petId, pillId, pill),
                     style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.blue),
-                        minimumSize:
-                            MaterialStateProperty.all(const Size(300, 50)),
-                        textStyle: MaterialStateProperty.all(
-                          TextStyle(
-                              color: Theme.of(context).primaryColorDark,
-                              fontSize: 18),
+                      backgroundColor:
+                          MaterialStateProperty.all(const Color(0xff117292)),
+                      minimumSize:
+                          MaterialStateProperty.all(const Size(350, 40)),
+                      textStyle: MaterialStateProperty.all(
+                        TextStyle(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: 16,
                         ),
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ))),
-                    child: Text(
-                      'S a v e',
+                      ),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                    ),
+                    icon: Icon(
+                      Icons.save,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                    label: Text(
+                      ' Save',
                       style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
+                        fontSize: 22,
                       ),
                     ),
                   ),
@@ -188,166 +200,178 @@ class PillDetailScreen extends ConsumerWidget {
           ),
         ));
   }
+}
 
-  // Function to save or update pill details.
-  Future<void> savePill(BuildContext context, WidgetRef ref,
-      GlobalKey<FormState> formKey, String petId, String newPillId) async {
-    DateTime startDate = ref.read(pillStartDateControllerProvider);
-    DateTime endDate = ref.read(pillEndDateControllerProvider);
-    var name = ref.read(pillNameControllerProvider).text;
-    var frequency = ref.read(pillFrequencyProvider);
-    var dosage = ref.read(pillDosageProvider);
-    var emoji = ref.read(pillEmojiProvider);
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all required fields.')),
-      );
-      return;
+Future<void> savePill(
+    BuildContext context,
+    WidgetRef ref,
+    GlobalKey<FormState> formKey,
+    String petId,
+    String newPillId,
+    Pill? pill) async {
+  DateTime startDate = ref.read(pillStartDateControllerProvider);
+  DateTime endDate = ref.read(pillEndDateControllerProvider);
+  String name = ref.read(pillNameControllerProvider).text;
+  int? frequency = ref.read(pillFrequencyProvider);
+  int? dosage = ref.read(pillDosageProvider);
+  TextEditingController emoji = ref.read(pillEmojiProvider);
+
+  if (name.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fill in all required fields.')),
+    );
+    return;
+  }
+
+  if (dosage == 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Dosage is not selected.')),
+    );
+    return;
+  }
+
+  if (frequency == 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Frequency is not selected.')),
+    );
+    return;
+  }
+
+  if (endDate.isBefore(startDate)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('End date cannot be earlier than start date.')),
+    );
+    return;
+  }
+
+  if (emoji.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('Emoji is not selected. Please enter an emoji.')),
+    );
+    return;
+  }
+
+  if (formKey.currentState!.validate()) {
+    final bool isNewPill = pill == null;
+    final Pill newPill =
+        isNewPill ? Pill(name: '', eventId: '', petId: '') : pill;
+    final TextEditingController nameController =
+        ref.read(pillNameControllerProvider);
+
+    List<Reminder> newPillRemindersList =
+        await ref.read(reminderServiceProvider).getReminders();
+
+    newPillRemindersList = newPillRemindersList
+        .where((element) => element.objectId == newPillId)
+        .toList();
+
+    if (newPillRemindersList.isNotEmpty) {
+      for (var reminder in newPillRemindersList) {
+        await schedulePillReminder(
+            flutterLocalNotificationsPlugin,
+            reminder.title,
+            int.parse(generateUniqueIdWithinRange()),
+            reminder.time,
+            ref.read(pillEndDateControllerProvider),
+            reminder.description,
+            ref.read(reminderSelectedRepeatType),
+            reminder.repeatInterval,
+            reminder.selectedDays);
+      }
     }
+    if (isNewPill) {
+      Pet? pet = await ref.watch(petServiceProvider).getPetById(petId);
+      final String eventId = generateUniqueId();
 
-    if (dosage == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dosage is not selected.')),
-      );
-      return;
-    }
+      newPill.id = newPillId;
+      newPill.name = nameController.text;
+      newPill.addDate = ref.read(pillDateControllerProvider);
+      newPill.startDate = ref.read(pillStartDateControllerProvider);
+      newPill.endDate = ref.read(pillEndDateControllerProvider);
+      newPill.eventId = eventId;
+      newPill.petId = petId;
+      newPill.frequency = ref.read(pillFrequencyProvider).toString();
+      newPill.dosage = ref.read(pillDosageProvider).toString();
+      newPill.emoji = ref.read(pillEmojiProvider).text;
 
-    if (frequency == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Frequency is not selected.')),
-      );
-      return;
-    }
+      final Event newEvent = Event(
+          id: eventId,
+          title: newPill.name,
+          eventDate: DateTime.now(),
+          dateWhenEventAdded: newPill.addDate!,
+          userId: pet!.userId,
+          petId: petId,
+          weightId: '',
+          temperatureId: '',
+          walkId: '',
+          waterId: '',
+          noteId: '',
+          pillId: newPill.id,
+          description: 'Time to take pill!',
+          proffesionId: 'BRAK',
+          personId: 'BRAK',
+          avatarImage: 'assets/images/dog_avatar_014.png',
+          emoticon: '💊');
 
-    if (endDate.isBefore(startDate)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('End date cannot be earlier than start date.')),
-      );
-      return;
-    }
+      ref.read(eventServiceProvider).addEvent(newEvent);
 
-    if (emoji.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Emoji is not selected. Please enter an emoji.')),
-      );
-      return;
-    }
+      ref.read(temporaryReminderIds.notifier).state!.clear();
 
-    if (formKey.currentState!.validate()) {
-      final bool isNewPill = pill == null;
-      final Pill newPill = isNewPill ? Pill() : pill!;
-      final TextEditingController nameController =
-          ref.read(pillNameControllerProvider);
+      // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
+      cleanerOfFields = true;
 
-      var newPillRemindersList = ref
-          .read(reminderRepositoryProvider)
-          .value!
-          .getReminders()
-          .where((element) => element.objectId == newPillId)
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop(newPill);
+    } else {
+      Event? eventToUpdate =
+          await ref.watch(eventServiceProvider).getEventById(pill.eventId);
+
+      eventToUpdate!.title = nameController.text;
+
+      ref.read(eventServiceProvider).updateEvent(eventToUpdate);
+
+      pill.name = nameController.text;
+      pill.addDate = ref.read(pillDateControllerProvider);
+      pill.startDate = ref.read(pillStartDateControllerProvider);
+      pill.endDate = ref.read(pillEndDateControllerProvider);
+      pill.frequency = ref.read(pillFrequencyProvider).toString();
+      pill.dosage = ref.read(pillDosageProvider).toString();
+      pill.emoji = ref.read(pillEmojiProvider).text;
+
+      List<Reminder> editingPillRemindersList =
+          await ref.read(reminderServiceProvider).getReminders();
+
+      editingPillRemindersList = editingPillRemindersList
+          .where((element) => element.objectId == pill.id)
           .toList();
 
-      if (newPillRemindersList.isNotEmpty) {
-        for (var reminder in newPillRemindersList) {
+      if (editingPillRemindersList.isNotEmpty) {
+        for (var reminder in editingPillRemindersList) {
+          String descriptionForReminder =
+              '${reminder.title} - ${reminder.description}';
+
           await schedulePillReminder(
               flutterLocalNotificationsPlugin,
-              reminder.title,
+              pill.name,
               int.parse(generateUniqueIdWithinRange()),
               reminder.time,
               ref.read(pillEndDateControllerProvider),
-              reminder.description,
-              ref.read(reminderSelectedRepeatType));
+              descriptionForReminder,
+              ref.read(reminderSelectedRepeatType),
+              reminder.repeatInterval,
+              reminder.selectedDays);
         }
       }
-      if (isNewPill) {
-        final Pet? pet =
-            ref.watch(petRepositoryProvider).value?.getPetById(petId);
-        final String eventId = generateUniqueId();
 
-        newPill.id = newPillId;
-        newPill.name = nameController.text;
-        newPill.addDate = ref.read(pillDateControllerProvider);
-        newPill.startDate = ref.read(pillStartDateControllerProvider);
-        newPill.endDate = ref.read(pillEndDateControllerProvider);
-        newPill.eventId = eventId;
-        newPill.petId = petId;
-        newPill.frequency = ref.read(pillFrequencyProvider).toString();
-        newPill.dosage = ref.read(pillDosageProvider).toString();
-        newPill.emoji = ref.read(pillEmojiProvider).text;
+      ref.read(temporaryReminderIds.notifier).state!.clear();
 
-        final Event newEvent = Event(
-            id: eventId,
-            title: newPill.name,
-            eventDate: DateTime.now(),
-            dateWhenEventAdded: newPill.addDate!,
-            userId: pet!.userId,
-            petId: petId,
-            weightId: '',
-            temperatureId: '',
-            walkId: '',
-            waterId: '',
-            noteId: '',
-            pillId: newPill.id,
-            description: 'Time to take pill!',
-            proffesionId: 'BRAK',
-            personId: 'BRAK',
-            avatarImage: 'assets/images/dog_avatar_014.png',
-            emoticon: '💊');
+      // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
+      cleanerOfFields = true;
 
-        ref.read(eventRepositoryProvider).value?.addEvent(newEvent);
-        ref.invalidate(eventRepositoryProvider);
-
-        // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
-        cleanerOfFields = true;
-
-        Navigator.of(context).pop(newPill);
-      } else {
-        Event? eventToUpdate = ref
-            .watch(eventRepositoryProvider)
-            .value
-            ?.getEventById(pill!.eventId);
-
-        eventToUpdate!.title = nameController.text;
-
-        ref.read(eventRepositoryProvider).value?.updateEvent(eventToUpdate);
-
-        pill?.name = nameController.text;
-        pill?.addDate = ref.read(pillDateControllerProvider);
-        pill?.startDate = ref.read(pillStartDateControllerProvider);
-        pill?.endDate = ref.read(pillEndDateControllerProvider);
-        pill?.frequency = ref.read(pillFrequencyProvider).toString();
-        pill?.dosage = ref.read(pillDosageProvider).toString();
-        pill?.emoji = ref.read(pillEmojiProvider).text;
-
-        ref.invalidate(eventRepositoryProvider);
-
-        var editingPillRemindersList = ref
-            .read(reminderRepositoryProvider)
-            .value!
-            .getReminders()
-            .where((element) => element.objectId == pill!.id)
-            .toList();
-        if (editingPillRemindersList.isNotEmpty) {
-          for (var reminder in editingPillRemindersList) {
-            var descriptionForReminder =
-                '${reminder.title} - ${reminder.description}';
-
-            await schedulePillReminder(
-                flutterLocalNotificationsPlugin,
-                pill!.name,
-                int.parse(generateUniqueIdWithinRange()),
-                reminder.time,
-                ref.read(pillEndDateControllerProvider),
-                descriptionForReminder,
-                ref.read(reminderSelectedRepeatType));
-          }
-        }
-
-        // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
-        cleanerOfFields = true;
-        Navigator.of(context).pop(pill);
-      }
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop(pill);
     }
   }
 }

@@ -1,11 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
 
 class NewWaterEvent extends ConsumerWidget {
@@ -157,52 +156,35 @@ class NewWaterEvent extends ConsumerWidget {
                             return;
                           }
                           String eventId = generateUniqueId();
-                          Pet? pet = ref
-                              .read(petRepositoryProvider)
-                              .value
-                              ?.getPetById(petId);
+                          Water newWater = Water(
+                              id: generateUniqueId(),
+                              eventId: eventId,
+                              petId: petId,
+                              water: initialWater,
+                              dateTime: eventDateTime);
 
-                          Water newWater = Water();
-                          newWater.id = generateUniqueId();
+                          Event newEvent = Event(
+                              id: eventId,
+                              title: 'Water',
+                              eventDate: eventDateTime,
+                              dateWhenEventAdded: DateTime.now(),
+                              userId: FirebaseAuth.instance.currentUser!.uid,
+                              petId: petId,
+                              weightId: '',
+                              temperatureId: '',
+                              walkId: '',
+                              waterId: newWater.id,
+                              noteId: '',
+                              pillId: '',
+                              description: 'Drinked: $initialWater ',
+                              proffesionId: 'BRAK',
+                              personId: 'BRAK',
+                              avatarImage: 'assets/images/dog_avatar_014.png',
+                              emoticon: '💧');
 
-                          // water
-                          if (newWater.id != '') {
-                            newWater.eventId = eventId;
-                            newWater.petId = petId;
-                            newWater.water = initialWater;
-                            newWater.dateTime = eventDateTime;
+                          ref.read(eventServiceProvider).addEvent(newEvent);
+                          ref.read(waterServiceProvider).addWater(newWater);
 
-                            Event newEvent = Event(
-                                id: eventId,
-                                title: 'Water',
-                                eventDate: eventDateTime,
-                                dateWhenEventAdded: DateTime.now(),
-                                userId: pet!.userId,
-                                petId: petId,
-                                weightId: '',
-                                temperatureId: '',
-                                walkId: '',
-                                waterId: newWater.id,
-                                noteId: '',
-                                pillId: '',
-                                description: 'Drinked: $initialWater ',
-                                proffesionId: 'BRAK',
-                                personId: 'BRAK',
-                                avatarImage: 'assets/images/dog_avatar_014.png',
-                                emoticon: '💧');
-
-                            ref
-                                .read(eventRepositoryProvider)
-                                .value
-                                ?.addEvent(newEvent);
-                            ref
-                                .read(waterRepositoryProvider)
-                                .value
-                                ?.addWater(newWater);
-
-                            ref.invalidate(waterRepositoryProvider);
-                            ref.invalidate(eventRepositoryProvider);
-                          }
                           Navigator.of(context).pop();
                         },
                       ),

@@ -17,7 +17,7 @@ class PetDetailWaterWidget extends StatelessWidget {
   final Color buttonColor;
   final Color textSecondSectionColor;
   final String water;
-  final List<Water> lastTenWaters;
+  final List<Water?> lastTenWaters;
   final Color diagramFirst;
   final Color diagramSecond;
 
@@ -68,8 +68,9 @@ class PetDetailWaterWidget extends StatelessWidget {
                   child: BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY:
-                          lastTenWaters.map((water) => water.water).reduce(max),
+                      maxY: lastTenWaters
+                          .map((water) => water!.water)
+                          .reduce(max),
                       titlesData: const FlTitlesData(
                         show: false,
                       ),
@@ -84,7 +85,7 @@ class PetDetailWaterWidget extends StatelessWidget {
                           x: entry.key,
                           barRods: [
                             BarChartRodData(
-                              toY: entry.value.water,
+                              toY: entry.value!.water,
                               gradient: LinearGradient(
                                 colors: [diagramFirst, diagramSecond],
                                 // ignore: prefer_const_literals_to_create_immutables

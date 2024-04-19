@@ -12,7 +12,8 @@ class EndDatePillDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     DateTime endDate = ref.watch(pillEndDateControllerProvider);
-    return GestureDetector(
+    return Flexible(
+        child: GestureDetector(
       onTap: () async {
         final DateTime? picked = await showDatePicker(
             context: context,
@@ -40,11 +41,11 @@ class EndDatePillDetails extends ConsumerWidget {
         width: 150, // Ograniczenie szerokości InputDecorator
         child: InputDecorator(
           decoration: const InputDecoration(
-            labelText: 'E n d',
+            labelText: 'End',
             hintText: 'DD-MM-YYYY',
             border: OutlineInputBorder(),
             labelStyle: TextStyle(
-              fontSize: 16, // Ustaw rozmiar czcionki dla tekstu etykiety
+              fontSize: 20, // Ustaw rozmiar czcionki dla tekstu etykiety
             ),
           ),
           child: Text(
@@ -52,6 +53,6 @@ class EndDatePillDetails extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }

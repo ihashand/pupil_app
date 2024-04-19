@@ -1,20 +1,35 @@
-import 'package:hive_flutter/hive_flutter.dart';
-part 'weight_model.g.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-@HiveType(typeId: 5)
-class Weight extends HiveObject {
-  @HiveField(0)
+class Weight {
   String id = '';
-
-  @HiveField(1)
   late double weight = 0.0;
-
-  @HiveField(2)
   late String eventId;
-
-  @HiveField(3)
   late String petId;
-
-  @HiveField(4)
   late DateTime dateTime;
+
+  Weight({
+    required this.id,
+    required this.weight,
+    required this.eventId,
+    required this.petId,
+    required this.dateTime,
+  });
+
+  Weight.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    weight = doc.get('weight') ?? 0.0;
+    eventId = doc.get('eventId') ?? '';
+    petId = doc.get('petId') ?? '';
+    dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'weight': weight,
+      'eventId': eventId,
+      'petId': petId,
+      'dateTime': Timestamp.fromDate(dateTime),
+    };
+  }
 }

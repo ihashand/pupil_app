@@ -1,20 +1,34 @@
-import 'package:hive_flutter/hive_flutter.dart';
-part 'temperature_model.g.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-@HiveType(typeId: 4)
-class Temperature extends HiveObject {
-  @HiveField(0)
-  String id = '';
-
-  @HiveField(1)
+class Temperature {
+  late String id;
   late double temperature;
-
-  @HiveField(2)
   late String eventId;
-
-  @HiveField(3)
   late String petId;
-
-  @HiveField(4)
   late DateTime dateTime;
+
+  Temperature({
+    required this.id,
+    required this.temperature,
+    required this.eventId,
+    required this.petId,
+  }) : dateTime = DateTime.now();
+
+  Temperature.fromDocument(DocumentSnapshot doc) {
+    id = doc.id;
+    temperature = doc.get('temperature');
+    eventId = doc.get('eventId') ?? '';
+    petId = doc.get('petId') ?? '';
+    dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'temperature': temperature,
+      'eventId': eventId,
+      'petId': petId,
+      'dateTime': Timestamp.fromDate(dateTime),
+    };
+  }
 }

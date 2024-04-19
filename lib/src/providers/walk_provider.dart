@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/repositories/walk_repository.dart';
+import 'package:pet_diary/src/data/services/walk_service.dart';
 
-final walkRepositoryProvider = FutureProvider<WalkRepository>((_) async {
-  return await WalkRepository.create();
+final walkServiceProvider = Provider((ref) {
+  return WalkService();
 });
 
 final walkNameControllerProvider = Provider<TextEditingController>((ref) {
