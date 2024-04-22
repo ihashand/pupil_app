@@ -99,151 +99,155 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 30,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.pets),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter pet\'s name';
-                    }
-                    return null;
-                  },
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 30,
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  height: 70,
-                  child: InputDecorator(
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: _nameController,
                     decoration: const InputDecoration(
-                      labelText: 'Data',
+                      labelText: 'Name',
                       border: OutlineInputBorder(),
-                      labelStyle: TextStyle(fontSize: 16),
+                      prefixIcon: Icon(Icons.pets),
                     ),
-                    child: TextButton(
-                      onPressed: () async {
-                        final DateTime? picked =
-                            await _selectDate(context, _selectedDate);
-                        if (picked != null && picked != _selectedDate) {
-                          setState(() {
-                            _selectedDate = picked;
-                            _birthDateController.text =
-                                DateFormat('yyyy-MM-dd').format(picked);
-                          });
-                        }
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter pet\'s name';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 70,
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Data',
+                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(fontSize: 16),
                       ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          DateFormat('dd/MM/yyyy').format(_selectedDate),
-                          style: TextStyle(
-                              color: Theme.of(context).primaryColorDark),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TypeAheadFormField(
-                  textFieldConfiguration: TextFieldConfiguration(
-                    controller: _breedController,
-                    decoration: const InputDecoration(
-                      labelText: 'Breed',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.category),
-                    ),
-                  ),
-                  suggestionsCallback: (pattern) async {
-                    List<String> allBreeds = dogBreedGroups
-                        .expand((group) => group.sections)
-                        .expand((section) => section.breeds)
-                        .map((breed) => breed.name)
-                        .toList();
-                    return allBreeds
-                        .where((item) =>
-                            item.toLowerCase().contains(pattern.toLowerCase()))
-                        .toList();
-                  },
-                  itemBuilder: (context, suggestion) {
-                    return ListTile(title: Text(suggestion.toString()));
-                  },
-                  onSuggestionSelected: (suggestion) {
-                    _breedController.text = suggestion.toString();
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter pet\'s breed';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownButtonFormField<String>(
-                  value: _gender,
-                  decoration: const InputDecoration(
-                    labelText: 'Gender',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.transgender),
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _gender = newValue!;
-                    });
-                  },
-                  items: <String>['Male', 'Female']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(
-                height: 300,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 350,
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: MaterialButton(
-                        onPressed: () {
-                          _confirmDelete(context);
+                      child: TextButton(
+                        onPressed: () async {
+                          final DateTime? picked =
+                              await _selectDate(context, _selectedDate);
+                          if (picked != null && picked != _selectedDate) {
+                            setState(() {
+                              _selectedDate = picked;
+                              _birthDateController.text =
+                                  DateFormat('yyyy-MM-dd').format(picked);
+                            });
+                          }
                         },
-                        color: Colors.red,
-                        textColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
                         ),
-                        child: const Text('Delete Pet'),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            DateFormat('dd/MM/yyyy').format(_selectedDate),
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TypeAheadFormField(
+                    textFieldConfiguration: TextFieldConfiguration(
+                      controller: _breedController,
+                      decoration: const InputDecoration(
+                        labelText: 'Breed',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.category),
+                      ),
+                    ),
+                    suggestionsCallback: (pattern) async {
+                      List<String> allBreeds = dogBreedGroups
+                          .expand((group) => group.sections)
+                          .expand((section) => section.breeds)
+                          .map((breed) => breed.name)
+                          .toList();
+                      return allBreeds
+                          .where((item) => item
+                              .toLowerCase()
+                              .contains(pattern.toLowerCase()))
+                          .toList();
+                    },
+                    itemBuilder: (context, suggestion) {
+                      return ListTile(title: Text(suggestion.toString()));
+                    },
+                    onSuggestionSelected: (suggestion) {
+                      _breedController.text = suggestion.toString();
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter pet\'s breed';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: DropdownButtonFormField<String>(
+                    value: _gender,
+                    decoration: const InputDecoration(
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.transgender),
+                    ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _gender = newValue!;
+                      });
+                    },
+                    items: <String>['Male', 'Female']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(
+                  height: 300,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 350,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: MaterialButton(
+                          onPressed: () {
+                            _confirmDelete(context);
+                          },
+                          color: Colors.red,
+                          textColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text('Delete Pet'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

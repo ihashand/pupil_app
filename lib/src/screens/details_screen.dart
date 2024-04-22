@@ -111,7 +111,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     int maxNumberOfBars = 10;
 
     List<Walk?> walks = [];
-    List<Walk?> lastTenWalks = List<Walk>.empty();
+    List<Walk?> lastTenWalks = [];
 
     StreamBuilder<List<Walk?>>(
       stream: ref.read(walkServiceProvider).getWalksStream(),
@@ -317,13 +317,49 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
               const SizedBox(
                 width: 15,
               ),
-              PetDetailWalkWidget(
-                  rectangleColor: buttonColor,
-                  textSecondSectionColor: textSecondSectionColor,
-                  walk: walk,
-                  lastTenWalks: lastTenWalks,
-                  diagramFirst: diagramFirst,
-                  diagramSecond: diagramSecond),
+              Expanded(
+                child: StreamBuilder<List<Walk?>>(
+                  stream: ref.read(walkServiceProvider).getWalksStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error fetching walks: ${snapshot.error}');
+                    }
+                    if (snapshot.connectionState == ConnectionState.active ||
+                        snapshot.connectionState == ConnectionState.done) {
+                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                        List<Walk?> walks = snapshot.data!
+                            .where((walk) => walk!.petId == widget.petId)
+                            .toList();
+
+                        List<Walk?> lastTenWalks = [];
+
+                        if (walks.isNotEmpty) {
+                          walks.sort(
+                              (a, b) => b!.dateTime.compareTo(a!.dateTime));
+                          lastTenWalks = walks.take(maxNumberOfBars).toList();
+                          if (lastTenWalks.isNotEmpty) {
+                            lastTenWalks.sort(
+                                (a, b) => a!.dateTime.compareTo(b!.dateTime));
+                          }
+                          if (lastTenWalks.isNotEmpty) {
+                            walk = '${lastTenWalks.last!.walkDistance} km';
+                          }
+                        }
+                        return PetDetailWalkWidget(
+                            rectangleColor: buttonColor,
+                            textSecondSectionColor: textSecondSectionColor,
+                            walk: walk,
+                            lastTenWalks: lastTenWalks,
+                            diagramFirst: diagramFirst,
+                            diagramSecond: diagramSecond);
+                      } else {
+                        return const Text('No walks found for this pet.');
+                      }
+                    }
+                    return const CircularProgressIndicator();
+                  },
+                ),
+              ),
               const SizedBox(
                 width: 10,
               ),
@@ -360,18 +396,50 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                     .where((element) => element.petId == widget.petId)
                     .toList();
 
+                List<Event> eventsToShow = [];
+                DateTime today = DateTime.now();
+                DateTime? nextEventDate;
+
+                // Filtrujemy wydarzenia na dzisiejszy dzień
+                for (var event in events) {
+                  if (event.eventDate.year == today.year &&
+                      event.eventDate.month == today.month &&
+                      event.eventDate.day == today.day) {
+                    eventsToShow.add(event);
+                  } else if (event.eventDate.isAfter(today)) {
+                    if (nextEventDate == null ||
+                        event.eventDate.isBefore(nextEventDate)) {
+                      nextEventDate = event.eventDate;
+                    }
+                  }
+                }
+
+                // Jeśli nie ma wydarzeń na dzisiaj, pokazujemy najbliższe z przyszłości
+                if (eventsToShow.isEmpty && nextEventDate != null) {
+                  eventsToShow = events
+                      .where((event) =>
+                          event.eventDate.year == nextEventDate!.year &&
+                          event.eventDate.month == nextEventDate.month &&
+                          event.eventDate.day == nextEventDate.day)
+                      .toList();
+                }
+
+                if (eventsToShow.isEmpty) {
+                  return const Text('No events for today or in the future');
+                }
+
                 return SizedBox(
                   height: 220,
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
-                    itemCount: events.length,
+                    itemCount: eventsToShow.length,
                     itemBuilder: (context, index) {
                       if (events.isEmpty) {
                         return const Text(
                           'No events for today or in the future',
                         );
                       } else {
-                        final currentEvent = events[index];
+                        final currentEvent = eventsToShow[index];
                         return SizedBox(
                           height: 87,
                           width: 180,

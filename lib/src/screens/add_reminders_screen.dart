@@ -364,6 +364,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     } else if (repeatOption == 'Every x days') {
       repeatOptionText = 'every $repeatInterval days';
     }
+
     final Reminder newReminder = Reminder(
       id: generateUniqueId(),
       title: nameController.text.isNotEmpty
