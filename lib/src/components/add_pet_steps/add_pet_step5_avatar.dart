@@ -52,7 +52,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(30.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -62,7 +62,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                         totalSegments: 5,
                         filledSegments: 5, // Because it's the fifth step
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        fillColor: Colors.blue,
+                        fillColor: const Color(0xffdfd785),
                       ),
                       const SizedBox(
                         height: 150,
@@ -91,7 +91,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                           ),
                           child: CircleAvatar(
                             backgroundColor:
-                                const Color.fromARGB(255, 172, 170, 172),
+                                const Color(0xffdfd785).withOpacity(0.5),
                             backgroundImage: petSelectedAvatar.isNotEmpty
                                 ? AssetImage(
                                     petSelectedAvatar) // Use AssetImage for local images
@@ -102,56 +102,60 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                       ),
                     ],
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (petSelectedAvatar.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please select pet avatar.'),
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (widget.petName.isNotEmpty &&
-                          widget.petAge.isNotEmpty &&
-                          widget.petGender.isNotEmpty) {
-                        if (currentUser != null) {
-                          String userId = currentUser.uid;
-
-                          // Create a Pet instance
-                          final newPet = Pet(
-                              id: UniqueKey()
-                                  .toString(), // Use a unique ID generator
-                              name: widget.petName,
-                              avatarImage:
-                                  petSelectedAvatar, // Store the path or URL
-                              age: widget.petAge,
-                              gender: widget.petGender,
-                              userId: userId,
-                              breed: widget.petBreed,
-                              dateTime: DateTime.now(),
-                              backgroundImage: backgroundImage);
-
-                          // Get the PetService instance (assuming you have one)
-                          final petService =
-                              PetService(); // Replace with your service instance
-
-                          // Add the pet to Firestore using the service
-                          await petService.addPet(newPet);
+                  SizedBox(
+                    height: 40,
+                    width: 300,
+                    child: FloatingActionButton.extended(
+                      onPressed: () {
+                        if (petSelectedAvatar.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please select pet avatar.'),
+                            ),
+                          );
+                          return;
                         }
-                      }
 
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Theme.of(context).primaryColorDark,
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 130, vertical: 10),
-                      textStyle: const TextStyle(fontSize: 20),
+                        if (widget.petName.isNotEmpty &&
+                            widget.petAge.isNotEmpty &&
+                            widget.petGender.isNotEmpty) {
+                          if (currentUser != null) {
+                            String userId = currentUser.uid;
+
+                            // Create a Pet instance
+                            final newPet = Pet(
+                                id: UniqueKey()
+                                    .toString(), // Use a unique ID generator
+                                name: widget.petName,
+                                avatarImage:
+                                    petSelectedAvatar, // Store the path or URL
+                                age: widget.petAge,
+                                gender: widget.petGender,
+                                userId: userId,
+                                breed: widget.petBreed,
+                                dateTime: DateTime.now(),
+                                backgroundImage: backgroundImage);
+
+                            // Get the PetService instance (assuming you have one)
+                            final petService =
+                                PetService(); // Replace with your service instance
+
+                            // Add the pet to Firestore using the service
+                            petService.addPet(newPet);
+                          }
+                        }
+
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst);
+                      },
+                      label: Text('Save',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 16)),
+                      backgroundColor: const Color(0xffdfd785),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
                     ),
-                    child: const Text('Finish'),
                   ),
                 ],
               ),

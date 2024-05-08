@@ -45,7 +45,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
       appBar: AppBar(
         title: const Text(
           'N e w   r e m i n d e r',
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -104,7 +104,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                               Border.all(color: Colors.grey.withOpacity(0.5)),
                           borderRadius: BorderRadius.circular(5),
                           color: selectedDays[index]
-                              ? const Color(0xffffcb47)
+                              ? const Color(0xffdfd785)
                               : Colors.white,
                         ),
                         child: Center(
@@ -168,7 +168,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide(color: Color(0xffffcb47)),
+                            borderSide: BorderSide(color: Color(0xffdfd785)),
                           ),
                         ),
                       ),
@@ -188,7 +188,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.black),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     children: [
@@ -226,7 +226,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                     labelStyle: const TextStyle(fontSize: 12),
                     focusedBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
-                          color: Color(0xffffcb47), width: 2.0),
+                          color: Color(0xffdfd785), width: 2.0),
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                     enabledBorder: OutlineInputBorder(
@@ -258,7 +258,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                     labelStyle: const TextStyle(fontSize: 12),
                     focusedBorder: OutlineInputBorder(
                       borderSide: const BorderSide(
-                          color: Color(0xffffcb47), width: 2.0),
+                          color: Color(0xffdfd785), width: 2.0),
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                     enabledBorder: OutlineInputBorder(
@@ -283,7 +283,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
           child: ElevatedButton.icon(
             onPressed: () => _saveReminder(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff117292),
+              backgroundColor: const Color(0xff68a2b6),
             ),
             icon: const Icon(
               Icons.save,
@@ -317,7 +317,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                 ),
               ),
               colorScheme: const ColorScheme.light(
-                primary: Color(0xffffcb47),
+                primary: Color(0xffdfd785),
                 onPrimary: Colors.black,
               ),
             ),

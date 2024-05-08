@@ -50,7 +50,7 @@ class FrequencyPillDetails extends ConsumerWidget {
             labelText: 'Frequency',
             border: OutlineInputBorder(),
             labelStyle: TextStyle(
-              fontSize: 20,
+              fontSize: 16,
             ),
           ),
           child: Consumer(

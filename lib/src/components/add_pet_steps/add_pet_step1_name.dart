@@ -15,7 +15,7 @@ class AddPetStep1Name extends StatelessWidget {
     return Scaffold(
       appBar: addPetAppBar(context, showCloseButton: true),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(30.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -25,7 +25,7 @@ class AddPetStep1Name extends StatelessWidget {
                   totalSegments: 5,
                   filledSegments: 1,
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  fillColor: Colors.blue,
+                  fillColor: const Color(0xffdfd785),
                 ),
                 const SizedBox(
                   height: 150,
@@ -37,7 +37,7 @@ class AddPetStep1Name extends StatelessWidget {
                 const Text(
                   'This input is required. You can change it leter.',
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
                 SizedBox(
                   height: 60,
                   width: 330,
@@ -57,41 +57,44 @@ class AddPetStep1Name extends StatelessWidget {
                 ),
               ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                if (petNameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter pet name.')),
-                  );
-                  return;
-                }
-                if (petNameController.text.length > 50) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Column(
-                      children: [
-                        Text(
-                            'Your name is to long: ${petNameController.text.length}'),
-                        const Text('Maximum length is 50 characters.')
-                      ],
-                    )),
-                  );
-                  return;
-                }
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => AddPetStep2Birthday(
-                          ref: ref,
-                          petName: petNameController.text,
-                        )));
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Theme.of(context).primaryColorDark,
-                backgroundColor: Colors.blue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 130, vertical: 10),
-                textStyle: const TextStyle(fontSize: 20),
+            SizedBox(
+              height: 40,
+              width: 300,
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  if (petNameController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter pet name.')),
+                    );
+                    return;
+                  }
+                  if (petNameController.text.length > 50) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Column(
+                        children: [
+                          Text(
+                              'Your name is too long: ${petNameController.text.length}'),
+                          const Text('Maximum length is 50 characters.')
+                        ],
+                      )),
+                    );
+                    return;
+                  }
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => AddPetStep2Birthday(
+                            ref: ref,
+                            petName: petNameController.text,
+                          )));
+                },
+                label: Text('Next',
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 16)),
+                backgroundColor: const Color(0xffdfd785),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
               ),
-              child: const Text('Next'),
             ),
           ],
         ),

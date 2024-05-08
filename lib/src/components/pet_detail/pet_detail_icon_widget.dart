@@ -26,7 +26,7 @@ class PetDetailIconWidget extends ConsumerWidget {
                 snapshot.data!.where((element) => element!.id == petId).first;
 
             return Padding(
-              padding: const EdgeInsets.fromLTRB(15, 0, 15, 5),
+              padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -34,15 +34,18 @@ class PetDetailIconWidget extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       if (pet!.gender == 'Male')
-                        const Text(
-                          '♂',
-                          style: TextStyle(fontSize: 35),
+                        const Icon(
+                          Icons.male,
+                          size: 40,
                         ),
                       if (pet.gender == 'Female')
-                        const Text(
-                          '♀',
-                          style: TextStyle(fontSize: 35),
+                        const Icon(
+                          Icons.female,
+                          size: 40,
                         ),
+                      const SizedBox(
+                        height: 5,
+                      ),
                       const Text(
                         'Gender',
                         style: TextStyle(fontSize: 10),

@@ -50,10 +50,10 @@ Widget remindersPillDetails(
               },
               label: Text(' New reminder',
                   style: TextStyle(
-                      color: Theme.of(context).primaryColorDark, fontSize: 16)),
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
               icon: Icon(Icons.access_time,
                   color: Theme.of(context).primaryColorDark),
-              backgroundColor: const Color(0xffffcb47),
+              backgroundColor: const Color(0xffdfd785),
               extendedPadding: const EdgeInsets.symmetric(horizontal: 5.0),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0)),

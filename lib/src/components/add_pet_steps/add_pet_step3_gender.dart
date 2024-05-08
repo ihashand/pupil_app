@@ -24,7 +24,7 @@ class AddPetStep3Gender extends StatelessWidget {
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(30.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -34,7 +34,7 @@ class AddPetStep3Gender extends StatelessWidget {
                         totalSegments: 5,
                         filledSegments: 3,
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        fillColor: Colors.blue,
+                        fillColor: const Color(0xffdfd785),
                       ),
                       const SizedBox(
                         height: 150,
@@ -72,32 +72,35 @@ class AddPetStep3Gender extends StatelessWidget {
                       ),
                     ],
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (petGenderController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Please select pet gender.')),
-                        );
-                        return;
-                      }
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => AddPetStep4Breed(
-                          ref: ref,
-                          petName: petName,
-                          petAge: petAge,
-                          petGender: petGenderController.text,
-                        ),
-                      ));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Theme.of(context).primaryColorDark,
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 130, vertical: 10),
-                      textStyle: const TextStyle(fontSize: 20),
+                  SizedBox(
+                    height: 40,
+                    width: 300,
+                    child: FloatingActionButton.extended(
+                      onPressed: () {
+                        if (petGenderController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Please select pet gender.')),
+                          );
+                          return;
+                        }
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => AddPetStep4Breed(
+                            ref: ref,
+                            petName: petName,
+                            petAge: petAge,
+                            petGender: petGenderController.text,
+                          ),
+                        ));
+                      },
+                      label: Text('Next',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 16)),
+                      backgroundColor: const Color(0xffdfd785),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
                     ),
-                    child: const Text('Next'),
                   ),
                 ],
               ),

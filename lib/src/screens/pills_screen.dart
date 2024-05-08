@@ -98,8 +98,8 @@ class PillsScreen extends ConsumerWidget {
                 onPressed: () => addOrEditPill(context, ref, petId, newPillId),
                 style: ButtonStyle(
                   backgroundColor:
-                      MaterialStateProperty.all(const Color(0xff117292)),
-                  minimumSize: MaterialStateProperty.all(const Size(350, 40)),
+                      MaterialStateProperty.all(const Color(0xff68a2b6)),
+                  minimumSize: MaterialStateProperty.all(const Size(300, 40)),
                   textStyle: MaterialStateProperty.all(
                     TextStyle(
                       color: Theme.of(context).primaryColorDark,

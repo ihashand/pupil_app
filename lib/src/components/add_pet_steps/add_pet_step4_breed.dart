@@ -34,7 +34,7 @@ class AddPetStep4Breed extends StatelessWidget {
               totalSegments: 5,
               filledSegments: 4, // Ponieważ to drugi krok
               backgroundColor: Theme.of(context).colorScheme.primary,
-              fillColor: Colors.blue,
+              fillColor: const Color(0xffdfd785),
             ),
             const SizedBox(
               height: 150,
@@ -49,7 +49,7 @@ class AddPetStep4Breed extends StatelessWidget {
             const SizedBox(height: 40),
             SizedBox(
               height: 60,
-              width: 250,
+              width: 300,
               child: TypeAheadFormField(
                 textFieldConfiguration: TextFieldConfiguration(
                   controller: petBreedController,
@@ -81,32 +81,35 @@ class AddPetStep4Breed extends StatelessWidget {
             const SizedBox(
               height: 340,
             ),
-            ElevatedButton(
-              onPressed: () {
-                if (petBreedController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select pet breed.')),
-                  );
-                  return; // Przerywamy dalsze działanie przycisku
-                }
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => AddPetStep5Avatar(
-                    ref: ref,
-                    petName: petName,
-                    petAge: petAge,
-                    petGender: petGender,
-                    petBreed: petBreedController.text,
-                  ),
-                ));
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Theme.of(context).primaryColorDark,
-                backgroundColor: Colors.blue,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 130, vertical: 10),
-                textStyle: const TextStyle(fontSize: 20),
+            SizedBox(
+              height: 40,
+              width: 300,
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  if (petBreedController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select pet breed.')),
+                    );
+                    return; // Przerywamy dalsze działanie przycisku
+                  }
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => AddPetStep5Avatar(
+                      ref: ref,
+                      petName: petName,
+                      petAge: petAge,
+                      petGender: petGender,
+                      petBreed: petBreedController.text,
+                    ),
+                  ));
+                },
+                label: Text('Next',
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 16)),
+                backgroundColor: const Color(0xffdfd785),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
               ),
-              child: const Text('Next'),
             ),
           ],
         ),

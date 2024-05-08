@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
@@ -25,8 +23,7 @@ class EndDatePillDetails extends ConsumerWidget {
                 data: ThemeData.light().copyWith(
                   textButtonTheme: TextButtonThemeData(
                     style: TextButton.styleFrom(
-                      foregroundColor:
-                          Colors.black, // Kolor tekstu przycisku 'OK'
+                      foregroundColor: Colors.black,
                     ),
                   ),
                 ),
@@ -38,14 +35,14 @@ class EndDatePillDetails extends ConsumerWidget {
         }
       },
       child: SizedBox(
-        width: 150, // Ograniczenie szerokości InputDecorator
+        width: 150,
         child: InputDecorator(
           decoration: const InputDecoration(
             labelText: 'End',
             hintText: 'DD-MM-YYYY',
             border: OutlineInputBorder(),
             labelStyle: TextStyle(
-              fontSize: 20, // Ustaw rozmiar czcionki dla tekstu etykiety
+              fontSize: 16,
             ),
           ),
           child: Text(
