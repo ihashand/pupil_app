@@ -18,9 +18,7 @@ class NamePillDetails extends ConsumerWidget {
             fillColor: Colors.black,
             labelText: 'Name',
             border: OutlineInputBorder(),
-            labelStyle: TextStyle(
-              fontSize: 20,
-            ),
+            labelStyle: TextStyle(fontSize: 16),
           ),
           child: TextFormField(
             controller: ref.read(pillNameControllerProvider),

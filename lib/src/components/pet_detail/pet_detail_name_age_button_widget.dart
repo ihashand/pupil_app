@@ -67,9 +67,12 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                               builder: (context) => EventsScreen(petId)),
                         );
                       },
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
+                      child: Text(
+                        'Health',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),

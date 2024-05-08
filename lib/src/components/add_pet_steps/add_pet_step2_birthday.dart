@@ -33,7 +33,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
         children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(30.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -43,7 +43,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                         totalSegments: 5,
                         filledSegments: 2,
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        fillColor: Colors.blue,
+                        fillColor: const Color(0xffdfd785),
                       ),
                       const SizedBox(
                         height: 150,
@@ -65,15 +65,23 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                             firstDate: DateTime(2000),
                             lastDate: DateTime.now(),
                             builder: (BuildContext context, Widget? child) {
-                              return Theme(
-                                data: ThemeData.light().copyWith(
-                                  textButtonTheme: TextButtonThemeData(
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.black,
+                              return MediaQuery(
+                                data: MediaQuery.of(context)
+                                    .copyWith(alwaysUse24HourFormat: true),
+                                child: Theme(
+                                  data: ThemeData.light().copyWith(
+                                    textButtonTheme: TextButtonThemeData(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.black,
+                                      ),
+                                    ),
+                                    colorScheme: const ColorScheme.light(
+                                      primary: Color(0xffdfd785),
+                                      onPrimary: Colors.black,
                                     ),
                                   ),
+                                  child: child!,
                                 ),
-                                child: child!,
                               );
                             },
                           );
@@ -86,9 +94,12 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Theme.of(context).primaryColorDark,
-                          backgroundColor: Colors.blue,
+                          backgroundColor: const Color(0xffdfd785),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 10),
+                              horizontal: 100, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
                         ),
                         child: Text(
                           DateFormat('dd/MM/yyyy').format(selectedDate),
@@ -96,24 +107,28 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                       ),
                     ],
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => AddPetStep3Gender(
-                          ref: widget.ref,
-                          petName: widget.petName,
-                          petAge: DateFormat('dd/MM/yyyy').format(selectedDate),
-                        ),
-                      ));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Theme.of(context).primaryColorDark,
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 130, vertical: 10),
-                      textStyle: const TextStyle(fontSize: 20),
+                  SizedBox(
+                    height: 40,
+                    width: 300,
+                    child: FloatingActionButton.extended(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => AddPetStep3Gender(
+                            ref: widget.ref,
+                            petName: widget.petName,
+                            petAge:
+                                DateFormat('dd/MM/yyyy').format(selectedDate),
+                          ),
+                        ));
+                      },
+                      label: Text('Next',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 16)),
+                      backgroundColor: const Color(0xffdfd785),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0)),
                     ),
-                    child: const Text('Next'),
                   ),
                 ],
               ),

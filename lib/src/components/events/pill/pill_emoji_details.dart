@@ -17,7 +17,7 @@ class EmojiPillDetails extends ConsumerWidget {
           labelText: 'Emoji',
           border: OutlineInputBorder(),
           labelStyle: TextStyle(
-            fontSize: 20,
+            fontSize: 16,
           ),
         ),
         child: TextFormField(

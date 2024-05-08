@@ -105,9 +105,9 @@ class PillDetailScreen extends ConsumerWidget {
           appBar: AppBar(
             title: Text(
               pill == null
-                  ? 'N e w  m e d i c i n e'
-                  : 'E d i t  m e d i c i n e',
-              style: const TextStyle(fontSize: 20),
+                  ? 'N e w   m e d i c i n e'
+                  : 'E d i t   m e d i c i n e',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.transparent,
           ),
@@ -167,9 +167,9 @@ class PillDetailScreen extends ConsumerWidget {
                         savePill(context, ref, formKey, petId, pillId, pill),
                     style: ButtonStyle(
                       backgroundColor:
-                          MaterialStateProperty.all(const Color(0xff117292)),
+                          MaterialStateProperty.all(const Color(0xff68a2b6)),
                       minimumSize:
-                          MaterialStateProperty.all(const Size(350, 40)),
+                          MaterialStateProperty.all(const Size(300, 40)),
                       textStyle: MaterialStateProperty.all(
                         TextStyle(
                           color: Theme.of(context).primaryColorDark,

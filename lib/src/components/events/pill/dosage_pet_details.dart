@@ -48,7 +48,7 @@ class DosagePetDetails extends ConsumerWidget {
             labelText: 'Dosage',
             border: OutlineInputBorder(),
             labelStyle: TextStyle(
-              fontSize: 20,
+              fontSize: 16,
             ),
           ),
           child: Consumer(

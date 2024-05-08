@@ -19,9 +19,9 @@ AppBar addPetAppBar(BuildContext context, {required bool showCloseButton}) {
     backgroundColor: Colors.transparent,
     foregroundColor: Theme.of(context).primaryColorDark.withOpacity(0.5),
     elevation: 0,
-    title: Icon(
+    title: const Icon(
       Icons.pets,
-      color: Theme.of(context).primaryColorDark.withOpacity(0.15),
+      color: Color(0xffdfd785),
       size: 55,
     ),
   );
