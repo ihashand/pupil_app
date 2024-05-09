@@ -15,16 +15,22 @@ class HealthScreen extends ConsumerStatefulWidget {
 }
 
 class _HealthScreenState extends ConsumerState<HealthScreen> {
-  DateTime selectedDate = DateTime.now();
+  DateTime defaultDateTime = DateTime.now(); // Domyślna data
+  DateTime selectedDateTime = DateTime.now();
+  DateTime eventDateTime = DateTime.now();
+
   bool isCalendarView = true;
   var eventsOnSelectedDate;
   late TextEditingController searchController;
   String searchQuery = '';
+  bool isUserInteracted = false;
 
   @override
   void initState() {
     super.initState();
     searchController = TextEditingController();
+    eventDateTime = DateTime.now();
+    selectedDateTime = DateTime.now();
   }
 
   @override
@@ -79,18 +85,21 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(
-                          right: 20, left: 20, top: 20, bottom: 10),
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: (value) {
-                          setState(() {
-                            searchQuery = value.toLowerCase();
-                          });
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'Search',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          right: 20, left: 20, top: 40, bottom: 10),
+                      child: SizedBox(
+                        height: 50,
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: (value) {
+                            setState(() {
+                              searchQuery = value.toLowerCase();
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                       ),
@@ -104,76 +113,112 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   }
 
   Widget _buildCalendarView(DateTime eventDateTime, List<Event> petEvents) {
-    return Column(
-      children: <Widget>[
-        const SizedBox(height: 10),
-        TableCalendar(
-          firstDay: DateTime.utc(2010, 10, 16),
-          lastDay: DateTime.utc(2030, 3, 14),
-          focusedDay: eventDateTime,
-          calendarFormat: CalendarFormat.month,
-          startingDayOfWeek: StartingDayOfWeek.monday,
-          selectedDayPredicate: (day) {
-            return isSameDay(selectedDate, day);
-          },
-          onDaySelected: (date, focusedDate) {
-            setState(() {
-              selectedDate = date;
-              ref.read(eventDateControllerProvider.notifier).state = date;
-            });
-          },
-          onPageChanged: (focusedDate) {
-            setState(() {
-              ref.read(eventDateControllerProvider.notifier).state =
-                  focusedDate;
-            });
-          },
-          locale: 'en_En',
-          calendarStyle: const CalendarStyle(
-            selectedDecoration: BoxDecoration(
-              color: Color(0xffdfd785),
-              shape: BoxShape.circle,
+    if (!isUserInteracted) {
+      eventDateTime = defaultDateTime;
+    }
+
+    // Filtrowanie wydarzeń na podstawie wybranej daty
+    final filteredEvents = petEvents
+        .where((event) =>
+            DateFormat('yyyy-MM-dd').format(event.eventDate) ==
+            DateFormat('yyyy-MM-dd').format(eventDateTime))
+        .toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2010, 10, 16),
+                lastDay: DateTime.utc(2030, 3, 14),
+                focusedDay: eventDateTime,
+                calendarFormat: CalendarFormat.month,
+                startingDayOfWeek: StartingDayOfWeek.monday,
+                selectedDayPredicate: (day) {
+                  return isSameDay(selectedDateTime, day);
+                },
+                onDaySelected: (date, focusedDate) {
+                  setState(() {
+                    selectedDateTime = date;
+                    ref.read(eventDateControllerProvider.notifier).state = date;
+                    isUserInteracted = true;
+                  });
+                  // Aktualizacja listy wydarzeń po zmianie daty
+                  setState(() {});
+                },
+                onPageChanged: (focusedDate) {
+                  setState(() {
+                    ref.read(eventDateControllerProvider.notifier).state =
+                        focusedDate;
+                    eventDateTime = focusedDate;
+                    isUserInteracted = true;
+                  });
+                  // Aktualizacja listy wydarzeń po zmianie daty
+                  setState(() {});
+                },
+                locale: 'en_En',
+                calendarStyle: const CalendarStyle(
+                  selectedDecoration: BoxDecoration(
+                    color: Color(0xffdfd785),
+                    shape: BoxShape.circle,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: Color.fromARGB(255, 118, 188, 245),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  titleTextStyle:
+                      TextStyle(color: Theme.of(context).primaryColorDark),
+                  leftChevronIcon: Icon(Icons.chevron_left,
+                      color: Theme.of(context).primaryColorDark),
+                  rightChevronIcon: Icon(Icons.chevron_right,
+                      color: Theme.of(context).primaryColorDark),
+                ),
+              ),
             ),
-            todayDecoration: BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
+          ),
+          SizedBox(
+            height: 400,
+            child: ListView.builder(
+              itemCount: filteredEvents.length,
+              itemBuilder: (context, index) {
+                final event = filteredEvents[index];
+                return _buildEventListItem(event, petEvents);
+              },
             ),
           ),
-          headerStyle: const HeaderStyle(
-            formatButtonVisible: false,
-            titleCentered: true,
-            titleTextStyle: TextStyle(color: Colors.black),
-            leftChevronIcon: Icon(Icons.chevron_left, color: Colors.black),
-            rightChevronIcon: Icon(Icons.chevron_right, color: Colors.black),
-          ),
-        ),
-        SizedBox(
-          height: 400,
-          child: ListView.builder(
-            itemCount: eventsOnSelectedDate.length,
-            itemBuilder: (context, index) {
-              final event = eventsOnSelectedDate[index];
-              return _buildEventListItem(event, petEvents);
-            },
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildEventListItem(Event event, List<Event> petEvents) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(10.0),
         ),
         child: ListTile(
+          leading: Text(
+            event.emoticon,
+            style: const TextStyle(fontSize: 22),
+          ),
           title: Text(event.title),
           trailing: IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => deleteEvents(ref, petEvents, event.id),
+            onPressed: () => deleteEvents(ref, context, petEvents, event.id),
           ),
         ),
       ),
@@ -203,11 +248,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   const SizedBox(
                     height: 40,
                   ),
-                  Icon(
-                    Icons.sentiment_dissatisfied,
-                    size: 80,
-                    color: Colors.grey.withOpacity(0.5),
-                  ),
+                  Icon(Icons.sentiment_dissatisfied,
+                      size: 80, color: Theme.of(context).primaryColorDark),
                 ],
               ),
       ),
@@ -247,8 +289,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             children: [
               Icon(
                 icon,
-                size: 48,
-                color: color,
+                size: 40,
+                color: color.withOpacity(0.6),
               ),
               Expanded(
                 child: Padding(
@@ -258,7 +300,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       color: Theme.of(context).primaryColorDark,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),

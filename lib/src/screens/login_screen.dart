@@ -30,12 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
 
-      var currentUser = FirebaseAuth.instance.currentUser;
-
-      if (currentUser != null) {
-        var userBox = await Hive.openBox<LocalUser>('localUserBox');
-        await userBox.put('currentUser', LocalUser(currentUser.uid, '', ''));
-      }
       if (context.mounted) {
         Navigator.pop(context);
       }

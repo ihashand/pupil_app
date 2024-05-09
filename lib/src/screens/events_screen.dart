@@ -281,7 +281,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),
                           onPressed: () =>
-                              deleteEvents(ref, allEvents, event.id),
+                              deleteEvents(ref, context, allEvents, event.id),
                         ),
                       );
                     }

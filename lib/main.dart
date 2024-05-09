@@ -19,7 +19,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // ignore: constant_identifier_names
-const bool USE_EMULATOR = true;
+const bool USE_EMULATOR = false;
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -31,9 +31,6 @@ Future<void> main() async {
   tz.initializeTimeZones();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  if (USE_EMULATOR == true) {
-    _connectToFirebaseEmulator();
-  }
   final hiveService = HiveService();
   await hiveService.initHive();
 
