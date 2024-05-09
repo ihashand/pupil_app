@@ -13,9 +13,7 @@ import 'package:pet_diary/src/providers/weight_provider.dart';
 void deleteEvents(
   WidgetRef ref,
   List<Event>? allEvents,
-  void Function(DateTime date, DateTime focusedDate) selectDate,
   String eventId,
-  String petId,
 ) async {
   Event? event = allEvents?.where((element) => element.id == eventId).first;
 

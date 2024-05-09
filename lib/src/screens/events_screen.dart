@@ -280,8 +280,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),
-                          onPressed: () => deleteEvents(ref, allEvents,
-                              selectDate, event.id, widget.petId),
+                          onPressed: () =>
+                              deleteEvents(ref, allEvents, event.id),
                         ),
                       );
                     }
