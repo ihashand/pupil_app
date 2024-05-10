@@ -20,7 +20,7 @@ class AddReminderScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  _AddReminderScreenState createState() => _AddReminderScreenState();
+  createState() => _AddReminderScreenState();
 }
 
 class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {

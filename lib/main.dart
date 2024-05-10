@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -66,14 +63,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-Future _connectToFirebaseEmulator() async {
-  final localHostString = Platform.isAndroid ? '10.0.2.2' : 'localhost';
+// Future _connectToFirebaseEmulator() async {
+//   final localHostString = Platform.isAndroid ? '10.0.2.2' : 'localhost';
 
-  FirebaseFirestore.instance.settings = Settings(
-    host: '$localHostString:8080',
-    sslEnabled: false,
-    persistenceEnabled: false,
-  );
+//   FirebaseFirestore.instance.settings = Settings(
+//     host: '$localHostString:8080',
+//     sslEnabled: false,
+//     persistenceEnabled: false,
+//   );
 
-  await FirebaseAuth.instance.useAuthEmulator(localHostString, 9099);
-}
+//   await FirebaseAuth.instance.useAuthEmulator(localHostString, 9099);
+// }

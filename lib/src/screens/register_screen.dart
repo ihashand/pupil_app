@@ -12,7 +12,7 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key, this.onTap});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {

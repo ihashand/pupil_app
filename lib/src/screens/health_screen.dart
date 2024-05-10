@@ -7,11 +7,11 @@ import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
-  const HealthScreen(this.petId, {Key? key}) : super(key: key);
+  const HealthScreen(this.petId, {super.key});
   final String petId;
 
   @override
-  _HealthScreenState createState() => _HealthScreenState();
+  createState() => _HealthScreenState();
 }
 
 class _HealthScreenState extends ConsumerState<HealthScreen> {
@@ -20,7 +20,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   DateTime eventDateTime = DateTime.now();
 
   bool isCalendarView = true;
-  var eventsOnSelectedDate;
+  late List<Event> eventsOnSelectedDate;
   late TextEditingController searchController;
   String searchQuery = '';
   bool isUserInteracted = false;
@@ -50,7 +50,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         }
 
         final allEvents = snapshot.data ?? [];
-        final petEvents =
+        final List<Event> petEvents =
             allEvents.where((event) => event.petId == widget.petId).toList();
         eventsOnSelectedDate = petEvents
             .where((event) =>

@@ -53,25 +53,25 @@ Future<void> schedulePillReminder(
     while (plannedNotificationDateTime.isBefore(endDateTime)) {
       if (selectedDays.contains(plannedNotificationDateTime.weekday % 7)) {
         await notificationsPlugin.zonedSchedule(
-            reminderId,
-            "Time to get: $pillName",
-            "Description: $pillDescription",
-            plannedNotificationDateTime,
-            const NotificationDetails(
-              android: AndroidNotificationDetails(
-                'your channel id',
-                'your channel name',
-                channelDescription: 'your channel description',
-                importance: Importance.max,
-                priority: Priority.high,
-                showWhen: true,
-              ),
-              iOS: DarwinNotificationDetails(),
+          reminderId,
+          "Time to get: $pillName",
+          "Description: $pillDescription",
+          plannedNotificationDateTime,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'your channel id',
+              'your channel name',
+              channelDescription: 'your channel description',
+              importance: Importance.max,
+              priority: Priority.high,
+              showWhen: true,
             ),
-            matchDateTimeComponents: DateTimeComponents.time,
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
-            androidAllowWhileIdle: true);
+            iOS: DarwinNotificationDetails(),
+          ),
+          matchDateTimeComponents: DateTimeComponents.time,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
       }
 
       plannedNotificationDateTime = interval == 1 || interval == 7
@@ -80,23 +80,23 @@ Future<void> schedulePillReminder(
     }
   } else if (interval == 0) {
     await notificationsPlugin.zonedSchedule(
-        reminderId,
-        "Time to use: $pillName",
-        "Description: $pillDescription",
-        plannedNotificationDateTime,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'your channel id',
-            'your channel name',
-            channelDescription: 'your channel description',
-            importance: Importance.max,
-            priority: Priority.high,
-            showWhen: true,
-          ),
-          iOS: DarwinNotificationDetails(),
+      reminderId,
+      "Time to use: $pillName",
+      "Description: $pillDescription",
+      plannedNotificationDateTime,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'your channel id',
+          'your channel name',
+          channelDescription: 'your channel description',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
         ),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        androidAllowWhileIdle: true);
+        iOS: DarwinNotificationDetails(),
+      ),
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
   }
 }

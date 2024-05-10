@@ -32,7 +32,7 @@ class DetailsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<DetailsScreen> createState() => _DetailsScreenState();
+  createState() => _DetailsScreenState();
 }
 
 class _DetailsScreenState extends ConsumerState<DetailsScreen> {
@@ -120,7 +120,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     Color rectangleColor = Colors.black;
     Color diagramFirst = Colors.black;
     Color diagramSecond = Colors.black;
-    Color aroundAvatar = Colors.black;
     Color backgroundSectionTwo = Colors.black;
     Color textSecondSectionColor = Colors.black;
     Color appbarButtonsColor = Colors.black;
@@ -135,10 +134,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       diagramFirst = const Color(0xffdfd785);
       diagramSecond = const Color(0xffeb9e5c);
       avatarBackgroundColor =
-          const Color.fromARGB(255, 90, 182, 232).withOpacity(0.4);
+          const Color.fromARGB(255, 90, 182, 232).withOpacity(0.2);
 
       // Theme-based adjustments for Male pets
-      aroundAvatar = Theme.of(context).primaryColor.withOpacity(0.7);
       backgroundSectionTwo =
           Theme.of(context).colorScheme.primary.withOpacity(0.8);
 
@@ -149,15 +147,15 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       // Colors specific to Female pets
       buttonColor = const Color(0xffff8a70);
       healthButtonColor = const Color(0xffdfd785);
-      eventTileBackgroundColor = const Color(0xffdfd785);
+      eventTileBackgroundColor = Theme.of(context).colorScheme.primary;
 
       rectangleColor = const Color(0xffffcec2);
       diagramFirst = const Color(0xffffd15c);
       diagramSecond = const Color(0xffeb9e5c);
-      avatarBackgroundColor = const Color(0xffffcec2);
+      avatarBackgroundColor = const Color(0xffffcec2).withOpacity(0.2);
 
       // Theme-based adjustments for Female pets
-      aroundAvatar = Theme.of(context).primaryColor;
+
       backgroundSectionTwo = Theme.of(context).colorScheme.primary;
 
       // Common text and buttons colors for both genders
@@ -224,10 +222,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                       alignment: Alignment.bottomCenter,
                       child: Container(
                         padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: aroundAvatar,
-                        ),
                         child: CircleAvatar(
                           backgroundColor: avatarBackgroundColor,
                           backgroundImage: pet.avatarImage.isNotEmpty
@@ -391,12 +385,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.all(5.0),
+            padding: const EdgeInsets.fromLTRB(15.0, 10.0, 10.0, 0),
             child: Row(
               children: [
-                const SizedBox(
-                  width: 25,
-                ),
                 Expanded(
                   child: Text(
                     'Events',
@@ -417,13 +408,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                   child: Text(
                     'Add new',
                     style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: 15,
-                    ),
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 15),
                   ),
-                ),
-                const SizedBox(
-                  width: 25,
                 ),
               ],
             ),
@@ -535,7 +522,7 @@ class EventTile extends StatelessWidget {
     String formattedDate = DateFormat('d MMM').format(event.eventDate);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -545,49 +532,48 @@ class EventTile extends StatelessWidget {
               const SizedBox(
                 height: 5,
               ),
-              Text(formattedDate,
-                  style: const TextStyle(
-                    fontSize: 10,
-                  )),
+              Text(formattedDate, style: const TextStyle(fontSize: 10)),
               Text(formattedStartTime,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
+                      fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(
+                  height: 10), // Zwiększono odstęp między datą a emotikonem
             ],
           ),
           const SizedBox(
-            width: 20,
-            height: 10,
-          ),
+              width: 20), // Zwiększono odstęp między datą a emotikonem
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: backgroundColor,
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  if (event.emoticon.isNotEmpty)
-                    Text(
-                      event.emoticon,
-                      style: const TextStyle(fontSize: 40),
-                    ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Column(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(event.title,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold)),
-                      Text(event.description,
-                          style: const TextStyle(fontSize: 11)),
+                      if (event.emoticon.isNotEmpty)
+                        Text(event.emoticon,
+                            style: const TextStyle(fontSize: 30)),
+                      const SizedBox(
+                          width:
+                              20), // Zwiększono odstęp między emotikonem a nazwą
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(event.title,
+                              style: const TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                          const SizedBox(
+                              height:
+                                  4), // Zwiększono odstęp między nazwą a opisem
+                          Text(event.description,
+                              style: const TextStyle(fontSize: 10)),
+                        ],
+                      ),
                     ],
                   ),
                 ],

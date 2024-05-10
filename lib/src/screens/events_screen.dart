@@ -27,8 +27,7 @@ class EventsScreen extends ConsumerStatefulWidget {
   final String petId;
 
   @override
-  // ignore: library_private_types_in_public_api
-  _EventsScreenState createState() => _EventsScreenState();
+  createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends ConsumerState<EventsScreen> {

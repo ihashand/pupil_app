@@ -74,5 +74,6 @@ void deleteEvents(
 
   await Future.delayed(const Duration(seconds: 2));
 
+  // ignore: use_build_context_synchronously
   Navigator.of(context).pop();
 }
