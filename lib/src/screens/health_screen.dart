@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/components/health/event_list_item_builder.dart';
+import 'package:pet_diary/src/components/health/get_all_tiles.dart';
+import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/screens/health_walk_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
@@ -105,7 +107,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         ),
                       ),
                     ),
-                    Expanded(child: _buildTileView(context)),
+                    Expanded(child: buildHealthTileView(context)),
                   ],
                 ),
         );
@@ -192,7 +194,11 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               itemCount: filteredEvents.length,
               itemBuilder: (context, index) {
                 final event = filteredEvents[index];
-                return _buildEventListItem(context, event, petEvents);
+                return EventListItemBuilder(
+                    ref: ref,
+                    context: context,
+                    event: event,
+                    petEvents: petEvents);
               },
             ),
           ),
@@ -201,34 +207,15 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget _buildEventListItem(
-      BuildContext context, Event event, List<Event> petEvents) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: ListTile(
-          leading: Text(
-            event.emoticon,
-            style: const TextStyle(fontSize: 22),
-          ),
-          title: Text(event.title),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () => deleteEvents(ref, context, petEvents, event.id),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTileView(BuildContext context) {
+  Widget buildHealthTileView(BuildContext context) {
     List<Widget> filteredTiles =
         _filterTiles(context, widget.petId).map((tile) {
-      return buildTile(tile.icon, tile.title, tile.color, tile.onTap, context);
+      return HealthTile(
+          icon: tile.icon,
+          title: tile.title,
+          color: tile.color,
+          onTap: tile.onTap,
+          context: context);
     }).toList();
 
     return SingleChildScrollView(
@@ -257,8 +244,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  List<TileInfo> _filterTiles(BuildContext context, String petId) {
-    if (searchQuery.isEmpty) return getAllTiles(context, petId);
+  List<TileInfoModel> _filterTiles(BuildContext context, String petId) {
+    if (searchQuery.isEmpty) {
+      return getAllTiles(context, petId);
+    }
 
     return getAllTiles(context, petId).where((tile) {
       for (String keyword in tile.keywords) {
@@ -269,167 +258,4 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       return false;
     }).toList();
   }
-
-  Widget buildTile(IconData icon, String title, Color color,
-      VoidCallback? onTap, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        bottom: 8,
-        left: 7,
-        right: 7,
-      ),
-      child: InkWell(
-        onTap: () {
-          if (onTap != null) onTap();
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 40,
-                color: color.withOpacity(0.6),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).primaryColorDark,
-                    ),
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Theme.of(context).primaryColorDark.withOpacity(0.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TileInfo {
-  final IconData icon;
-  final String title;
-  final Color color;
-  final List<String> keywords;
-  final VoidCallback? onTap;
-
-  TileInfo(this.icon, this.title, this.color, this.keywords, {this.onTap});
-}
-
-List<TileInfo> getAllTiles(BuildContext context, String petId) {
-  return [
-    TileInfo(
-      Icons.directions_walk,
-      'Activity',
-      Colors.blue,
-      ['activity', 'walk', 'wandern', 'fit', 'exercise', 'running'],
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HealthWalkScreen(petId)),
-        );
-      },
-    ),
-    TileInfo(
-      Icons.mood,
-      'Mood',
-      Colors.amber,
-      ['mood', 'emotion', 'feeling', 'happiness', 'sadness', 'joy'],
-      onTap: () {
-        // Add onTap logic for Mood tile
-      },
-    ),
-    TileInfo(
-      Icons.medication,
-      'Medications',
-      Colors.green,
-      ['medication', 'drugs', 'pills', 'therapy', 'prescription', 'dosage'],
-      onTap: () {
-        // Add onTap logic for Medications tile
-      },
-    ),
-    TileInfo(
-      Icons.warning,
-      'Symptoms',
-      Colors.red,
-      ['symptom', 'illness', 'pain', 'discomfort', 'condition', 'disease'],
-      onTap: () {
-        // Add onTap logic for Symptoms tile
-      },
-    ),
-    TileInfo(
-      Icons.timeline,
-      'Measurements',
-      Colors.orange,
-      ['measurement', 'data', 'metrics', 'record', 'result', 'analysis'],
-      onTap: () {
-        // Add onTap logic for Measurements tile
-      },
-    ),
-    TileInfo(
-      Icons.bedtime,
-      'Sleep',
-      Colors.indigo,
-      ['sleep', 'rest', 'nap', 'slumber', 'insomnia', 'bedtime'],
-      onTap: () {
-        // Add onTap logic for Sleep tile
-      },
-    ),
-    TileInfo(
-      Icons.favorite,
-      'Heart',
-      Colors.pink,
-      ['heart', 'cardio', 'pulse', 'blood pressure', 'rate', 'exercise'],
-      onTap: () {
-        // Add onTap logic for Heart tile
-      },
-    ),
-    TileInfo(
-      Icons.track_changes,
-      'Cycle',
-      Colors.teal,
-      [
-        'cycle',
-        'period',
-        'menstruation',
-        'ovulation',
-        'fertility',
-        'reproductive'
-      ],
-      onTap: () {
-        // Add onTap logic for Cycle tile
-      },
-    ),
-    TileInfo(
-      Icons.pregnant_woman,
-      'Pregnancy',
-      Colors.deepOrange,
-      ['pregnancy', 'maternity', 'expecting', 'baby', 'prenatal', 'parenthood'],
-      onTap: () {
-        // Add onTap logic for Pregnancy tile
-      },
-    ),
-    TileInfo(
-      Icons.dashboard_customize,
-      'Other Data',
-      Colors.brown,
-      ['data', 'information', 'records', 'details', 'statistics', 'history'],
-      onTap: () {
-        // Add onTap logic for Other Data tile
-      },
-    ),
-  ];
 }

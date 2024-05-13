@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/bar_graph/bar_graph.dart';
+import 'package:pet_diary/src/components/bar_graph/calculate_daily_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/calculate_monthly_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/calculate_weekly_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/calculate_yearly_walks.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
+import '../helper/calculate_average.dart';
 
 class HealthWalkScreen extends ConsumerStatefulWidget {
   const HealthWalkScreen(this.petId, {super.key});
@@ -14,9 +19,8 @@ class HealthWalkScreen extends ConsumerStatefulWidget {
 
 class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
   DateTime selectedDateTime = DateTime.now();
-  String selectedTimePeriod = 'M';
-
-  List<double> graphBarData = [10, 20, 30, 40, 50];
+  String selectedTimePeriod = 'W';
+  List<double> graphBarData = [];
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +62,6 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
                         .where((walk) => walk!.petId == widget.petId)
                         .toList();
 
-                    // Aktualizacja danych spacerek w zależności od wybranego okresu czasu
                     switch (selectedTimePeriod) {
                       case 'D':
                         graphBarData = calculateDailyWalks(walks);
@@ -104,7 +107,7 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(
-                              top: 10.0, left: 10, right: 10),
+                              top: 10.0, left: 15, right: 15),
                           child: SizedBox(
                               height: 300,
                               child: MyBarGraph(
@@ -149,28 +152,6 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
     );
   }
 
-  double calculateAverage(List<double> data) {
-    if (data.isEmpty) {
-      return 0.0;
-    }
-
-    double sum = 0.0;
-    int nonZeroCount = 0;
-
-    for (double number in data) {
-      if (number != 0) {
-        sum += number;
-        nonZeroCount++;
-      }
-    }
-
-    if (nonZeroCount == 0) {
-      return 0.0;
-    }
-
-    return sum / nonZeroCount;
-  }
-
   Widget _buildTimePeriodButton(String label, BuildContext context) {
     return TextButton(
       onPressed: () {
@@ -188,138 +169,5 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
         ),
       ),
     );
-  }
-
-  List<double> calculateDailyWalks(List<Walk?> walks) {
-    // Pobierz dzisiejszą datę
-    DateTime today = DateTime.now();
-
-    // Filtruj spacery dodane dzisiaj
-    List<Walk?> todayWalks = walks.where((walk) {
-      if (walk != null) {
-        DateTime walkDate = walk.dateTime;
-        return walkDate.year == today.year &&
-            walkDate.month == today.month &&
-            walkDate.day == today.day;
-      }
-      return false;
-    }).toList();
-
-    // Posortuj spacery po godzinie
-    todayWalks.sort((a, b) => a!.dateTime.compareTo(b!.dateTime));
-
-    // Zainicjuj listę wynikową dla godzin dnia
-    List<double> hoursData = List.generate(24, (index) => 0.0);
-
-    // Iteruj po spacerkach i dodawaj przebyte kilometry do odpowiednich godzin
-    for (var walk in todayWalks) {
-      if (walk != null) {
-        int hour = walk.dateTime.hour;
-        double distance = walk.distance;
-        hoursData[hour] += distance;
-      }
-    }
-
-    // Zwróć dane przebytej odległości w ciągu dnia
-    return hoursData;
-  }
-
-  List<double> calculateWeeklyWalks(List<Walk?> walks) {
-    // Pobierz dzisiejszą datę
-    DateTime today = DateTime.now();
-
-    // Znajdź pierwszy dzień tygodnia (poniedziałek)
-    DateTime monday = today.subtract(Duration(days: today.weekday - 1));
-
-    // Znajdź ostatni dzień tygodnia (niedziela)
-    DateTime sunday = monday.add(const Duration(days: 6));
-
-    // Filtruj spacery dodane w bieżącym tygodniu
-    List<Walk?> thisWeekWalks = walks.where((walk) {
-      if (walk != null) {
-        DateTime walkDate = walk.dateTime; // Użyj dateTime zamiast date
-        return walkDate.isAfter(monday.subtract(const Duration(days: 1))) &&
-            walkDate.isBefore(sunday.add(const Duration(days: 1)));
-      }
-      return false;
-    }).toList();
-
-    // Inicjalizuj listę wynikową dla dni tygodnia
-    List<double> daysData = List.generate(24, (index) => 0.0);
-
-    // Iteruj po spacerkach i dodawaj przebyte kilometry do odpowiednich dni tygodnia
-    for (var walk in thisWeekWalks) {
-      if (walk != null) {
-        int day = walk.dateTime.weekday -
-            1; // Pobierz indeks dla dnia tygodnia (0 - poniedziałek, ..., 6 - niedziela)
-        double distance = walk.distance;
-        daysData[day] += distance;
-      }
-    }
-
-    // Zwróć dane przebytej odległości w ciągu tygodnia
-    return daysData;
-  }
-
-  List<double> calculateMonthlyWalks(List<Walk?> walks) {
-    // Pobierz dzisiejszą datę
-    DateTime today = DateTime.now();
-
-    // Znajdź pierwszy dzień bieżącego miesiąca
-    DateTime firstDayOfMonth = DateTime(today.year, today.month, 1);
-
-    // Znajdź ostatni dzień bieżącego miesiąca
-    DateTime lastDayOfMonth = DateTime(today.year, today.month + 1, 0);
-
-    // Filtruj spacery dodane w bieżącym miesiącu
-    List<Walk?> thisMonthWalks = walks.where((walk) {
-      if (walk != null) {
-        DateTime walkDate = walk.dateTime; // Użyj dateTime zamiast date
-        return walkDate
-                .isAfter(firstDayOfMonth.subtract(const Duration(days: 1))) &&
-            walkDate.isBefore(lastDayOfMonth.add(const Duration(days: 1)));
-      }
-      return false;
-    }).toList();
-
-    // Inicjalizuj listę wynikową dla dni miesiąca
-    List<double> daysData = List.generate(lastDayOfMonth.day, (index) => 0.0);
-
-    // Iteruj po spacerkach i dodawaj przebyte kilometry do odpowiednich dni miesiąca
-    for (var walk in thisMonthWalks) {
-      if (walk != null) {
-        int day = walk.dateTime.day -
-            1; // Pobierz indeks dla dnia miesiąca (0 - pierwszy dzień, ..., 29/30/31 - ostatni dzień)
-        double distance = walk.distance;
-        daysData[day] += distance;
-      }
-    }
-
-    // Zwróć dane przebytej odległości w ciągu miesiąca
-    return daysData;
-  }
-
-  List<double> calculateYearlyWalks(List<Walk?> walks) {
-    // Pobierz dzisiejszą datę
-    DateTime today = DateTime.now();
-
-    // Inicjalizuj listę wynikową dla miesięcy w roku
-    List<double> monthsData = List.generate(24, (index) => 0.0);
-
-    // Iteruj po spacerkach i dodawaj przebyte kilometry do odpowiednich miesięcy
-    for (var walk in walks) {
-      if (walk != null) {
-        DateTime walkDate = walk.dateTime; // Użyj dateTime zamiast date
-        if (walkDate.year == today.year) {
-          int month = walkDate.month -
-              1; // Pobierz indeks dla miesiąca (0 - styczeń, ..., 11 - grudzień)
-          double distance = walk.distance;
-          monthsData[month] += distance;
-        }
-      }
-    }
-
-    // Zwróć dane przebytej odległości w ciągu roku
-    return monthsData;
   }
 }
