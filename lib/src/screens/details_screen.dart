@@ -205,7 +205,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             child: Column(
               children: [
                 const SizedBox(
-                  height: 60,
+                  height: 45,
                 ),
                 GestureDetector(
                   onTap: () => showAvatarSelectionDialog(
@@ -221,7 +221,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(5),
                         child: CircleAvatar(
                           backgroundColor: avatarBackgroundColor,
                           backgroundImage: pet.avatarImage.isNotEmpty
@@ -239,7 +239,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
         ),
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(160.0),
+          preferredSize: const Size.fromHeight(130.0),
           child: Container(),
         ),
       ),
@@ -295,7 +295,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                                 (a, b) => a!.dateTime.compareTo(b!.dateTime));
                           }
                           if (lastTenWalks.isNotEmpty) {
-                            walk = '${lastTenWalks.last!.walkDistance} km';
+                            walk = '${lastTenWalks.last!.distance} km';
                           }
                         }
                         return PetDetailWalkWidget(

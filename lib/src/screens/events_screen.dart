@@ -200,8 +200,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                       children: [
                                         Text(
                                             'Time: ${formatDuration(walk.walkTime.toInt())}'),
-                                        Text(
-                                            'Kilometers: ${walk.walkDistance}'),
+                                        Text('Kilometers: ${walk.distance}'),
                                       ],
                                     );
                                   } else {

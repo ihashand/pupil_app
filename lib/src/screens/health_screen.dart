@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/delete_event.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/screens/health_walk_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
@@ -15,7 +16,7 @@ class HealthScreen extends ConsumerStatefulWidget {
 }
 
 class _HealthScreenState extends ConsumerState<HealthScreen> {
-  DateTime defaultDateTime = DateTime.now(); // Domyślna data
+  DateTime defaultDateTime = DateTime.now();
   DateTime selectedDateTime = DateTime.now();
   DateTime eventDateTime = DateTime.now();
 
@@ -64,8 +65,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               'Health',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            backgroundColor: Colors.transparent,
-            toolbarHeight: 33,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            toolbarHeight: 50,
             actions: [
               IconButton(
                 onPressed: () {
@@ -80,7 +81,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             ],
           ),
           body: isCalendarView
-              ? _buildCalendarView(eventDateTime, petEvents)
+              ? _buildCalendarView(context, eventDateTime, petEvents)
               : Column(
                   children: [
                     Padding(
@@ -104,7 +105,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         ),
                       ),
                     ),
-                    Expanded(child: _buildTileView()),
+                    Expanded(child: _buildTileView(context)),
                   ],
                 ),
         );
@@ -112,12 +113,12 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget _buildCalendarView(DateTime eventDateTime, List<Event> petEvents) {
+  Widget _buildCalendarView(
+      BuildContext context, DateTime eventDateTime, List<Event> petEvents) {
     if (!isUserInteracted) {
       eventDateTime = defaultDateTime;
     }
 
-    // Filtrowanie wydarzeń na podstawie wybranej daty
     final filteredEvents = petEvents
         .where((event) =>
             DateFormat('yyyy-MM-dd').format(event.eventDate) ==
@@ -150,7 +151,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     ref.read(eventDateControllerProvider.notifier).state = date;
                     isUserInteracted = true;
                   });
-                  // Aktualizacja listy wydarzeń po zmianie daty
                   setState(() {});
                 },
                 onPageChanged: (focusedDate) {
@@ -160,7 +160,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     eventDateTime = focusedDate;
                     isUserInteracted = true;
                   });
-                  // Aktualizacja listy wydarzeń po zmianie daty
                   setState(() {});
                 },
                 locale: 'en_En',
@@ -193,7 +192,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               itemCount: filteredEvents.length,
               itemBuilder: (context, index) {
                 final event = filteredEvents[index];
-                return _buildEventListItem(event, petEvents);
+                return _buildEventListItem(context, event, petEvents);
               },
             ),
           ),
@@ -202,7 +201,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget _buildEventListItem(Event event, List<Event> petEvents) {
+  Widget _buildEventListItem(
+      BuildContext context, Event event, List<Event> petEvents) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
       child: Container(
@@ -225,9 +225,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget _buildTileView() {
-    List<Widget> filteredTiles = _filterTiles().map((tile) {
-      return _buildTile(tile.icon, tile.title, tile.color, tile.onTap);
+  Widget _buildTileView(BuildContext context) {
+    List<Widget> filteredTiles =
+        _filterTiles(context, widget.petId).map((tile) {
+      return buildTile(tile.icon, tile.title, tile.color, tile.onTap, context);
     }).toList();
 
     return SingleChildScrollView(
@@ -256,10 +257,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  List<_TileInfo> _filterTiles() {
-    if (searchQuery.isEmpty) return _allTiles;
+  List<TileInfo> _filterTiles(BuildContext context, String petId) {
+    if (searchQuery.isEmpty) return getAllTiles(context, petId);
 
-    return _allTiles.where((tile) {
+    return getAllTiles(context, petId).where((tile) {
       for (String keyword in tile.keywords) {
         if (keyword.toLowerCase().contains(searchQuery)) {
           return true;
@@ -269,8 +270,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     }).toList();
   }
 
-  Widget _buildTile(
-      IconData icon, String title, Color color, VoidCallback? onTap) {
+  Widget buildTile(IconData icon, String title, Color color,
+      VoidCallback? onTap, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(
         bottom: 8,
@@ -278,7 +279,9 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         right: 7,
       ),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          if (onTap != null) onTap();
+        },
         child: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
@@ -316,97 +319,117 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   }
 }
 
-class _TileInfo {
+class TileInfo {
   final IconData icon;
   final String title;
   final Color color;
   final List<String> keywords;
   final VoidCallback? onTap;
 
-  _TileInfo(this.icon, this.title, this.color, this.keywords, {this.onTap});
+  TileInfo(this.icon, this.title, this.color, this.keywords, {this.onTap});
 }
 
-final List<_TileInfo> _allTiles = [
-  _TileInfo(Icons.directions_walk, 'Activity', Colors.blue,
-      ['activity', 'walk', 'wandern', 'fit', 'exercise', 'running'], onTap: () {
-    // Add onTap logic for Activity tile
-  }),
-  _TileInfo(Icons.mood, 'Mood', Colors.amber,
-      ['mood', 'emotion', 'feeling', 'happiness', 'sadness', 'joy'], onTap: () {
-    // Add onTap logic for Mood tile
-  }),
-  _TileInfo(Icons.medication, 'Medications', Colors.green, [
-    'medication',
-    'drugs',
-    'pills',
-    'therapy',
-    'prescription',
-    'dosage'
-  ], onTap: () {
-    // Add onTap logic for Medications tile
-  }),
-  _TileInfo(Icons.warning, 'Symptoms', Colors.red, [
-    'symptom',
-    'illness',
-    'pain',
-    'discomfort',
-    'condition',
-    'disease'
-  ], onTap: () {
-    // Add onTap logic for Symptoms tile
-  }),
-  _TileInfo(Icons.timeline, 'Measurements', Colors.orange, [
-    'measurement',
-    'data',
-    'metrics',
-    'record',
-    'result',
-    'analysis'
-  ], onTap: () {
-    // Add onTap logic for Measurements tile
-  }),
-  _TileInfo(Icons.bedtime, 'Sleep', Colors.indigo,
-      ['sleep', 'rest', 'nap', 'slumber', 'insomnia', 'bedtime'], onTap: () {
-    // Add onTap logic for Sleep tile
-  }),
-  _TileInfo(Icons.favorite, 'Heart', Colors.pink, [
-    'heart',
-    'cardio',
-    'pulse',
-    'blood pressure',
-    'rate',
-    'exercise'
-  ], onTap: () {
-    // Add onTap logic for Heart tile
-  }),
-  _TileInfo(Icons.track_changes, 'Cycle', Colors.teal, [
-    'cycle',
-    'period',
-    'menstruation',
-    'ovulation',
-    'fertility',
-    'reproductive'
-  ], onTap: () {
-    // Add onTap logic for Cycle tile
-  }),
-  _TileInfo(Icons.pregnant_woman, 'Pregnancy', Colors.deepOrange, [
-    'pregnancy',
-    'maternity',
-    'expecting',
-    'baby',
-    'prenatal',
-    'parenthood'
-  ], onTap: () {
-    // Add onTap logic for Pregnancy tile
-  }),
-  _TileInfo(Icons.dashboard_customize, 'Other Data', Colors.brown, [
-    'data',
-    'information',
-    'records',
-    'details',
-    'statistics',
-    'history'
-  ], onTap: () {
-    // Add onTap logic for Other Data tile
-  }),
-];
+List<TileInfo> getAllTiles(BuildContext context, String petId) {
+  return [
+    TileInfo(
+      Icons.directions_walk,
+      'Activity',
+      Colors.blue,
+      ['activity', 'walk', 'wandern', 'fit', 'exercise', 'running'],
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HealthWalkScreen(petId)),
+        );
+      },
+    ),
+    TileInfo(
+      Icons.mood,
+      'Mood',
+      Colors.amber,
+      ['mood', 'emotion', 'feeling', 'happiness', 'sadness', 'joy'],
+      onTap: () {
+        // Add onTap logic for Mood tile
+      },
+    ),
+    TileInfo(
+      Icons.medication,
+      'Medications',
+      Colors.green,
+      ['medication', 'drugs', 'pills', 'therapy', 'prescription', 'dosage'],
+      onTap: () {
+        // Add onTap logic for Medications tile
+      },
+    ),
+    TileInfo(
+      Icons.warning,
+      'Symptoms',
+      Colors.red,
+      ['symptom', 'illness', 'pain', 'discomfort', 'condition', 'disease'],
+      onTap: () {
+        // Add onTap logic for Symptoms tile
+      },
+    ),
+    TileInfo(
+      Icons.timeline,
+      'Measurements',
+      Colors.orange,
+      ['measurement', 'data', 'metrics', 'record', 'result', 'analysis'],
+      onTap: () {
+        // Add onTap logic for Measurements tile
+      },
+    ),
+    TileInfo(
+      Icons.bedtime,
+      'Sleep',
+      Colors.indigo,
+      ['sleep', 'rest', 'nap', 'slumber', 'insomnia', 'bedtime'],
+      onTap: () {
+        // Add onTap logic for Sleep tile
+      },
+    ),
+    TileInfo(
+      Icons.favorite,
+      'Heart',
+      Colors.pink,
+      ['heart', 'cardio', 'pulse', 'blood pressure', 'rate', 'exercise'],
+      onTap: () {
+        // Add onTap logic for Heart tile
+      },
+    ),
+    TileInfo(
+      Icons.track_changes,
+      'Cycle',
+      Colors.teal,
+      [
+        'cycle',
+        'period',
+        'menstruation',
+        'ovulation',
+        'fertility',
+        'reproductive'
+      ],
+      onTap: () {
+        // Add onTap logic for Cycle tile
+      },
+    ),
+    TileInfo(
+      Icons.pregnant_woman,
+      'Pregnancy',
+      Colors.deepOrange,
+      ['pregnancy', 'maternity', 'expecting', 'baby', 'prenatal', 'parenthood'],
+      onTap: () {
+        // Add onTap logic for Pregnancy tile
+      },
+    ),
+    TileInfo(
+      Icons.dashboard_customize,
+      'Other Data',
+      Colors.brown,
+      ['data', 'information', 'records', 'details', 'statistics', 'history'],
+      onTap: () {
+        // Add onTap logic for Other Data tile
+      },
+    ),
+  ];
+}
