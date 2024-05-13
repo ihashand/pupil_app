@@ -153,7 +153,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     ref.read(eventDateControllerProvider.notifier).state = date;
                     isUserInteracted = true;
                   });
-                  setState(() {});
                 },
                 onPageChanged: (focusedDate) {
                   setState(() {
@@ -162,7 +161,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     eventDateTime = focusedDate;
                     isUserInteracted = true;
                   });
-                  setState(() {});
+                  ;
                 },
                 locale: 'en_En',
                 calendarStyle: const CalendarStyle(
