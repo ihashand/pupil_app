@@ -24,10 +24,11 @@ class PillsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "M e d i c i n e",
-          style: TextStyle(fontSize: 20),
+          'M e d i c i n e',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        toolbarHeight: 50,
       ),
       body: Column(
         children: [
@@ -114,12 +115,14 @@ class PillsScreen extends ConsumerWidget {
                 ),
                 icon: Icon(
                   Icons.add,
-                  color: Theme.of(context).primaryColorDark,
+                  color: Theme.of(context).primaryColorDark.withOpacity(0.7),
                 ),
                 label: Text(
                   'Add new',
                   style: TextStyle(
-                      color: Theme.of(context).primaryColorDark, fontSize: 22),
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      fontSize: 20),
                 ),
               ),
             ],

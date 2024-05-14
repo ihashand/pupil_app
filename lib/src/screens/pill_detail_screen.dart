@@ -19,7 +19,6 @@ import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 import '../providers/pills_provider.dart';
 
-// nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
 bool cleanerOfFields = false;
 
 class PillDetailScreen extends ConsumerWidget {
@@ -63,7 +62,6 @@ class PillDetailScreen extends ConsumerWidget {
           ref.read(pillEmojiProvider).text = pill!.emoji;
         }
 
-        // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
         cleanerOfFields = true;
       });
     } else if (ModalRoute.of(context)!.isCurrent &&
@@ -89,126 +87,168 @@ class PillDetailScreen extends ConsumerWidget {
             timeOfDay;
         ref.read(pillEmojiProvider).text = '';
 
-        // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
         cleanerOfFields = false;
       });
     }
 
     return WillPopScope(
-        onWillPop: () async {
-          for (var id in ref.read(temporaryReminderIds.notifier).state!) {
-            await ref.read(reminderServiceProvider).deleteReminder(id);
-          }
-          return true;
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              pill == null
-                  ? 'N e w   m e d i c i n e'
-                  : 'E d i t   m e d i c i n e',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Colors.transparent,
+      onWillPop: () async {
+        for (var id in ref.read(temporaryReminderIds.notifier).state!) {
+          await ref.read(reminderServiceProvider).deleteReminder(id);
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            pill == null
+                ? 'N e w   m e d i c i n e'
+                : 'E d i t   m e d i c i n e',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          body: Padding(
-            padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
-            child: Form(
-              key: formKey,
-              child: ListView(
-                children: [
-                  SizedBox(
-                    height: 1000,
-                    width: 600,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 5),
-                        const NamePillDetails(),
-                        const SizedBox(height: 15),
-                        const Row(
-                          children: [
-                            FrequencyPillDetails(),
-                            SizedBox(
-                              width: 20,
-                            ),
-                            DosagePetDetails(),
-                          ],
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          toolbarHeight: 50,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
+          child: Form(
+            key: formKey,
+            child: ListView(
+              children: [
+                SizedBox(
+                  height: 1000,
+                  width: 600,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 5),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        const SizedBox(height: 15),
-                        const Row(
-                          children: [
-                            StartDatePillDetails(),
-                            SizedBox(
-                              width: 20,
+                        child: const NamePillDetails(),
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const FrequencyPillDetails(),
                             ),
-                            EndDatePillDetails(),
-                          ],
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const DosagePetDetails(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const StartDatePillDetails(),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const EndDatePillDetails(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        const SizedBox(height: 15),
-                        const EmojiPillDetails(),
-                        const SizedBox(height: 15),
-                        remindersPillDetails(ref, context, petId, pillId, pill),
-                      ],
-                    ),
+                        child: const EmojiPillDetails(),
+                      ),
+                      const SizedBox(height: 15),
+                      remindersPillDetails(ref, context, petId, pillId, pill),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          bottomNavigationBar: BottomAppBar(
-            color: Colors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        savePill(context, ref, formKey, petId, pillId, pill),
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all(const Color(0xff68a2b6)),
-                      minimumSize:
-                          MaterialStateProperty.all(const Size(300, 40)),
-                      textStyle: MaterialStateProperty.all(
-                        TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 16,
-                        ),
-                      ),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.save,
-                      color: Theme.of(context).primaryColorDark,
-                    ),
-                    label: Text(
-                      ' Save',
-                      style: TextStyle(
+        ),
+        bottomNavigationBar: BottomAppBar(
+          color: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () =>
+                      savePill(context, ref, formKey, petId, pillId, pill),
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all(const Color(0xff68a2b6)),
+                    minimumSize: MaterialStateProperty.all(const Size(300, 40)),
+                    textStyle: MaterialStateProperty.all(
+                      TextStyle(
                         color: Theme.of(context).primaryColorDark,
-                        fontSize: 22,
+                        fontSize: 16,
+                      ),
+                    ),
+                    shape: MaterialStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
                   ),
-                ],
-              ),
+                  icon: Icon(
+                    Icons.save,
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                  ),
+                  label: Text(
+                    ' Save',
+                    style: TextStyle(
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
 Future<void> savePill(
-    BuildContext context,
-    WidgetRef ref,
-    GlobalKey<FormState> formKey,
-    String petId,
-    String newPillId,
-    Pill? pill) async {
+  BuildContext context,
+  WidgetRef ref,
+  GlobalKey<FormState> formKey,
+  String petId,
+  String newPillId,
+  Pill? pill,
+) async {
   DateTime startDate = ref.read(pillStartDateControllerProvider);
   DateTime endDate = ref.read(pillEndDateControllerProvider);
   String name = ref.read(pillNameControllerProvider).text;
@@ -270,15 +310,16 @@ Future<void> savePill(
     if (newPillRemindersList.isNotEmpty) {
       for (var reminder in newPillRemindersList) {
         await schedulePillReminder(
-            flutterLocalNotificationsPlugin,
-            reminder.title,
-            int.parse(generateUniqueIdWithinRange()),
-            reminder.time,
-            ref.read(pillEndDateControllerProvider),
-            reminder.description,
-            ref.read(reminderSelectedRepeatType),
-            reminder.repeatInterval,
-            reminder.selectedDays);
+          flutterLocalNotificationsPlugin,
+          reminder.title,
+          int.parse(generateUniqueIdWithinRange()),
+          reminder.time,
+          ref.read(pillEndDateControllerProvider),
+          reminder.description,
+          ref.read(reminderSelectedRepeatType),
+          reminder.repeatInterval,
+          reminder.selectedDays,
+        );
       }
     }
     if (isNewPill) {
@@ -297,32 +338,31 @@ Future<void> savePill(
       newPill.emoji = ref.read(pillEmojiProvider).text;
 
       final Event newEvent = Event(
-          id: eventId,
-          title: newPill.name,
-          eventDate: DateTime.now(),
-          dateWhenEventAdded: newPill.addDate!,
-          userId: pet!.userId,
-          petId: petId,
-          weightId: '',
-          temperatureId: '',
-          walkId: '',
-          waterId: '',
-          noteId: '',
-          pillId: newPill.id,
-          description: newPill.name,
-          proffesionId: 'BRAK',
-          personId: 'BRAK',
-          avatarImage: 'assets/images/dog_avatar_014.png',
-          emoticon: '💊');
+        id: eventId,
+        title: newPill.name,
+        eventDate: DateTime.now(),
+        dateWhenEventAdded: newPill.addDate!,
+        userId: pet!.userId,
+        petId: petId,
+        weightId: '',
+        temperatureId: '',
+        walkId: '',
+        waterId: '',
+        noteId: '',
+        pillId: newPill.id,
+        description: newPill.name,
+        proffesionId: 'BRAK',
+        personId: 'BRAK',
+        avatarImage: 'assets/images/dog_avatar_014.png',
+        emoticon: '💊',
+      );
 
       ref.read(eventServiceProvider).addEvent(newEvent);
 
       ref.read(temporaryReminderIds.notifier).state!.clear();
 
-      // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
       cleanerOfFields = true;
 
-      // ignore: use_build_context_synchronously
       Navigator.of(context).pop(newPill);
     } else {
       Event? eventToUpdate =
@@ -353,24 +393,23 @@ Future<void> savePill(
               '${reminder.title} - ${reminder.description}';
 
           await schedulePillReminder(
-              flutterLocalNotificationsPlugin,
-              pill.name,
-              int.parse(generateUniqueIdWithinRange()),
-              reminder.time,
-              ref.read(pillEndDateControllerProvider),
-              descriptionForReminder,
-              ref.read(reminderSelectedRepeatType),
-              reminder.repeatInterval,
-              reminder.selectedDays);
+            flutterLocalNotificationsPlugin,
+            pill.name,
+            int.parse(generateUniqueIdWithinRange()),
+            reminder.time,
+            ref.read(pillEndDateControllerProvider),
+            descriptionForReminder,
+            ref.read(reminderSelectedRepeatType),
+            reminder.repeatInterval,
+            reminder.selectedDays,
+          );
         }
       }
 
       ref.read(temporaryReminderIds.notifier).state!.clear();
 
-      // nie usuwac, nie dotykac, odpowiedzialne za czyszczenie i uzupelnianie pola, inaczej jest problem ze stanem
       cleanerOfFields = true;
 
-      // ignore: use_build_context_synchronously
       Navigator.of(context).pop(pill);
     }
   }

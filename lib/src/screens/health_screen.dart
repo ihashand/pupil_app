@@ -71,8 +71,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         return Scaffold(
           appBar: AppBar(
             title: const Text(
-              'Health',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              'H e a l t h',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
             toolbarHeight: 50,
@@ -118,6 +118,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   ],
                 ),
           floatingActionButton: FloatingActionButton(
+            backgroundColor: const Color(0xff68a2b6),
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -198,7 +199,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     shape: BoxShape.circle,
                   ),
                   todayDecoration: BoxDecoration(
-                    color: Color.fromARGB(255, 118, 188, 245),
+                    color: Color(0xff68a2b6),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -267,7 +268,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                                 Text(
                                   DateFormat('dd-MM-yyyy')
                                       .format(event.eventDate),
-                                  style: TextStyle(fontSize: 12),
+                                  style: const TextStyle(fontSize: 12),
                                 ),
                               ],
                             ],

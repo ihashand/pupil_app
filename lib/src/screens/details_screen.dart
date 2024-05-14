@@ -20,7 +20,6 @@ import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
-import 'package:pet_diary/src/screens/events_screen.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 
 class DetailsScreen extends ConsumerStatefulWidget {
@@ -397,14 +396,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EventsScreen(widget.petId),
-                      ),
-                    );
-                  },
+                  onPressed: () {},
                   child: Text(
                     'Add new',
                     style: TextStyle(

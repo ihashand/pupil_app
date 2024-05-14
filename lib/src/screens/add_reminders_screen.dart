@@ -47,12 +47,12 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
           'N e w   r e m i n d e r',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        toolbarHeight: 50,
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(21.0),
+          padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +96,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                         });
                       },
                       child: Container(
-                        width: 40,
+                        width: 36,
                         height: 40,
                         margin: const EdgeInsets.only(right: 10),
                         decoration: BoxDecoration(
@@ -210,7 +210,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               const SizedBox(height: 5),
               SizedBox(
                 height: 60,
-                width: 350,
+                width: double.infinity,
                 child: TextFormField(
                   controller: nameController,
                   validator: (value) {
@@ -248,7 +248,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               const SizedBox(height: 5),
               SizedBox(
                 height: 60,
-                width: 350,
+                width: double.infinity,
                 child: TextFormField(
                   controller: descriptionController,
                   decoration: InputDecoration(
@@ -284,14 +284,21 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
             onPressed: () => _saveReminder(),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xff68a2b6),
+              minimumSize: const Size(300, 40),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
             ),
-            icon: const Icon(
+            icon: Icon(
               Icons.save,
-              color: Colors.black,
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
             ),
-            label: const Text(
-              'Save',
-              style: TextStyle(color: Colors.black, fontSize: 20),
+            label: Text(
+              ' Save',
+              style: TextStyle(
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                fontSize: 20,
+              ),
             ),
           ),
         ),
