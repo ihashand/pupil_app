@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/loading_dialog.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
@@ -12,10 +14,9 @@ import 'package:pet_diary/src/providers/weight_provider.dart';
 
 void deleteEvents(
   WidgetRef ref,
+  BuildContext context,
   List<Event>? allEvents,
-  void Function(DateTime date, DateTime focusedDate) selectDate,
   String eventId,
-  String petId,
 ) async {
   Event? event = allEvents?.where((element) => element.id == eventId).first;
 
@@ -26,28 +27,34 @@ void deleteEvents(
   final String waterId = event.waterId;
   final String weightId = event.weightId;
 
-  ref.watch(eventServiceProvider).deleteEvent(eventId);
+  ref.read(eventServiceProvider).deleteEvent(eventId);
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const LoadingDialog();
+    },
+  );
 
   if (weightId.isNotEmpty) {
-    await ref.watch(weightServiceProvider).deleteWeight(weightId);
+    await ref.read(weightServiceProvider).deleteWeight(weightId);
   }
 
   if (waterId.isNotEmpty) {
-    await ref.watch(waterServiceProvider).deleteWater(waterId);
+    await ref.read(waterServiceProvider).deleteWater(waterId);
   }
 
   if (temperatureId.isNotEmpty) {
-    await ref
-        .watch(temperatureServiceProvider)
-        .deleteTemperature(temperatureId);
+    await ref.read(temperatureServiceProvider).deleteTemperature(temperatureId);
   }
 
   if (walkId.isNotEmpty) {
-    await ref.watch(walkServiceProvider).deleteWalk(walkId);
+    await ref.read(walkServiceProvider).deleteWalk(walkId);
   }
 
   if (noteId.isNotEmpty) {
-    await ref.watch(noteServiceProvider).deleteNote(noteId);
+    await ref.read(noteServiceProvider).deleteNote(noteId);
   }
 
   if (pillId.isNotEmpty) {
@@ -57,11 +64,16 @@ void deleteEvents(
     if (reminders.isNotEmpty) {
       for (var reminder in reminders) {
         if (reminder.objectId == pillId) {
-          await ref.watch(reminderServiceProvider).deleteReminder(reminder.id);
+          await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
         }
       }
     }
 
-    await ref.watch(pillServiceProvider).deletePill(pillId);
+    await ref.read(pillServiceProvider).deletePill(pillId);
   }
+
+  await Future.delayed(const Duration(seconds: 2));
+
+  // ignore: use_build_context_synchronously
+  Navigator.of(context).pop();
 }

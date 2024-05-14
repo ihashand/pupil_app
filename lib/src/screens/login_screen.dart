@@ -1,11 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:pet_diary/src/components/my_textfield.dart';
 import 'package:pet_diary/src/components/signin_button.dart';
 import 'package:pet_diary/src/helper/helper_functions.dart';
-import 'package:pet_diary/src/models/local_user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function()? onTap;
@@ -13,7 +11,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, this.onTap});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -30,12 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text, password: passwordController.text);
 
-      var currentUser = FirebaseAuth.instance.currentUser;
-
-      if (currentUser != null) {
-        var userBox = await Hive.openBox<LocalUser>('localUserBox');
-        await userBox.put('currentUser', LocalUser(currentUser.uid, '', ''));
-      }
       if (context.mounted) {
         Navigator.pop(context);
       }

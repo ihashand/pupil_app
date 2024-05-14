@@ -27,8 +27,7 @@ class EventsScreen extends ConsumerStatefulWidget {
   final String petId;
 
   @override
-  // ignore: library_private_types_in_public_api
-  _EventsScreenState createState() => _EventsScreenState();
+  createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends ConsumerState<EventsScreen> {
@@ -201,8 +200,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                                       children: [
                                         Text(
                                             'Time: ${formatDuration(walk.walkTime.toInt())}'),
-                                        Text(
-                                            'Kilometers: ${walk.walkDistance}'),
+                                        Text('Kilometers: ${walk.distance}'),
                                       ],
                                     );
                                   } else {
@@ -280,8 +278,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.delete),
-                          onPressed: () => deleteEvents(ref, allEvents,
-                              selectDate, event.id, widget.petId),
+                          onPressed: () =>
+                              deleteEvents(ref, context, allEvents, event.id),
                         ),
                       );
                     }

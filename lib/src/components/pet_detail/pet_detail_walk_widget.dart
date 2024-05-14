@@ -85,7 +85,7 @@ class PetDetailWalkWidget extends ConsumerWidget {
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
                       maxY: lastTenWalks
-                          .map((walk) => walk!.walkDistance)
+                          .map((walk) => walk!.distance)
                           .reduce(max),
                       titlesData: const FlTitlesData(show: false),
                       gridData: const FlGridData(show: false),
@@ -98,7 +98,7 @@ class PetDetailWalkWidget extends ConsumerWidget {
                           barsSpace: barWidthFactor,
                           barRods: [
                             BarChartRodData(
-                              toY: entry.value!.walkDistance,
+                              toY: entry.value!.distance,
                               gradient: LinearGradient(
                                 colors: [diagramFirst, diagramSecond],
                                 stops: const [0.5, 1.0],

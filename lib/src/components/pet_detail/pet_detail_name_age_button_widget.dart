@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/events_screen.dart';
+import 'package:pet_diary/src/screens/health_screen.dart';
 
 class PetDetailNameAgeButtonWidget extends ConsumerWidget {
   const PetDetailNameAgeButtonWidget({
@@ -64,13 +64,13 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => EventsScreen(petId)),
+                              builder: (context) => HealthScreen(petId)),
                         );
                       },
-                      child: Text(
+                      child: const Text(
                         'Health',
                         style: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
+                          color: Colors.black,
                           fontSize: 16,
                         ),
                       ),

@@ -5,6 +5,7 @@ import 'package:pet_diary/src/components/events/walk/_build_time_selector.dart';
 import 'package:pet_diary/src/components/events/walk/cancel_walk.dart';
 import 'package:pet_diary/src/components/events/walk/many_hours_alert.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
+import 'package:pet_diary/src/helper/loading_dialog.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
@@ -273,16 +274,24 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
   }
 
   void saveWalkEvent(double walkDistance, int totalDurationInSeconds) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const LoadingDialog();
+      },
+    );
+
     Walk newWalk = Walk(
         id: generateUniqueId(),
         walkTime: totalDurationInSeconds.toDouble(),
-        walkDistance: walkDistance,
+        distance: walkDistance,
         eventId: generateUniqueId(),
         petId: widget.petId,
         dateTime: widget.eventDateTime);
 
     newWalk.id = generateUniqueId();
-    newWalk.walkDistance = walkDistance;
+    newWalk.distance = walkDistance;
     newWalk.walkTime = totalDurationInSeconds.toDouble();
 
     String eventId = generateUniqueId();
@@ -313,5 +322,6 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
     ref.read(eventServiceProvider).addEvent(newEvent);
 
     ref.read(walkServiceProvider).addWalk(newWalk);
+    Navigator.of(context).pop();
   }
 }

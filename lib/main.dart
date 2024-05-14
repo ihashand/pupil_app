@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,7 +16,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // ignore: constant_identifier_names
-const bool USE_EMULATOR = true;
+const bool USE_EMULATOR = false;
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -31,9 +28,6 @@ Future<void> main() async {
   tz.initializeTimeZones();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  if (USE_EMULATOR == true) {
-    _connectToFirebaseEmulator();
-  }
   final hiveService = HiveService();
   await hiveService.initHive();
 
@@ -69,14 +63,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-Future _connectToFirebaseEmulator() async {
-  final localHostString = Platform.isAndroid ? '10.0.2.2' : 'localhost';
+// Future _connectToFirebaseEmulator() async {
+//   final localHostString = Platform.isAndroid ? '10.0.2.2' : 'localhost';
 
-  FirebaseFirestore.instance.settings = Settings(
-    host: '$localHostString:8080',
-    sslEnabled: false,
-    persistenceEnabled: false,
-  );
+//   FirebaseFirestore.instance.settings = Settings(
+//     host: '$localHostString:8080',
+//     sslEnabled: false,
+//     persistenceEnabled: false,
+//   );
 
-  await FirebaseAuth.instance.useAuthEmulator(localHostString, 9099);
-}
+//   await FirebaseAuth.instance.useAuthEmulator(localHostString, 9099);
+// }
