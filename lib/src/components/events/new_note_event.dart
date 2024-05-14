@@ -163,7 +163,8 @@ class _NewNoteEventState extends ConsumerState<NewNoteEvent> {
                               waterId: '',
                               noteId: newNote.id,
                               pillId: '',
-                              description: 'Title: ${newNote.title}',
+                              description:
+                                  '${newNote.title} /n ${newNote.contentText}',
                               proffesionId: 'BRAK',
                               personId: 'BRAK',
                               avatarImage: 'assets/images/dog_avatar_014.png',

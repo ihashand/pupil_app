@@ -176,7 +176,7 @@ class NewWaterEvent extends ConsumerWidget {
                               waterId: newWater.id,
                               noteId: '',
                               pillId: '',
-                              description: 'Drinked: $initialWater ',
+                              description: '$initialWater ',
                               proffesionId: 'BRAK',
                               personId: 'BRAK',
                               avatarImage: 'assets/images/dog_avatar_014.png',

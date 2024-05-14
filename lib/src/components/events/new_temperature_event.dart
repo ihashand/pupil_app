@@ -178,8 +178,7 @@ class NewTemperatureEvent extends ConsumerWidget {
                               waterId: '',
                               noteId: '',
                               pillId: '',
-                              description:
-                                  'New temperature: $initialTemperature',
+                              description: '$initialTemperature',
                               proffesionId: 'BRAK',
                               personId: 'BRAK',
                               avatarImage: 'assets/images/dog_avatar_014.png',

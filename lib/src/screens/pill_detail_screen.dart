@@ -309,7 +309,7 @@ Future<void> savePill(
           waterId: '',
           noteId: '',
           pillId: newPill.id,
-          description: 'Time to take pill!',
+          description: newPill.name,
           proffesionId: 'BRAK',
           personId: 'BRAK',
           avatarImage: 'assets/images/dog_avatar_014.png',

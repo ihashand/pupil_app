@@ -177,7 +177,7 @@ class NewWeightEvent extends ConsumerWidget {
                               waterId: '',
                               noteId: '',
                               pillId: '',
-                              description: 'New weight: $initialWeight',
+                              description: '$initialWeight',
                               proffesionId: 'BRAK',
                               personId: 'BRAK',
                               avatarImage: 'assets/images/dog_avatar_012.png',

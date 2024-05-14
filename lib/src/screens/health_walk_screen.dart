@@ -36,16 +36,6 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: TextButton(
-              onPressed: () {},
-              child: Text('Add new',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-          ),
-        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

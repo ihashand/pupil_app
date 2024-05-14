@@ -314,7 +314,7 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
         noteId: '',
         pillId: '',
         description:
-            'Distance: ${walkDistance.toStringAsFixed(2)} km. \nTime: ${totalDurationInSeconds.toString()} min.',
+            '${walkDistance.toStringAsFixed(2)} steps in ${totalDurationInSeconds.toString()} min.',
         proffesionId: 'BRAK',
         personId: 'BRAK',
         avatarImage: 'assets/images/dog_avatar_010.png',
