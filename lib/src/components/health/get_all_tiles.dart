@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/screens/health_walk_screen.dart';
 
-List<TileInfoModel> getAllTiles(BuildContext context, String petId) {
+List<TileInfoModel> getAllTiles(
+    BuildContext context, String petId, List<Event> petEvents) {
   return [
     TileInfoModel(
       Icons.directions_walk,
@@ -12,7 +14,8 @@ List<TileInfoModel> getAllTiles(BuildContext context, String petId) {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HealthWalkScreen(petId)),
+          MaterialPageRoute(
+              builder: (context) => HealthWalkScreen(petId, petEvents)),
         );
       },
     ),

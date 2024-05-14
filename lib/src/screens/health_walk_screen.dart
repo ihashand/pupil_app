@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/bar_graph/bar_graph.dart';
-import 'package:pet_diary/src/components/bar_graph/calculate_daily_walks.dart';
-import 'package:pet_diary/src/components/bar_graph/calculate_monthly_walks.dart';
-import 'package:pet_diary/src/components/bar_graph/calculate_weekly_walks.dart';
-import 'package:pet_diary/src/components/bar_graph/calculate_yearly_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_daily_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_monthly_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_weekly_walks.dart';
+import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_yearly_walks.dart';
+import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import '../helper/calculate_average.dart';
+import 'all_data_walk_screen.dart';
 
 class HealthWalkScreen extends ConsumerStatefulWidget {
-  const HealthWalkScreen(this.petId, {super.key});
+  const HealthWalkScreen(this.petId, this.petEvents, {super.key});
   final String petId;
+  final List<Event> petEvents;
 
   @override
   createState() => _HealthWalkScreenState();
@@ -26,7 +29,7 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Walk'),
+        title: const Text('Walks'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 50,
         leading: IconButton(
@@ -107,12 +110,18 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(
-                              top: 10.0, left: 15, right: 15),
+                              top: 15.0, left: 15, right: 15),
                           child: SizedBox(
                               height: 300,
-                              child: MyBarGraph(
-                                barGraphData: graphBarData,
-                                selectedTimePeriod: selectedTimePeriod,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                child: MyBarGraph(
+                                  barGraphData: graphBarData,
+                                  selectedTimePeriod: selectedTimePeriod,
+                                ),
                               )),
                         ),
                         Padding(
@@ -121,7 +130,12 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
                           child: SizedBox(
                             width: 350,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => AllDataWalkScreen(
+                                      widget.petId, widget.petEvents),
+                                ));
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     Theme.of(context).colorScheme.primary,
@@ -130,10 +144,13 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
                                 ),
                               ),
                               child: Text(
-                                'Pokaż wszystkie dane',
+                                'All data',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).primaryColorDark),
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .primaryColorDark
+                                      .withOpacity(0.7),
+                                ),
                               ),
                             ),
                           ),

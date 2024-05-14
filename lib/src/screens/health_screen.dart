@@ -107,7 +107,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         ),
                       ),
                     ),
-                    Expanded(child: buildHealthTileView(context)),
+                    Expanded(child: buildHealthTileView(context, petEvents)),
                   ],
                 ),
         );
@@ -161,7 +161,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     eventDateTime = focusedDate;
                     isUserInteracted = true;
                   });
-                  ;
                 },
                 locale: 'en_En',
                 calendarStyle: const CalendarStyle(
@@ -206,9 +205,9 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget buildHealthTileView(BuildContext context) {
+  Widget buildHealthTileView(BuildContext context, List<Event> petEvents) {
     List<Widget> filteredTiles =
-        _filterTiles(context, widget.petId).map((tile) {
+        _filterTiles(context, widget.petId, petEvents).map((tile) {
       return HealthTile(
           icon: tile.icon,
           title: tile.title,
@@ -243,12 +242,13 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  List<TileInfoModel> _filterTiles(BuildContext context, String petId) {
+  List<TileInfoModel> _filterTiles(
+      BuildContext context, String petId, List<Event> petEvents) {
     if (searchQuery.isEmpty) {
-      return getAllTiles(context, petId);
+      return getAllTiles(context, petId, petEvents);
     }
 
-    return getAllTiles(context, petId).where((tile) {
+    return getAllTiles(context, petId, petEvents).where((tile) {
       for (String keyword in tile.keywords) {
         if (keyword.toLowerCase().contains(searchQuery)) {
           return true;

@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Walk {
   String id = '';
-  late double walkTime;
-  late double distance = 0.0;
+  late double walkTime; // Walktime is in minutes
+  late double distance =
+      0.0; // It's not meters or km, it's steps. This is important
   late String eventId;
   late String petId;
   late DateTime dateTime;

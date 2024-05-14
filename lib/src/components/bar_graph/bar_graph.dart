@@ -59,19 +59,19 @@ class MyBarGraph extends StatelessWidget {
     }
     // weekly
     if (selectedTimePeriod == 'W') {
-      maxY = 80.0;
+      maxY = 100.0;
       lenght = 7;
       bars = 15;
     }
     // monthly
     if (selectedTimePeriod == 'M') {
-      maxY = 100.0;
+      maxY = 150.0;
       lenght = 31;
       bars = 30;
     }
     // yearly
     if (selectedTimePeriod == 'Y') {
-      maxY = 220.0;
+      maxY = 200.0;
       lenght = 12;
       bars = 20;
     }
@@ -120,7 +120,9 @@ class MyBarGraph extends StatelessWidget {
                   const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
-                      showTitles: true, getTitlesWidget: getBootomTitles)),
+                      showTitles: true,
+                      getTitlesWidget: getBootomTitles,
+                      reservedSize: 30)),
             ),
             barGroups: generateBarGroups(lenght),
           ),
@@ -138,7 +140,7 @@ class MyBarGraph extends StatelessWidget {
             toY: barGraphData[index],
             color: const Color(0xffeb9e5c),
             width: 20,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(5),
           )
         ],
       );
