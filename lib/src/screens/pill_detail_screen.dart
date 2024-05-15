@@ -21,7 +21,7 @@ import '../providers/pills_provider.dart';
 
 bool cleanerOfFields = false;
 
-class PillDetailScreen extends ConsumerWidget {
+class PillDetailScreen extends ConsumerStatefulWidget {
   final Pill? pill;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final String petId;
@@ -30,42 +30,55 @@ class PillDetailScreen extends ConsumerWidget {
   PillDetailScreen(this.petId, this.pillId, {super.key, this.pill});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (pill != null) {
+  createState() => _PillDetailScreenState();
+}
+
+class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
+  double containerHeight = 450;
+
+  void toggleContainerHeight(bool showMore) {
+    setState(() {
+      containerHeight = showMore ? 560 : 440;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.pill != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(pillNameControllerProvider).text = pill!.name;
+        ref.read(pillNameControllerProvider).text = widget.pill!.name;
         if (ref.read(pillDateControllerProvider.notifier).state !=
-            pill!.addDate) {
+            widget.pill!.addDate) {
           ref.read(pillDateControllerProvider.notifier).state =
-              pill!.addDate ?? DateTime.now();
+              widget.pill!.addDate ?? DateTime.now();
         }
-        if (pill!.frequency != null) {
+        if (widget.pill!.frequency != null) {
           ref.read(pillFrequencyProvider.notifier).state =
-              int.tryParse(pill!.frequency!);
+              int.tryParse(widget.pill!.frequency!);
         }
-        if (pill!.dosage != null) {
+        if (widget.pill!.dosage != null) {
           ref.read(pillDosageProvider.notifier).state =
-              int.tryParse(pill!.dosage!);
+              int.tryParse(widget.pill!.dosage!);
         }
 
-        if (pill!.startDate != null) {
+        if (widget.pill!.startDate != null) {
           ref.read(pillStartDateControllerProvider.notifier).state =
-              pill!.startDate ?? DateTime.now();
+              widget.pill!.startDate ?? DateTime.now();
         }
 
-        if (pill!.endDate != null) {
+        if (widget.pill!.endDate != null) {
           ref.read(pillEndDateControllerProvider.notifier).state =
-              pill!.endDate ?? DateTime.now();
+              widget.pill!.endDate ?? DateTime.now();
         }
 
-        if (pill!.emoji.isNotEmpty) {
-          ref.read(pillEmojiProvider).text = pill!.emoji;
+        if (widget.pill!.emoji.isNotEmpty) {
+          ref.read(pillEmojiProvider).text = widget.pill!.emoji;
         }
 
         cleanerOfFields = true;
       });
     } else if (ModalRoute.of(context)!.isCurrent &&
-        pill == null &&
+        widget.pill == null &&
         cleanerOfFields) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         DateTime today = DateTime.now();
@@ -93,15 +106,16 @@ class PillDetailScreen extends ConsumerWidget {
 
     return WillPopScope(
       onWillPop: () async {
-        for (var id in ref.read(temporaryReminderIds.notifier).state!) {
-          await ref.read(reminderServiceProvider).deleteReminder(id);
-        }
+        ref
+            .read(temporaryReminderIds.notifier)
+            .state!
+            .clear(); // Czyszczenie tymczasowych przypomnień
         return true;
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            pill == null
+            widget.pill == null
                 ? 'N e w   m e d i c i n e'
                 : 'E d i t   m e d i c i n e',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -112,81 +126,151 @@ class PillDetailScreen extends ConsumerWidget {
         body: Padding(
           padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
           child: Form(
-            key: formKey,
-            child: ListView(
+            key: widget.formKey,
+            child: Column(
               children: [
-                SizedBox(
-                  height: 1000,
-                  width: 600,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 5),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(10),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: containerHeight,
+                    width: 500,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 5),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const NamePillDetails(),
                         ),
-                        child: const NamePillDetails(),
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(10),
+                        const SizedBox(height: 15),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const FrequencyPillDetails(),
                               ),
-                              child: const FrequencyPillDetails(),
                             ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(10),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const DosagePetDetails(),
                               ),
-                              child: const DosagePetDetails(),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const StartDatePillDetails(),
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const EndDatePillDetails(),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(10),
+                          ],
                         ),
-                        child: const EmojiPillDetails(),
-                      ),
-                      const SizedBox(height: 15),
-                      remindersPillDetails(ref, context, petId, pillId, pill),
-                    ],
+                        const SizedBox(height: 15),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const StartDatePillDetails(),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const EndDatePillDetails(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        EmojiPillDetails(
+                          onShowMoreChanged: toggleContainerHeight,
+                        ),
+                        const SizedBox(height: 15),
+                        remindersPillDetails(ref, context, widget.petId,
+                            widget.pillId, widget.pill),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Flexible(
+                  child: StreamBuilder<List<Reminder>>(
+                    stream:
+                        ref.read(reminderServiceProvider).getRemindersStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                            child: Text('No reminders available.'));
+                      }
+                      List<Reminder> reminders = [];
+                      var test = ref.watch(temporaryReminderIds.notifier).state;
+                      if (test != null && test.isNotEmpty) {
+                        reminders = snapshot.data!
+                            .where(
+                                (element) => element.objectId == widget.pillId)
+                            .toList();
+                      } else if (widget.pill != null) {
+                        reminders = snapshot.data!
+                            .where((element) =>
+                                element.objectId == widget.pill!.id)
+                            .toList();
+                      }
+                      return ListView.builder(
+                        itemCount: reminders.length,
+                        itemBuilder: (context, index) {
+                          final reminder = reminders[index];
+                          return ListTile(
+                            title: Text(
+                              reminder.title.isEmpty
+                                  ? 'Medicine reminder'
+                                  : '${reminder.title} reminder',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Time: ${reminder.time.hour}:${reminder.time.minute} ',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  reminder.description,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () async {
+                                await ref
+                                    .read(reminderServiceProvider)
+                                    .deleteReminder(reminder.id);
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
               ],
@@ -201,8 +285,8 @@ class PillDetailScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () =>
-                      savePill(context, ref, formKey, petId, pillId, pill),
+                  onPressed: () => savePill(context, ref, widget.formKey,
+                      widget.petId, widget.pillId, widget.pill),
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all(const Color(0xff68a2b6)),

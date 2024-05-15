@@ -7,12 +7,12 @@ import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 
-class AddReminderScreen extends ConsumerStatefulWidget {
+class NewReminderScreen extends ConsumerStatefulWidget {
   final String petId;
   final String newPillId;
   final Pill? pill;
 
-  const AddReminderScreen({
+  const NewReminderScreen({
     super.key,
     required this.petId,
     required this.newPillId,
@@ -23,7 +23,7 @@ class AddReminderScreen extends ConsumerStatefulWidget {
   createState() => _AddReminderScreenState();
 }
 
-class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
+class _AddReminderScreenState extends ConsumerState<NewReminderScreen> {
   late List<bool> selectedDays = List.filled(7, false);
   late TextEditingController nameController;
   late TextEditingController descriptionController;
@@ -393,6 +393,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     }
 
     ref.read(reminderServiceProvider).addReminder(newReminder);
+    ref.read(temporaryReminderIds.notifier).state!.add(newReminder.id);
 
     nameController.clear();
     descriptionController.clear();

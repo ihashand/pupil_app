@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/screens/add_reminders_screen.dart';
+import 'package:pet_diary/src/screens/new_reminders_screen.dart';
 import 'package:pet_diary/src/models/pill_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
@@ -23,15 +23,6 @@ Widget remindersPillDetails(
         return Text('Error: ${snapshot.error}');
       }
 
-      var perpetumMobile = newPillId;
-      if (pill != null) {
-        perpetumMobile = pill.id;
-      }
-
-      List<Reminder> reminders = snapshot.data!
-          .where((element) => element.objectId == perpetumMobile)
-          .toList();
-
       return Flexible(
           child: Column(
         children: [
@@ -44,7 +35,7 @@ Widget remindersPillDetails(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        AddReminderScreen(petId: petId, newPillId: newPillId),
+                        NewReminderScreen(petId: petId, newPillId: newPillId),
                   ),
                 );
               },
@@ -57,45 +48,6 @@ Widget remindersPillDetails(
               extendedPadding: const EdgeInsets.symmetric(horizontal: 5.0),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0)),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: reminders.length,
-              itemBuilder: (context, index) {
-                final reminder = reminders[index];
-                return ListTile(
-                  title: Text(
-                    reminder.title.isEmpty
-                        ? 'Medicine reminder'
-                        : '${reminder.title} reminder',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Time: ${reminder.time.hour}:${reminder.time.minute} ',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      Text(
-                        reminder.description,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () async {
-                      await ref
-                          .read(reminderServiceProvider)
-                          .deleteReminder(reminder.id);
-                    },
-                  ),
-                );
-              },
             ),
           ),
         ],

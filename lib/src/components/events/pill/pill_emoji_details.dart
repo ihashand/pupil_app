@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pills_provider.dart';
 
 class EmojiPillDetails extends ConsumerStatefulWidget {
-  const EmojiPillDetails({super.key});
+  final Function(bool) onShowMoreChanged;
+
+  const EmojiPillDetails({super.key, required this.onShowMoreChanged});
 
   @override
-  _EmojiPillDetailsState createState() => _EmojiPillDetailsState();
+  createState() => _EmojiPillDetailsState();
 }
 
 class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
@@ -54,6 +56,7 @@ class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
                 onPressed: () {
                   setState(() {
                     showMore = !showMore;
+                    widget.onShowMoreChanged(showMore);
                   });
                 },
                 child: Text(
@@ -77,7 +80,7 @@ class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
                   });
                 },
                 child: CircleAvatar(
-                  radius: 25,
+                  radius: 24,
                   backgroundColor: isSelected
                       ? Theme.of(context).colorScheme.secondary.withOpacity(0.3)
                       : Theme.of(context)
@@ -87,7 +90,7 @@ class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
                   child: Text(
                     emoji,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 22,
                       color: isSelected ? Colors.black : Colors.white,
                     ),
                   ),
