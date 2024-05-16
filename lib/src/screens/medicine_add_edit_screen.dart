@@ -1,13 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/main.dart';
-import 'package:pet_diary/src/components/events/pill/dosage_pet_details.dart';
-import 'package:pet_diary/src/components/events/pill/end_date_pill_details.dart';
-import 'package:pet_diary/src/components/events/pill/frequency_pill_details.dart';
-import 'package:pet_diary/src/components/events/pill/name_pill_details.dart';
-import 'package:pet_diary/src/components/events/pill/pill_emoji_details.dart';
-import 'package:pet_diary/src/components/events/pill/reminders_pill_details.dart';
-import 'package:pet_diary/src/components/events/pill/start_date_pill_details.dart';
+import 'package:pet_diary/src/components/events/medicine/medicinie_details_dosage.dart';
+import 'package:pet_diary/src/components/events/medicine/medicine_details_end_date.dart';
+import 'package:pet_diary/src/components/events/medicine/medicine_details_frequency.dart';
+import 'package:pet_diary/src/components/events/medicine/medicine_details_name.dart';
+import 'package:pet_diary/src/components/events/medicine/medicine_details_emoji.dart';
+import 'package:pet_diary/src/components/events/medicine/medicine_new_reminder_button.dart';
+import 'package:pet_diary/src/components/events/medicine/medicine_details_start_date.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
@@ -17,114 +18,130 @@ import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
-import '../providers/pills_provider.dart';
+import '../providers/medicine_provider.dart';
 
 bool cleanerOfFields = false;
 
-class PillDetailScreen extends ConsumerStatefulWidget {
-  final Pill? pill;
+class MedicineAddEditScreen extends ConsumerStatefulWidget {
+  final Medicine? medicine;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final String petId;
-  final String pillId;
+  final String medicineId;
 
-  PillDetailScreen(this.petId, this.pillId, {super.key, this.pill});
+  MedicineAddEditScreen(this.petId, this.medicineId,
+      {super.key, this.medicine});
 
   @override
-  createState() => _PillDetailScreenState();
+  createState() => _MedicineAddEditScreenState();
 }
 
-class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
+class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
   double containerHeight = 450;
 
   void toggleContainerHeight(bool showMore) {
     setState(() {
-      containerHeight = showMore ? 560 : 440;
+      containerHeight = showMore ? 590 : 450;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.pill != null) {
+    if (widget.medicine != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(pillNameControllerProvider).text = widget.pill!.name;
-        if (ref.read(pillDateControllerProvider.notifier).state !=
-            widget.pill!.addDate) {
-          ref.read(pillDateControllerProvider.notifier).state =
-              widget.pill!.addDate ?? DateTime.now();
+        ref.read(medicineNameControllerProvider).text = widget.medicine!.name;
+        if (ref.read(medicineDateControllerProvider.notifier).state !=
+            widget.medicine!.addDate) {
+          ref.read(medicineDateControllerProvider.notifier).state =
+              widget.medicine!.addDate ?? DateTime.now();
         }
-        if (widget.pill!.frequency != null) {
-          ref.read(pillFrequencyProvider.notifier).state =
-              int.tryParse(widget.pill!.frequency!);
+        if (widget.medicine!.frequency != null) {
+          ref.read(medicineFrequencyProvider.notifier).state =
+              int.tryParse(widget.medicine!.frequency!);
         }
-        if (widget.pill!.dosage != null) {
-          ref.read(pillDosageProvider.notifier).state =
-              int.tryParse(widget.pill!.dosage!);
-        }
-
-        if (widget.pill!.startDate != null) {
-          ref.read(pillStartDateControllerProvider.notifier).state =
-              widget.pill!.startDate ?? DateTime.now();
+        if (widget.medicine!.dosage != null) {
+          ref.read(medicineDosageProvider.notifier).state =
+              int.tryParse(widget.medicine!.dosage!);
         }
 
-        if (widget.pill!.endDate != null) {
-          ref.read(pillEndDateControllerProvider.notifier).state =
-              widget.pill!.endDate ?? DateTime.now();
+        if (widget.medicine!.startDate != null) {
+          ref.read(medicineStartDateControllerProvider.notifier).state =
+              widget.medicine!.startDate ?? DateTime.now();
         }
 
-        if (widget.pill!.emoji.isNotEmpty) {
-          ref.read(pillEmojiProvider).text = widget.pill!.emoji;
+        if (widget.medicine!.endDate != null) {
+          ref.read(medicineEndDateControllerProvider.notifier).state =
+              widget.medicine!.endDate ?? DateTime.now();
+        }
+
+        if (widget.medicine!.emoji.isNotEmpty) {
+          ref.read(medicineEmojiProvider).text = widget.medicine!.emoji;
         }
 
         cleanerOfFields = true;
       });
     } else if (ModalRoute.of(context)!.isCurrent &&
-        widget.pill == null &&
+        widget.medicine == null &&
         cleanerOfFields) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         DateTime today = DateTime.now();
         TimeOfDay? timeOfDay =
             TimeOfDay(hour: today.hour, minute: today.minute);
 
-        ref.read(pillNameControllerProvider).text = '';
+        ref.read(medicineNameControllerProvider).text = '';
 
-        ref.read(pillDateControllerProvider.notifier).state = today;
-        ref.read(pillStartDateControllerProvider.notifier).state = today;
-        ref.read(pillEndDateControllerProvider.notifier).state = today;
+        ref.read(medicineDateControllerProvider.notifier).state = today;
+        ref.read(medicineStartDateControllerProvider.notifier).state = today;
+        ref.read(medicineEndDateControllerProvider.notifier).state = today;
 
-        ref.read(pillFrequencyProvider.notifier).state = 1;
-        ref.read(pillDosageProvider.notifier).state = 1;
+        ref.read(medicineFrequencyProvider.notifier).state = 1;
+        ref.read(medicineDosageProvider.notifier).state = 1;
 
         ref.read(reminderNameControllerProvider).text = '';
         ref.read(reminderDescriptionControllerProvider).text = '';
         ref.read(reminderTimeOfDayControllerProvider.notifier).state =
             timeOfDay;
-        ref.read(pillEmojiProvider).text = '';
+        ref.read(medicineEmojiProvider).text = '';
 
         cleanerOfFields = false;
       });
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        ref
-            .read(temporaryReminderIds.notifier)
-            .state!
-            .clear(); // Czyszczenie tymczasowych przypomnień
-        return true;
+    return PopScope(
+      // Cleaning of temporary reminders, we need them to be removed when user presses back button
+      onPopInvoked: (pop) async {
+        ref.read(temporaryReminderIds.notifier).state!.clear();
       },
       child: Scaffold(
         appBar: AppBar(
+          iconTheme: IconThemeData(
+            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+          ),
           title: Text(
-            widget.pill == null
+            widget.medicine == null
                 ? 'N e w   m e d i c i n e'
                 : 'E d i t   m e d i c i n e',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           toolbarHeight: 50,
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.check,
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              ),
+              onPressed: () => savePill(context, ref, widget.formKey,
+                  widget.petId, widget.medicineId, widget.medicine),
+              color: Theme.of(context).colorScheme.onPrimary,
+              iconSize: 35,
+            ),
+          ],
         ),
         body: Padding(
-          padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
           child: Form(
             key: widget.formKey,
             child: Column(
@@ -146,7 +163,7 @@ class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
                             color: Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const NamePillDetails(),
+                          child: const MedicinieDetailsName(),
                         ),
                         const SizedBox(height: 15),
                         Row(
@@ -157,7 +174,7 @@ class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
                                   color: Theme.of(context).colorScheme.primary,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const FrequencyPillDetails(),
+                                child: const MedicinieDetailsFrequency(),
                               ),
                             ),
                             const SizedBox(width: 20),
@@ -181,7 +198,7 @@ class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
                                   color: Theme.of(context).colorScheme.primary,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const StartDatePillDetails(),
+                                child: const MedicineDetailsStartDate(),
                               ),
                             ),
                             const SizedBox(width: 20),
@@ -191,18 +208,18 @@ class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
                                   color: Theme.of(context).colorScheme.primary,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const EndDatePillDetails(),
+                                child: const MedicinieDetailsEndDate(),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 15),
-                        EmojiPillDetails(
+                        MedicineDetailsEmoji(
                           onShowMoreChanged: toggleContainerHeight,
                         ),
                         const SizedBox(height: 15),
-                        remindersPillDetails(ref, context, widget.petId,
-                            widget.pillId, widget.pill),
+                        medicineNewReminderButton(ref, context, widget.petId,
+                            widget.medicineId, widget.medicine),
                       ],
                     ),
                   ),
@@ -225,13 +242,13 @@ class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
                       var test = ref.watch(temporaryReminderIds.notifier).state;
                       if (test != null && test.isNotEmpty) {
                         reminders = snapshot.data!
-                            .where(
-                                (element) => element.objectId == widget.pillId)
+                            .where((element) =>
+                                element.objectId == widget.medicineId)
                             .toList();
-                      } else if (widget.pill != null) {
+                      } else if (widget.medicine != null) {
                         reminders = snapshot.data!
                             .where((element) =>
-                                element.objectId == widget.pill!.id)
+                                element.objectId == widget.medicine!.id)
                             .toList();
                       }
                       return ListView.builder(
@@ -277,49 +294,6 @@ class _PillDetailScreenState extends ConsumerState<PillDetailScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: BottomAppBar(
-          color: Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => savePill(context, ref, widget.formKey,
-                      widget.petId, widget.pillId, widget.pill),
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(const Color(0xff68a2b6)),
-                    minimumSize: MaterialStateProperty.all(const Size(300, 40)),
-                    textStyle: MaterialStateProperty.all(
-                      TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 16,
-                      ),
-                    ),
-                    shape: MaterialStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                  ),
-                  icon: Icon(
-                    Icons.save,
-                    color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-                  ),
-                  label: Text(
-                    ' Save',
-                    style: TextStyle(
-                      color:
-                          Theme.of(context).primaryColorDark.withOpacity(0.7),
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -331,14 +305,14 @@ Future<void> savePill(
   GlobalKey<FormState> formKey,
   String petId,
   String newPillId,
-  Pill? pill,
+  Medicine? pill,
 ) async {
-  DateTime startDate = ref.read(pillStartDateControllerProvider);
-  DateTime endDate = ref.read(pillEndDateControllerProvider);
-  String name = ref.read(pillNameControllerProvider).text;
-  int? frequency = ref.read(pillFrequencyProvider);
-  int? dosage = ref.read(pillDosageProvider);
-  TextEditingController emoji = ref.read(pillEmojiProvider);
+  DateTime startDate = ref.read(medicineStartDateControllerProvider);
+  DateTime endDate = ref.read(medicineEndDateControllerProvider);
+  String name = ref.read(medicineNameControllerProvider).text;
+  int? frequency = ref.read(medicineFrequencyProvider);
+  int? dosage = ref.read(medicineDosageProvider);
+  TextEditingController emoji = ref.read(medicineEmojiProvider);
 
   if (name.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -379,10 +353,10 @@ Future<void> savePill(
 
   if (formKey.currentState!.validate()) {
     final bool isNewPill = pill == null;
-    final Pill newPill =
-        isNewPill ? Pill(name: '', eventId: '', petId: '') : pill;
+    final Medicine newPill =
+        isNewPill ? Medicine(name: '', eventId: '', petId: '') : pill;
     final TextEditingController nameController =
-        ref.read(pillNameControllerProvider);
+        ref.read(medicineNameControllerProvider);
 
     List<Reminder> newPillRemindersList =
         await ref.read(reminderServiceProvider).getReminders();
@@ -398,7 +372,7 @@ Future<void> savePill(
           reminder.title,
           int.parse(generateUniqueIdWithinRange()),
           reminder.time,
-          ref.read(pillEndDateControllerProvider),
+          ref.read(medicineEndDateControllerProvider),
           reminder.description,
           ref.read(reminderSelectedRepeatType),
           reminder.repeatInterval,
@@ -412,14 +386,14 @@ Future<void> savePill(
 
       newPill.id = newPillId;
       newPill.name = nameController.text;
-      newPill.addDate = ref.read(pillDateControllerProvider);
-      newPill.startDate = ref.read(pillStartDateControllerProvider);
-      newPill.endDate = ref.read(pillEndDateControllerProvider);
+      newPill.addDate = ref.read(medicineDateControllerProvider);
+      newPill.startDate = ref.read(medicineStartDateControllerProvider);
+      newPill.endDate = ref.read(medicineEndDateControllerProvider);
       newPill.eventId = eventId;
       newPill.petId = petId;
-      newPill.frequency = ref.read(pillFrequencyProvider).toString();
-      newPill.dosage = ref.read(pillDosageProvider).toString();
-      newPill.emoji = ref.read(pillEmojiProvider).text;
+      newPill.frequency = ref.read(medicineFrequencyProvider).toString();
+      newPill.dosage = ref.read(medicineDosageProvider).toString();
+      newPill.emoji = ref.read(medicineEmojiProvider).text;
 
       final Event newEvent = Event(
         id: eventId,
@@ -457,12 +431,12 @@ Future<void> savePill(
       ref.read(eventServiceProvider).updateEvent(eventToUpdate);
 
       pill.name = nameController.text;
-      pill.addDate = ref.read(pillDateControllerProvider);
-      pill.startDate = ref.read(pillStartDateControllerProvider);
-      pill.endDate = ref.read(pillEndDateControllerProvider);
-      pill.frequency = ref.read(pillFrequencyProvider).toString();
-      pill.dosage = ref.read(pillDosageProvider).toString();
-      pill.emoji = ref.read(pillEmojiProvider).text;
+      pill.addDate = ref.read(medicineDateControllerProvider);
+      pill.startDate = ref.read(medicineStartDateControllerProvider);
+      pill.endDate = ref.read(medicineEndDateControllerProvider);
+      pill.frequency = ref.read(medicineFrequencyProvider).toString();
+      pill.dosage = ref.read(medicineDosageProvider).toString();
+      pill.emoji = ref.read(medicineEmojiProvider).text;
 
       List<Reminder> editingPillRemindersList =
           await ref.read(reminderServiceProvider).getReminders();
@@ -481,7 +455,7 @@ Future<void> savePill(
             pill.name,
             int.parse(generateUniqueIdWithinRange()),
             reminder.time,
-            ref.read(pillEndDateControllerProvider),
+            ref.read(medicineEndDateControllerProvider),
             descriptionForReminder,
             ref.read(reminderSelectedRepeatType),
             reminder.repeatInterval,

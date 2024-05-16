@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/pills_provider.dart';
+import 'package:pet_diary/src/providers/medicine_provider.dart';
 
-class EmojiPillDetails extends ConsumerStatefulWidget {
+class MedicineDetailsEmoji extends ConsumerStatefulWidget {
   final Function(bool) onShowMoreChanged;
 
-  const EmojiPillDetails({super.key, required this.onShowMoreChanged});
+  const MedicineDetailsEmoji({super.key, required this.onShowMoreChanged});
 
   @override
   createState() => _EmojiPillDetailsState();
 }
 
-class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
+class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
   final List<String> emojis = [
     '💊',
     '💉',
@@ -35,7 +35,7 @@ class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
   @override
   void initState() {
     super.initState();
-    selectedEmoji = ref.read(pillEmojiProvider).text;
+    selectedEmoji = ref.read(medicineEmojiProvider).text;
   }
 
   @override
@@ -48,9 +48,12 @@ class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Emoji',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
               ),
               TextButton(
                 onPressed: () {
@@ -76,17 +79,14 @@ class _EmojiPillDetailsState extends ConsumerState<EmojiPillDetails> {
                 onTap: () {
                   setState(() {
                     selectedEmoji = emoji;
-                    ref.read(pillEmojiProvider).text = emoji;
+                    ref.read(medicineEmojiProvider).text = emoji;
                   });
                 },
                 child: CircleAvatar(
-                  radius: 24,
+                  radius: 29,
                   backgroundColor: isSelected
-                      ? Theme.of(context).colorScheme.secondary.withOpacity(0.3)
-                      : Theme.of(context)
-                          .colorScheme
-                          .secondary
-                          .withOpacity(0.7),
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.inversePrimary,
                   child: Text(
                     emoji,
                     style: TextStyle(

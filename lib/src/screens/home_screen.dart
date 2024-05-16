@@ -11,7 +11,7 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/details_screen.dart';
+import 'package:pet_diary/src/screens/pet_details_screen.dart';
 import 'settings_screen.dart';
 
 final avatarProvider = StateProvider<String>((ref) {

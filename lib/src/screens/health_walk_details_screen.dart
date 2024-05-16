@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 
-class AllDataWalkDetailsScreen extends StatelessWidget {
+class HealthWalkDetailsScreen extends StatelessWidget {
   final Walk walk;
 
-  const AllDataWalkDetailsScreen({super.key, required this.walk});
+  const HealthWalkDetailsScreen({super.key, required this.walk});
 
   @override
   Widget build(BuildContext context) {
@@ -25,13 +25,18 @@ class AllDataWalkDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Details'),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+        ),
+        title: Text(
+          'W a l k  d e t a i l s',
+          style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 50,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: Padding(
         padding: padding,
@@ -41,11 +46,11 @@ class AllDataWalkDetailsScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(10.0),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
                 blurRadius: 10,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 02),
               ),
             ],
           ),
@@ -82,16 +87,16 @@ class AllDataWalkDetailsScreen extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColorDark,
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
             ),
           ),
           Text(
             value,
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context).primaryColorDark,
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
             ),
           ),
         ],

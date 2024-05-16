@@ -5,12 +5,12 @@ import 'package:pet_diary/src/components/events/delete_event.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
-import 'package:pet_diary/src/screens/all_data_walk_details_screen.dart';
+import 'package:pet_diary/src/screens/health_walk_details_screen.dart';
 
-class AllDataWalkScreen extends ConsumerWidget {
+class HealthWalkAllDataScreen extends ConsumerWidget {
   final String petId;
   final List<Event> petEvents;
-  const AllDataWalkScreen(this.petId, this.petEvents, {super.key});
+  const HealthWalkAllDataScreen(this.petId, this.petEvents, {super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,13 +18,18 @@ class AllDataWalkScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Data Walks'),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+        ),
+        title: Text(
+          'W a l k s',
+          style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 50,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
       ),
       body: StreamBuilder<List<Walk?>>(
         stream: walkProvider.getWalksStream(),
@@ -52,8 +57,7 @@ class AllDataWalkScreen extends ConsumerWidget {
                 return GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) =>
-                          AllDataWalkDetailsScreen(walk: walk),
+                      builder: (context) => HealthWalkDetailsScreen(walk: walk),
                     ));
                   },
                   child: Card(
@@ -74,7 +78,8 @@ class AllDataWalkScreen extends ConsumerWidget {
                               fontSize: 15)),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete),
-                        color: Theme.of(context).primaryColorDark,
+                        color:
+                            Theme.of(context).primaryColorDark.withOpacity(0.7),
                         onPressed: () {
                           deleteEvents(ref, context, petEvents, walk.eventId);
                           ref.read(walkServiceProvider).deleteWalk(walk.id);

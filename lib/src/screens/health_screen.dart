@@ -8,7 +8,7 @@ import 'package:pet_diary/src/components/events/new_temperature_event.dart';
 import 'package:pet_diary/src/components/events/new_walk_event.dart';
 import 'package:pet_diary/src/components/events/new_water_event.dart';
 import 'package:pet_diary/src/components/events/new_weight_event.dart';
-import 'package:pet_diary/src/screens/pills_screen.dart';
+import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
@@ -70,9 +70,16 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
+            iconTheme: IconThemeData(
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            ),
+            title: Text(
               'H e a l t h',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              ),
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
             toolbarHeight: 50,
@@ -84,8 +91,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   });
                 },
                 icon: Icon(
-                  isCalendarView ? Icons.grid_view : Icons.calendar_today,
-                ),
+                    isCalendarView ? Icons.grid_view : Icons.calendar_today,
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
               ),
             ],
           ),
@@ -160,7 +167,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
-          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Container(
@@ -206,8 +212,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle:
-                      TextStyle(color: Theme.of(context).primaryColorDark),
+                  titleTextStyle: TextStyle(
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      fontWeight: FontWeight.bold),
                   leftChevronIcon: Icon(Icons.chevron_left,
                       color: Theme.of(context).primaryColorDark),
                   rightChevronIcon: Icon(Icons.chevron_right,
@@ -255,7 +263,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context)
                                       .primaryColorDark
-                                      .withOpacity(0.7),
+                                      .withOpacity(0.6),
                                 ),
                               ),
                               if (expandedEvents[event.id] ?? false) ...[
@@ -276,7 +284,9 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         ),
                         IconButton(
                           icon: Icon(Icons.delete,
-                              color: Theme.of(context).primaryColorDark),
+                              color: Theme.of(context)
+                                  .primaryColorDark
+                                  .withOpacity(0.5)),
                           onPressed: () =>
                               _showDeleteConfirmation(context, event),
                         ),
@@ -448,7 +458,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   InkWell(
                     onTap: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => PillsScreen(petId),
+                        builder: (_) => MedicineScreen(petId),
                       ));
                     },
                     child: Container(
@@ -462,7 +472,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         child: Icon(
                           Icons.medication,
                           size: 50,
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.grey.withOpacity(0.5),
                         ),
                       ),
                     ),

@@ -7,9 +7,9 @@ class PillService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
 
-  final _pillsController = StreamController<List<Pill>>.broadcast();
+  final _medicineController = StreamController<List<Medicine>>.broadcast();
 
-  Stream<List<Pill>> getPills() {
+  Stream<List<Medicine>> getPills() {
     if (_currentUser == null) {
       return Stream.value([]);
     }
@@ -17,21 +17,21 @@ class PillService {
     _firestore
         .collection('users')
         .doc(_currentUser.uid)
-        .collection('pills')
+        .collection('medicines')
         .snapshots()
         .listen((snapshot) {
-      _pillsController
-          .add(snapshot.docs.map((doc) => Pill.fromDocument(doc)).toList());
+      _medicineController
+          .add(snapshot.docs.map((doc) => Medicine.fromDocument(doc)).toList());
     });
 
-    return _pillsController.stream;
+    return _medicineController.stream;
   }
 
-  Stream<Pill?> getPillByIdStream(String pillId) {
-    return Stream.fromFuture(getPillById(pillId));
+  Stream<Medicine?> getMedicineByIdStream(String medicineId) {
+    return Stream.fromFuture(getMedicineById(medicineId));
   }
 
-  Future<Pill?> getPillById(String pillId) async {
+  Future<Medicine?> getMedicineById(String medicineId) async {
     if (_currentUser == null) {
       return null;
     }
@@ -39,41 +39,41 @@ class PillService {
     final docSnapshot = await _firestore
         .collection('users')
         .doc(_currentUser.uid)
-        .collection('pills')
-        .doc(pillId)
+        .collection('medicines')
+        .doc(medicineId)
         .get();
 
-    return docSnapshot.exists ? Pill.fromDocument(docSnapshot) : null;
+    return docSnapshot.exists ? Medicine.fromDocument(docSnapshot) : null;
   }
 
-  Future<void> addPill(Pill pill) async {
+  Future<void> addMedicine(Medicine medicine) async {
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
-        .collection('pills')
-        .doc(pill.id)
-        .set(pill.toMap());
+        .collection('medicines')
+        .doc(medicine.id)
+        .set(medicine.toMap());
   }
 
-  Future<void> updatePill(Pill pill) async {
+  Future<void> updateMedicine(Medicine medicine) async {
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
-        .collection('pills')
-        .doc(pill.id)
-        .update(pill.toMap());
+        .collection('medicines')
+        .doc(medicine.id)
+        .update(medicine.toMap());
   }
 
-  Future<void> deletePill(String pillId) async {
+  Future<void> deleteMedicine(String medicineId) async {
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
-        .collection('pills')
-        .doc(pillId)
+        .collection('medicines')
+        .doc(medicineId)
         .delete();
   }
 
   void dispose() {
-    _pillsController.close();
+    _medicineController.close();
   }
 }

@@ -5,36 +5,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
-import 'package:pet_diary/src/components/pet_detail/pet_detail_walk_widget.dart';
-import 'package:pet_diary/src/components/pet_detail/pet_detail_water_widget.dart';
 import 'package:pet_diary/src/data/services/pet_services.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/models/walk_model.dart';
-import 'package:pet_diary/src/models/water_model.dart';
 import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/walk_provider.dart';
-import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 
-class DetailsScreen extends ConsumerStatefulWidget {
+class PetDetailsScreen extends ConsumerStatefulWidget {
   final String petId;
 
-  const DetailsScreen({
+  const PetDetailsScreen({
     super.key,
     required this.petId,
   });
 
   @override
-  createState() => _DetailsScreenState();
+  createState() => _PetDetailsScreenState();
 }
 
-class _DetailsScreenState extends ConsumerState<DetailsScreen> {
+class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
   DateTime? findNextEventDate(List<Event> events) {
     DateTime today = DateTime.now();
     DateTime? nextEventDate;
@@ -107,18 +101,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       },
     );
 
-    String walk = '0 km';
-    int maxNumberOfBars = 10;
-
-    String water = '0 L';
-
-    Color buttonColor = Colors.black;
     Color healthButtonColor = Colors.black;
     Color eventTileBackgroundColor = Colors.black;
 
-    Color rectangleColor = Colors.black;
-    Color diagramFirst = Colors.black;
-    Color diagramSecond = Colors.black;
     Color backgroundSectionTwo = Colors.black;
     Color textSecondSectionColor = Colors.black;
     Color appbarButtonsColor = Colors.black;
@@ -126,12 +111,8 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
 
     if (pet.gender == 'Male') {
       // Colors specific to Male pets
-      buttonColor = const Color(0xff68a2b6);
       healthButtonColor = const Color(0xffdfd785);
       eventTileBackgroundColor = const Color(0xffdfd785).withOpacity(0.7);
-      rectangleColor = const Color(0xffb3e1f9);
-      diagramFirst = const Color(0xffdfd785);
-      diagramSecond = const Color(0xffeb9e5c);
       avatarBackgroundColor =
           const Color.fromARGB(255, 90, 182, 232).withOpacity(0.2);
 
@@ -144,13 +125,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       appbarButtonsColor = Colors.black;
     } else if (pet.gender == 'Female') {
       // Colors specific to Female pets
-      buttonColor = const Color(0xffff8a70);
       healthButtonColor = const Color(0xffdfd785);
       eventTileBackgroundColor = Theme.of(context).colorScheme.primary;
 
-      rectangleColor = const Color(0xffffcec2);
-      diagramFirst = const Color(0xffffd15c);
-      diagramSecond = const Color(0xffeb9e5c);
       avatarBackgroundColor = const Color(0xffffcec2).withOpacity(0.2);
 
       // Theme-based adjustments for Female pets
@@ -263,125 +240,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           ),
           const SizedBox(
             height: 10,
-          ),
-          Row(
-            children: [
-              const SizedBox(
-                width: 15,
-              ),
-              Expanded(
-                child: StreamBuilder<List<Walk?>>(
-                  stream: ref.read(walkServiceProvider).getWalksStream(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error fetching walks: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active ||
-                        snapshot.connectionState == ConnectionState.done) {
-                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                        List<Walk?> walks = snapshot.data!
-                            .where((walk) => walk!.petId == widget.petId)
-                            .toList();
-
-                        List<Walk?> lastTenWalks = [];
-
-                        if (walks.isNotEmpty) {
-                          walks.sort(
-                              (a, b) => b!.dateTime.compareTo(a!.dateTime));
-                          lastTenWalks = walks.take(maxNumberOfBars).toList();
-                          if (lastTenWalks.isNotEmpty) {
-                            lastTenWalks.sort(
-                                (a, b) => a!.dateTime.compareTo(b!.dateTime));
-                          }
-                          if (lastTenWalks.isNotEmpty) {
-                            walk = '${lastTenWalks.last!.distance} km';
-                          }
-                        }
-                        return PetDetailWalkWidget(
-                            rectangleColor: buttonColor,
-                            textSecondSectionColor: textSecondSectionColor,
-                            walk: walk,
-                            lastTenWalks: lastTenWalks,
-                            diagramFirst: diagramFirst,
-                            diagramSecond: diagramSecond);
-                      } else {
-                        return PetDetailWalkWidget(
-                            rectangleColor: buttonColor,
-                            textSecondSectionColor: textSecondSectionColor,
-                            walk: walk,
-                            lastTenWalks: const [],
-                            diagramFirst: diagramFirst,
-                            diagramSecond: diagramSecond);
-                      }
-                    }
-                    return const CircularProgressIndicator();
-                  },
-                ),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Expanded(
-                child: StreamBuilder<List<Water?>>(
-                  stream: ref.read(waterServiceProvider).getWatersStream(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error fetching walks: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.active ||
-                        snapshot.connectionState == ConnectionState.done) {
-                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                        List<Water?> waters = snapshot.data!
-                            .where((water) => water!.petId == widget.petId)
-                            .toList();
-
-                        List<Water?> lastTenWaters = List<Water>.empty();
-
-                        if (snapshot.hasData) {
-                          waters = snapshot.data!
-                              .where(
-                                  (element) => element!.petId == widget.petId)
-                              .toList();
-
-                          if (waters.isNotEmpty) {
-                            waters.sort(
-                                (a, b) => b!.dateTime.compareTo(a!.dateTime));
-                            lastTenWaters =
-                                waters.take(maxNumberOfBars).toList();
-                            if (lastTenWaters.isNotEmpty) {
-                              lastTenWaters.sort(
-                                  (a, b) => a!.dateTime.compareTo(b!.dateTime));
-                            }
-                            if (lastTenWaters.isNotEmpty) {
-                              water = '${lastTenWaters.last!.water} L';
-                            }
-                          }
-                        }
-                        return PetDetailWaterWidget(
-                            buttonColor: rectangleColor,
-                            textSecondSectionColor: textSecondSectionColor,
-                            water: water,
-                            lastTenWaters: lastTenWaters,
-                            diagramFirst: diagramFirst,
-                            diagramSecond: diagramSecond);
-                      } else {
-                        return PetDetailWaterWidget(
-                            buttonColor: rectangleColor,
-                            textSecondSectionColor: textSecondSectionColor,
-                            water: water,
-                            lastTenWaters: const [],
-                            diagramFirst: diagramFirst,
-                            diagramSecond: diagramSecond);
-                      }
-                    }
-                    return const CircularProgressIndicator();
-                  },
-                ),
-              ),
-              const SizedBox(
-                width: 15,
-              ),
-            ],
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(15.0, 10.0, 10.0, 0),
