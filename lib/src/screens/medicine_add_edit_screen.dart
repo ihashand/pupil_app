@@ -13,7 +13,7 @@ import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/medicine_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
@@ -415,12 +415,13 @@ Future<void> savePill(
         emoticon: '💊',
       );
 
-      ref.read(eventServiceProvider).addEvent(newEvent);
+      await ref.read(eventServiceProvider).addEvent(newEvent);
 
       ref.read(temporaryReminderIds.notifier).state!.clear();
 
       cleanerOfFields = true;
 
+      // Pop dopiero po zakończeniu zapisu danych
       Navigator.of(context).pop(newPill);
     } else {
       Event? eventToUpdate =
@@ -428,7 +429,7 @@ Future<void> savePill(
 
       eventToUpdate!.title = nameController.text;
 
-      ref.read(eventServiceProvider).updateEvent(eventToUpdate);
+      await ref.read(eventServiceProvider).updateEvent(eventToUpdate);
 
       pill.name = nameController.text;
       pill.addDate = ref.read(medicineDateControllerProvider);
@@ -468,6 +469,7 @@ Future<void> savePill(
 
       cleanerOfFields = true;
 
+      // Pop dopiero po zakończeniu zapisu danych
       Navigator.of(context).pop(pill);
     }
   }

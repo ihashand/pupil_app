@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -87,29 +85,50 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: const Text('Edit Pet'),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+        ),
+        title: Text(
+          'E d i t',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+          ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        toolbarHeight: 50,
         actions: [
           IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _savePet,
-          ),
+            onPressed: () {
+              setState(() {
+                _savePet();
+              });
+            },
+            icon: Icon(
+              Icons.check,
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              size: 30,
+            ),
+          )
         ],
       ),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(
-                  height: 30,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextFormField(
+            padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
+            child: Container(
+              height: 330,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
                       labelText: 'Name',
@@ -123,10 +142,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       return null;
                     },
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
+                  const SizedBox(height: 16),
+                  SizedBox(
                     height: 70,
                     child: InputDecorator(
                       decoration: const InputDecoration(
@@ -160,10 +177,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TypeAheadFormField(
+                  const SizedBox(height: 16),
+                  TypeAheadFormField(
                     textFieldConfiguration: TextFieldConfiguration(
                       controller: _breedController,
                       decoration: const InputDecoration(
@@ -197,10 +212,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       return null;
                     },
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: DropdownButtonFormField<String>(
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
                     value: _gender,
                     decoration: const InputDecoration(
                       labelText: 'Gender',
@@ -220,33 +233,28 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       );
                     }).toList(),
                   ),
-                ),
-                const SizedBox(
-                  height: 300,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 350,
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: MaterialButton(
-                          onPressed: () {
-                            _confirmDelete(context);
-                          },
-                          color: Colors.red,
-                          textColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text('Delete Pet'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: double.infinity,
+            child: MaterialButton(
+              onPressed: () {
+                _confirmDelete(context);
+              },
+              color: Colors.red,
+              textColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text('Delete Pet'),
             ),
           ),
         ),

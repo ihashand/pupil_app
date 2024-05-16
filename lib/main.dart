@@ -2,9 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
-import 'package:pet_diary/src/data/services/hive_service.dart';
 import 'package:pet_diary/src/data/services/local_notification_service.dart';
 import 'package:pet_diary/src/helper/notifier_service.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
@@ -28,8 +28,9 @@ Future<void> main() async {
   tz.initializeTimeZones();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final hiveService = HiveService();
-  await hiveService.initHive();
+
+  await Hive.initFlutter();
+  await Hive.openBox('medicineBox');
 
   await LocalNotificationService().setup();
   initializeDateFormatting('en_US', null);

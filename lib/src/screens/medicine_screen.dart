@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/medicine_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/medicine_provider.dart';
@@ -109,9 +109,13 @@ class MedicineScreen extends ConsumerWidget {
     );
     if (result != null) {
       if (isEditing) {
-        ref.read(medicineServiceProvider).updateMedicine(result);
+        await ref
+            .read(medicineServiceProvider)
+            .updateMedicine(result); // Dodanie await
       } else {
-        ref.read(medicineServiceProvider).addMedicine(result);
+        await ref
+            .read(medicineServiceProvider)
+            .addMedicine(result); // Dodanie await
       }
     }
   }

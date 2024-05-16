@@ -109,46 +109,31 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
     Color appbarButtonsColor = Colors.black;
     Color avatarBackgroundColor = Colors.black;
 
-    if (pet.gender == 'Male') {
-      // Colors specific to Male pets
-      healthButtonColor = const Color(0xffdfd785);
-      eventTileBackgroundColor = const Color(0xffdfd785).withOpacity(0.7);
-      avatarBackgroundColor =
-          const Color.fromARGB(255, 90, 182, 232).withOpacity(0.2);
+    // Colors specific to Male pets
+    healthButtonColor = const Color(0xffdfd785);
+    eventTileBackgroundColor =
+        Theme.of(context).colorScheme.primary.withOpacity(0.7);
+    avatarBackgroundColor =
+        const Color.fromARGB(255, 90, 182, 232).withOpacity(0.2);
 
-      // Theme-based adjustments for Male pets
-      backgroundSectionTwo =
-          Theme.of(context).colorScheme.primary.withOpacity(0.8);
+    // Theme-based adjustments for Male pets
+    backgroundSectionTwo =
+        Theme.of(context).colorScheme.primary.withOpacity(0.8);
 
-      // Common text and buttons colors for both genders
-      textSecondSectionColor = Colors.black;
-      appbarButtonsColor = Colors.black;
-    } else if (pet.gender == 'Female') {
-      // Colors specific to Female pets
-      healthButtonColor = const Color(0xffdfd785);
-      eventTileBackgroundColor = Theme.of(context).colorScheme.primary;
-
-      avatarBackgroundColor = const Color(0xffffcec2).withOpacity(0.2);
-
-      // Theme-based adjustments for Female pets
-
-      backgroundSectionTwo = Theme.of(context).colorScheme.primary;
-
-      // Common text and buttons colors for both genders
-      textSecondSectionColor = Colors.black;
-      appbarButtonsColor = Colors.black;
-    }
+    // Common text and buttons colors for both genders
+    textSecondSectionColor = Colors.black;
+    appbarButtonsColor = Colors.black;
 
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: appbarButtonsColor),
+        iconTheme: IconThemeData(color: appbarButtonsColor.withOpacity(0.7)),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
               icon: const Icon(Icons.more_horiz),
               iconSize: 35,
-              color: textSecondSectionColor,
+              color: textSecondSectionColor.withOpacity(0.7),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -242,24 +227,17 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
             height: 10,
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(15.0, 10.0, 10.0, 0),
+            padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 5),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    'Events',
+                    'E v e n t s',
                     style: TextStyle(
-                        fontSize: 20,
-                        color: Theme.of(context).primaryColorDark),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Add new',
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 15),
+                        fontSize: 15,
+                        color:
+                            Theme.of(context).primaryColorDark.withOpacity(0.7),
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],

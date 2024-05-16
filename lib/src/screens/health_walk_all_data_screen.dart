@@ -7,13 +7,23 @@ import 'package:pet_diary/src/models/walk_model.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/screens/health_walk_details_screen.dart';
 
-class HealthWalkAllDataScreen extends ConsumerWidget {
+enum SortOrder { newest, oldest }
+
+class HealthWalkAllDataScreen extends ConsumerStatefulWidget {
   final String petId;
   final List<Event> petEvents;
   const HealthWalkAllDataScreen(this.petId, this.petEvents, {super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  createState() => _HealthWalkAllDataScreenState();
+}
+
+class _HealthWalkAllDataScreenState
+    extends ConsumerState<HealthWalkAllDataScreen> {
+  SortOrder _sortOrder = SortOrder.newest;
+
+  @override
+  Widget build(BuildContext context) {
     final walkProvider = ref.watch(walkServiceProvider);
 
     return Scaffold(
@@ -30,6 +40,25 @@ class HealthWalkAllDataScreen extends ConsumerWidget {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 50,
+        actions: [
+          PopupMenuButton<SortOrder>(
+            onSelected: (SortOrder result) {
+              setState(() {
+                _sortOrder = result;
+              });
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<SortOrder>>[
+              const PopupMenuItem<SortOrder>(
+                value: SortOrder.newest,
+                child: Text('Sort by Newest'),
+              ),
+              const PopupMenuItem<SortOrder>(
+                value: SortOrder.oldest,
+                child: Text('Sort by Oldest'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: StreamBuilder<List<Walk?>>(
         stream: walkProvider.getWalksStream(),
@@ -43,8 +72,17 @@ class HealthWalkAllDataScreen extends ConsumerWidget {
           }
 
           if (snapshot.hasData) {
-            List<Walk?> walks =
-                snapshot.data!.where((walk) => walk!.petId == petId).toList();
+            List<Walk?> walks = snapshot.data!
+                .where((walk) => walk!.petId == widget.petId)
+                .toList();
+
+            walks.sort((a, b) {
+              if (_sortOrder == SortOrder.newest) {
+                return b!.dateTime.compareTo(a!.dateTime);
+              } else {
+                return a!.dateTime.compareTo(b!.dateTime);
+              }
+            });
 
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
@@ -81,8 +119,7 @@ class HealthWalkAllDataScreen extends ConsumerWidget {
                         color:
                             Theme.of(context).primaryColorDark.withOpacity(0.7),
                         onPressed: () {
-                          deleteEvents(ref, context, petEvents, walk.eventId);
-                          ref.read(walkServiceProvider).deleteWalk(walk.id);
+                          _confirmDelete(context, walk, ref);
                         },
                       ),
                     ),
@@ -95,6 +132,50 @@ class HealthWalkAllDataScreen extends ConsumerWidget {
           }
         },
       ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, Walk? walk, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Confirm Delete',
+            style: TextStyle(
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+          ),
+          content: Text(
+            'Are you sure you want to delete this walk?',
+            style: TextStyle(
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                'OK',
+                style: TextStyle(
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+              ),
+              onPressed: () {
+                deleteEvents(ref, context, widget.petEvents, walk!.eventId);
+                ref.read(walkServiceProvider).deleteWalk(walk.id);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

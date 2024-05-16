@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/medicine_new_reminder_screen.dart';
-import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/medicine_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 
