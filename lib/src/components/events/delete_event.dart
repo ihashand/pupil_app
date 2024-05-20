@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/loading_dialog.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/notifiers/medicine_notifier.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
@@ -69,7 +69,7 @@ void deleteEvents(
       }
     }
 
-    await ref.read(medicineServiceProvider).deleteMedicine(pillId);
+    await ref.read(medicineNotifierProvider.notifier).deleteMedicine(pillId);
   }
 
   await Future.delayed(const Duration(seconds: 2));

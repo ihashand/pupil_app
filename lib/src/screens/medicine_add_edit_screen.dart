@@ -1,4 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/main.dart';
@@ -49,33 +48,17 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
     if (widget.medicine != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(medicineNameControllerProvider).text = widget.medicine!.name;
-        if (ref.read(medicineDateControllerProvider.notifier).state !=
-            widget.medicine!.addDate) {
-          ref.read(medicineDateControllerProvider.notifier).state =
-              widget.medicine!.addDate ?? DateTime.now();
-        }
-        if (widget.medicine!.frequency != null) {
-          ref.read(medicineFrequencyProvider.notifier).state =
-              int.tryParse(widget.medicine!.frequency!);
-        }
-        if (widget.medicine!.dosage != null) {
-          ref.read(medicineDosageProvider.notifier).state =
-              int.tryParse(widget.medicine!.dosage!);
-        }
-
-        if (widget.medicine!.startDate != null) {
-          ref.read(medicineStartDateControllerProvider.notifier).state =
-              widget.medicine!.startDate ?? DateTime.now();
-        }
-
-        if (widget.medicine!.endDate != null) {
-          ref.read(medicineEndDateControllerProvider.notifier).state =
-              widget.medicine!.endDate ?? DateTime.now();
-        }
-
-        if (widget.medicine!.emoji.isNotEmpty) {
-          ref.read(medicineEmojiProvider).text = widget.medicine!.emoji;
-        }
+        ref.read(medicineDateControllerProvider.notifier).state =
+            widget.medicine!.addDate;
+        ref.read(medicineFrequencyProvider.notifier).state =
+            int.tryParse(widget.medicine!.frequency);
+        ref.read(medicineDosageProvider.notifier).state =
+            int.tryParse(widget.medicine!.dosage);
+        ref.read(medicineStartDateControllerProvider.notifier).state =
+            widget.medicine!.startDate;
+        ref.read(medicineEndDateControllerProvider.notifier).state =
+            widget.medicine!.endDate;
+        ref.read(medicineEmojiProvider).text = widget.medicine!.emoji;
 
         cleanerOfFields = true;
       });
@@ -88,14 +71,11 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
             TimeOfDay(hour: today.hour, minute: today.minute);
 
         ref.read(medicineNameControllerProvider).text = '';
-
         ref.read(medicineDateControllerProvider.notifier).state = today;
         ref.read(medicineStartDateControllerProvider.notifier).state = today;
         ref.read(medicineEndDateControllerProvider.notifier).state = today;
-
         ref.read(medicineFrequencyProvider.notifier).state = 1;
         ref.read(medicineDosageProvider.notifier).state = 1;
-
         ref.read(reminderNameControllerProvider).text = '';
         ref.read(reminderDescriptionControllerProvider).text = '';
         ref.read(reminderTimeOfDayControllerProvider.notifier).state =
@@ -310,8 +290,8 @@ Future<void> savePill(
   DateTime startDate = ref.read(medicineStartDateControllerProvider);
   DateTime endDate = ref.read(medicineEndDateControllerProvider);
   String name = ref.read(medicineNameControllerProvider).text;
-  int? frequency = ref.read(medicineFrequencyProvider);
-  int? dosage = ref.read(medicineDosageProvider);
+  String? frequency = ref.read(medicineFrequencyProvider)?.toString();
+  String? dosage = ref.read(medicineDosageProvider)?.toString();
   TextEditingController emoji = ref.read(medicineEmojiProvider);
 
   if (name.isEmpty) {
@@ -321,14 +301,14 @@ Future<void> savePill(
     return;
   }
 
-  if (dosage == 0) {
+  if (dosage == '0') {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Dosage is not selected.')),
     );
     return;
   }
 
-  if (frequency == 0) {
+  if (frequency == '0') {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Frequency is not selected.')),
     );
@@ -353,8 +333,6 @@ Future<void> savePill(
 
   if (formKey.currentState!.validate()) {
     final bool isNewPill = pill == null;
-    final Medicine newPill =
-        isNewPill ? Medicine(name: '', eventId: '', petId: '') : pill;
     final TextEditingController nameController =
         ref.read(medicineNameControllerProvider);
 
@@ -365,41 +343,43 @@ Future<void> savePill(
         .where((element) => element.objectId == newPillId)
         .toList();
 
-    if (newPillRemindersList.isNotEmpty) {
-      for (var reminder in newPillRemindersList) {
-        await schedulePillReminder(
-          flutterLocalNotificationsPlugin,
-          reminder.title,
-          int.parse(generateUniqueIdWithinRange()),
-          reminder.time,
-          ref.read(medicineEndDateControllerProvider),
-          reminder.description,
-          ref.read(reminderSelectedRepeatType),
-          reminder.repeatInterval,
-          reminder.selectedDays,
-        );
-      }
+    // Schedule reminders
+    for (var reminder in newPillRemindersList) {
+      schedulePillReminder(
+        flutterLocalNotificationsPlugin,
+        reminder.title,
+        int.parse(generateUniqueIdWithinRange()),
+        reminder.time,
+        ref.read(medicineEndDateControllerProvider),
+        reminder.description,
+        ref.read(reminderSelectedRepeatType),
+        reminder.repeatInterval,
+        reminder.selectedDays,
+      );
     }
+
     if (isNewPill) {
       Pet? pet = await ref.watch(petServiceProvider).getPetById(petId);
       final String eventId = generateUniqueId();
 
-      newPill.id = newPillId;
-      newPill.name = nameController.text;
-      newPill.addDate = ref.read(medicineDateControllerProvider);
-      newPill.startDate = ref.read(medicineStartDateControllerProvider);
-      newPill.endDate = ref.read(medicineEndDateControllerProvider);
-      newPill.eventId = eventId;
-      newPill.petId = petId;
-      newPill.frequency = ref.read(medicineFrequencyProvider).toString();
-      newPill.dosage = ref.read(medicineDosageProvider).toString();
-      newPill.emoji = ref.read(medicineEmojiProvider).text;
+      final Medicine newPill = Medicine(
+        id: newPillId,
+        name: nameController.text,
+        addDate: ref.read(medicineDateControllerProvider),
+        startDate: ref.read(medicineStartDateControllerProvider),
+        endDate: ref.read(medicineEndDateControllerProvider),
+        dosage: ref.read(medicineDosageProvider).toString(),
+        frequency: ref.read(medicineFrequencyProvider).toString(),
+        emoji: ref.read(medicineEmojiProvider).text,
+        eventId: eventId,
+        petId: petId,
+      );
 
       final Event newEvent = Event(
         id: eventId,
         title: newPill.name,
         eventDate: DateTime.now(),
-        dateWhenEventAdded: newPill.addDate!,
+        dateWhenEventAdded: newPill.addDate,
         userId: pet!.userId,
         petId: petId,
         weightId: '',
@@ -415,13 +395,14 @@ Future<void> savePill(
         emoticon: '💊',
       );
 
-      await ref.read(eventServiceProvider).addEvent(newEvent);
+      // Update local database first
+      // await ref.read(localMedicineServiceProvider).addMedicine(newPill);
+      // Then update remote database
+      //ref.read(eventServiceProvider).addEvent(newEvent);
 
       ref.read(temporaryReminderIds.notifier).state!.clear();
-
       cleanerOfFields = true;
 
-      // Pop dopiero po zakończeniu zapisu danych
       Navigator.of(context).pop(newPill);
     } else {
       Event? eventToUpdate =
@@ -446,30 +427,26 @@ Future<void> savePill(
           .where((element) => element.objectId == pill.id)
           .toList();
 
-      if (editingPillRemindersList.isNotEmpty) {
-        for (var reminder in editingPillRemindersList) {
-          String descriptionForReminder =
-              '${reminder.title} - ${reminder.description}';
+      for (var reminder in editingPillRemindersList) {
+        String descriptionForReminder =
+            '${reminder.title} - ${reminder.description}';
 
-          await schedulePillReminder(
-            flutterLocalNotificationsPlugin,
-            pill.name,
-            int.parse(generateUniqueIdWithinRange()),
-            reminder.time,
-            ref.read(medicineEndDateControllerProvider),
-            descriptionForReminder,
-            ref.read(reminderSelectedRepeatType),
-            reminder.repeatInterval,
-            reminder.selectedDays,
-          );
-        }
+        schedulePillReminder(
+          flutterLocalNotificationsPlugin,
+          pill.name,
+          int.parse(generateUniqueIdWithinRange()),
+          reminder.time,
+          ref.read(medicineEndDateControllerProvider),
+          descriptionForReminder,
+          ref.read(reminderSelectedRepeatType),
+          reminder.repeatInterval,
+          reminder.selectedDays,
+        );
       }
 
       ref.read(temporaryReminderIds.notifier).state!.clear();
-
       cleanerOfFields = true;
 
-      // Pop dopiero po zakończeniu zapisu danych
       Navigator.of(context).pop(pill);
     }
   }
