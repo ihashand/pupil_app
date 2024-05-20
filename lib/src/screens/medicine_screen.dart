@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/notifiers/medicine_notifier.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/screens/medicine_add_edit_screen.dart';
 
 class MedicineScreen extends ConsumerWidget {
@@ -14,11 +17,6 @@ class MedicineScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var newPillId = generateUniqueId();
-
-    final medicines = ref
-        .watch(medicineNotifierProvider)
-        .where((element) => element.petId == petId)
-        .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -50,26 +48,45 @@ class MedicineScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: medicines.isEmpty
-                ? const Center(child: Text('No medicine found.'))
-                : ListView.builder(
-                    itemCount: medicines.length,
+            child: StreamBuilder<List<Medicine>>(
+              stream: ref.read(medicineServiceProvider).getPills(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (snapshot.hasData) {
+                  final allMedicines = snapshot.data!
+                      .where((element) => element.petId == petId)
+                      .toList();
+                  if (allMedicines.isEmpty) {
+                    return const Center(
+                      child: Text('No medicine found.'),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: allMedicines.length,
                     itemBuilder: (context, index) {
-                      final medicine = medicines[index];
+                      final medicine = allMedicines[index];
                       return MedicineTile(
                         medicine: medicine,
                         onEdit: () => addOrEditMedicine(
                           context,
                           ref,
                           petId,
-                          medicine.id,
+                          newPillId,
                           medicine: medicine,
                         ),
                         onDelete: () =>
                             deletePill(context, ref, petId, pill: medicine),
                       );
                     },
-                  ),
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -91,19 +108,37 @@ class MedicineScreen extends ConsumerWidget {
       ),
     );
     if (result != null) {
-      final notifier = ref.read(medicineNotifierProvider.notifier);
       if (isEditing) {
-        await notifier.updateMedicine(result);
+        await ref
+            .read(medicineServiceProvider)
+            .updateMedicine(result); // Dodanie await
       } else {
-        await notifier.addMedicine(result);
+        await ref
+            .read(medicineServiceProvider)
+            .addMedicine(result); // Dodanie await
       }
     }
   }
 
   void deletePill(BuildContext context, WidgetRef ref, String petId,
       {Medicine? pill}) async {
-    final notifier = ref.read(medicineNotifierProvider.notifier);
-    await notifier.deleteMedicine(pill!.id);
+    List<Reminder> pillRemindersList =
+        await ref.read(reminderServiceProvider).getReminders();
+
+    pillRemindersList = pillRemindersList
+        .where((element) => element.objectId == pill!.id)
+        .toList();
+
+    if (pillRemindersList.isNotEmpty) {
+      for (var reminder in pillRemindersList) {
+        await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
+      }
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    await ref.read(medicineServiceProvider).deleteMedicine(pill!.id);
+    await ref.read(eventServiceProvider).deleteEvent(pill.eventId);
   }
 }
 
@@ -163,13 +198,13 @@ class MedicineTile extends StatelessWidget {
                 Text('Dosage: ${medicine.dosage}'),
                 Text('Frequency: ${medicine.frequency}'),
                 Text(
-                  'Date added: ${dateFormat.format(medicine.addDate)}',
+                  'Date added: ${dateFormat.format(medicine.addDate!)}',
                 ),
                 Text(
-                  'Start date: ${dateFormat.format(medicine.startDate)}',
+                  'Start date: ${dateFormat.format(medicine.startDate!)}',
                 ),
                 Text(
-                  'End date: ${dateFormat.format(medicine.endDate)}',
+                  'End date: ${dateFormat.format(medicine.endDate!)}',
                 ),
               ],
             ),

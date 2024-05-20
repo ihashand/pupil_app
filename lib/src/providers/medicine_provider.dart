@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
-import 'package:pet_diary/src/data/services/local_medicine_service.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
+import 'package:pet_diary/src/data/services/pill_service.dart';
+
+final medicineServiceProvider = Provider((ref) {
+  return PillService();
+});
 
 final medicineNameControllerProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
@@ -28,9 +30,4 @@ final medicineRemindersEnabledProvider = StateProvider<bool>((ref) => false);
 
 final medicineEmojiProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
-});
-
-final localMedicineServiceProvider = Provider<LocalMedicineService>((ref) {
-  final medicineBox = Hive.box<Medicine>('medicineBox');
-  return LocalMedicineService(medicineBox);
 });
