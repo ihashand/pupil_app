@@ -24,8 +24,6 @@ class _HealthWalkAllDataScreenState
 
   @override
   Widget build(BuildContext context) {
-    final walkProvider = ref.watch(walkServiceProvider);
-
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
@@ -60,23 +58,17 @@ class _HealthWalkAllDataScreenState
           ),
         ],
       ),
-      body: StreamBuilder<List<Walk?>>(
-        stream: walkProvider.getWalksStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Text('Error fetching walks: ${snapshot.error}');
-          }
+      body: Consumer(builder: (context, ref, _) {
+        final asyncWalks = ref.watch(walksProvider);
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
-          }
+        return asyncWalks.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (err, stack) => Text('Error fetching walks: $err'),
+          data: (walks) {
+            List<Walk?> petWalks =
+                walks.where((walk) => walk!.petId == widget.petId).toList();
 
-          if (snapshot.hasData) {
-            List<Walk?> walks = snapshot.data!
-                .where((walk) => walk!.petId == widget.petId)
-                .toList();
-
-            walks.sort((a, b) {
+            petWalks.sort((a, b) {
               if (_sortOrder == SortOrder.newest) {
                 return b!.dateTime.compareTo(a!.dateTime);
               } else {
@@ -84,11 +76,15 @@ class _HealthWalkAllDataScreenState
               }
             });
 
+            if (petWalks.isEmpty) {
+              return const Center(child: Text('No data available'));
+            }
+
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
-              itemCount: walks.length,
+              itemCount: petWalks.length,
               itemBuilder: (context, index) {
-                final walk = walks[index];
+                final walk = petWalks[index];
                 final formattedDate =
                     DateFormat('dd-MM-yyyy').format(walk!.dateTime.toLocal());
 
@@ -127,11 +123,9 @@ class _HealthWalkAllDataScreenState
                 );
               },
             );
-          } else {
-            return const Center(child: Text('No data available'));
-          }
-        },
-      ),
+          },
+        );
+      }),
     );
   }
 

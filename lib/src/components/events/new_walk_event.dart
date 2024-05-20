@@ -323,5 +323,6 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
 
     ref.read(walkServiceProvider).addWalk(newWalk);
     Navigator.of(context).pop();
+    Navigator.of(context).pop();
   }
 }

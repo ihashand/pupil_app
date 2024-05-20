@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/data/services/reminder_service.dart';
+import 'package:pet_diary/src/models/reminder_model.dart';
 
 final reminderServiceProvider = Provider((ref) {
   return ReminderService();
@@ -25,4 +26,8 @@ final reminderSelectedRepeatType = StateProvider<String>((ref) {
 
 final temporaryReminderIds = StateProvider<List<String>?>((ref) {
   return [];
+});
+
+final remindersProvider = StreamProvider<List<Reminder>>((ref) {
+  return ReminderService().getRemindersStream();
 });

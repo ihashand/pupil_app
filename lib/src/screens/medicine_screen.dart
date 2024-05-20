@@ -9,13 +9,18 @@ import 'package:pet_diary/src/providers/medicine_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/screens/medicine_add_edit_screen.dart';
 
-class MedicineScreen extends ConsumerWidget {
+class MedicineScreen extends ConsumerStatefulWidget {
   final String petId;
 
   const MedicineScreen(this.petId, {super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MedicineScreen> createState() => _MedicineScreenState();
+}
+
+class _MedicineScreenState extends ConsumerState<MedicineScreen> {
+  @override
+  Widget build(BuildContext context) {
     var newPillId = generateUniqueId();
 
     return Scaffold(
@@ -39,7 +44,8 @@ class MedicineScreen extends ConsumerWidget {
               Icons.add,
               color: Theme.of(context).primaryColorDark.withOpacity(0.7),
             ),
-            onPressed: () => addOrEditMedicine(context, ref, petId, newPillId),
+            onPressed: () =>
+                addOrEditMedicine(context, ref, widget.petId, newPillId),
             color: Theme.of(context).colorScheme.onPrimary,
             iconSize: 35,
           ),
@@ -48,45 +54,44 @@ class MedicineScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<Medicine>>(
-              stream: ref.read(medicineServiceProvider).getPills(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+            child: Consumer(builder: (context, ref, _) {
+              final asyncMedicines = ref.watch(medicinesProvider);
 
-                if (snapshot.hasData) {
-                  final allMedicines = snapshot.data!
-                      .where((element) => element.petId == petId)
+              return asyncMedicines.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(child: Text('Error: $err')),
+                data: (allMedicines) {
+                  final petMedicines = allMedicines
+                      .where((element) => element.petId == widget.petId)
                       .toList();
-                  if (allMedicines.isEmpty) {
+
+                  if (petMedicines.isEmpty) {
                     return const Center(
                       child: Text('No medicine found.'),
                     );
                   }
+
                   return ListView.builder(
-                    itemCount: allMedicines.length,
+                    itemCount: petMedicines.length,
                     itemBuilder: (context, index) {
-                      final medicine = allMedicines[index];
+                      final medicine = petMedicines[index];
                       return MedicineTile(
                         medicine: medicine,
                         onEdit: () => addOrEditMedicine(
                           context,
                           ref,
-                          petId,
+                          widget.petId,
                           newPillId,
                           medicine: medicine,
                         ),
-                        onDelete: () =>
-                            deletePill(context, ref, petId, pill: medicine),
+                        onDelete: () => deletePill(context, ref, widget.petId,
+                            pill: medicine),
                       );
                     },
                   );
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
-            ),
+                },
+              );
+            }),
           ),
         ],
       ),

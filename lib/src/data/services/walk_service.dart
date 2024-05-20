@@ -18,7 +18,7 @@ class WalkService {
     if (_currentUser != null) {
       _firestore
           .collection('users')
-          .doc(_currentUser!.uid)
+          .doc(_currentUser.uid)
           .collection('walks')
           .orderBy('dateTime', descending: true) // Sortowanie dokumentów
           .snapshots()
@@ -37,7 +37,7 @@ class WalkService {
 
     final docSnapshot = await _firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(_currentUser.uid)
         .collection('walks')
         .doc(walkId)
         .get();
@@ -49,7 +49,7 @@ class WalkService {
     if (_currentUser == null) return;
     await _firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(_currentUser.uid)
         .collection('walks')
         .doc(walk.id)
         .set(walk.toMap());
@@ -59,7 +59,7 @@ class WalkService {
     if (_currentUser == null) return;
     await _firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(_currentUser.uid)
         .collection('walks')
         .doc(walk.id)
         .update(walk.toMap());
@@ -69,7 +69,7 @@ class WalkService {
     if (_currentUser == null) return;
     await _firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(_currentUser.uid)
         .collection('walks')
         .doc(walkId)
         .delete();

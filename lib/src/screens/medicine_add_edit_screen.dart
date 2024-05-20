@@ -226,69 +226,75 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
                 ),
                 const SizedBox(height: 15),
                 Flexible(
-                  child: StreamBuilder<List<Reminder>>(
-                    stream:
-                        ref.read(reminderServiceProvider).getRemindersStream(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                            child: Text('No reminders available.'));
-                      }
-                      List<Reminder> reminders = [];
-                      var test = ref.watch(temporaryReminderIds.notifier).state;
-                      if (test != null && test.isNotEmpty) {
-                        reminders = snapshot.data!
-                            .where((element) =>
-                                element.objectId == widget.medicineId)
-                            .toList();
-                      } else if (widget.medicine != null) {
-                        reminders = snapshot.data!
-                            .where((element) =>
-                                element.objectId == widget.medicine!.id)
-                            .toList();
-                      }
-                      return ListView.builder(
-                        itemCount: reminders.length,
-                        itemBuilder: (context, index) {
-                          final reminder = reminders[index];
-                          return ListTile(
-                            title: Text(
-                              reminder.title.isEmpty
-                                  ? 'Medicine reminder'
-                                  : '${reminder.title} reminder',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Time: ${reminder.time.hour}:${reminder.time.minute} ',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                Text(
-                                  reminder.description,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () async {
-                                await ref
-                                    .read(reminderServiceProvider)
-                                    .deleteReminder(reminder.id);
-                              },
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                  child: Consumer(builder: (context, ref, _) {
+                    final asyncReminders = ref.watch(remindersProvider);
+
+                    return asyncReminders.when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(child: Text('Error: $err')),
+                      data: (reminders) {
+                        List<Reminder> filteredReminders = [];
+                        var tempReminderIds =
+                            ref.watch(temporaryReminderIds.notifier).state;
+
+                        if (tempReminderIds != null &&
+                            tempReminderIds.isNotEmpty) {
+                          filteredReminders = reminders
+                              .where((element) =>
+                                  element.objectId == widget.medicineId)
+                              .toList();
+                        } else if (widget.medicine != null) {
+                          filteredReminders = reminders
+                              .where((element) =>
+                                  element.objectId == widget.medicine!.id)
+                              .toList();
+                        }
+
+                        if (filteredReminders.isEmpty) {
+                          return const Center(
+                              child: Text('No reminders available.'));
+                        }
+
+                        return ListView.builder(
+                          itemCount: filteredReminders.length,
+                          itemBuilder: (context, index) {
+                            final reminder = filteredReminders[index];
+                            return ListTile(
+                              title: Text(
+                                reminder.title.isEmpty
+                                    ? 'Medicine reminder'
+                                    : '${reminder.title} reminder',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Time: ${reminder.time.hour}:${reminder.time.minute} ',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    reminder.description,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  await ref
+                                      .read(reminderServiceProvider)
+                                      .deleteReminder(reminder.id);
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  }),
                 ),
               ],
             ),

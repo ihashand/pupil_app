@@ -34,7 +34,7 @@ class AddPetStep4Breed extends StatelessWidget {
               totalSegments: 5,
               filledSegments: 4, // Ponieważ to drugi krok
               backgroundColor: Theme.of(context).colorScheme.primary,
-              fillColor: const Color(0xffdfd785),
+              fillColor: const Color(0xffdfd785).withOpacity(0.7),
             ),
             const SizedBox(
               height: 150,
@@ -49,7 +49,7 @@ class AddPetStep4Breed extends StatelessWidget {
             const SizedBox(height: 40),
             SizedBox(
               height: 60,
-              width: 300,
+              width: 200,
               child: TypeAheadFormField(
                 textFieldConfiguration: TextFieldConfiguration(
                   controller: petBreedController,
@@ -106,7 +106,7 @@ class AddPetStep4Breed extends StatelessWidget {
                     style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
                         fontSize: 16)),
-                backgroundColor: const Color(0xffdfd785),
+                backgroundColor: const Color(0xff68a2b6).withOpacity(0.7),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0)),
               ),

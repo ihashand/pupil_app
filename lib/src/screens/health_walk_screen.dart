@@ -48,30 +48,29 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(10.0),
-            child: StreamBuilder<List<Walk?>>(
-              stream: ref.read(walkServiceProvider).getWalksStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Error fetching walks: ${snapshot.error}');
-                }
+            child: Consumer(builder: (context, ref, _) {
+              final asyncWalks = ref.watch(walksProvider);
 
-                if (snapshot.hasData) {
-                  List<Walk?> walks = snapshot.data!
+              return asyncWalks.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (err, stack) => Text('Error fetching walks: $err'),
+                data: (walks) {
+                  List<Walk?> petWalks = walks
                       .where((walk) => walk!.petId == widget.petId)
                       .toList();
 
                   switch (selectedTimePeriod) {
                     case 'D':
-                      graphBarData = calculateDailyWalks(walks);
+                      graphBarData = calculateDailyWalks(petWalks);
                       break;
                     case 'W':
-                      graphBarData = calculateWeeklyWalks(walks);
+                      graphBarData = calculateWeeklyWalks(petWalks);
                       break;
                     case 'M':
-                      graphBarData = calculateMonthlyWalks(walks);
+                      graphBarData = calculateMonthlyWalks(petWalks);
                       break;
                     case 'Y':
-                      graphBarData = calculateYearlyWalks(walks);
+                      graphBarData = calculateYearlyWalks(petWalks);
                       break;
                   }
 
@@ -152,11 +151,9 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
                       ),
                     ],
                   );
-                } else {
-                  return const CircularProgressIndicator();
-                }
-              },
-            ),
+                },
+              );
+            }),
           ),
         ],
       ),

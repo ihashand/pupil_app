@@ -60,9 +60,9 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                     children: [
                       AddPetSegmentProgressBar(
                         totalSegments: 5,
-                        filledSegments: 5, // Because it's the fifth step
+                        filledSegments: 5,
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        fillColor: const Color(0xffdfd785),
+                        fillColor: const Color(0xffdfd785).withOpacity(0.7),
                       ),
                       const SizedBox(
                         height: 150,
@@ -91,10 +91,9 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                           ),
                           child: CircleAvatar(
                             backgroundColor:
-                                const Color(0xffdfd785).withOpacity(0.5),
+                                const Color(0xffdfd785).withOpacity(0.3),
                             backgroundImage: petSelectedAvatar.isNotEmpty
-                                ? AssetImage(
-                                    petSelectedAvatar) // Use AssetImage for local images
+                                ? AssetImage(petSelectedAvatar)
                                 : null,
                             radius: 80,
                           ),
@@ -122,13 +121,10 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                           if (currentUser != null) {
                             String userId = currentUser.uid;
 
-                            // Create a Pet instance
                             final newPet = Pet(
-                                id: UniqueKey()
-                                    .toString(), // Use a unique ID generator
+                                id: UniqueKey().toString(),
                                 name: widget.petName,
-                                avatarImage:
-                                    petSelectedAvatar, // Store the path or URL
+                                avatarImage: petSelectedAvatar,
                                 age: widget.petAge,
                                 gender: widget.petGender,
                                 userId: userId,
@@ -137,8 +133,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                                 backgroundImage: backgroundImage);
 
                             // Get the PetService instance (assuming you have one)
-                            final petService =
-                                PetService(); // Replace with your service instance
+                            final petService = PetService();
 
                             // Add the pet to Firestore using the service
                             petService.addPet(newPet);
@@ -152,7 +147,7 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar> {
                           style: TextStyle(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: 16)),
-                      backgroundColor: const Color(0xffdfd785),
+                      backgroundColor: const Color(0xff68a2b6).withOpacity(0.7),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0)),
                     ),

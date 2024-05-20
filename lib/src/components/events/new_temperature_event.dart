@@ -246,6 +246,7 @@ class _NewTemperatureEventState extends ConsumerState<NewTemperatureEvent> {
                               ref.read(eventServiceProvider).addEvent(newEvent);
 
                               Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             },
                           ),
                         ],

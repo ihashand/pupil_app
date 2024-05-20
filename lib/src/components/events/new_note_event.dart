@@ -174,6 +174,7 @@ class _NewNoteEventState extends ConsumerState<NewNoteEvent> {
                           ref.read(noteServiceProvider).addNote(newNote);
 
                           Navigator.of(context).pop();
+                          Navigator.of(context).pop();
                         },
                       ),
                     ],

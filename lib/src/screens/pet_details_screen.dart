@@ -10,7 +10,6 @@ import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
@@ -29,29 +28,12 @@ class PetDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
-  DateTime? findNextEventDate(List<Event> events) {
-    DateTime today = DateTime.now();
-    DateTime? nextEventDate;
-
-    for (var event in events) {
-      if (event.eventDate.isAfter(today)) {
-        if (nextEventDate == null || event.eventDate.isBefore(nextEventDate)) {
-          nextEventDate = event.eventDate;
-        }
-      }
-    }
-
-    return nextEventDate;
-  }
-
   Pet? _pet;
 
   @override
   void initState() {
     super.initState();
-
     final petService = ref.read(petServiceProvider);
-
     _fetchPet(petService);
   }
 
@@ -83,46 +65,15 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
       );
     }
 
-    String weight = '';
-
-    StreamBuilder<List<Weight?>>(
-      stream: ref.read(weightServiceProvider).getWeightsStream(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Text('Error fetching weights');
-        }
-        if (snapshot.hasData) {
-          weight = snapshot.data!
-              .firstWhere((element) => element!.petId == widget.petId)!
-              .weight
-              .toString();
-        }
-        return const Text('');
-      },
-    );
-
-    Color healthButtonColor = Colors.black;
-    Color eventTileBackgroundColor = Colors.black;
-
-    Color backgroundSectionTwo = Colors.black;
+    Color healthButtonColor = const Color(0xffdfd785);
+    Color eventTileBackgroundColor =
+        Theme.of(context).colorScheme.primary.withOpacity(0.7);
+    Color backgroundSectionTwo =
+        Theme.of(context).colorScheme.primary.withOpacity(0.8);
     Color textSecondSectionColor = Colors.black;
     Color appbarButtonsColor = Colors.black;
-    Color avatarBackgroundColor = Colors.black;
-
-    // Colors specific to Male pets
-    healthButtonColor = const Color(0xffdfd785);
-    eventTileBackgroundColor =
-        Theme.of(context).colorScheme.primary.withOpacity(0.7);
-    avatarBackgroundColor =
+    Color avatarBackgroundColor =
         const Color.fromARGB(255, 90, 182, 232).withOpacity(0.2);
-
-    // Theme-based adjustments for Male pets
-    backgroundSectionTwo =
-        Theme.of(context).colorScheme.primary.withOpacity(0.8);
-
-    // Common text and buttons colors for both genders
-    textSecondSectionColor = Colors.black;
-    appbarButtonsColor = Colors.black;
 
     return Scaffold(
       appBar: AppBar(
@@ -216,16 +167,26 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
               children: [
                 PetDetailNameAgeButtonWidget(
                     buttonColor: healthButtonColor, petId: widget.petId),
-                const SizedBox(
-                  height: 10,
-                ),
-                PetDetailIconWidget(petId: pet.id, weight: weight),
+                const SizedBox(height: 10),
+                Consumer(builder: (context, ref, _) {
+                  final asyncWeights = ref.watch(weightsProvider);
+                  return asyncWeights.when(
+                    loading: () => const Text('Loading...'),
+                    error: (err, stack) => const Text('Error fetching weights'),
+                    data: (weights) {
+                      String weight = weights
+                          .firstWhere(
+                              (element) => element!.petId == widget.petId)!
+                          .weight
+                          .toString();
+                      return PetDetailIconWidget(petId: pet.id, weight: weight);
+                    },
+                  );
+                }),
               ],
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 5),
             child: Row(
@@ -234,23 +195,23 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                   child: Text(
                     'E v e n t s',
                     style: TextStyle(
-                        fontSize: 15,
-                        color:
-                            Theme.of(context).primaryColorDark.withOpacity(0.7),
-                        fontWeight: FontWeight.bold),
+                      fontSize: 15,
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          StreamBuilder<List<Event>>(
-            stream: ref.watch(eventServiceProvider).getEventsStream(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Text('Error fetching pets');
-              }
-              if (snapshot.hasData) {
-                final events = snapshot.data!
+          Consumer(builder: (context, ref, _) {
+            final asyncEvents = ref.watch(eventsProvider);
+            return asyncEvents.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => const Text('Error fetching events'),
+              data: (events) {
+                final petEvents = events
                     .where((element) => element.petId == widget.petId)
                     .toList();
 
@@ -258,7 +219,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 DateTime today = DateTime.now();
                 DateTime? nextEventDate;
 
-                for (var event in events) {
+                for (var event in petEvents) {
                   if (event.eventDate.year == today.year &&
                       event.eventDate.month == today.month &&
                       event.eventDate.day == today.day) {
@@ -272,7 +233,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 }
 
                 if (eventsToShow.isEmpty && nextEventDate != null) {
-                  eventsToShow = events
+                  eventsToShow = petEvents
                       .where((event) =>
                           event.eventDate.year == nextEventDate!.year &&
                           event.eventDate.month == nextEventDate.month &&
@@ -304,12 +265,12 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 }
 
                 return SizedBox(
-                  height: 220,
+                  height: 350,
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
                     itemCount: eventsToShow.length,
                     itemBuilder: (context, index) {
-                      if (events.isEmpty) {
+                      if (eventsToShow.isEmpty) {
                         return const Text(
                           'No events for today or in the future',
                         );
@@ -327,10 +288,9 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     },
                   ),
                 );
-              }
-              return const Center(child: CircularProgressIndicator());
-            },
-          ),
+              },
+            );
+          }),
         ],
       ),
     );
@@ -364,12 +324,10 @@ class EventTile extends StatelessWidget {
               Text(formattedStartTime,
                   style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(
-                  height: 10), // Zwiększono odstęp między datą a emotikonem
+              const SizedBox(height: 10),
             ],
           ),
-          const SizedBox(
-              width: 20), // Zwiększono odstęp między datą a emotikonem
+          const SizedBox(width: 20),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(14),
@@ -386,18 +344,14 @@ class EventTile extends StatelessWidget {
                       if (event.emoticon.isNotEmpty)
                         Text(event.emoticon,
                             style: const TextStyle(fontSize: 30)),
-                      const SizedBox(
-                          width:
-                              20), // Zwiększono odstęp między emotikonem a nazwą
+                      const SizedBox(width: 20),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(event.title,
                               style: const TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.bold)),
-                          const SizedBox(
-                              height:
-                                  4), // Zwiększono odstęp między nazwą a opisem
+                          const SizedBox(height: 4),
                           Text(event.description,
                               style: const TextStyle(fontSize: 10)),
                         ],

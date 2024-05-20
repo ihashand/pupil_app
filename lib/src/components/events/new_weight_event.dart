@@ -247,6 +247,7 @@ class _NewWeightEventState extends ConsumerState<NewWeightEvent> {
                                   .addWeight(newWeight);
 
                               Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             },
                           ),
                         ],

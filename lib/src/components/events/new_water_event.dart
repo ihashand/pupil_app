@@ -244,6 +244,7 @@ class _NewWaterEventState extends ConsumerState<NewWaterEvent> {
                               ref.read(waterServiceProvider).addWater(newWater);
 
                               Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             },
                           ),
                         ],

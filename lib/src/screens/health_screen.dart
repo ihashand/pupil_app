@@ -45,21 +45,13 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eventStream = ref.watch(eventServiceProvider).getEventsStream();
     final eventDateTime = ref.watch(eventDateControllerProvider);
+    final asyncEvents = ref.watch(eventsProvider);
 
-    return StreamBuilder<List<Event>>(
-      stream: eventStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        final allEvents = snapshot.data ?? [];
+    return asyncEvents.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+      data: (allEvents) {
         final List<Event> petEvents =
             allEvents.where((event) => event.petId == widget.petId).toList();
         eventsOnSelectedDate = petEvents

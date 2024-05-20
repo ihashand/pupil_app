@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/data/services/pill_service.dart';
+import 'package:pet_diary/src/models/medicine_model.dart';
 
 final medicineServiceProvider = Provider((ref) {
   return PillService();
@@ -30,4 +31,8 @@ final medicineRemindersEnabledProvider = StateProvider<bool>((ref) => false);
 
 final medicineEmojiProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
+});
+
+final medicinesProvider = StreamProvider<List<Medicine>>((ref) {
+  return PillService().getPills();
 });
