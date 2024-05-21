@@ -233,6 +233,7 @@ class _NewTemperatureEventState extends ConsumerState<NewTemperatureEvent> {
                                   waterId: '',
                                   noteId: '',
                                   pillId: '',
+                                  moodId: '',
                                   description: '$initialTemperature',
                                   proffesionId: 'BRAK',
                                   personId: 'BRAK',

@@ -414,6 +414,7 @@ Future<void> savePill(
         waterId: '',
         noteId: '',
         pillId: newPill.id,
+        moodId: '',
         description: newPill.name,
         proffesionId: 'BRAK',
         personId: 'BRAK',

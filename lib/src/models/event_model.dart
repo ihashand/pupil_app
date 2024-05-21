@@ -37,6 +37,7 @@ class Event {
     required this.personId,
     required this.avatarImage,
     required this.emoticon,
+    required String moodId,
   });
 
   Event.fromDocument(DocumentSnapshot doc) {

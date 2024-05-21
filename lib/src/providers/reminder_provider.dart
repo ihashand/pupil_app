@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/services/reminder_service.dart';
+import 'package:pet_diary/src/services/reminder_service.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 
 final reminderServiceProvider = Provider((ref) {

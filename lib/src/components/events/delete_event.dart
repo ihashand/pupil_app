@@ -72,8 +72,6 @@ void deleteEvents(
     await ref.read(medicineServiceProvider).deleteMedicine(pillId);
   }
 
-  await Future.delayed(const Duration(seconds: 2));
-
   // ignore: use_build_context_synchronously
   Navigator.of(context).pop();
 }

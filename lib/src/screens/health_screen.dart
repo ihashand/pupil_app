@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/components/events/delete_event.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/components/events/new_note_event.dart';
@@ -8,6 +9,7 @@ import 'package:pet_diary/src/components/events/new_temperature_event.dart';
 import 'package:pet_diary/src/components/events/new_walk_event.dart';
 import 'package:pet_diary/src/components/events/new_water_event.dart';
 import 'package:pet_diary/src/components/events/new_weight_event.dart';
+import 'package:pet_diary/src/components/events/new_mood_event.dart'; // Import NewMoodEvent
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
@@ -472,6 +474,46 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Mood',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            NewMoodEvent(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -495,7 +537,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             ),
             TextButton(
               onPressed: () {
-                ref.read(eventServiceProvider).deleteEvent(event.id);
+                var allEvents = [event];
+                deleteEvents(ref, context, allEvents, event.id);
                 Navigator.of(context).pop();
               },
               child: Text(

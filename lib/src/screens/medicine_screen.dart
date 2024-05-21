@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
+import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/medicine_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
@@ -19,6 +20,14 @@ class MedicineScreen extends ConsumerStatefulWidget {
 }
 
 class _MedicineScreenState extends ConsumerState<MedicineScreen> {
+  late Future<List<Event>> _eventsFuture;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _eventsFuture = ref.read(eventsProvider.future);
+  }
+
   @override
   Widget build(BuildContext context) {
     var newPillId = generateUniqueId();
@@ -64,13 +73,11 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                   final petMedicines = allMedicines
                       .where((element) => element.petId == widget.petId)
                       .toList();
-
                   if (petMedicines.isEmpty) {
                     return const Center(
                       child: Text('No medicine found.'),
                     );
                   }
-
                   return ListView.builder(
                     itemCount: petMedicines.length,
                     itemBuilder: (context, index) {
@@ -85,7 +92,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                           medicine: medicine,
                         ),
                         onDelete: () => deletePill(context, ref, widget.petId,
-                            pill: medicine),
+                            medicine: medicine),
                       );
                     },
                   );
@@ -98,6 +105,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     );
   }
 
+  // Method to add or edit medicine
   void addOrEditMedicine(
       BuildContext context, WidgetRef ref, String petId, String newMedicineId,
       {Medicine? medicine}) async {
@@ -114,36 +122,48 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     );
     if (result != null) {
       if (isEditing) {
-        await ref
-            .read(medicineServiceProvider)
-            .updateMedicine(result); // Dodanie await
+        await ref.read(medicineServiceProvider).updateMedicine(result);
       } else {
-        await ref
-            .read(medicineServiceProvider)
-            .addMedicine(result); // Dodanie await
+        await ref.read(medicineServiceProvider).addMedicine(result);
       }
     }
   }
 
   void deletePill(BuildContext context, WidgetRef ref, String petId,
-      {Medicine? pill}) async {
+      {Medicine? medicine}) async {
+    // Get all reminders
     List<Reminder> pillRemindersList =
         await ref.read(reminderServiceProvider).getReminders();
 
+    // Filter all reminders to find those related to the pill
     pillRemindersList = pillRemindersList
-        .where((element) => element.objectId == pill!.id)
+        .where((element) => element.objectId == medicine!.id)
         .toList();
 
+    // Delete all reminders
     if (pillRemindersList.isNotEmpty) {
       for (var reminder in pillRemindersList) {
         await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
       }
     }
 
+    // Wait for a while to ensure the deletion process
     await Future.delayed(const Duration(seconds: 1));
+    // Delete the medicine and related event
+    await ref.read(medicineServiceProvider).deleteMedicine(medicine!.id);
+    await ref.read(eventServiceProvider).deleteEvent(medicine.eventId);
 
-    await ref.read(medicineServiceProvider).deleteMedicine(pill!.id);
-    await ref.read(eventServiceProvider).deleteEvent(pill.eventId);
+    // Get all events
+    final asyncEvents = await _eventsFuture;
+
+    // Filter all events to find those referenced
+    final relatedEvents =
+        asyncEvents.where((event) => event.id == medicine.eventId).toList();
+
+    // Delete all related events
+    for (var event in relatedEvents) {
+      await ref.read(eventServiceProvider).deleteEvent(event.id);
+    }
   }
 }
 
