@@ -235,6 +235,7 @@ class _NewWeightEventState extends ConsumerState<NewWeightEvent> {
                                   noteId: '',
                                   pillId: '',
                                   moodId: '',
+                                  stomachId: '',
                                   description: '$initialWeight',
                                   proffesionId: 'BRAK',
                                   personId: 'BRAK',

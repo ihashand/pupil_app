@@ -234,6 +234,7 @@ class _NewWaterEventState extends ConsumerState<NewWaterEvent> {
                                   noteId: '',
                                   pillId: '',
                                   moodId: '',
+                                  stomachId: '',
                                   description: '$initialWater ',
                                   proffesionId: 'BRAK',
                                   personId: 'BRAK',

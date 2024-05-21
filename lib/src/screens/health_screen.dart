@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/components/events/new_stomach_event.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/components/events/new_note_event.dart';
@@ -411,6 +412,76 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               child: Column(
                 children: [
                   const Text(
+                    'Mood',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            NewMoodEvent(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Stomach Issues',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        NewStomachEvent(
+                          iconSize: 50,
+                          petId: petId,
+                          eventDateTime: eventDateTime,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  const Text(
                     'Notes',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
@@ -467,46 +538,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                           Icons.medication,
                           size: 50,
                           color: Colors.grey.withOpacity(0.5),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Mood',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            NewMoodEvent(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                            ),
-                          ],
                         ),
                       ),
                     ),

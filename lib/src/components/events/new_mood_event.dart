@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/mood_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/mood_provider.dart';
 
 class NewMoodEvent extends ConsumerWidget {
   final double iconSize;
@@ -114,27 +116,37 @@ class NewMoodEvent extends ConsumerWidget {
                         ),
                         onPressed: () {
                           String eventId = generateUniqueId();
+                          Mood newMood = Mood(
+                            id: generateUniqueId(),
+                            eventId: eventId,
+                            petId: petId,
+                            emoji: mood['icon'],
+                            description: mood['description'],
+                            dateTime: eventDateTime,
+                          );
+
+                          ref.read(moodServiceProvider).addMood(newMood);
 
                           Event newEvent = Event(
-                            id: eventId,
-                            title: 'Mood',
-                            eventDate: eventDateTime,
-                            dateWhenEventAdded: DateTime.now(),
-                            userId: FirebaseAuth.instance.currentUser!.uid,
-                            petId: petId,
-                            weightId: '',
-                            temperatureId: '',
-                            walkId: '',
-                            waterId: '',
-                            noteId: '',
-                            pillId: '',
-                            description: mood['description'],
-                            proffesionId: 'BRAK',
-                            personId: 'BRAK',
-                            avatarImage: 'assets/images/dog_avatar_014.png',
-                            emoticon: mood['icon'],
-                            moodId: '',
-                          );
+                              id: eventId,
+                              title: 'Mood',
+                              eventDate: eventDateTime,
+                              dateWhenEventAdded: DateTime.now(),
+                              userId: FirebaseAuth.instance.currentUser!.uid,
+                              petId: petId,
+                              weightId: '',
+                              temperatureId: '',
+                              walkId: '',
+                              waterId: '',
+                              noteId: '',
+                              pillId: '',
+                              description: mood['description'],
+                              proffesionId: 'BRAK',
+                              personId: 'BRAK',
+                              avatarImage: 'assets/images/dog_avatar_014.png',
+                              emoticon: mood['icon'],
+                              moodId: newMood.id,
+                              stomachId: '');
 
                           ref.read(eventServiceProvider).addEvent(newEvent);
 

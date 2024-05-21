@@ -13,32 +13,35 @@ class Event {
   late String waterId;
   late String noteId;
   late String pillId;
+  late String moodId;
+  late String stomachId;
+
   late String description;
   late String proffesionId;
   late String personId;
   late String avatarImage;
   late String emoticon;
 
-  Event({
-    required this.id,
-    required this.title,
-    required this.eventDate,
-    required this.dateWhenEventAdded,
-    required this.userId,
-    required this.petId,
-    required this.weightId,
-    required this.temperatureId,
-    required this.walkId,
-    required this.waterId,
-    required this.noteId,
-    required this.pillId,
-    required this.description,
-    required this.proffesionId,
-    required this.personId,
-    required this.avatarImage,
-    required this.emoticon,
-    required String moodId,
-  });
+  Event(
+      {required this.id,
+      required this.title,
+      required this.eventDate,
+      required this.dateWhenEventAdded,
+      required this.userId,
+      required this.petId,
+      required this.weightId,
+      required this.temperatureId,
+      required this.walkId,
+      required this.waterId,
+      required this.noteId,
+      required this.pillId,
+      required this.description,
+      required this.proffesionId,
+      required this.personId,
+      required this.avatarImage,
+      required this.emoticon,
+      required this.moodId,
+      required this.stomachId});
 
   Event.fromDocument(DocumentSnapshot doc) {
     id = doc.id;
