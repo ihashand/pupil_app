@@ -354,16 +354,22 @@ class EventTile extends StatelessWidget {
                         Text(event.emoticon,
                             style: const TextStyle(fontSize: 30)),
                       const SizedBox(width: 20),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(event.title,
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(event.description,
-                              style: const TextStyle(fontSize: 10)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(event.title,
+                                style: const TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Wrap(
+                              children: [
+                                Text(event.description,
+                                    style: const TextStyle(fontSize: 10)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
