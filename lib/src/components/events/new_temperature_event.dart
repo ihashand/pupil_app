@@ -240,7 +240,10 @@ class _NewTemperatureEventState extends ConsumerState<NewTemperatureEvent> {
                                   personId: 'BRAK',
                                   avatarImage:
                                       'assets/images/dog_avatar_014.png',
-                                  emoticon: '🌡️');
+                                  emoticon: '🌡️',
+                                  psychicId: '',
+                                  stoolId: '',
+                                  urineId: '');
 
                               ref
                                   .read(temperatureServiceProvider)

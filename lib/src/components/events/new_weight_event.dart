@@ -241,7 +241,10 @@ class _NewWeightEventState extends ConsumerState<NewWeightEvent> {
                                   personId: 'BRAK',
                                   avatarImage:
                                       'assets/images/dog_avatar_012.png',
-                                  emoticon: '⚖️');
+                                  emoticon: '⚖️',
+                                  psychicId: '',
+                                  stoolId: '',
+                                  urineId: '');
 
                               ref.read(eventServiceProvider).addEvent(newEvent);
                               ref

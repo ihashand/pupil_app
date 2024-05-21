@@ -240,7 +240,10 @@ class _NewWaterEventState extends ConsumerState<NewWaterEvent> {
                                   personId: 'BRAK',
                                   avatarImage:
                                       'assets/images/dog_avatar_014.png',
-                                  emoticon: '💧');
+                                  emoticon: '💧',
+                                  psychicId: '',
+                                  stoolId: '',
+                                  urineId: '');
 
                               ref.read(eventServiceProvider).addEvent(newEvent);
                               ref.read(waterServiceProvider).addWater(newWater);

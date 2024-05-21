@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/stomach_model.dart';
+import 'package:pet_diary/src/models/psychic_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/stomach_provider.dart';
+import 'package:pet_diary/src/providers/psychic_provider.dart';
 
-class NewStomachEvent extends ConsumerWidget {
+class NewPsychicEvent extends ConsumerWidget {
   final double iconSize;
   final String petId;
   final DateTime eventDateTime;
 
-  const NewStomachEvent({
+  const NewPsychicEvent({
     super.key,
     required this.iconSize,
     required this.petId,
@@ -21,41 +21,56 @@ class NewStomachEvent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<Map<String, dynamic>> stomachIssues = [
+    final List<Map<String, dynamic>> psychicIssues = [
       {
-        'icon': '🤢',
+        'icon': '😰',
         'color': Colors.green.withOpacity(0.6),
-        'description': 'Wzdęcia'
+        'description': 'Niepokój'
       },
       {
-        'icon': '🤮',
+        'icon': '😴',
         'color': Colors.lightGreen.withOpacity(0.6),
-        'description': 'Wymioty'
+        'description': 'Bezsenność'
       },
       {
-        'icon': '💩',
+        'icon': '😟',
         'color': Colors.brown.withOpacity(0.6),
-        'description': 'Biegunka'
+        'description': 'Stres'
       },
       {
-        'icon': '🤧',
+        'icon': '😨',
         'color': Colors.orange.withOpacity(0.6),
-        'description': 'Niestrawność'
+        'description': 'Strach'
       },
       {
-        'icon': '😷',
-        'color': Colors.grey.withOpacity(0.6),
-        'description': 'Gazy'
+        'icon': '😡',
+        'color': Colors.red.withOpacity(0.6),
+        'description': 'Drażliwość'
       },
       {
         'icon': '😩',
         'color': Colors.blueAccent.withOpacity(0.6),
-        'description': 'Zaparcia'
+        'description': 'Zmęczenie'
       },
       {
-        'icon': '🍔',
-        'color': Colors.redAccent.withOpacity(0.6),
-        'description': 'Głód'
+        'icon': '🤔',
+        'color': Colors.purple.withOpacity(0.6),
+        'description': 'Brak koncentracji'
+      },
+      {
+        'icon': '😕',
+        'color': Colors.grey.withOpacity(0.6),
+        'description': 'Dezorientacja'
+      },
+      {
+        'icon': '😴',
+        'color': Colors.blue.withOpacity(0.6),
+        'description': 'Lenistwo'
+      },
+      {
+        'icon': '🤪',
+        'color': Colors.yellow.withOpacity(0.6),
+        'description': 'Nadpobudliwość'
       },
     ];
 
@@ -63,7 +78,7 @@ class NewStomachEvent extends ConsumerWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: stomachIssues.map((issue) {
+        children: psychicIssues.map((issue) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: GestureDetector(
@@ -72,7 +87,7 @@ class NewStomachEvent extends ConsumerWidget {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Confirm Stomach Issue'),
+                      title: const Text('Confirm Psychic Issue'),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -105,7 +120,7 @@ class NewStomachEvent extends ConsumerWidget {
                           onPressed: () {
                             String eventId = generateUniqueId();
 
-                            Stomach newStomach = Stomach(
+                            PsychicEvent newPsychic = PsychicEvent(
                               id: generateUniqueId(),
                               eventId: eventId,
                               petId: petId,
@@ -115,12 +130,11 @@ class NewStomachEvent extends ConsumerWidget {
                             );
 
                             ref
-                                .read(stomachServiceProvider)
-                                .addStomach(newStomach);
-
+                                .read(psychicEventServiceProvider)
+                                .addPsychicEvent(newPsychic);
                             Event newEvent = Event(
                                 id: eventId,
-                                title: 'Stomach',
+                                title: 'Psychic',
                                 eventDate: eventDateTime,
                                 dateWhenEventAdded: DateTime.now(),
                                 userId: FirebaseAuth.instance.currentUser!.uid,
@@ -137,13 +151,12 @@ class NewStomachEvent extends ConsumerWidget {
                                 avatarImage: 'assets/images/dog_avatar_014.png',
                                 emoticon: issue['icon'],
                                 moodId: '',
-                                stomachId: newStomach.id,
-                                psychicId: '',
+                                stomachId: '',
+                                psychicId: newPsychic.id,
                                 stoolId: '',
                                 urineId: '');
 
                             ref.read(eventServiceProvider).addEvent(newEvent);
-
                             Navigator.of(context)
                                 .pop(); // Close the confirmation dialog
                             Navigator.of(context)

@@ -146,7 +146,10 @@ class NewMoodEvent extends ConsumerWidget {
                               avatarImage: 'assets/images/dog_avatar_014.png',
                               emoticon: mood['icon'],
                               moodId: newMood.id,
-                              stomachId: '');
+                              stomachId: '',
+                              psychicId: '',
+                              stoolId: '',
+                              urineId: '');
 
                           ref.read(eventServiceProvider).addEvent(newEvent);
 

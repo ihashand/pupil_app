@@ -421,6 +421,9 @@ Future<void> savePill(
         personId: 'BRAK',
         avatarImage: 'assets/images/dog_avatar_014.png',
         emoticon: '💊',
+        psychicId: '',
+        stoolId: '',
+        urineId: '',
       );
 
       await ref.read(eventServiceProvider).addEvent(newEvent);

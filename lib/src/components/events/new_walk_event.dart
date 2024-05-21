@@ -320,7 +320,10 @@ class _NewWalkEventWidgetState extends ConsumerState<NewWalkEventWidget> {
         proffesionId: 'BRAK',
         personId: 'BRAK',
         avatarImage: 'assets/images/dog_avatar_010.png',
-        emoticon: '🚶‍➡️');
+        emoticon: '🚶‍➡️',
+        psychicId: '',
+        stoolId: '',
+        urineId: '');
     ref.read(eventServiceProvider).addEvent(newEvent);
 
     ref.read(walkServiceProvider).addWalk(newWalk);

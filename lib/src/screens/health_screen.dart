@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/components/events/new_psychic_event.dart';
 import 'package:pet_diary/src/components/events/new_stomach_event.dart';
+import 'package:pet_diary/src/components/events/new_stool_event.dart';
+import 'package:pet_diary/src/components/events/new_urine_event.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/components/events/new_note_event.dart';
@@ -10,7 +13,7 @@ import 'package:pet_diary/src/components/events/new_temperature_event.dart';
 import 'package:pet_diary/src/components/events/new_walk_event.dart';
 import 'package:pet_diary/src/components/events/new_water_event.dart';
 import 'package:pet_diary/src/components/events/new_weight_event.dart';
-import 'package:pet_diary/src/components/events/new_mood_event.dart'; // Import NewMoodEvent
+import 'package:pet_diary/src/components/events/new_mood_event.dart';
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
@@ -398,6 +401,96 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         eventDateTime: eventDateTime,
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Psychic Issues',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        NewPsychicEvent(
+                          iconSize: 50,
+                          petId: petId,
+                          eventDateTime: eventDateTime,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Stool Type',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        NewStoolEvent(
+                          iconSize: 50,
+                          petId: petId,
+                          eventDateTime: eventDateTime,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Urine Color',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        NewUrineEvent(
+                          iconSize: 50,
+                          petId: petId,
+                          eventDateTime: eventDateTime,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

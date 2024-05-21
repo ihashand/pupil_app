@@ -170,7 +170,10 @@ class _NewNoteEventState extends ConsumerState<NewNoteEvent> {
                               avatarImage: 'assets/images/dog_avatar_014.png',
                               emoticon: '📝',
                               moodId: '',
-                              stomachId: '');
+                              stomachId: '',
+                              psychicId: '',
+                              stoolId: '',
+                              urineId: '');
 
                           ref.read(eventServiceProvider).addEvent(newEvent);
                           ref.read(noteServiceProvider).addNote(newNote);

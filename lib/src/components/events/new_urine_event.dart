@@ -2,17 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
+import 'package:pet_diary/src/models/urine_event_model.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/stomach_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/stomach_provider.dart';
+import 'package:pet_diary/src/providers/urine_event_provider.dart';
 
-class NewStomachEvent extends ConsumerWidget {
+class NewUrineEvent extends ConsumerWidget {
   final double iconSize;
   final String petId;
   final DateTime eventDateTime;
 
-  const NewStomachEvent({
+  const NewUrineEvent({
     super.key,
     required this.iconSize,
     required this.petId,
@@ -21,41 +21,33 @@ class NewStomachEvent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<Map<String, dynamic>> stomachIssues = [
+    final List<Map<String, dynamic>> urineColors = [
       {
-        'icon': '🤢',
-        'color': Colors.green.withOpacity(0.6),
-        'description': 'Wzdęcia'
+        'color': Colors.white,
+        'description': 'Transparent: Your dog is over-hydrated'
       },
       {
-        'icon': '🤮',
-        'color': Colors.lightGreen.withOpacity(0.6),
-        'description': 'Wymioty'
+        'color': const Color.fromARGB(255, 236, 226, 139),
+        'description': 'Pale yellow: Perfect!'
       },
       {
-        'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
-        'description': 'Biegunka'
+        'color': const Color.fromARGB(255, 158, 142, 2),
+        'description':
+            'Dark yellow: Your dog is dehydrated – encourage drinking more'
       },
       {
-        'icon': '🤧',
-        'color': Colors.orange.withOpacity(0.6),
-        'description': 'Niestrawność'
+        'color': Colors.red,
+        'description':
+            'Red or pink: Possible UTI, kidney infection or other illness – see a vet'
       },
       {
-        'icon': '😷',
-        'color': Colors.grey.withOpacity(0.6),
-        'description': 'Gazy'
+        'color': Colors.green,
+        'description': 'Green: Possible kidney problems – see a vet'
       },
       {
-        'icon': '😩',
-        'color': Colors.blueAccent.withOpacity(0.6),
-        'description': 'Zaparcia'
-      },
-      {
-        'icon': '🍔',
-        'color': Colors.redAccent.withOpacity(0.6),
-        'description': 'Głód'
+        'color': Colors.brown,
+        'description':
+            'Brown: Possible internal bleeding or toxic reaction – seek immediate medical attention'
       },
     ];
 
@@ -63,7 +55,7 @@ class NewStomachEvent extends ConsumerWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: stomachIssues.map((issue) {
+        children: urineColors.map((urine) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: GestureDetector(
@@ -72,17 +64,18 @@ class NewStomachEvent extends ConsumerWidget {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Confirm Stomach Issue'),
+                      title: const Text('Confirm Urine Color'),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                              'Are you sure you want to add this issue?'),
-                          Text(
-                            issue['icon'],
-                            style: const TextStyle(fontSize: 50),
+                              'Are you sure you want to add this urine color?'),
+                          Container(
+                            width: 50,
+                            height: 50,
+                            color: urine['color'],
                           ),
-                          Text(issue['description']),
+                          Text(urine['description']),
                         ],
                       ),
                       actions: <Widget>[
@@ -105,22 +98,21 @@ class NewStomachEvent extends ConsumerWidget {
                           onPressed: () {
                             String eventId = generateUniqueId();
 
-                            Stomach newStomach = Stomach(
+                            UrineEvent newUrine = UrineEvent(
                               id: generateUniqueId(),
                               eventId: eventId,
                               petId: petId,
-                              emoji: issue['icon'],
-                              description: issue['description'],
+                              color: urine['color'].toString(),
+                              description: urine['description'],
                               dateTime: eventDateTime,
                             );
 
                             ref
-                                .read(stomachServiceProvider)
-                                .addStomach(newStomach);
-
+                                .read(urineEventServiceProvider)
+                                .addUrineEvent(newUrine);
                             Event newEvent = Event(
                                 id: eventId,
-                                title: 'Stomach',
+                                title: 'Urine',
                                 eventDate: eventDateTime,
                                 dateWhenEventAdded: DateTime.now(),
                                 userId: FirebaseAuth.instance.currentUser!.uid,
@@ -131,19 +123,18 @@ class NewStomachEvent extends ConsumerWidget {
                                 waterId: '',
                                 noteId: '',
                                 pillId: '',
-                                description: issue['description'],
+                                description: urine['description'],
                                 proffesionId: 'BRAK',
                                 personId: 'BRAK',
                                 avatarImage: 'assets/images/dog_avatar_014.png',
-                                emoticon: issue['icon'],
+                                emoticon: '💦',
                                 moodId: '',
-                                stomachId: newStomach.id,
+                                stomachId: '',
                                 psychicId: '',
                                 stoolId: '',
-                                urineId: '');
+                                urineId: newUrine.id);
 
                             ref.read(eventServiceProvider).addEvent(newEvent);
-
                             Navigator.of(context)
                                 .pop(); // Close the confirmation dialog
                             Navigator.of(context)
@@ -155,13 +146,10 @@ class NewStomachEvent extends ConsumerWidget {
                   },
                 );
               },
-              child: CircleAvatar(
-                radius: iconSize / 2,
-                backgroundColor: issue['color'],
-                child: Text(
-                  issue['icon'],
-                  style: TextStyle(fontSize: iconSize / 2),
-                ),
+              child: Container(
+                width: iconSize,
+                height: iconSize,
+                color: urine['color'],
               ),
             ),
           );

@@ -7,9 +7,12 @@ import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/mood_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
 import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/psychic_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/providers/stomach_provider.dart';
+import 'package:pet_diary/src/providers/stool_event_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
+import 'package:pet_diary/src/providers/urine_event_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
 import 'package:pet_diary/src/providers/water_provider.dart';
 import 'package:pet_diary/src/providers/weight_provider.dart';
@@ -30,6 +33,9 @@ void deleteEvents(
   final String weightId = event.weightId;
   final String moodId = event.moodId;
   final String stomachId = event.stomachId;
+  final String psychicId = event.psychicId;
+  final String stoolId = event.stoolId;
+  final String urineId = event.urineId;
 
   ref.read(eventServiceProvider).deleteEvent(eventId);
 
@@ -82,6 +88,18 @@ void deleteEvents(
 
   if (stomachId.isNotEmpty) {
     await ref.read(stomachServiceProvider).deleteStomach(stomachId);
+  }
+
+  if (psychicId.isNotEmpty) {
+    await ref.read(psychicEventServiceProvider).deletePsychicEvent(psychicId);
+  }
+
+  if (stoolId.isNotEmpty) {
+    await ref.read(stoolEventServiceProvider).deleteStoolEvent(stoolId);
+  }
+
+  if (urineId.isNotEmpty) {
+    await ref.read(urineEventServiceProvider).deleteUrineEvent(urineId);
   }
 
   // ignore: use_build_context_synchronously
