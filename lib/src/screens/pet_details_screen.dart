@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
+import 'package:pet_diary/src/models/weight_model.dart';
 import 'package:pet_diary/src/services/pet_services.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
@@ -174,12 +175,20 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     loading: () => const Text('Loading...'),
                     error: (err, stack) => const Text('Error fetching weights'),
                     data: (weights) {
-                      String weight = weights
+                      var weight = weights
                           .firstWhere(
-                              (element) => element!.petId == widget.petId)!
-                          .weight
-                          .toString();
-                      return PetDetailIconWidget(petId: pet.id, weight: weight);
+                              (element) => element!.petId == widget.petId,
+                              orElse: () => Weight(
+                                    id: '',
+                                    weight: 0.0,
+                                    eventId: '',
+                                    petId: widget.petId,
+                                    dateTime: DateTime.now(),
+                                  ))!
+                          .weight;
+
+                      return PetDetailIconWidget(
+                          petId: pet.id, weight: weight.toString());
                     },
                   );
                 }),
