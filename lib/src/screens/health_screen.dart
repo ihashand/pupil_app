@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/health/event_list_item_builder.dart';
+import 'package:pet_diary/src/components/events/delete_event.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
+import 'package:pet_diary/src/components/events/new_note_event.dart';
+import 'package:pet_diary/src/components/events/new_temperature_event.dart';
+import 'package:pet_diary/src/components/events/new_walk_event.dart';
+import 'package:pet_diary/src/components/events/new_water_event.dart';
+import 'package:pet_diary/src/components/events/new_weight_event.dart';
+import 'package:pet_diary/src/components/events/new_mood_event.dart'; // Import NewMoodEvent
+import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
@@ -28,6 +35,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   String searchQuery = '';
   bool isUserInteracted = false;
 
+  Map<String, bool> expandedEvents = {};
+
   @override
   void initState() {
     super.initState();
@@ -38,21 +47,13 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eventStream = ref.watch(eventServiceProvider).getEventsStream();
     final eventDateTime = ref.watch(eventDateControllerProvider);
+    final asyncEvents = ref.watch(eventsProvider);
 
-    return StreamBuilder<List<Event>>(
-      stream: eventStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        final allEvents = snapshot.data ?? [];
+    return asyncEvents.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+      data: (allEvents) {
         final List<Event> petEvents =
             allEvents.where((event) => event.petId == widget.petId).toList();
         eventsOnSelectedDate = petEvents
@@ -63,9 +64,16 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
-              'Health',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            iconTheme: IconThemeData(
+              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            ),
+            title: Text(
+              'H e a l t h',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              ),
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
             toolbarHeight: 50,
@@ -77,8 +85,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   });
                 },
                 icon: Icon(
-                  isCalendarView ? Icons.grid_view : Icons.calendar_today,
-                ),
+                    isCalendarView ? Icons.grid_view : Icons.calendar_today,
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
               ),
             ],
           ),
@@ -110,6 +118,29 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     Expanded(child: buildHealthTileView(context, petEvents)),
                   ],
                 ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: const Color(0xff68a2b6),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return SingleChildScrollView(
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height / 2,
+                      ),
+                      child: _buildAddEventMenu(
+                          context, widget.petId, eventDateTime),
+                    ),
+                  );
+                },
+              );
+            },
+            child: Icon(
+              Icons.add,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
         );
       },
     );
@@ -130,7 +161,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
-          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Container(
@@ -169,15 +199,17 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     shape: BoxShape.circle,
                   ),
                   todayDecoration: BoxDecoration(
-                    color: Color.fromARGB(255, 118, 188, 245),
+                    color: Color(0xff68a2b6),
                     shape: BoxShape.circle,
                   ),
                 ),
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
-                  titleTextStyle:
-                      TextStyle(color: Theme.of(context).primaryColorDark),
+                  titleTextStyle: TextStyle(
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      fontWeight: FontWeight.bold),
                   leftChevronIcon: Icon(Icons.chevron_left,
                       color: Theme.of(context).primaryColorDark),
                   rightChevronIcon: Icon(Icons.chevron_right,
@@ -192,11 +224,70 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               itemCount: filteredEvents.length,
               itemBuilder: (context, index) {
                 final event = filteredEvents[index];
-                return EventListItemBuilder(
-                    ref: ref,
-                    context: context,
-                    event: event,
-                    petEvents: petEvents);
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      expandedEvents[event.id] =
+                          !(expandedEvents[event.id] ?? false);
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 10.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          event.emoticon,
+                          style: const TextStyle(fontSize: 30),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event.title,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .primaryColorDark
+                                      .withOpacity(0.6),
+                                ),
+                              ),
+                              if (expandedEvents[event.id] ?? false) ...[
+                                const SizedBox(
+                                  height: 5,
+                                ),
+                                Text(
+                                  event.description,
+                                ),
+                                Text(
+                                  DateFormat('dd-MM-yyyy')
+                                      .format(event.eventDate),
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete,
+                              color: Theme.of(context)
+                                  .primaryColorDark
+                                  .withOpacity(0.5)),
+                          onPressed: () =>
+                              _showDeleteConfirmation(context, event),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
             ),
           ),
@@ -256,5 +347,208 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       }
       return false;
     }).toList();
+  }
+
+  Widget _buildAddEventMenu(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Lifestyle',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      NewWalkEventWidget(
+                        iconSize: 50,
+                        iconColor: Colors.green.withOpacity(0.5),
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                      NewWaterEvent(
+                        iconSize: 50,
+                        iconColor: Colors.blue.withOpacity(0.5),
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                      NewTemperatureEvent(
+                        iconSize: 50,
+                        iconColor: Colors.red.withOpacity(0.5),
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                      NewWeightEvent(
+                        iconSize: 50,
+                        iconColor: Colors.orange.withOpacity(0.5),
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Notes',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: NewNoteEvent(
+                        iconSize: 50,
+                        iconColor: const Color.fromARGB(255, 234, 223, 105)
+                            .withOpacity(0.5),
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Meds',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => MedicineScreen(petId),
+                      ));
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.medication,
+                          size: 50,
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Mood',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            NewMoodEvent(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Event event) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Event'),
+          content: const Text('Are you sure you want to delete this event?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                var allEvents = [event];
+                deleteEvents(ref, context, allEvents, event.id);
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

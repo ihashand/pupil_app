@@ -2,17 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/models/pill_model.dart';
+import 'package:pet_diary/src/models/medicine_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
-import 'package:pet_diary/src/providers/pills_provider.dart';
+import 'package:pet_diary/src/providers/medicine_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 
-class AddReminderScreen extends ConsumerStatefulWidget {
+class MedicineNewReminderScreen extends ConsumerStatefulWidget {
   final String petId;
   final String newPillId;
-  final Pill? pill;
+  final Medicine? pill;
 
-  const AddReminderScreen({
+  const MedicineNewReminderScreen({
     super.key,
     required this.petId,
     required this.newPillId,
@@ -20,10 +20,11 @@ class AddReminderScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  createState() => _AddReminderScreenState();
+  createState() => _MedicineNewReminderScreenState();
 }
 
-class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
+class _MedicineNewReminderScreenState
+    extends ConsumerState<MedicineNewReminderScreen> {
   late List<bool> selectedDays = List.filled(7, false);
   late TextEditingController nameController;
   late TextEditingController descriptionController;
@@ -43,16 +44,33 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'N e w   r e m i n d e r',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: Text(
+          'N e w   r e m i n d e r',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+          ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        toolbarHeight: 50,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.check,
+            ),
+            onPressed: () => _saveReminder(),
+            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            iconSize: 35,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(21.0),
+          padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,7 +114,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                         });
                       },
                       child: Container(
-                        width: 40,
+                        width: 36,
                         height: 40,
                         margin: const EdgeInsets.only(right: 10),
                         decoration: BoxDecoration(
@@ -210,7 +228,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               const SizedBox(height: 5),
               SizedBox(
                 height: 60,
-                width: 350,
+                width: double.infinity,
                 child: TextFormField(
                   controller: nameController,
                   validator: (value) {
@@ -248,7 +266,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
               const SizedBox(height: 5),
               SizedBox(
                 height: 60,
-                width: 350,
+                width: double.infinity,
                 child: TextFormField(
                   controller: descriptionController,
                   decoration: InputDecoration(
@@ -273,26 +291,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 7.0),
-          child: ElevatedButton.icon(
-            onPressed: () => _saveReminder(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xff68a2b6),
-            ),
-            icon: const Icon(
-              Icons.save,
-              color: Colors.black,
-            ),
-            label: const Text(
-              'Save',
-              style: TextStyle(color: Colors.black, fontSize: 20),
-            ),
           ),
         ),
       ),
@@ -369,7 +367,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
       id: generateUniqueId(),
       title: nameController.text.isNotEmpty
           ? nameController.text
-          : ref.read(pillNameControllerProvider).text,
+          : ref.read(medicineNameControllerProvider).text,
       description: descriptionController.text.isNotEmpty
           ? descriptionController.text
           : 'Remember to use $repeatOptionText ',
@@ -386,6 +384,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     }
 
     ref.read(reminderServiceProvider).addReminder(newReminder);
+    ref.read(temporaryReminderIds.notifier).state!.add(newReminder.id);
 
     nameController.clear();
     descriptionController.clear();

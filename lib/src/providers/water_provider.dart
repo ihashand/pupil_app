@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/services/water_service.dart';
+import 'package:pet_diary/src/services/water_service.dart';
 
 final waterServiceProvider = Provider((ref) {
   return WaterService();

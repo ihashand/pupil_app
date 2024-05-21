@@ -4,8 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
-import 'package:pet_diary/src/data/services/hive_service.dart';
-import 'package:pet_diary/src/data/services/local_notification_service.dart';
+import 'package:pet_diary/src/services/local_notification_service.dart';
 import 'package:pet_diary/src/helper/notifier_service.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/bottom_app_bar.dart';
@@ -14,9 +13,6 @@ import 'package:intl/date_symbol_data_local.dart';
 // ignore: depend_on_referenced_packages
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-// ignore: constant_identifier_names
-const bool USE_EMULATOR = false;
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -28,8 +24,6 @@ Future<void> main() async {
   tz.initializeTimeZones();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final hiveService = HiveService();
-  await hiveService.initHive();
 
   await LocalNotificationService().setup();
   initializeDateFormatting('en_US', null);
@@ -62,15 +56,3 @@ class MyApp extends StatelessWidget {
     });
   }
 }
-
-// Future _connectToFirebaseEmulator() async {
-//   final localHostString = Platform.isAndroid ? '10.0.2.2' : 'localhost';
-
-//   FirebaseFirestore.instance.settings = Settings(
-//     host: '$localHostString:8080',
-//     sslEnabled: false,
-//     persistenceEnabled: false,
-//   );
-
-//   await FirebaseAuth.instance.useAuthEmulator(localHostString, 9099);
-// }

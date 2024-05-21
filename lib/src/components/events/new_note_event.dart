@@ -163,7 +163,9 @@ class _NewNoteEventState extends ConsumerState<NewNoteEvent> {
                               waterId: '',
                               noteId: newNote.id,
                               pillId: '',
-                              description: 'Title: ${newNote.title}',
+                              moodId: '',
+                              description:
+                                  '${newNote.title} /n ${newNote.contentText}',
                               proffesionId: 'BRAK',
                               personId: 'BRAK',
                               avatarImage: 'assets/images/dog_avatar_014.png',
@@ -172,6 +174,7 @@ class _NewNoteEventState extends ConsumerState<NewNoteEvent> {
                           ref.read(eventServiceProvider).addEvent(newEvent);
                           ref.read(noteServiceProvider).addNote(newNote);
 
+                          Navigator.of(context).pop();
                           Navigator.of(context).pop();
                         },
                       ),

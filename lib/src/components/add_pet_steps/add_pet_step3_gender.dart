@@ -34,7 +34,7 @@ class AddPetStep3Gender extends StatelessWidget {
                         totalSegments: 5,
                         filledSegments: 3,
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        fillColor: const Color(0xffdfd785),
+                        fillColor: const Color(0xffdfd785).withOpacity(0.7),
                       ),
                       const SizedBox(
                         height: 150,
@@ -50,7 +50,7 @@ class AddPetStep3Gender extends StatelessWidget {
                       const SizedBox(height: 40),
                       SizedBox(
                         height: 60,
-                        width: 330,
+                        width: 200,
                         child: DropdownButtonFormField<String>(
                           items: ['Male', 'Female'].map((String value) {
                             return DropdownMenuItem<String>(
@@ -97,7 +97,7 @@ class AddPetStep3Gender extends StatelessWidget {
                           style: TextStyle(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: 16)),
-                      backgroundColor: const Color(0xffdfd785),
+                      backgroundColor: const Color(0xff68a2b6).withOpacity(0.7),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0)),
                     ),

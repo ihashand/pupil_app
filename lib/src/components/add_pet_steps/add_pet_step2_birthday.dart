@@ -43,7 +43,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                         totalSegments: 5,
                         filledSegments: 2,
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        fillColor: const Color(0xffdfd785),
+                        fillColor: const Color(0xffdfd785).withOpacity(0.7),
                       ),
                       const SizedBox(
                         height: 150,
@@ -75,8 +75,9 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                                         foregroundColor: Colors.black,
                                       ),
                                     ),
-                                    colorScheme: const ColorScheme.light(
-                                      primary: Color(0xffdfd785),
+                                    colorScheme: ColorScheme.light(
+                                      primary: const Color(0xffdfd785)
+                                          .withOpacity(0.7),
                                       onPrimary: Colors.black,
                                     ),
                                   ),
@@ -96,7 +97,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                           foregroundColor: Theme.of(context).primaryColorDark,
                           backgroundColor: const Color(0xffdfd785),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 100, vertical: 10),
+                              horizontal: 20, vertical: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
@@ -125,7 +126,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                           style: TextStyle(
                               color: Theme.of(context).primaryColorDark,
                               fontSize: 16)),
-                      backgroundColor: const Color(0xffdfd785),
+                      backgroundColor: const Color(0xff68a2b6).withOpacity(0.7),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0)),
                     ),

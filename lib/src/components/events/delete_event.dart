@@ -5,7 +5,7 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/note_provider.dart';
-import 'package:pet_diary/src/providers/pills_provider.dart';
+import 'package:pet_diary/src/providers/medicine_provider.dart';
 import 'package:pet_diary/src/providers/reminder_provider.dart';
 import 'package:pet_diary/src/providers/temperature_provider.dart';
 import 'package:pet_diary/src/providers/walk_provider.dart';
@@ -69,10 +69,8 @@ void deleteEvents(
       }
     }
 
-    await ref.read(pillServiceProvider).deletePill(pillId);
+    await ref.read(medicineServiceProvider).deleteMedicine(pillId);
   }
-
-  await Future.delayed(const Duration(seconds: 2));
 
   // ignore: use_build_context_synchronously
   Navigator.of(context).pop();

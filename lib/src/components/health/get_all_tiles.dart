@@ -8,7 +8,7 @@ List<TileInfoModel> getAllTiles(
   return [
     TileInfoModel(
       Icons.directions_walk,
-      'Activity',
+      'Walks',
       Colors.blue,
       ['activity', 'walk', 'wandern', 'fit', 'exercise', 'running'],
       onTap: () {

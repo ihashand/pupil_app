@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,17 +6,11 @@ import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
-import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/providers/avatar_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/details_screen.dart';
+import 'package:pet_diary/src/screens/pet_details_screen.dart';
 import 'settings_screen.dart';
-
-final avatarProvider = StateProvider<String>((ref) {
-  return FirebaseAuth.instance.currentUser?.photoURL ??
-      'assets/images/dog_avatar_09.png';
-});
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -27,27 +20,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  StreamSubscription<List<Pet>>? _petStreamSubscription;
-  bool _initialized = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initialized) {
-      _petStreamSubscription =
-          ref.watch(petServiceProvider).getPets().listen((pets) {
-        setState(() {});
-      });
-      _initialized = true;
-    }
-  }
-
-  @override
-  void dispose() {
-    _petStreamSubscription?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final avatarUrl = ref.watch(avatarProvider);
@@ -120,14 +92,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-            StreamBuilder<List<Pet>>(
-              stream: ref.watch(petServiceProvider).getPets(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Text('Error fetching pets');
-                }
-                if (snapshot.hasData) {
-                  final pets = snapshot.data!;
+            Consumer(builder: (context, ref, _) {
+              final asyncPets = ref.watch(petsProvider);
+
+              return asyncPets.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (err, stack) => const Text('Error fetching pets'),
+                data: (pets) {
                   return SizedBox(
                     height: 220,
                     child: ListView.builder(
@@ -165,10 +136,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       },
                     ),
                   );
-                }
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
+                },
+              );
+            }),
             SizedBox(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -264,43 +234,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            StreamBuilder<List<Event>>(
-              stream: ref.watch(eventServiceProvider).getEventsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Text('Error fetching pets');
-                }
-                if (snapshot.hasData) {
-                  final events = snapshot.data!;
+            Consumer(builder: (context, ref, _) {
+              final asyncEvents = ref.watch(eventsProvider);
 
+              return asyncEvents.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (err, stack) => const Text('Error fetching events'),
+                data: (events) {
+                  if (events.isEmpty) {
+                    return const Text(
+                      'No events for today or in the future',
+                    );
+                  }
                   return SizedBox(
                     height: 380,
                     child: ListView.builder(
                       scrollDirection: Axis.vertical,
                       itemCount: events.length,
                       itemBuilder: (context, index) {
-                        if (events.isEmpty) {
-                          return const Text(
-                            'No events for today or in the future',
-                          );
-                        } else {
-                          final currentEvent = events[index];
-                          return SizedBox(
-                            height: 93,
-                            width: 400,
-                            child: EventTile(
-                                event: currentEvent,
-                                backgroundColor:
-                                    const Color(0xff68a2b6).withOpacity(0.5)),
-                          );
-                        }
+                        final currentEvent = events[index];
+                        return SizedBox(
+                          height: 93,
+                          width: 400,
+                          child: EventTile(
+                              event: currentEvent,
+                              backgroundColor:
+                                  const Color(0xff68a2b6).withOpacity(0.5)),
+                        );
                       },
                     ),
                   );
-                }
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
+                },
+              );
+            }),
           ],
         ),
       ),

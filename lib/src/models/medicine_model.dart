@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Pill {
+class Medicine {
   late String id = '';
   late String name;
   DateTime? addDate;
@@ -15,7 +15,7 @@ class Pill {
   bool remindersEnabled = false;
   String emoji = '';
 
-  Pill({
+  Medicine({
     required this.name,
     required this.eventId,
     required this.petId,
@@ -30,7 +30,7 @@ class Pill {
     this.emoji = '',
   });
 
-  Pill.fromDocument(DocumentSnapshot doc) {
+  Medicine.fromDocument(DocumentSnapshot doc) {
     id = doc.id;
     name = doc.get('name') ?? '';
     eventId = doc.get('eventId') ?? '';

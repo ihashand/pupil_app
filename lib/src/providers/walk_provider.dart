@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/data/services/walk_service.dart';
+import 'package:pet_diary/src/services/walk_service.dart';
+import 'package:pet_diary/src/models/walk_model.dart';
 
 final walkServiceProvider = Provider((ref) {
   return WalkService();
@@ -16,4 +17,8 @@ final walkControllerProvider = Provider<TextEditingController>((ref) {
 
 final walkDateControllerProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
+});
+
+final walksProvider = StreamProvider<List<Walk?>>((ref) {
+  return WalkService().getWalksStream();
 });
