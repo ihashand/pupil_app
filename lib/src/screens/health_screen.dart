@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
 import 'package:pet_diary/src/components/events/event_delete_func.dart';
+import 'package:pet_diary/src/components/events/event_preferences_dialog.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';
 import 'package:pet_diary/src/components/events/event_stomach.dart';
@@ -16,6 +18,8 @@ import 'package:pet_diary/src/components/events/event_walk.dart';
 import 'package:pet_diary/src/components/events/event_water.dart';
 import 'package:pet_diary/src/components/events/event_weight.dart';
 import 'package:pet_diary/src/components/events/event_mood.dart';
+import 'package:pet_diary/src/models/event_preferences.dart';
+import 'package:pet_diary/src/providers/event_preferences_provider.dart';
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
@@ -49,12 +53,19 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     searchController = TextEditingController();
     eventDateTime = DateTime.now();
     selectedDateTime = DateTime.now();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      ref
+          .read(preferencesProvider.notifier)
+          .setUserIdAndPetId(user.uid, widget.petId);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final eventDateTime = ref.watch(eventDateControllerProvider);
     final asyncEvents = ref.watch(eventsProvider);
+    final preferences = ref.watch(preferencesProvider);
 
     return asyncEvents.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -136,7 +147,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         maxHeight: MediaQuery.of(context).size.height / 2,
                       ),
                       child: _buildAddEventMenu(
-                          context, widget.petId, eventDateTime),
+                          context, widget.petId, eventDateTime, preferences),
                     ),
                   );
                 },
@@ -355,398 +366,562 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     }).toList();
   }
 
-  Widget _buildAddEventMenu(
-      BuildContext context, String petId, DateTime eventDateTime) {
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Lifestyle',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  Widget _buildAddEventMenu(BuildContext context, String petId,
+      DateTime eventDateTime, PreferencesModel preferences) {
+    List<Widget Function()> sectionBuilders = [
+      () => buildLifestyleSection(context, petId, eventDateTime),
+      () => buildCareSection(context, petId, eventDateTime),
+      () => buildServicesSection(context, petId, eventDateTime),
+      () => buildPsychicIssuesSection(context, petId, eventDateTime),
+      () => buildStoolTypeSection(context, petId, eventDateTime),
+      () => buildUrineColorSection(context, petId, eventDateTime),
+      () => buildMoodSection(context, petId, eventDateTime),
+      () => buildStomachIssuesSection(context, petId, eventDateTime),
+      () => buildNotesSection(context, petId, eventDateTime),
+      () => buildMedsSection(context, petId),
+    ];
+
+    List<Widget> visibleSections = preferences.sectionOrder
+        .where((section) => preferences.visibleSections.contains(section))
+        .map((section) {
+      switch (section) {
+        case 'Lifestyle':
+          return sectionBuilders[0]();
+        case 'Care':
+          return sectionBuilders[1]();
+        case 'Services':
+          return sectionBuilders[2]();
+        case 'Psychic Issues':
+          return sectionBuilders[3]();
+        case 'Stool Type':
+          return sectionBuilders[4]();
+        case 'Urine Color':
+          return sectionBuilders[5]();
+        case 'Mood':
+          return sectionBuilders[6]();
+        case 'Stomach Issues':
+          return sectionBuilders[7]();
+        case 'Notes':
+          return sectionBuilders[8]();
+        case 'Meds':
+          return sectionBuilders[9]();
+        default:
+          return Container();
+      }
+    }).toList();
+
+    return GestureDetector(
+      onLongPress: () => _showPreferencesDialog(context),
+      child: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          child: visibleSections.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      EventWalk(
-                        iconSize: 50,
-                        iconColor: Colors.green.withOpacity(0.5),
-                        petId: petId,
-                        eventDateTime: eventDateTime,
+                      Text(
+                        'No sections available to display.',
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                        textAlign: TextAlign.center,
                       ),
-                      EventWater(
-                        iconSize: 50,
-                        iconColor: Colors.blue.withOpacity(0.5),
-                        petId: petId,
-                        eventDateTime: eventDateTime,
-                      ),
-                      EventTemperature(
-                        iconSize: 50,
-                        iconColor: Colors.red.withOpacity(0.5),
-                        petId: petId,
-                        eventDateTime: eventDateTime,
-                      ),
-                      EventWeight(
-                        iconSize: 50,
-                        iconColor: Colors.orange.withOpacity(0.5),
-                        petId: petId,
-                        eventDateTime: eventDateTime,
+                      const SizedBox(height: 10),
+                      Text(
+                        'Long press to configure preferences.',
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Care',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            EventCare(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
+                )
+              : Column(
+                  children: visibleSections
+                      .expand((section) => [
+                            Row(
+                              children: [
+                                const SizedBox(width: 8),
+                                Expanded(child: section),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Services',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            EventService(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                              serviceType: 'Groomer',
-                            ),
-                            EventService(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                              serviceType: 'Vet',
-                            ),
-                            EventService(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                              serviceType: 'Training',
-                            ),
-                            EventService(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                              serviceType: 'Daycare',
-                            ),
-                            EventService(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                              serviceType: 'Hotel',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Psychic Issues',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        EventPsychic(
-                          iconSize: 50,
-                          petId: petId,
-                          eventDateTime: eventDateTime,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Stool Type',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        EventStool(
-                          iconSize: 50,
-                          petId: petId,
-                          eventDateTime: eventDateTime,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Urine Color',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        EventUrine(
-                          iconSize: 50,
-                          petId: petId,
-                          eventDateTime: eventDateTime,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Mood',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            EventMood(
-                              iconSize: 50,
-                              petId: petId,
-                              eventDateTime: eventDateTime,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Stomach Issues',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        EventStomach(
-                          iconSize: 50,
-                          petId: petId,
-                          eventDateTime: eventDateTime,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Notes',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: EventNote(
-                        iconSize: 50,
-                        iconColor: const Color.fromARGB(255, 234, 223, 105)
-                            .withOpacity(0.5),
-                        petId: petId,
-                        eventDateTime: eventDateTime,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Meds',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => MedicineScreen(petId),
-                      ));
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.medication,
-                          size: 50,
-                          color: Colors.grey.withOpacity(0.5),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+                            const SizedBox(height: 20)
+                          ])
+                      .toList(),
+                ),
         ),
+      ),
+    );
+  }
+
+  void _showPreferencesDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return PreferencesDialog(petId: widget.petId);
+      },
+    );
+  }
+
+  Widget buildLifestyleSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Lifestyle',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              EventWalk(
+                iconSize: 50,
+                iconColor: Colors.green.withOpacity(0.5),
+                petId: petId,
+                eventDateTime: eventDateTime,
+              ),
+              EventWater(
+                iconSize: 50,
+                iconColor: Colors.blue.withOpacity(0.5),
+                petId: petId,
+                eventDateTime: eventDateTime,
+              ),
+              EventTemperature(
+                iconSize: 50,
+                iconColor: Colors.red.withOpacity(0.5),
+                petId: petId,
+                eventDateTime: eventDateTime,
+              ),
+              EventWeight(
+                iconSize: 50,
+                iconColor: Colors.orange.withOpacity(0.5),
+                petId: petId,
+                eventDateTime: eventDateTime,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildCareSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Care',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    EventCare(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildServicesSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Services',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    EventService(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                      serviceType: 'Groomer',
+                    ),
+                    EventService(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                      serviceType: 'Vet',
+                    ),
+                    EventService(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                      serviceType: 'Training',
+                    ),
+                    EventService(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                      serviceType: 'Daycare',
+                    ),
+                    EventService(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                      serviceType: 'Hotel',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildPsychicIssuesSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Psychic Issues',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                EventPsychic(
+                  iconSize: 50,
+                  petId: petId,
+                  eventDateTime: eventDateTime,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildStoolTypeSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Stool Type',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                EventStool(
+                  iconSize: 50,
+                  petId: petId,
+                  eventDateTime: eventDateTime,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildUrineColorSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Urine Color',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                EventUrine(
+                  iconSize: 50,
+                  petId: petId,
+                  eventDateTime: eventDateTime,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildMoodSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Mood',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    EventMood(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildStomachIssuesSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Stomach Issues',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                EventStomach(
+                  iconSize: 50,
+                  petId: petId,
+                  eventDateTime: eventDateTime,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildNotesSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Notes',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: EventNote(
+                iconSize: 50,
+                iconColor:
+                    const Color.fromARGB(255, 234, 223, 105).withOpacity(0.5),
+                petId: petId,
+                eventDateTime: eventDateTime,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildMedsSection(BuildContext context, String petId) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              SizedBox(width: 8),
+              Text(
+                'Meds',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          InkWell(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => MedicineScreen(petId),
+              ));
+            },
+            child: Container(
+              width: double.infinity,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.medication,
+                  size: 50,
+                  color: Colors.grey.withOpacity(0.5),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
