@@ -22,6 +22,7 @@ class Event {
   late String description;
   late String proffesionId;
   late String personId;
+  late String careId;
   late String avatarImage;
   late String emoticon;
 
@@ -48,6 +49,7 @@ class Event {
       required this.stoolId,
       required this.urineId,
       required this.serviceId,
+      required this.careId,
       required this.psychicId});
 
   Event.fromDocument(DocumentSnapshot doc) {
@@ -75,6 +77,7 @@ class Event {
     urineId = doc.get('urineId') ?? '';
     psychicId = doc.get('psychicId') ?? '';
     serviceId = doc.get('serviceId') ?? '';
+    careId = doc.get('careId') ?? '';
     avatarImage = doc.get('avatarImage') ?? '';
     emoticon = doc.get('emoticon') ?? '';
   }
@@ -101,6 +104,7 @@ class Event {
       'psychicId': psychicId,
       'stoolId': stoolId,
       'urineId': urineId,
+      'careId': careId,
       'stomachId': stomachId,
       'serviceId': serviceId
     };

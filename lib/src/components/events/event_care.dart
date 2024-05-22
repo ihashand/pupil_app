@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/event_stomach_model.dart';
+import 'package:pet_diary/src/models/event_care_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/event_stomach_provider.dart';
+import 'package:pet_diary/src/providers/event_care_provider.dart';
 
-class EventStomach extends ConsumerWidget {
+class EventCare extends ConsumerWidget {
   final double iconSize;
   final String petId;
   final DateTime eventDateTime;
 
-  const EventStomach({
+  const EventCare({
     super.key,
     required this.iconSize,
     required this.petId,
@@ -21,41 +21,51 @@ class EventStomach extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<Map<String, dynamic>> stomachIssues = [
+    final List<Map<String, dynamic>> careOptions = [
       {
-        'icon': '🤢',
+        'icon': '🛁',
+        'color': Colors.blue.withOpacity(0.6),
+        'description': 'Mycie'
+      },
+      {
+        'icon': '✂️',
+        'color': Colors.red.withOpacity(0.6),
+        'description': 'Obcinanie paznokci'
+      },
+      {
+        'icon': '🧼',
         'color': Colors.green.withOpacity(0.6),
-        'description': 'Wzdęcia'
+        'description': 'Czesanie'
       },
       {
-        'icon': '🤮',
-        'color': Colors.lightGreen.withOpacity(0.6),
-        'description': 'Wymioty'
+        'icon': '👀',
+        'color': Colors.yellow.withOpacity(0.6),
+        'description': 'Mycie oczu'
       },
       {
-        'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
-        'description': 'Biegunka'
-      },
-      {
-        'icon': '🤧',
+        'icon': '👂',
         'color': Colors.orange.withOpacity(0.6),
-        'description': 'Niestrawność'
+        'description': 'Mycie uszu'
       },
       {
-        'icon': '😷',
-        'color': Colors.grey.withOpacity(0.6),
-        'description': 'Gazy'
+        'icon': '🧴',
+        'color': Colors.pink.withOpacity(0.6),
+        'description': 'Krem'
       },
       {
-        'icon': '😩',
-        'color': Colors.blueAccent.withOpacity(0.6),
-        'description': 'Zaparcia'
+        'icon': '🪲',
+        'color': Colors.brown.withOpacity(0.6),
+        'description': 'Kleszcz'
       },
       {
-        'icon': '🍔',
-        'color': Colors.redAccent.withOpacity(0.6),
-        'description': 'Głód'
+        'icon': '🐜',
+        'color': Colors.purple.withOpacity(0.6),
+        'description': 'Pchły'
+      },
+      {
+        'icon': '🪥',
+        'color': Colors.teal.withOpacity(0.6),
+        'description': 'Mycie zębów'
       },
     ];
 
@@ -63,7 +73,7 @@ class EventStomach extends ConsumerWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: stomachIssues.map((issue) {
+        children: careOptions.map((option) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: GestureDetector(
@@ -72,17 +82,17 @@ class EventStomach extends ConsumerWidget {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Confirm Stomach Issue'),
+                      title: const Text('Confirm Care Option'),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                              'Are you sure you want to add this issue?'),
+                              'Are you sure you want to add this care option?'),
                           Text(
-                            issue['icon'],
+                            option['icon'],
                             style: const TextStyle(fontSize: 50),
                           ),
-                          Text(issue['description']),
+                          Text(option['description']),
                         ],
                       ),
                       actions: <Widget>[
@@ -105,22 +115,21 @@ class EventStomach extends ConsumerWidget {
                           onPressed: () {
                             String eventId = generateUniqueId();
 
-                            EventStomachModel newStomach = EventStomachModel(
+                            EventCareModel newCare = EventCareModel(
                               id: generateUniqueId(),
                               eventId: eventId,
                               petId: petId,
-                              emoji: issue['icon'],
-                              description: issue['description'],
+                              careType: option['description'],
+                              emoji: option['icon'],
+                              description: option['description'],
                               dateTime: eventDateTime,
                             );
 
-                            ref
-                                .read(eventStomachServiceProvider)
-                                .addStomach(newStomach);
+                            ref.read(eventCareServiceProvider).addCare(newCare);
 
                             Event newEvent = Event(
                                 id: eventId,
-                                title: 'Stomach',
+                                title: 'Care',
                                 eventDate: eventDateTime,
                                 dateWhenEventAdded: DateTime.now(),
                                 userId: FirebaseAuth.instance.currentUser!.uid,
@@ -131,18 +140,18 @@ class EventStomach extends ConsumerWidget {
                                 waterId: '',
                                 noteId: '',
                                 pillId: '',
-                                description: issue['description'],
+                                description: option['description'],
                                 proffesionId: 'BRAK',
                                 personId: 'BRAK',
                                 avatarImage: 'assets/images/dog_avatar_014.png',
-                                emoticon: issue['icon'],
+                                emoticon: option['icon'],
                                 moodId: '',
-                                stomachId: newStomach.id,
+                                stomachId: '',
                                 psychicId: '',
                                 stoolId: '',
                                 urineId: '',
                                 serviceId: '',
-                                careId: '');
+                                careId: newCare.id);
 
                             ref.read(eventServiceProvider).addEvent(newEvent);
 
@@ -159,9 +168,9 @@ class EventStomach extends ConsumerWidget {
               },
               child: CircleAvatar(
                 radius: iconSize / 2,
-                backgroundColor: issue['color'],
+                backgroundColor: option['color'],
                 child: Text(
-                  issue['icon'],
+                  option['icon'],
                   style: TextStyle(fontSize: iconSize / 2),
                 ),
               ),

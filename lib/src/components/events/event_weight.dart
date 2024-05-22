@@ -245,7 +245,8 @@ class _EventWeightState extends ConsumerState<EventWeight> {
                                   psychicId: '',
                                   stoolId: '',
                                   urineId: '',
-                                  serviceId: '');
+                                  serviceId: '',
+                                  careId: '');
 
                               ref.read(eventServiceProvider).addEvent(newEvent);
                               ref

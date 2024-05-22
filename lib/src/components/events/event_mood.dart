@@ -150,7 +150,8 @@ class EventMood extends ConsumerWidget {
                               psychicId: '',
                               stoolId: '',
                               urineId: '',
-                              serviceId: '');
+                              serviceId: '',
+                              careId: '');
 
                           ref.read(eventServiceProvider).addEvent(newEvent);
 

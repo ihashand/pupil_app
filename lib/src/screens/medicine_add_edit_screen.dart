@@ -427,6 +427,7 @@ Future<void> savePill(
         stoolId: '',
         urineId: '',
         serviceId: '',
+        careId: '',
       );
 
       await ref.read(eventServiceProvider).addEvent(newEvent);

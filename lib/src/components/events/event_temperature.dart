@@ -245,7 +245,8 @@ class _NewTemperatureEventState extends ConsumerState<EventTemperature> {
                                   psychicId: '',
                                   stoolId: '',
                                   urineId: '',
-                                  serviceId: '');
+                                  serviceId: '',
+                                  careId: '');
 
                               ref
                                   .read(eventTemperatureServiceProvider)

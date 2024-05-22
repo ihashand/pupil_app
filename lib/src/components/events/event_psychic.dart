@@ -155,7 +155,8 @@ class EventPsychic extends ConsumerWidget {
                                 psychicId: newPsychic.id,
                                 stoolId: '',
                                 urineId: '',
-                                serviceId: '');
+                                serviceId: '',
+                                careId: '');
 
                             ref.read(eventServiceProvider).addEvent(newEvent);
                             Navigator.of(context)

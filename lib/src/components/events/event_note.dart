@@ -174,7 +174,8 @@ class _EventNoteState extends ConsumerState<EventNote> {
                               psychicId: '',
                               stoolId: '',
                               urineId: '',
-                              serviceId: '');
+                              serviceId: '',
+                              careId: '');
 
                           ref.read(eventServiceProvider).addEvent(newEvent);
                           ref.read(eventNoteServiceProvider).addNote(newNote);

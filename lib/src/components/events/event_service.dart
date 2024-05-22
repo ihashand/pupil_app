@@ -123,6 +123,7 @@ class EventService extends ConsumerWidget {
                         stoolId: '',
                         urineId: '',
                         serviceId: newService.id,
+                        careId: '',
                       );
 
                       ref.read(eventServiceProvider).addEvent(newEvent);

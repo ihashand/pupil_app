@@ -133,7 +133,8 @@ class EventUrine extends ConsumerWidget {
                                 psychicId: '',
                                 stoolId: '',
                                 urineId: newUrine.id,
-                                serviceId: '');
+                                serviceId: '',
+                                careId: '');
 
                             ref.read(eventServiceProvider).addEvent(newEvent);
                             Navigator.of(context)

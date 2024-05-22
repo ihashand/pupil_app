@@ -244,7 +244,8 @@ class _EventWaterState extends ConsumerState<EventWater> {
                                   psychicId: '',
                                   stoolId: '',
                                   urineId: '',
-                                  serviceId: '');
+                                  serviceId: '',
+                                  careId: '');
 
                               ref.read(eventServiceProvider).addEvent(newEvent);
                               ref

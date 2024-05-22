@@ -324,7 +324,8 @@ class _EventWalkState extends ConsumerState<EventWalk> {
         psychicId: '',
         stoolId: '',
         urineId: '',
-        serviceId: '');
+        serviceId: '',
+        careId: '');
     ref.read(eventServiceProvider).addEvent(newEvent);
 
     ref.read(eventWalkServiceProvider).addWalk(newWalk);

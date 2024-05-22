@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/loading_dialog.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/providers/event_care_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/event_medicine_provider.dart';
 import 'package:pet_diary/src/providers/event_mood_provider.dart';
@@ -39,6 +40,7 @@ void eventDeleteFunc(
   final String stoolId = event.stoolId;
   final String urineId = event.urineId;
   final String serviceId = event.serviceId;
+  final String careId = event.careId;
 
   ref.read(eventServiceProvider).deleteEvent(eventId);
 
@@ -111,6 +113,10 @@ void eventDeleteFunc(
 
   if (serviceId.isNotEmpty) {
     await ref.read(eventServiceServiceProvider).deleteServiceEvent(serviceId);
+  }
+
+  if (careId.isNotEmpty) {
+    await ref.read(eventCareServiceProvider).deleteCare(careId);
   }
 
   Navigator.of(context).pop();
