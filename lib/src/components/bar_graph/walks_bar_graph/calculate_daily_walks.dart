@@ -1,11 +1,11 @@
-import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
 
-List<double> calculateDailyWalks(List<Walk?> walks) {
+List<double> calculateDailyWalks(List<EventWalkModel?> walks) {
   // Pobierz dzisiejszą datę
   DateTime today = DateTime.now();
 
   // Filtruj spacery dodane dzisiaj
-  List<Walk?> todayWalks = walks.where((walk) {
+  List<EventWalkModel?> todayWalks = walks.where((walk) {
     if (walk != null) {
       DateTime walkDate = walk.dateTime;
       return walkDate.year == today.year &&

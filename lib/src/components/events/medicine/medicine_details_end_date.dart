@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
 
 class MedicinieDetailsEndDate extends ConsumerWidget {
   const MedicinieDetailsEndDate({
@@ -9,7 +9,7 @@ class MedicinieDetailsEndDate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    DateTime endDate = ref.watch(medicineEndDateControllerProvider);
+    DateTime endDate = ref.watch(eventMedicineEndDateControllerProvider);
     return GestureDetector(
         onTap: () async {
           final DateTime? picked = await showDatePicker(
@@ -37,7 +37,7 @@ class MedicinieDetailsEndDate extends ConsumerWidget {
                 );
               });
           if (picked != null && picked != endDate) {
-            ref.watch(medicineEndDateControllerProvider.notifier).state =
+            ref.watch(eventMedicineEndDateControllerProvider.notifier).state =
                 picked;
           }
         },

@@ -2,7 +2,6 @@ import 'package:hive/hive.dart';
 
 part 'dog_breed_model.g.dart';
 
-@HiveType(typeId: 9)
 class DogBreed {
   @HiveField(0)
   final String name;

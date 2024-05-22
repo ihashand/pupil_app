@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
-import 'package:pet_diary/src/models/weight_model.dart';
+import 'package:pet_diary/src/models/event_weight_model.dart';
 import 'package:pet_diary/src/services/pet_services.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
@@ -13,7 +13,7 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/weight_provider.dart';
+import 'package:pet_diary/src/providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
@@ -170,7 +170,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     buttonColor: healthButtonColor, petId: widget.petId),
                 const SizedBox(height: 10),
                 Consumer(builder: (context, ref, _) {
-                  final asyncWeights = ref.watch(weightsProvider);
+                  final asyncWeights = ref.watch(eventWeightsProvider);
                   return asyncWeights.when(
                     loading: () => const Text('Loading...'),
                     error: (err, stack) => const Text('Error fetching weights'),
@@ -178,7 +178,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                       var weight = weights
                           .firstWhere(
                               (element) => element!.petId == widget.petId,
-                              orElse: () => Weight(
+                              orElse: () => EventWeightModel(
                                     id: '',
                                     weight: 0.0,
                                     eventId: '',

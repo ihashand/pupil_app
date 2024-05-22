@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
 
 class MedicineDetailsEmoji extends ConsumerStatefulWidget {
   final Function(bool) onShowMoreChanged;
@@ -35,7 +35,7 @@ class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
   @override
   void initState() {
     super.initState();
-    selectedEmoji = ref.read(medicineEmojiProvider).text;
+    selectedEmoji = ref.read(eventMedicineEmojiProvider).text;
   }
 
   @override
@@ -79,7 +79,7 @@ class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
                 onTap: () {
                   setState(() {
                     selectedEmoji = emoji;
-                    ref.read(medicineEmojiProvider).text = emoji;
+                    ref.read(eventMedicineEmojiProvider).text = emoji;
                   });
                 },
                 child: CircleAvatar(

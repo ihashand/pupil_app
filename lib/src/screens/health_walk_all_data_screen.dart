@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/components/events/event_delete_func.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/walk_model.dart';
-import 'package:pet_diary/src/providers/walk_provider.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/screens/health_walk_details_screen.dart';
 
 enum SortOrder { newest, oldest }
@@ -59,13 +59,13 @@ class _HealthWalkAllDataScreenState
         ],
       ),
       body: Consumer(builder: (context, ref, _) {
-        final asyncWalks = ref.watch(walksProvider);
+        final asyncWalks = ref.watch(eventWalksProvider);
 
         return asyncWalks.when(
           loading: () => const CircularProgressIndicator(),
           error: (err, stack) => Text('Error fetching walks: $err'),
           data: (walks) {
-            List<Walk?> petWalks =
+            List<EventWalkModel?> petWalks =
                 walks.where((walk) => walk!.petId == widget.petId).toList();
 
             petWalks.sort((a, b) {
@@ -129,7 +129,8 @@ class _HealthWalkAllDataScreenState
     );
   }
 
-  void _confirmDelete(BuildContext context, Walk? walk, WidgetRef ref) {
+  void _confirmDelete(
+      BuildContext context, EventWalkModel? walk, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -162,8 +163,8 @@ class _HealthWalkAllDataScreenState
                     color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
               ),
               onPressed: () {
-                deleteEvents(ref, context, widget.petEvents, walk!.eventId);
-                ref.read(walkServiceProvider).deleteWalk(walk.id);
+                eventDeleteFunc(ref, context, widget.petEvents, walk!.eventId);
+                ref.read(eventWalkServiceProvider).deleteWalk(walk.id);
                 Navigator.of(context).pop();
               },
             ),

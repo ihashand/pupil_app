@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
 
 class DosagePetDetails extends ConsumerWidget {
   const DosagePetDetails({
@@ -32,7 +32,7 @@ class DosagePetDetails extends ConsumerWidget {
                       );
                     }),
                     onSelectedItemChanged: (int value) {
-                      ref.read(medicineDosageProvider.notifier).state =
+                      ref.read(eventMedicineDosageProvider.notifier).state =
                           value + 1;
                     },
                   ),
@@ -53,7 +53,8 @@ class DosagePetDetails extends ConsumerWidget {
             ),
             child: Consumer(
               builder: (context, ref, child) {
-                final deprecatedStorageInfo = ref.watch(medicineDosageProvider);
+                final deprecatedStorageInfo =
+                    ref.watch(eventMedicineDosageProvider);
                 return Text(deprecatedStorageInfo?.toString() ?? 'Select');
               },
             ),

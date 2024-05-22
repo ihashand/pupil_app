@@ -13,17 +13,17 @@ import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
-import '../providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
+import '../providers/event_medicine_provider.dart';
 
 bool cleanerOfFields = false;
 
 class MedicineAddEditScreen extends ConsumerStatefulWidget {
-  final Medicine? medicine;
+  final EventMedicineModel? medicine;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final String petId;
   final String medicineId;
@@ -48,33 +48,34 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
   Widget build(BuildContext context) {
     if (widget.medicine != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(medicineNameControllerProvider).text = widget.medicine!.name;
-        if (ref.read(medicineDateControllerProvider.notifier).state !=
+        ref.read(eventMedicineNameControllerProvider).text =
+            widget.medicine!.name;
+        if (ref.read(eventMedicineDateControllerProvider.notifier).state !=
             widget.medicine!.addDate) {
-          ref.read(medicineDateControllerProvider.notifier).state =
+          ref.read(eventMedicineDateControllerProvider.notifier).state =
               widget.medicine!.addDate ?? DateTime.now();
         }
         if (widget.medicine!.frequency != null) {
-          ref.read(medicineFrequencyProvider.notifier).state =
+          ref.read(eventMedicineFrequencyProvider.notifier).state =
               int.tryParse(widget.medicine!.frequency!);
         }
         if (widget.medicine!.dosage != null) {
-          ref.read(medicineDosageProvider.notifier).state =
+          ref.read(eventMedicineDosageProvider.notifier).state =
               int.tryParse(widget.medicine!.dosage!);
         }
 
         if (widget.medicine!.startDate != null) {
-          ref.read(medicineStartDateControllerProvider.notifier).state =
+          ref.read(eventMedicineStartDateControllerProvider.notifier).state =
               widget.medicine!.startDate ?? DateTime.now();
         }
 
         if (widget.medicine!.endDate != null) {
-          ref.read(medicineEndDateControllerProvider.notifier).state =
+          ref.read(eventMedicineEndDateControllerProvider.notifier).state =
               widget.medicine!.endDate ?? DateTime.now();
         }
 
         if (widget.medicine!.emoji.isNotEmpty) {
-          ref.read(medicineEmojiProvider).text = widget.medicine!.emoji;
+          ref.read(eventMedicineEmojiProvider).text = widget.medicine!.emoji;
         }
 
         cleanerOfFields = true;
@@ -87,20 +88,21 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
         TimeOfDay? timeOfDay =
             TimeOfDay(hour: today.hour, minute: today.minute);
 
-        ref.read(medicineNameControllerProvider).text = '';
+        ref.read(eventMedicineNameControllerProvider).text = '';
 
-        ref.read(medicineDateControllerProvider.notifier).state = today;
-        ref.read(medicineStartDateControllerProvider.notifier).state = today;
-        ref.read(medicineEndDateControllerProvider.notifier).state = today;
+        ref.read(eventMedicineDateControllerProvider.notifier).state = today;
+        ref.read(eventMedicineStartDateControllerProvider.notifier).state =
+            today;
+        ref.read(eventMedicineEndDateControllerProvider.notifier).state = today;
 
-        ref.read(medicineFrequencyProvider.notifier).state = 1;
-        ref.read(medicineDosageProvider.notifier).state = 1;
+        ref.read(eventMedicineFrequencyProvider.notifier).state = 1;
+        ref.read(eventMedicineDosageProvider.notifier).state = 1;
 
-        ref.read(reminderNameControllerProvider).text = '';
-        ref.read(reminderDescriptionControllerProvider).text = '';
-        ref.read(reminderTimeOfDayControllerProvider.notifier).state =
+        ref.read(eventReminderNameControllerProvider).text = '';
+        ref.read(eventReminderDescriptionControllerProvider).text = '';
+        ref.read(eventReminderTimeOfDayControllerProvider.notifier).state =
             timeOfDay;
-        ref.read(medicineEmojiProvider).text = '';
+        ref.read(eventMedicineEmojiProvider).text = '';
 
         cleanerOfFields = false;
       });
@@ -109,7 +111,7 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
     return PopScope(
       // Cleaning of temporary reminders, we need them to be removed when user presses back button
       onPopInvoked: (pop) async {
-        ref.read(temporaryReminderIds.notifier).state!.clear();
+        ref.read(eventReminderTemporaryIds.notifier).state!.clear();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -227,16 +229,16 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
                 const SizedBox(height: 15),
                 Flexible(
                   child: Consumer(builder: (context, ref, _) {
-                    final asyncReminders = ref.watch(remindersProvider);
+                    final asyncReminders = ref.watch(eventRemindersProvider);
 
                     return asyncReminders.when(
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
                       error: (err, stack) => Center(child: Text('Error: $err')),
                       data: (reminders) {
-                        List<Reminder> filteredReminders = [];
+                        List<EventReminderModel> filteredReminders = [];
                         var tempReminderIds =
-                            ref.watch(temporaryReminderIds.notifier).state;
+                            ref.watch(eventReminderTemporaryIds.notifier).state;
 
                         if (tempReminderIds != null &&
                             tempReminderIds.isNotEmpty) {
@@ -285,7 +287,7 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
                                 icon: const Icon(Icons.delete),
                                 onPressed: () async {
                                   await ref
-                                      .read(reminderServiceProvider)
+                                      .read(eventReminderServiceProvider)
                                       .deleteReminder(reminder.id);
                                 },
                               ),
@@ -311,14 +313,14 @@ Future<void> savePill(
   GlobalKey<FormState> formKey,
   String petId,
   String newPillId,
-  Medicine? pill,
+  EventMedicineModel? pill,
 ) async {
-  DateTime startDate = ref.read(medicineStartDateControllerProvider);
-  DateTime endDate = ref.read(medicineEndDateControllerProvider);
-  String name = ref.read(medicineNameControllerProvider).text;
-  int? frequency = ref.read(medicineFrequencyProvider);
-  int? dosage = ref.read(medicineDosageProvider);
-  TextEditingController emoji = ref.read(medicineEmojiProvider);
+  DateTime startDate = ref.read(eventMedicineStartDateControllerProvider);
+  DateTime endDate = ref.read(eventMedicineEndDateControllerProvider);
+  String name = ref.read(eventMedicineNameControllerProvider).text;
+  int? frequency = ref.read(eventMedicineFrequencyProvider);
+  int? dosage = ref.read(eventMedicineDosageProvider);
+  TextEditingController emoji = ref.read(eventMedicineEmojiProvider);
 
   if (name.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -359,13 +361,13 @@ Future<void> savePill(
 
   if (formKey.currentState!.validate()) {
     final bool isNewPill = pill == null;
-    final Medicine newPill =
-        isNewPill ? Medicine(name: '', eventId: '', petId: '') : pill;
+    final EventMedicineModel newPill =
+        isNewPill ? EventMedicineModel(name: '', eventId: '', petId: '') : pill;
     final TextEditingController nameController =
-        ref.read(medicineNameControllerProvider);
+        ref.read(eventMedicineNameControllerProvider);
 
-    List<Reminder> newPillRemindersList =
-        await ref.read(reminderServiceProvider).getReminders();
+    List<EventReminderModel> newPillRemindersList =
+        await ref.read(eventReminderServiceProvider).getReminders();
 
     newPillRemindersList = newPillRemindersList
         .where((element) => element.objectId == newPillId)
@@ -378,9 +380,9 @@ Future<void> savePill(
           reminder.title,
           int.parse(generateUniqueIdWithinRange()),
           reminder.time,
-          ref.read(medicineEndDateControllerProvider),
+          ref.read(eventMedicineEndDateControllerProvider),
           reminder.description,
-          ref.read(reminderSelectedRepeatType),
+          ref.read(eventReminderSelectedRepeatType),
           reminder.repeatInterval,
           reminder.selectedDays,
         );
@@ -392,14 +394,14 @@ Future<void> savePill(
 
       newPill.id = newPillId;
       newPill.name = nameController.text;
-      newPill.addDate = ref.read(medicineDateControllerProvider);
-      newPill.startDate = ref.read(medicineStartDateControllerProvider);
-      newPill.endDate = ref.read(medicineEndDateControllerProvider);
+      newPill.addDate = ref.read(eventMedicineDateControllerProvider);
+      newPill.startDate = ref.read(eventMedicineStartDateControllerProvider);
+      newPill.endDate = ref.read(eventMedicineEndDateControllerProvider);
       newPill.eventId = eventId;
       newPill.petId = petId;
-      newPill.frequency = ref.read(medicineFrequencyProvider).toString();
-      newPill.dosage = ref.read(medicineDosageProvider).toString();
-      newPill.emoji = ref.read(medicineEmojiProvider).text;
+      newPill.frequency = ref.read(eventMedicineFrequencyProvider).toString();
+      newPill.dosage = ref.read(eventMedicineDosageProvider).toString();
+      newPill.emoji = ref.read(eventMedicineEmojiProvider).text;
 
       final Event newEvent = Event(
         id: eventId,
@@ -424,11 +426,12 @@ Future<void> savePill(
         psychicId: '',
         stoolId: '',
         urineId: '',
+        serviceId: '',
       );
 
       await ref.read(eventServiceProvider).addEvent(newEvent);
 
-      ref.read(temporaryReminderIds.notifier).state!.clear();
+      ref.read(eventReminderTemporaryIds.notifier).state!.clear();
 
       cleanerOfFields = true;
 
@@ -443,15 +446,15 @@ Future<void> savePill(
       await ref.read(eventServiceProvider).updateEvent(eventToUpdate);
 
       pill.name = nameController.text;
-      pill.addDate = ref.read(medicineDateControllerProvider);
-      pill.startDate = ref.read(medicineStartDateControllerProvider);
-      pill.endDate = ref.read(medicineEndDateControllerProvider);
-      pill.frequency = ref.read(medicineFrequencyProvider).toString();
-      pill.dosage = ref.read(medicineDosageProvider).toString();
-      pill.emoji = ref.read(medicineEmojiProvider).text;
+      pill.addDate = ref.read(eventMedicineDateControllerProvider);
+      pill.startDate = ref.read(eventMedicineStartDateControllerProvider);
+      pill.endDate = ref.read(eventMedicineEndDateControllerProvider);
+      pill.frequency = ref.read(eventMedicineFrequencyProvider).toString();
+      pill.dosage = ref.read(eventMedicineDosageProvider).toString();
+      pill.emoji = ref.read(eventMedicineEmojiProvider).text;
 
-      List<Reminder> editingPillRemindersList =
-          await ref.read(reminderServiceProvider).getReminders();
+      List<EventReminderModel> editingPillRemindersList =
+          await ref.read(eventReminderServiceProvider).getReminders();
 
       editingPillRemindersList = editingPillRemindersList
           .where((element) => element.objectId == pill.id)
@@ -467,16 +470,16 @@ Future<void> savePill(
             pill.name,
             int.parse(generateUniqueIdWithinRange()),
             reminder.time,
-            ref.read(medicineEndDateControllerProvider),
+            ref.read(eventMedicineEndDateControllerProvider),
             descriptionForReminder,
-            ref.read(reminderSelectedRepeatType),
+            ref.read(eventReminderSelectedRepeatType),
             reminder.repeatInterval,
             reminder.selectedDays,
           );
         }
       }
 
-      ref.read(temporaryReminderIds.notifier).state!.clear();
+      ref.read(eventReminderTemporaryIds.notifier).state!.clear();
 
       cleanerOfFields = true;
 

@@ -6,8 +6,8 @@ import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_mon
 import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_weekly_walks.dart';
 import 'package:pet_diary/src/components/bar_graph/walks_bar_graph/calculate_yearly_walks.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/walk_model.dart';
-import 'package:pet_diary/src/providers/walk_provider.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/screens/health_walk_all_data_screen.dart';
 import '../helper/calculate_average.dart';
 
@@ -49,13 +49,13 @@ class _HealthWalkScreenState extends ConsumerState<HealthWalkScreen> {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Consumer(builder: (context, ref, _) {
-              final asyncWalks = ref.watch(walksProvider);
+              final asyncWalks = ref.watch(eventWalksProvider);
 
               return asyncWalks.when(
                 loading: () => const CircularProgressIndicator(),
                 error: (err, stack) => Text('Error fetching walks: $err'),
                 data: (walks) {
-                  List<Walk?> petWalks = walks
+                  List<EventWalkModel?> petWalks = walks
                       .where((walk) => walk!.petId == widget.petId)
                       .toList();
 

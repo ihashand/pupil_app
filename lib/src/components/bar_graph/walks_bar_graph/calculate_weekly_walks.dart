@@ -1,6 +1,6 @@
-import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
 
-List<double> calculateWeeklyWalks(List<Walk?> walks) {
+List<double> calculateWeeklyWalks(List<EventWalkModel?> walks) {
   // Pobierz dzisiejszą datę
   DateTime today = DateTime.now();
 
@@ -11,7 +11,7 @@ List<double> calculateWeeklyWalks(List<Walk?> walks) {
   DateTime sunday = monday.add(const Duration(days: 6));
 
   // Filtruj spacery dodane w bieżącym tygodniu
-  List<Walk?> thisWeekWalks = walks.where((walk) {
+  List<EventWalkModel?> thisWeekWalks = walks.where((walk) {
     if (walk != null) {
       DateTime walkDate = walk.dateTime; // Użyj dateTime zamiast date
       return walkDate.isAfter(monday.subtract(const Duration(days: 1))) &&

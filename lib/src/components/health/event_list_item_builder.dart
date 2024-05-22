@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/delete_event.dart';
+import 'package:pet_diary/src/components/events/event_delete_func.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 
 class EventListItemBuilder extends StatelessWidget {
@@ -34,7 +34,7 @@ class EventListItemBuilder extends StatelessWidget {
           title: Text(event.title),
           trailing: IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => deleteEvents(ref, context, petEvents, event.id),
+            onPressed: () => eventDeleteFunc(ref, context, petEvents, event.id),
           ),
         ),
       ),

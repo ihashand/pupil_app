@@ -18,7 +18,7 @@ class Event {
   late String psychicId;
   late String stoolId;
   late String urineId;
-
+  late String serviceId;
   late String description;
   late String proffesionId;
   late String personId;
@@ -47,6 +47,7 @@ class Event {
       required this.stomachId,
       required this.stoolId,
       required this.urineId,
+      required this.serviceId,
       required this.psychicId});
 
   Event.fromDocument(DocumentSnapshot doc) {
@@ -73,6 +74,7 @@ class Event {
     stoolId = doc.get('stoolId') ?? '';
     urineId = doc.get('urineId') ?? '';
     psychicId = doc.get('psychicId') ?? '';
+    serviceId = doc.get('serviceId') ?? '';
     avatarImage = doc.get('avatarImage') ?? '';
     emoticon = doc.get('emoticon') ?? '';
   }
@@ -99,7 +101,8 @@ class Event {
       'psychicId': psychicId,
       'stoolId': stoolId,
       'urineId': urineId,
-      'stomachId': stomachId
+      'stomachId': stomachId,
+      'serviceId': serviceId
     };
   }
 }

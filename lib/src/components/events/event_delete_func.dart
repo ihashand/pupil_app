@@ -1,0 +1,117 @@
+// ignore_for_file: use_build_context_synchronously
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/loading_dialog.dart';
+import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_mood_provider.dart';
+import 'package:pet_diary/src/providers/event_note_provider.dart';
+import 'package:pet_diary/src/providers/event_psychic_provider.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
+import 'package:pet_diary/src/providers/event_service_provider.dart';
+import 'package:pet_diary/src/providers/event_stomach_provider.dart';
+import 'package:pet_diary/src/providers/event_stool_provider.dart';
+import 'package:pet_diary/src/providers/event_temperature_provider.dart';
+import 'package:pet_diary/src/providers/event_urine_provider.dart';
+import 'package:pet_diary/src/providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/event_water_provider.dart';
+import 'package:pet_diary/src/providers/event_weight_provider.dart';
+
+void eventDeleteFunc(
+  WidgetRef ref,
+  BuildContext context,
+  List<Event>? allEvents,
+  String eventId,
+) async {
+  Event? event = allEvents?.where((element) => element.id == eventId).first;
+
+  final String noteId = event!.noteId;
+  final String pillId = event.pillId;
+  final String temperatureId = event.temperatureId;
+  final String walkId = event.walkId;
+  final String waterId = event.waterId;
+  final String weightId = event.weightId;
+  final String moodId = event.moodId;
+  final String stomachId = event.stomachId;
+  final String psychicId = event.psychicId;
+  final String stoolId = event.stoolId;
+  final String urineId = event.urineId;
+  final String serviceId = event.serviceId;
+
+  ref.read(eventServiceProvider).deleteEvent(eventId);
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const LoadingDialog();
+    },
+  );
+
+  if (weightId.isNotEmpty) {
+    await ref.read(eventWeightServiceProvider).deleteWeight(weightId);
+  }
+
+  if (waterId.isNotEmpty) {
+    await ref.read(eventWaterServiceProvider).deleteWater(waterId);
+  }
+
+  if (temperatureId.isNotEmpty) {
+    await ref
+        .read(eventTemperatureServiceProvider)
+        .deleteTemperature(temperatureId);
+  }
+
+  if (walkId.isNotEmpty) {
+    await ref.read(eventWalkServiceProvider).deleteWalk(walkId);
+  }
+
+  if (noteId.isNotEmpty) {
+    await ref.read(eventNoteServiceProvider).deleteNote(noteId);
+  }
+
+  if (pillId.isNotEmpty) {
+    List<EventReminderModel> reminders =
+        await ref.read(eventReminderServiceProvider).getReminders();
+
+    if (reminders.isNotEmpty) {
+      for (var reminder in reminders) {
+        if (reminder.objectId == pillId) {
+          await ref
+              .read(eventReminderServiceProvider)
+              .deleteReminder(reminder.id);
+        }
+      }
+    }
+
+    await ref.read(eventMedicineServiceProvider).deleteMedicine(pillId);
+  }
+
+  if (moodId.isNotEmpty) {
+    await ref.read(eventMoodServiceProvider).deleteMood(moodId);
+  }
+
+  if (stomachId.isNotEmpty) {
+    await ref.read(eventStomachServiceProvider).deleteStomach(stomachId);
+  }
+
+  if (psychicId.isNotEmpty) {
+    await ref.read(eventPsychicServiceProvider).deletePsychicEvent(psychicId);
+  }
+
+  if (stoolId.isNotEmpty) {
+    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId);
+  }
+
+  if (urineId.isNotEmpty) {
+    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId);
+  }
+
+  if (serviceId.isNotEmpty) {
+    await ref.read(eventServiceServiceProvider).deleteServiceEvent(serviceId);
+  }
+
+  Navigator.of(context).pop();
+}

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
 
 class HealthWalkDetailsScreen extends StatelessWidget {
-  final Walk walk;
+  final EventWalkModel walk;
 
   const HealthWalkDetailsScreen({super.key, required this.walk});
 

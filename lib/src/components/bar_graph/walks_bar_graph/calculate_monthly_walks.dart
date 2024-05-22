@@ -1,6 +1,6 @@
-import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
 
-List<double> calculateMonthlyWalks(List<Walk?> walks) {
+List<double> calculateMonthlyWalks(List<EventWalkModel?> walks) {
   // Pobierz dzisiejszą datę
   DateTime today = DateTime.now();
 
@@ -11,7 +11,7 @@ List<double> calculateMonthlyWalks(List<Walk?> walks) {
   DateTime lastDayOfMonth = DateTime(today.year, today.month + 1, 0);
 
   // Filtruj spacery dodane w bieżącym miesiącu
-  List<Walk?> thisMonthWalks = walks.where((walk) {
+  List<EventWalkModel?> thisMonthWalks = walks.where((walk) {
     if (walk != null) {
       DateTime walkDate = walk.dateTime; // Użyj dateTime zamiast date
       return walkDate

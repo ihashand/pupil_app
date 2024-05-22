@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 import 'package:pet_diary/src/screens/medicine_add_edit_screen.dart';
 
 class MedicineScreen extends ConsumerStatefulWidget {
@@ -64,7 +64,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
         children: [
           Expanded(
             child: Consumer(builder: (context, ref, _) {
-              final asyncMedicines = ref.watch(medicinesProvider);
+              final asyncMedicines = ref.watch(eventMedicinesProvider);
 
               return asyncMedicines.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -108,7 +108,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
   // Method to add or edit medicine
   void addOrEditMedicine(
       BuildContext context, WidgetRef ref, String petId, String newMedicineId,
-      {Medicine? medicine}) async {
+      {EventMedicineModel? medicine}) async {
     final bool isEditing = medicine != null;
     final result = await Navigator.push(
       context,
@@ -122,18 +122,18 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     );
     if (result != null) {
       if (isEditing) {
-        await ref.read(medicineServiceProvider).updateMedicine(result);
+        await ref.read(eventMedicineServiceProvider).updateMedicine(result);
       } else {
-        await ref.read(medicineServiceProvider).addMedicine(result);
+        await ref.read(eventMedicineServiceProvider).addMedicine(result);
       }
     }
   }
 
   void deletePill(BuildContext context, WidgetRef ref, String petId,
-      {Medicine? medicine}) async {
+      {EventMedicineModel? medicine}) async {
     // Get all reminders
-    List<Reminder> pillRemindersList =
-        await ref.read(reminderServiceProvider).getReminders();
+    List<EventReminderModel> pillRemindersList =
+        await ref.read(eventReminderServiceProvider).getReminders();
 
     // Filter all reminders to find those related to the pill
     pillRemindersList = pillRemindersList
@@ -143,14 +143,16 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     // Delete all reminders
     if (pillRemindersList.isNotEmpty) {
       for (var reminder in pillRemindersList) {
-        await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
+        await ref
+            .read(eventReminderServiceProvider)
+            .deleteReminder(reminder.id);
       }
     }
 
     // Wait for a while to ensure the deletion process
     await Future.delayed(const Duration(seconds: 1));
     // Delete the medicine and related event
-    await ref.read(medicineServiceProvider).deleteMedicine(medicine!.id);
+    await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
     await ref.read(eventServiceProvider).deleteEvent(medicine.eventId);
 
     // Get all events
@@ -168,7 +170,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 }
 
 class MedicineTile extends StatelessWidget {
-  final Medicine medicine;
+  final EventMedicineModel medicine;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 

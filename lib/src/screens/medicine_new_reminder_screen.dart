@@ -2,15 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
+import 'package:pet_diary/src/models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 
 class MedicineNewReminderScreen extends ConsumerStatefulWidget {
   final String petId;
   final String newPillId;
-  final Medicine? pill;
+  final EventMedicineModel? pill;
 
   const MedicineNewReminderScreen({
     super.key,
@@ -363,11 +363,11 @@ class _MedicineNewReminderScreenState
       repeatOptionText = 'every $repeatInterval days';
     }
 
-    final Reminder newReminder = Reminder(
+    final EventReminderModel newReminder = EventReminderModel(
       id: generateUniqueId(),
       title: nameController.text.isNotEmpty
           ? nameController.text
-          : ref.read(medicineNameControllerProvider).text,
+          : ref.read(eventMedicineNameControllerProvider).text,
       description: descriptionController.text.isNotEmpty
           ? descriptionController.text
           : 'Remember to use $repeatOptionText ',
@@ -383,8 +383,8 @@ class _MedicineNewReminderScreenState
       newReminder.objectId = widget.pill!.id;
     }
 
-    ref.read(reminderServiceProvider).addReminder(newReminder);
-    ref.read(temporaryReminderIds.notifier).state!.add(newReminder.id);
+    ref.read(eventReminderServiceProvider).addReminder(newReminder);
+    ref.read(eventReminderTemporaryIds.notifier).state!.add(newReminder.id);
 
     nameController.clear();
     descriptionController.clear();

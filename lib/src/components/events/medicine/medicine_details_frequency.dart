@@ -3,7 +3,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
 
 class MedicinieDetailsFrequency extends ConsumerWidget {
   const MedicinieDetailsFrequency({
@@ -34,7 +34,7 @@ class MedicinieDetailsFrequency extends ConsumerWidget {
                       );
                     }),
                     onSelectedItemChanged: (int value) {
-                      ref.read(medicineFrequencyProvider.notifier).state =
+                      ref.read(eventMedicineFrequencyProvider.notifier).state =
                           value + 1;
                     },
                   ),
@@ -55,7 +55,8 @@ class MedicinieDetailsFrequency extends ConsumerWidget {
             ),
             child: Consumer(
               builder: (context, ref, child) {
-                var frequencyStorageInfo = ref.watch(medicineFrequencyProvider);
+                var frequencyStorageInfo =
+                    ref.watch(eventMedicineFrequencyProvider);
 
                 return Text(frequencyStorageInfo?.toString() ?? 'Select');
               },

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 
-Widget reminderItem({required Reminder reminder, required WidgetRef ref}) {
+Widget reminderItem(
+    {required EventReminderModel reminder, required WidgetRef ref}) {
   return ListTile(
     title: Text(reminder.title),
     subtitle: Text(
@@ -11,7 +12,9 @@ Widget reminderItem({required Reminder reminder, required WidgetRef ref}) {
     trailing: IconButton(
       icon: const Icon(Icons.delete),
       onPressed: () async {
-        await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
+        await ref
+            .read(eventReminderServiceProvider)
+            .deleteReminder(reminder.id);
       },
     ),
   );

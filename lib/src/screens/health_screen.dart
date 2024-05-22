@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/delete_event.dart';
-import 'package:pet_diary/src/components/events/new_psychic_event.dart';
-import 'package:pet_diary/src/components/events/new_stomach_event.dart';
-import 'package:pet_diary/src/components/events/new_stool_event.dart';
-import 'package:pet_diary/src/components/events/new_urine_event.dart';
+import 'package:pet_diary/src/components/events/event_delete_func.dart';
+import 'package:pet_diary/src/components/events/event_psychic.dart';
+import 'package:pet_diary/src/components/events/event_service.dart';
+import 'package:pet_diary/src/components/events/event_stomach.dart';
+import 'package:pet_diary/src/components/events/event_stool.dart';
+import 'package:pet_diary/src/components/events/event_urine.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
-import 'package:pet_diary/src/components/events/new_note_event.dart';
-import 'package:pet_diary/src/components/events/new_temperature_event.dart';
-import 'package:pet_diary/src/components/events/new_walk_event.dart';
-import 'package:pet_diary/src/components/events/new_water_event.dart';
-import 'package:pet_diary/src/components/events/new_weight_event.dart';
-import 'package:pet_diary/src/components/events/new_mood_event.dart';
+import 'package:pet_diary/src/components/events/event_note.dart';
+import 'package:pet_diary/src/components/events/event_temperature.dart';
+import 'package:pet_diary/src/components/events/event_walk.dart';
+import 'package:pet_diary/src/components/events/event_water.dart';
+import 'package:pet_diary/src/components/events/event_weight.dart';
+import 'package:pet_diary/src/components/events/event_mood.dart';
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
@@ -376,25 +377,25 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      NewWalkEventWidget(
+                      EventWalk(
                         iconSize: 50,
                         iconColor: Colors.green.withOpacity(0.5),
                         petId: petId,
                         eventDateTime: eventDateTime,
                       ),
-                      NewWaterEvent(
+                      EventWater(
                         iconSize: 50,
                         iconColor: Colors.blue.withOpacity(0.5),
                         petId: petId,
                         eventDateTime: eventDateTime,
                       ),
-                      NewTemperatureEvent(
+                      EventTemperature(
                         iconSize: 50,
                         iconColor: Colors.red.withOpacity(0.5),
                         petId: petId,
                         eventDateTime: eventDateTime,
                       ),
-                      NewWeightEvent(
+                      EventWeight(
                         iconSize: 50,
                         iconColor: Colors.orange.withOpacity(0.5),
                         petId: petId,
@@ -406,6 +407,71 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Services',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            EventService(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                              serviceType: 'Groomer',
+                            ),
+                            EventService(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                              serviceType: 'Vet',
+                            ),
+                            EventService(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                              serviceType: 'Training',
+                            ),
+                            EventService(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                              serviceType: 'Daycare',
+                            ),
+                            EventService(
+                              iconSize: 50,
+                              petId: petId,
+                              eventDateTime: eventDateTime,
+                              serviceType: 'Hotel',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
@@ -424,7 +490,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        NewPsychicEvent(
+                        EventPsychic(
                           iconSize: 50,
                           petId: petId,
                           eventDateTime: eventDateTime,
@@ -454,7 +520,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        NewStoolEvent(
+                        EventStool(
                           iconSize: 50,
                           petId: petId,
                           eventDateTime: eventDateTime,
@@ -484,7 +550,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        NewUrineEvent(
+                        EventUrine(
                           iconSize: 50,
                           petId: petId,
                           eventDateTime: eventDateTime,
@@ -522,7 +588,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            NewMoodEvent(
+                            EventMood(
                               iconSize: 50,
                               petId: petId,
                               eventDateTime: eventDateTime,
@@ -554,7 +620,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        NewStomachEvent(
+                        EventStomach(
                           iconSize: 50,
                           petId: petId,
                           eventDateTime: eventDateTime,
@@ -587,7 +653,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
-                      child: NewNoteEvent(
+                      child: EventNote(
                         iconSize: 50,
                         iconColor: const Color.fromARGB(255, 234, 223, 105)
                             .withOpacity(0.5),
@@ -662,7 +728,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             TextButton(
               onPressed: () {
                 var allEvents = [event];
-                deleteEvents(ref, context, allEvents, event.id);
+                eventDeleteFunc(ref, context, allEvents, event.id);
                 Navigator.of(context).pop();
               },
               child: Text(
