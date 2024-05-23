@@ -22,51 +22,19 @@ class EventCare extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> careOptions = [
-      {
-        'icon': '🛁',
-        'color': Colors.blue.withOpacity(0.6),
-        'description': 'Mycie'
-      },
+      {'icon': '🛁', 'color': Colors.transparent, 'description': 'Mycie'},
       {
         'icon': '✂️',
-        'color': Colors.red.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Obcinanie paznokci'
       },
-      {
-        'icon': '🧼',
-        'color': Colors.green.withOpacity(0.6),
-        'description': 'Czesanie'
-      },
-      {
-        'icon': '👀',
-        'color': Colors.yellow.withOpacity(0.6),
-        'description': 'Mycie oczu'
-      },
-      {
-        'icon': '👂',
-        'color': Colors.orange.withOpacity(0.6),
-        'description': 'Mycie uszu'
-      },
-      {
-        'icon': '🧴',
-        'color': Colors.pink.withOpacity(0.6),
-        'description': 'Krem'
-      },
-      {
-        'icon': '🪲',
-        'color': Colors.brown.withOpacity(0.6),
-        'description': 'Kleszcz'
-      },
-      {
-        'icon': '🐜',
-        'color': Colors.purple.withOpacity(0.6),
-        'description': 'Pchły'
-      },
-      {
-        'icon': '🪥',
-        'color': Colors.teal.withOpacity(0.6),
-        'description': 'Mycie zębów'
-      },
+      {'icon': '🧼', 'color': Colors.transparent, 'description': 'Czesanie'},
+      {'icon': '👀', 'color': Colors.transparent, 'description': 'Mycie oczu'},
+      {'icon': '👂', 'color': Colors.transparent, 'description': 'Mycie uszu'},
+      {'icon': '🧴', 'color': Colors.transparent, 'description': 'Krem'},
+      {'icon': '🪲', 'color': Colors.transparent, 'description': 'Kleszcz'},
+      {'icon': '🐜', 'color': Colors.transparent, 'description': 'Pchły'},
+      {'icon': '🪥', 'color': Colors.transparent, 'description': 'Mycie zębów'},
     ];
 
     return SingleChildScrollView(
@@ -75,7 +43,7 @@ class EventCare extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: careOptions.map((option) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: GestureDetector(
               onTap: () {
                 showDialog(

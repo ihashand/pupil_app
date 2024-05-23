@@ -40,10 +40,11 @@ class PreferencesDialogState extends ConsumerState<PreferencesDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.background,
       title: const Text('Configure Sections'),
       content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.8,
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.53,
         child: sectionOrder.isEmpty
             ? Center(
                 child: Text(
@@ -78,14 +79,8 @@ class PreferencesDialogState extends ConsumerState<PreferencesDialog> {
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Theme.of(context)
-                                .colorScheme
-                                .secondary
-                                .withOpacity(0.8)
-                            : Theme.of(context)
-                                .colorScheme
-                                .secondary
-                                .withOpacity(0.3),
+                            ? Theme.of(context).colorScheme.secondary
+                            : Theme.of(context).colorScheme.primary,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: ListTile(

@@ -22,63 +22,23 @@ class EventMood extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> moods = [
-      {
-        'icon': '😄',
-        'color': Colors.green.withOpacity(0.6),
-        'description': 'Happy'
-      },
-      {
-        'icon': '😃',
-        'color': Colors.lightGreen.withOpacity(0.6),
-        'description': 'Excited'
-      },
-      {
-        'icon': '😊',
-        'color': Colors.blue.withOpacity(0.6),
-        'description': 'Content'
-      },
-      {
-        'icon': '😐',
-        'color': Colors.grey.withOpacity(0.6),
-        'description': 'Neutral'
-      },
-      {
-        'icon': '😴',
-        'color': Colors.orange.withOpacity(0.6),
-        'description': 'Tired'
-      },
-      {
-        'icon': '😢',
-        'color': Colors.blueAccent.withOpacity(0.6),
-        'description': 'Sad'
-      },
-      {
-        'icon': '😠',
-        'color': Colors.red.withOpacity(0.6),
-        'description': 'Angry'
-      },
-      {
-        'icon': '😡',
-        'color': Colors.redAccent.withOpacity(0.6),
-        'description': 'Furious'
-      },
-      {
-        'icon': '😭',
-        'color': Colors.purple.withOpacity(0.6),
-        'description': 'Crying'
-      },
-      {
-        'icon': '😞',
-        'color': Colors.deepOrange.withOpacity(0.6),
-        'description': 'Disappointed'
-      },
+      {'icon': '😄', 'description': 'Happy'},
+      {'icon': '😃', 'description': 'Excited'},
+      {'icon': '😊', 'description': 'Content'},
+      {'icon': '😐', 'description': 'Neutral'},
+      {'icon': '😴', 'description': 'Tired'},
+      {'icon': '😢', 'description': 'Sad'},
+      {'icon': '😠', 'description': 'Angry'},
+      {'icon': '😡', 'description': 'Furious'},
+      {'icon': '😭', 'description': 'Crying'},
+      {'icon': '😞', 'description': 'Disappointed'},
     ];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: moods.map((mood) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 3.0),
           child: GestureDetector(
             onTap: () {
               showDialog(
@@ -92,7 +52,7 @@ class EventMood extends ConsumerWidget {
                         const Text('Are you sure you want to add this mood?'),
                         Text(
                           mood['icon'],
-                          style: const TextStyle(fontSize: 50),
+                          style: const TextStyle(fontSize: 70),
                         ),
                         Text(mood['description']),
                       ],
@@ -165,12 +125,16 @@ class EventMood extends ConsumerWidget {
                 },
               );
             },
-            child: CircleAvatar(
-              radius: iconSize / 2,
-              backgroundColor: mood['color'],
-              child: Text(
-                mood['icon'],
-                style: TextStyle(fontSize: iconSize / 2),
+            child: Container(
+              width: iconSize,
+              height: iconSize,
+              decoration: const BoxDecoration(
+                  shape: BoxShape.circle, color: Colors.transparent),
+              child: Center(
+                child: Text(
+                  mood['icon'],
+                  style: TextStyle(fontSize: iconSize * 0.6),
+                ),
               ),
             ),
           ),

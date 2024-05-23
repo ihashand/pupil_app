@@ -23,7 +23,7 @@ class EventUrine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> urineColors = [
       {
-        'color': Colors.white,
+        'color': Colors.grey.withOpacity(0.2),
         'description': 'Transparent: Your dog is over-hydrated'
       },
       {

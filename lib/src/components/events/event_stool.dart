@@ -24,37 +24,37 @@ class EventStool extends ConsumerWidget {
     final List<Map<String, dynamic>> stoolTypes = [
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 1: Separate hard lumps, like nuts'
       },
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 2: Sausage-shaped but lumpy'
       },
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 3: Like a sausage but with cracks on the surface'
       },
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 4: Like a sausage or snake, smooth and soft'
       },
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 5: Soft blobs with clear-cut edges'
       },
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 6: Fluffy pieces with ragged edges, a mushy stool'
       },
       {
         'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Type 7: Watery, no solid pieces'
       },
     ];
@@ -65,7 +65,7 @@ class EventStool extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: stoolTypes.map((type) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: GestureDetector(
               onTap: () {
                 showDialog(

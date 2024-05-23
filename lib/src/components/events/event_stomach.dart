@@ -22,41 +22,17 @@ class EventStomach extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> stomachIssues = [
-      {
-        'icon': '🤢',
-        'color': Colors.green.withOpacity(0.6),
-        'description': 'Wzdęcia'
-      },
-      {
-        'icon': '🤮',
-        'color': Colors.lightGreen.withOpacity(0.6),
-        'description': 'Wymioty'
-      },
-      {
-        'icon': '💩',
-        'color': Colors.brown.withOpacity(0.6),
-        'description': 'Biegunka'
-      },
+      {'icon': '🤢', 'color': Colors.transparent, 'description': 'Wzdęcia'},
+      {'icon': '🤮', 'color': Colors.transparent, 'description': 'Wymioty'},
+      {'icon': '💩', 'color': Colors.transparent, 'description': 'Biegunka'},
       {
         'icon': '🤧',
-        'color': Colors.orange.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Niestrawność'
       },
-      {
-        'icon': '😷',
-        'color': Colors.grey.withOpacity(0.6),
-        'description': 'Gazy'
-      },
-      {
-        'icon': '😩',
-        'color': Colors.blueAccent.withOpacity(0.6),
-        'description': 'Zaparcia'
-      },
-      {
-        'icon': '🍔',
-        'color': Colors.redAccent.withOpacity(0.6),
-        'description': 'Głód'
-      },
+      {'icon': '😷', 'color': Colors.transparent, 'description': 'Gazy'},
+      {'icon': '😩', 'color': Colors.transparent, 'description': 'Zaparcia'},
+      {'icon': '🍔', 'color': Colors.transparent, 'description': 'Głód'},
     ];
 
     return SingleChildScrollView(
@@ -65,7 +41,7 @@ class EventStomach extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: stomachIssues.map((issue) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: GestureDetector(
               onTap: () {
                 showDialog(

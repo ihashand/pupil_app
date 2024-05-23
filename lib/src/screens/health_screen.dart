@@ -82,14 +82,14 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         return Scaffold(
           appBar: AppBar(
             iconTheme: IconThemeData(
-              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              color: Theme.of(context).primaryColorDark,
             ),
             title: Text(
               'H e a l t h',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                fontSize: 18,
+                color: Theme.of(context).primaryColorDark,
               ),
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
@@ -103,7 +103,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 },
                 icon: Icon(
                     isCalendarView ? Icons.grid_view : Icons.calendar_today,
-                    color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+                    color: Theme.of(context).primaryColorDark),
               ),
             ],
           ),
@@ -224,8 +224,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   formatButtonVisible: false,
                   titleCentered: true,
                   titleTextStyle: TextStyle(
-                      color:
-                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      color: Theme.of(context).primaryColorDark,
                       fontWeight: FontWeight.bold),
                   leftChevronIcon: Icon(Icons.chevron_left,
                       color: Theme.of(context).primaryColorDark),
@@ -251,7 +250,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8.0),
                     margin: const EdgeInsets.symmetric(
-                        vertical: 4.0, horizontal: 10.0),
+                        vertical: 4.0, horizontal: 14.0),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
@@ -272,9 +271,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .primaryColorDark
-                                      .withOpacity(0.6),
+                                  color: Theme.of(context).primaryColorDark,
                                 ),
                               ),
                               if (expandedEvents[event.id] ?? false) ...[
@@ -295,9 +292,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         ),
                         IconButton(
                           icon: Icon(Icons.delete,
-                              color: Theme.of(context)
-                                  .primaryColorDark
-                                  .withOpacity(0.5)),
+                              color: Theme.of(context).primaryColorDark),
                           onPressed: () =>
                               _showDeleteConfirmation(context, event),
                         ),
@@ -414,12 +409,14 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       onLongPress: () => _showPreferencesDialog(context),
       child: SingleChildScrollView(
         child: Container(
-          padding: const EdgeInsets.all(16.0),
+          color: Theme.of(context).colorScheme.background,
+          padding: const EdgeInsets.all(20.0),
           child: visibleSections.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      const SizedBox(height: 10),
                       Text(
                         'No sections available to display.',
                         style: TextStyle(
@@ -433,6 +430,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                             color: Theme.of(context).primaryColorDark),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 30),
                     ],
                   ),
                 )
@@ -441,11 +439,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                       .expand((section) => [
                             Row(
                               children: [
-                                const SizedBox(width: 8),
                                 Expanded(child: section),
                               ],
                             ),
-                            const SizedBox(height: 20)
+                            const SizedBox(height: 8)
                           ])
                       .toList(),
                 ),
@@ -487,26 +484,26 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               EventWalk(
-                iconSize: 50,
-                iconColor: Colors.green.withOpacity(0.5),
+                iconSize: 40,
+                iconColor: Colors.green.withOpacity(0.7),
                 petId: petId,
                 eventDateTime: eventDateTime,
               ),
               EventWater(
-                iconSize: 50,
-                iconColor: Colors.blue.withOpacity(0.5),
+                iconSize: 40,
+                iconColor: Colors.blue.withOpacity(0.7),
                 petId: petId,
                 eventDateTime: eventDateTime,
               ),
               EventTemperature(
-                iconSize: 50,
-                iconColor: Colors.red.withOpacity(0.5),
+                iconSize: 40,
+                iconColor: Colors.red.withOpacity(0.7),
                 petId: petId,
                 eventDateTime: eventDateTime,
               ),
               EventWeight(
-                iconSize: 50,
-                iconColor: Colors.orange.withOpacity(0.5),
+                iconSize: 40,
+                iconColor: Colors.orange.withOpacity(0.7),
                 petId: petId,
                 eventDateTime: eventDateTime,
               ),
@@ -740,7 +737,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 EventUrine(
-                  iconSize: 50,
+                  iconSize: 39,
                   petId: petId,
                   eventDateTime: eventDateTime,
                 ),
@@ -868,8 +865,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             child: Center(
               child: EventNote(
                 iconSize: 50,
-                iconColor:
-                    const Color.fromARGB(255, 234, 223, 105).withOpacity(0.5),
+                iconColor: const Color.fromARGB(255, 234, 223, 105),
                 petId: petId,
                 eventDateTime: eventDateTime,
               ),
@@ -912,11 +908,11 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Center(
+              child: const Center(
                 child: Icon(
                   Icons.medication,
                   size: 50,
-                  color: Colors.grey.withOpacity(0.5),
+                  color: Colors.grey,
                 ),
               ),
             ),

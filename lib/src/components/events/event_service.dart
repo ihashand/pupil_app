@@ -32,11 +32,11 @@ class EventService extends ConsumerWidget {
     };
 
     final Map<String, Color> serviceColors = {
-      'Groomer': Colors.pinkAccent.withOpacity(0.6),
-      'Vet': Colors.redAccent.withOpacity(0.6),
-      'Training': Colors.orangeAccent.withOpacity(0.6),
-      'Daycare': Colors.greenAccent.withOpacity(0.6),
-      'Hotel': Colors.blueAccent.withOpacity(0.6),
+      'Groomer': Colors.transparent,
+      'Vet': Colors.transparent,
+      'Training': Colors.transparent,
+      'Daycare': Colors.transparent,
+      'Hotel': Colors.transparent,
     };
 
     final String? emoji = serviceEmojis[serviceType];

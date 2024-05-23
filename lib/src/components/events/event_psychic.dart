@@ -22,54 +22,26 @@ class EventPsychic extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> psychicIssues = [
-      {
-        'icon': '😰',
-        'color': Colors.green.withOpacity(0.6),
-        'description': 'Niepokój'
-      },
-      {
-        'icon': '😴',
-        'color': Colors.lightGreen.withOpacity(0.6),
-        'description': 'Bezsenność'
-      },
-      {
-        'icon': '😟',
-        'color': Colors.brown.withOpacity(0.6),
-        'description': 'Stres'
-      },
-      {
-        'icon': '😨',
-        'color': Colors.orange.withOpacity(0.6),
-        'description': 'Strach'
-      },
-      {
-        'icon': '😡',
-        'color': Colors.red.withOpacity(0.6),
-        'description': 'Drażliwość'
-      },
-      {
-        'icon': '😩',
-        'color': Colors.blueAccent.withOpacity(0.6),
-        'description': 'Zmęczenie'
-      },
+      {'icon': '😰', 'color': Colors.transparent, 'description': 'Niepokój'},
+      {'icon': '😴', 'color': Colors.transparent, 'description': 'Bezsenność'},
+      {'icon': '😟', 'color': Colors.transparent, 'description': 'Stres'},
+      {'icon': '😨', 'color': Colors.transparent, 'description': 'Strach'},
+      {'icon': '😡', 'color': Colors.transparent, 'description': 'Drażliwość'},
+      {'icon': '😩', 'color': Colors.transparent, 'description': 'Zmęczenie'},
       {
         'icon': '🤔',
-        'color': Colors.purple.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Brak koncentracji'
       },
       {
         'icon': '😕',
-        'color': Colors.grey.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Dezorientacja'
       },
-      {
-        'icon': '😴',
-        'color': Colors.blue.withOpacity(0.6),
-        'description': 'Lenistwo'
-      },
+      {'icon': '😴', 'color': Colors.transparent, 'description': 'Lenistwo'},
       {
         'icon': '🤪',
-        'color': Colors.yellow.withOpacity(0.6),
+        'color': Colors.transparent,
         'description': 'Nadpobudliwość'
       },
     ];
@@ -80,7 +52,7 @@ class EventPsychic extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: psychicIssues.map((issue) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: GestureDetector(
               onTap: () {
                 showDialog(
