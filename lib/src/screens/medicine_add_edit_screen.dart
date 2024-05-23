@@ -36,11 +36,11 @@ class MedicineAddEditScreen extends ConsumerStatefulWidget {
 }
 
 class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
-  double containerHeight = 450;
+  double containerHeight = 410;
 
   void toggleContainerHeight(bool showMore) {
     setState(() {
-      containerHeight = showMore ? 590 : 450;
+      containerHeight = showMore ? 530 : 410;
     });
   }
 
@@ -109,23 +109,23 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
     }
 
     return PopScope(
-      // Cleaning of temporary reminders, we need them to be removed when user presses back button
       onPopInvoked: (pop) async {
         ref.read(eventReminderTemporaryIds.notifier).state!.clear();
       },
       child: Scaffold(
         appBar: AppBar(
           iconTheme: IconThemeData(
-            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            color: Theme.of(context).primaryColorDark,
           ),
           title: Text(
             widget.medicine == null
                 ? 'N e w   m e d i c i n e'
                 : 'E d i t   m e d i c i n e',
             style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColorDark.withOpacity(0.7)),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
           ),
           backgroundColor: Theme.of(context).colorScheme.primary,
           toolbarHeight: 50,
@@ -133,33 +133,32 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
             IconButton(
               icon: Icon(
                 Icons.check,
-                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                color: Theme.of(context).primaryColorDark,
               ),
               onPressed: () => savePill(context, ref, widget.formKey,
                   widget.petId, widget.medicineId, widget.medicine),
-              color: Theme.of(context).colorScheme.onPrimary,
-              iconSize: 35,
+              iconSize: 30,
             ),
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
           child: Form(
             key: widget.formKey,
             child: Column(
               children: [
                 Container(
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     height: containerHeight,
-                    width: 500,
+                    width: double.infinity,
                     child: Column(
                       children: [
-                        const SizedBox(height: 5),
                         Container(
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.primary,
@@ -215,22 +214,21 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 15),
                         MedicineDetailsEmoji(
                           onShowMoreChanged: toggleContainerHeight,
                         ),
-                        const SizedBox(height: 15),
                         medicineNewReminderButton(ref, context, widget.petId,
                             widget.medicineId, widget.medicine),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(
+                  height: 15,
+                ),
                 Flexible(
                   child: Consumer(builder: (context, ref, _) {
                     final asyncReminders = ref.watch(eventRemindersProvider);
-
                     return asyncReminders.when(
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
@@ -262,34 +260,42 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
                           itemCount: filteredReminders.length,
                           itemBuilder: (context, index) {
                             final reminder = filteredReminders[index];
-                            return ListTile(
-                              title: Text(
-                                reminder.title.isEmpty
-                                    ? 'Medicine reminder'
-                                    : '${reminder.title} reminder',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 14),
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Time: ${reminder.time.hour}:${reminder.time.minute} ',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                  Text(
-                                    reminder.description,
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () async {
-                                  await ref
-                                      .read(eventReminderServiceProvider)
-                                      .deleteReminder(reminder.id);
-                                },
+                              child: ListTile(
+                                title: Text(
+                                  reminder.title.isEmpty
+                                      ? 'Medicine reminder'
+                                      : '${reminder.title} reminder',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Time: ${reminder.time.hour}:${reminder.time.minute} ',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    Text(
+                                      reminder.description,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () async {
+                                    await ref
+                                        .read(eventReminderServiceProvider)
+                                        .deleteReminder(reminder.id);
+                                  },
+                                ),
                               ),
                             );
                           },
@@ -436,7 +442,6 @@ Future<void> savePill(
 
       cleanerOfFields = true;
 
-      // Pop dopiero po zakończeniu zapisu danych
       Navigator.of(context).pop(newPill);
     } else {
       Event? eventToUpdate =
@@ -484,7 +489,6 @@ Future<void> savePill(
 
       cleanerOfFields = true;
 
-      // Pop dopiero po zakończeniu zapisu danych
       Navigator.of(context).pop(pill);
     }
   }

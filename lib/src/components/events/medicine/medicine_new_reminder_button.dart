@@ -39,13 +39,11 @@ Widget medicineNewReminderButton(
                   ),
                 );
               },
-              label: Text(' New reminder',
+              label: Text('New reminder',
                   style: TextStyle(
-                      color:
-                          Theme.of(context).primaryColorDark.withOpacity(0.7),
-                      fontSize: 14)),
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
               icon: Icon(Icons.notification_add,
-                  color: Theme.of(context).primaryColorDark.withOpacity(0.5)),
+                  color: Theme.of(context).primaryColorDark),
               backgroundColor: const Color(0xffdfd785),
               extendedPadding: const EdgeInsets.symmetric(horizontal: 5.0),
               shape: RoundedRectangleBorder(
