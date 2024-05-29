@@ -53,13 +53,13 @@ class MyBarGraph extends StatelessWidget {
 
     // daily
     if (selectedTimePeriod == 'D') {
-      maxY = 70.0;
+      maxY = 27000.0;
       lenght = 24;
       bars = 40;
     }
     // weekly
     if (selectedTimePeriod == 'W') {
-      maxY = 100.0;
+      maxY = 27000.0;
       lenght = 7;
       bars = 15;
     }
@@ -140,7 +140,7 @@ class MyBarGraph extends StatelessWidget {
             toY: barGraphData[index],
             color: const Color(0xffdfd785),
             width: 20,
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(7),
           )
         ],
       );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
+import 'package:pet_diary/src/screens/health_activity_screen.dart';
 import 'package:pet_diary/src/screens/health_walk_screen.dart';
 
 List<TileInfoModel> getAllTiles(
@@ -25,7 +26,10 @@ List<TileInfoModel> getAllTiles(
       Colors.amber,
       ['mood', 'emotion', 'feeling', 'happiness', 'sadness', 'joy'],
       onTap: () {
-        // Add onTap logic for Mood tile
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HealthActivityScreen(petId)),
+        );
       },
     ),
     TileInfoModel(

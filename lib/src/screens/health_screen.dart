@@ -78,7 +78,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 DateFormat('yyyy-MM-dd').format(event.eventDate) ==
                 DateFormat('yyyy-MM-dd').format(eventDateTime))
             .toList();
-
         return Scaffold(
           appBar: AppBar(
             iconTheme: IconThemeData(
@@ -257,11 +256,12 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     ),
                     child: Row(
                       children: [
+                        const SizedBox(width: 10),
                         Text(
                           event.emoticon,
                           style: const TextStyle(fontSize: 30),
                         ),
-                        const SizedBox(width: 15),
+                        const SizedBox(width: 20),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

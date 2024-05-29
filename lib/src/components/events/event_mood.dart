@@ -76,6 +76,8 @@ class EventMood extends ConsumerWidget {
                         ),
                         onPressed: () {
                           String eventId = generateUniqueId();
+                          int moodRating =
+                              EventMoodModel.determineMoodRating(mood['icon']);
                           EventMoodModel newMood = EventMoodModel(
                             id: generateUniqueId(),
                             eventId: eventId,
@@ -83,6 +85,7 @@ class EventMood extends ConsumerWidget {
                             emoji: mood['icon'],
                             description: mood['description'],
                             dateTime: eventDateTime,
+                            moodRating: moodRating,
                           );
 
                           ref.read(eventMoodServiceProvider).addMood(newMood);

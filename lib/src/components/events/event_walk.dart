@@ -167,10 +167,10 @@ class _EventWalkState extends ConsumerState<EventWalk> {
 
                       int totalDurationInSeconds =
                           selectedHours * 60 + selectedMinutes;
-                      if (walkDistance > 120.0) {
-                        toBigDistance(context);
-                        return;
-                      }
+                      // if (walkDistance > 120.0) {
+                      //   toBigDistance(context);
+                      //   return;
+                      // }
 
                       if (selectedHours == 0 && selectedMinutes == 0) {
                         emptyFiledsAlert(context);

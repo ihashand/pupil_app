@@ -67,10 +67,10 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                               builder: (context) => HealthScreen(petId)),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         'Health',
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Theme.of(context).primaryColorDark,
                           fontSize: 16,
                         ),
                       ),
