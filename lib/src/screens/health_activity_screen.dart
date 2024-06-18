@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthActivityScreen extends ConsumerStatefulWidget {
@@ -20,6 +22,8 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
   bool _isAppBarVisible = true;
   double arrowButtonSize = 14.0;
   late AnimationController _animationController;
+  late Animation<double> _popupAnimation;
+  DateTime? _lastSelectedDay;
 
   @override
   void initState() {
@@ -31,7 +35,11 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
       });
     });
     _animationController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 300));
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _popupAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -58,7 +66,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
               ),
               title: AnimatedOpacity(
                 opacity: _isAppBarVisible ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 350),
+                duration: const Duration(milliseconds: 600),
                 child: Text(
                   'A C T I V I T Y',
                   style: TextStyle(
@@ -99,36 +107,50 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
             ),
           ];
         },
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (selectedView == 'D')
-                SizeTransition(
-                  sizeFactor: CurvedAnimation(
-                      parent: _animationController, curve: Curves.easeInOut),
-                  child: _buildDayView(context),
-                )
-              else if (selectedView == 'W')
-                SizeTransition(
-                  sizeFactor: CurvedAnimation(
-                      parent: _animationController, curve: Curves.easeInOut),
-                  child: _buildWeekView(context),
-                )
-              else
-                SizeTransition(
-                  sizeFactor: CurvedAnimation(
-                      parent: _animationController, curve: Curves.easeInOut),
-                  child: _buildMonthView(context),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (selectedView == 'D')
+                      _buildDayView(context)
+                    else if (selectedView == 'W')
+                      Column(
+                        children: [
+                          _buildWeekView(context),
+                          if (_lastSelectedDay != null)
+                            SizeTransition(
+                              sizeFactor: _popupAnimation,
+                              child: _buildPopup(context),
+                            ),
+                        ],
+                      )
+                    else
+                      Column(
+                        children: [
+                          _buildMonthView(context),
+                          if (_lastSelectedDay != null)
+                            SizeTransition(
+                              sizeFactor: _popupAnimation,
+                              child: _buildPopup(context),
+                            ),
+                        ],
+                      ),
+                    _buildSectionTitle(context, "Summary"),
+                    _buildSummarySection(context),
+                    if (selectedView != 'D') ...[
+                      _buildSectionTitle(context, "Average"),
+                      _buildAverageSection(context),
+                    ],
+                    _buildSectionTitle(context, "Generate Report"),
+                    _buildGenerateReportSection(context),
+                  ],
                 ),
-              _buildSectionTitle(context, "Summary"),
-              _buildSummarySection(context),
-              _buildSectionTitle(context, "Average"),
-              _buildAverageSection(context),
-              _buildSectionTitle(context, "Generate Report"),
-              _buildGenerateReportSection(context),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -161,6 +183,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                 if (label == 'M' || label == 'W') {
                   selectedDate = DateTime.now();
                 }
+                _lastSelectedDay = null; // Clear the popup when switching views
               });
             },
             style: TextButton.styleFrom(
@@ -187,7 +210,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
 
   Widget _buildDayView(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(0.0),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
@@ -195,6 +218,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
         ),
         child: Column(
           children: [
+            Divider(color: Theme.of(context).colorScheme.secondary, height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Row(
@@ -233,16 +257,17 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
     DateTime lastDayOfWeek = firstDayOfWeek.add(const Duration(days: 6));
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(0.0),
       child: Column(
         children: [
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
             child: Column(
               children: [
+                Divider(
+                    color: Theme.of(context).colorScheme.secondary, height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
@@ -273,32 +298,39 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                 TableCalendar(
                   focusedDay: selectedDate,
                   firstDay: DateTime.utc(2010, 10, 16),
-                  lastDay: DateTime.utc(2030, 3, 14),
+                  lastDay: DateTime.utc(2050, 3,
+                      14), //todo jakies sprawdzenie ktory mamy rok, zeby to bylo bezobslugowe
                   calendarFormat: CalendarFormat.week,
                   selectedDayPredicate: (day) {
                     return isSameDay(selectedDate, day);
                   },
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
-                      selectedDate = selectedDay;
-                      _showStepsPopup(context, selectedDay);
+                      if (_lastSelectedDay == selectedDay) {
+                        _lastSelectedDay = null;
+                      } else {
+                        selectedDate = selectedDay;
+                        _lastSelectedDay = selectedDay;
+                        _animationController.forward(from: 0);
+                      }
                     });
                   },
                   headerVisible: false,
                   calendarStyle: const CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: Color(0xff68a2b6),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedDecoration: BoxDecoration(
-                      color: Color(0xffdfd785),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+                      todayDecoration: BoxDecoration(
+                        color: Color(0xff68a2b6),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: BoxDecoration(
+                        color: Color(0xffdfd785),
+                        shape: BoxShape.circle,
+                      ),
+                      tablePadding: EdgeInsets.only(left: 5, right: 5)),
                   daysOfWeekVisible: false,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
                 ),
                 Container(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(top: 5.0, bottom: 10.0),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
@@ -316,6 +348,10 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                     ],
                   ),
                 ),
+                if (_lastSelectedDay != null)
+                  Divider(
+                      color: Theme.of(context).colorScheme.secondary,
+                      height: 20),
               ],
             ),
           ),
@@ -326,18 +362,19 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
 
   Widget _buildMonthView(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(0.0),
       child: Column(
         children: [
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
             child: Column(
               children: [
+                Divider(
+                    color: Theme.of(context).colorScheme.secondary, height: 20),
                 TableCalendar(
-                  locale: 'en_US', // Ustawienie formatu na angielski
+                  locale: 'en_US',
                   focusedDay: selectedDate,
                   firstDay: DateTime.utc(2010, 10, 16),
                   lastDay: DateTime.utc(2030, 3, 14),
@@ -347,8 +384,13 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                   },
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
-                      selectedDate = selectedDay;
-                      _showStepsPopup(context, selectedDay);
+                      if (_lastSelectedDay == selectedDay) {
+                        _lastSelectedDay = null;
+                      } else {
+                        selectedDate = selectedDay;
+                        _lastSelectedDay = selectedDay;
+                        _animationController.forward(from: 0);
+                      }
                     });
                   },
                   headerStyle: HeaderStyle(
@@ -380,9 +422,10 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                     ),
                   ),
                   daysOfWeekVisible: false,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
                 ),
                 Container(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(top: 5.0, bottom: 10),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
@@ -399,7 +442,11 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                       Text("Sun", style: TextStyle(fontSize: 10)),
                     ],
                   ),
-                ),
+                ), //todo tutaj
+                if (_lastSelectedDay != null)
+                  Divider(
+                      color: Theme.of(context).colorScheme.secondary,
+                      height: 20),
               ],
             ),
           ),
@@ -408,147 +455,277 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
     );
   }
 
-  void _showStepsPopup(BuildContext context, DateTime selectedDay) {
-    final RenderBox calendarBox = context.findRenderObject() as RenderBox;
-    final calendarPosition = calendarBox.localToGlobal(Offset.zero);
+  Widget _buildPopup(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Consumer(builder: (context, ref, _) {
+            final asyncWalks = ref.watch(eventWalksProvider);
 
-    showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Stack(
-          children: [
-            Positioned(
-              left: calendarPosition.dx,
-              top: calendarPosition.dy - 40, // Adjust this value as needed
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      const BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
+            return asyncWalks.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (err, stack) => Text('Error fetching walks: $err'),
+              data: (walks) {
+                List<EventWalkModel?> petWalks =
+                    walks.where((walk) => walk!.petId == widget.petId).toList();
+                double steps = 0;
+
+                if (petWalks.isNotEmpty) {
+                  var dateTime = selectedDate;
+                  List<EventWalkModel?> todaySortedWalks;
+                  todaySortedWalks = petWalks
+                      .where((element) =>
+                          element?.dateTime.day == dateTime.day &&
+                          element?.dateTime.year == dateTime.year &&
+                          element?.dateTime.month == dateTime.month)
+                      .toList();
+                  for (var walk in todaySortedWalks) {
+                    steps += walk!.distance;
+                  }
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '${steps.toInt()} steps',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 35,
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_forward,
+                              color: Theme.of(context).primaryColorDark,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                selectedView = 'D';
+                                selectedDate = _lastSelectedDay!;
+                                _lastSelectedDay = null;
+                              });
+                            },
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  );
+                } else {
+                  return Column(
                     children: [
                       Text(
-                        "${DateFormat('d MMM').format(selectedDay)}\n3851 Steps",
-                        style: const TextStyle(
-                          color: Colors.white,
+                        '',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColorDark,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward,
-                        color: Colors.white,
-                        size: 16,
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_forward,
+                          color: Theme.of(context).primaryColorDark,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            selectedView = 'D';
+                            selectedDate = _lastSelectedDay!;
+                            _lastSelectedDay = null;
+                          });
+                        },
                       ),
                     ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+                  );
+                }
+              },
+            );
+          }),
+        ],
+      ),
     );
   }
 
   Widget _buildSummarySection(BuildContext context) {
-    // Mock data for total values, replace with real data
-    int totalSteps = 10000;
-    int totalActiveMinutes = 500;
-    double totalDistance = 35.0;
-    double totalCaloriesBurned = 1200.0;
+    return Consumer(builder: (context, ref, _) {
+      final asyncWalks = ref.watch(eventWalksProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Steps",
-                  style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12)),
-              Row(
-                children: [
-                  Text("$totalSteps",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 18)),
-                  const Spacer(),
-                  const Icon(
-                    Icons.directions_walk,
-                    color: Color(0xff68a2b6),
-                    size: 40,
-                  ),
-                ],
-              ), // Dodana ikona
-            ],
-          ),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Time", "$totalActiveMinutes" " min"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(
-              context, "Distance", "${totalDistance.toStringAsFixed(2)} km"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Calories Burned",
-              "${totalCaloriesBurned.toStringAsFixed(2)} kcal"),
-        ],
-      ),
-    );
+      return asyncWalks.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (err, stack) => Text('Error fetching walks: $err'),
+        data: (walks) {
+          List<EventWalkModel?> petWalks =
+              walks.where((walk) => walk!.petId == widget.petId).toList();
+
+          List<EventWalkModel?> filteredWalks;
+          if (selectedView == 'D') {
+            filteredWalks = petWalks
+                .where((walk) => isSameDay(walk!.dateTime, selectedDate))
+                .toList();
+          } else if (selectedView == 'W') {
+            DateTime firstDayOfWeek =
+                selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
+            DateTime lastDayOfWeek =
+                firstDayOfWeek.add(const Duration(days: 6));
+            filteredWalks = petWalks.where((walk) {
+              return walk!.dateTime.isAfter(
+                      firstDayOfWeek.subtract(const Duration(days: 1))) &&
+                  walk.dateTime
+                      .isBefore(lastDayOfWeek.add(const Duration(days: 1)));
+            }).toList();
+          } else {
+            filteredWalks = petWalks.where((walk) {
+              return walk!.dateTime.year == selectedDate.year &&
+                  walk.dateTime.month == selectedDate.month;
+            }).toList();
+          }
+
+          double totalSteps =
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.distance);
+          double totalActiveMinutes =
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.walkTime);
+          double totalDistance =
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.distance);
+          double totalCaloriesBurned = totalSteps * 0.04;
+
+          return Container(
+            padding: const EdgeInsets.all(15.0),
+            margin: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Steps",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12)),
+                    Row(
+                      children: [
+                        Text(totalSteps.toStringAsFixed(2),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 18)),
+                        const Spacer(),
+                        const Icon(
+                          Icons.directions_walk,
+                          color: Color(0xff68a2b6),
+                          size: 40,
+                        ),
+                      ],
+                    ), // Dodana ikona
+                  ],
+                ),
+                const Divider(color: Colors.grey, height: 20),
+                _buildActivityDataRow(context, "Time",
+                    "${totalActiveMinutes.toStringAsFixed(2)} min"),
+                const Divider(color: Colors.grey, height: 20),
+                _buildActivityDataRow(context, "Distance",
+                    "${totalDistance.toStringAsFixed(2)} km"),
+                const Divider(color: Colors.grey, height: 20),
+                _buildActivityDataRow(context, "Calories Burned",
+                    "${totalCaloriesBurned.toStringAsFixed(2)} kcal"),
+              ],
+            ),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildAverageSection(BuildContext context) {
-    // Mock data for average values, replace with real data
-    int averageSteps = 5000;
-    int averageActiveMinutes = 250;
-    double averageDistance = 17.5;
-    double averageCaloriesBurned = 600.0;
+    return Consumer(builder: (context, ref, _) {
+      final asyncWalks = ref.watch(eventWalksProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildActivityDataRow(context, "Average Steps", "$averageSteps"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(
-              context, "Average Active Minutes", "$averageActiveMinutes"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Average Distance",
-              "${averageDistance.toStringAsFixed(2)} km"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Average Calories Burned",
-              "${averageCaloriesBurned.toStringAsFixed(2)} kcal"),
-        ],
-      ),
-    );
+      return asyncWalks.when(
+        loading: () => const CircularProgressIndicator(),
+        error: (err, stack) => Text('Error fetching walks: $err'),
+        data: (walks) {
+          List<EventWalkModel?> petWalks =
+              walks.where((walk) => walk!.petId == widget.petId).toList();
+
+          List<EventWalkModel?> filteredWalks;
+          int totalDays;
+
+          if (selectedView == 'W') {
+            DateTime firstDayOfWeek =
+                selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
+            DateTime lastDayOfWeek =
+                firstDayOfWeek.add(const Duration(days: 6));
+            filteredWalks = petWalks.where((walk) {
+              return walk!.dateTime.isAfter(
+                      firstDayOfWeek.subtract(const Duration(days: 1))) &&
+                  walk.dateTime
+                      .isBefore(lastDayOfWeek.add(const Duration(days: 1)));
+            }).toList();
+            totalDays = 7;
+          } else {
+            filteredWalks = petWalks.where((walk) {
+              return walk!.dateTime.year == selectedDate.year &&
+                  walk.dateTime.month == selectedDate.month;
+            }).toList();
+            totalDays =
+                DateTime(selectedDate.year, selectedDate.month + 1, 0).day;
+          }
+
+          double totalSteps =
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.distance);
+          double totalActiveMinutes =
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.walkTime);
+          double totalDistance =
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.distance);
+          double totalCaloriesBurned = totalSteps * 0.04;
+
+          double averageSteps = totalSteps / totalDays;
+          double averageActiveMinutes = totalActiveMinutes / totalDays;
+          double averageDistance = totalDistance / totalDays;
+          double averageCaloriesBurned = totalCaloriesBurned / totalDays;
+
+          return Container(
+            padding: const EdgeInsets.all(15.0),
+            margin: const EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildActivityDataRow(
+                    context, "Average Steps", averageSteps.toStringAsFixed(2)),
+                const Divider(color: Colors.grey, height: 20),
+                _buildActivityDataRow(context, "Average Active Minutes",
+                    "${averageActiveMinutes.toStringAsFixed(2)} min"),
+                const Divider(color: Colors.grey, height: 20),
+                _buildActivityDataRow(context, "Average Distance",
+                    "${averageDistance.toStringAsFixed(2)} km"),
+                const Divider(color: Colors.grey, height: 20),
+                _buildActivityDataRow(context, "Average Calories Burned",
+                    "${averageCaloriesBurned.toStringAsFixed(2)} kcal"),
+              ],
+            ),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildGenerateReportSection(BuildContext context) {
