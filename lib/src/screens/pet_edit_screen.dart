@@ -1,8 +1,5 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
@@ -29,11 +26,18 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   late DateTime _selectedDate = DateTime.now();
   String _gender = 'Male';
   String _selectedAvatar = '';
+  List<String> suggestions = [];
+  OverlayEntry? overlayEntry;
+  final LayerLink _layerLink = LayerLink();
 
   @override
   void initState() {
     super.initState();
     _loadPetData();
+    _breedController.addListener(() {
+      _updateSuggestions(_breedController.text);
+      _showOverlay();
+    });
   }
 
   Future<void> _loadPetData() async {
@@ -52,11 +56,75 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     setState(() {});
   }
 
+  void _updateSuggestions(String query) {
+    List<String> allBreeds = dogBreedGroups
+        .expand((group) => group.sections)
+        .expand((section) => section.breeds)
+        .map((breed) => breed.name)
+        .toList();
+
+    setState(() {
+      suggestions = allBreeds
+          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+
+    if (overlayEntry != null) {
+      overlayEntry!.markNeedsBuild();
+    }
+  }
+
+  void _showOverlay() {
+    if (overlayEntry == null) {
+      overlayEntry = _createOverlayEntry();
+      Overlay.of(context)!.insert(overlayEntry!);
+    } else {
+      overlayEntry!.markNeedsBuild();
+    }
+  }
+
+  void _removeOverlay() {
+    overlayEntry?.remove();
+    overlayEntry = null;
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0.0, size.height + 5.0),
+          child: Material(
+            elevation: 4.0,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: suggestions.map((suggestion) {
+                return ListTile(
+                  title: Text(suggestion),
+                  onTap: () {
+                    _breedController.text = suggestion;
+                    _removeOverlay();
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _birthDateController.dispose();
     _breedController.dispose();
+    _removeOverlay();
     super.dispose();
   }
 
@@ -149,7 +217,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                     height: 70,
                     child: InputDecorator(
                       decoration: const InputDecoration(
-                        labelText: 'Data',
+                        labelText: 'Date',
                         border: OutlineInputBorder(),
                         labelStyle: TextStyle(fontSize: 16),
                       ),
@@ -180,39 +248,19 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TypeAheadFormField(
-                    textFieldConfiguration: TextFieldConfiguration(
+                  CompositedTransformTarget(
+                    link: _layerLink,
+                    child: TextField(
                       controller: _breedController,
                       decoration: const InputDecoration(
                         labelText: 'Breed',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.category),
                       ),
+                      onChanged: (query) {
+                        _updateSuggestions(query);
+                      },
                     ),
-                    suggestionsCallback: (pattern) async {
-                      List<String> allBreeds = dogBreedGroups
-                          .expand((group) => group.sections)
-                          .expand((section) => section.breeds)
-                          .map((breed) => breed.name)
-                          .toList();
-                      return allBreeds
-                          .where((item) => item
-                              .toLowerCase()
-                              .contains(pattern.toLowerCase()))
-                          .toList();
-                    },
-                    itemBuilder: (context, suggestion) {
-                      return ListTile(title: Text(suggestion.toString()));
-                    },
-                    onSuggestionSelected: (suggestion) {
-                      _breedController.text = suggestion.toString();
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter pet\'s breed';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
@@ -256,7 +304,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text('Delete Pet'),
+              child: const Text('Delete your pet'),
             ),
           ),
         ),
