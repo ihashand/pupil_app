@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class HealthActivityScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -751,8 +757,12 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
           ),
           const Divider(color: Colors.grey, height: 20),
           TextButton(
-            onPressed: () {
-              // Dodaj logikę generowania raportu
+            onPressed: () async {
+              final pet =
+                  await ref.read(petServiceProvider).getPetById(widget.petId);
+              if (pet != null) {
+                await showDateRangeDialog(context, ref, pet);
+              }
             },
             child: Text(
               "Generate Report",
@@ -766,56 +776,295 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
       ),
     );
   }
+}
 
-  Widget _buildArrowButton(
-      BuildContext context, IconData icon, VoidCallback onPressed) {
-    return IconButton(
-      icon: Icon(
-        icon,
-        size: arrowButtonSize,
-        color: Theme.of(context).primaryColorDark,
-        weight: 20,
-      ),
-      onPressed: onPressed,
-    );
-  }
+Widget _buildArrowButton(
+    BuildContext context, IconData icon, VoidCallback onPressed) {
+  return IconButton(
+    icon: Icon(
+      icon,
+      size: 10,
+      color: Theme.of(context).primaryColorDark,
+      weight: 20,
+    ),
+    onPressed: onPressed,
+  );
+}
 
-  Widget _buildActivityDataRow(
-      BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).primaryColorDark,
-            ),
+Widget _buildActivityDataRow(BuildContext context, String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColorDark,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 12, top: 10),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
         ),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildSectionTitle(BuildContext context, String title) {
+  return Padding(
+    padding: const EdgeInsets.only(left: 12, top: 10),
+    child: Text(
+      title,
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+        color: Theme.of(context).primaryColorDark.withOpacity(0.7),
       ),
-    );
+    ),
+  );
+}
+
+Future<void> generateAndPrintReport(
+    WidgetRef ref, Pet pet, DateTimeRange dateRange) async {
+  final pdf = pw.Document();
+
+  List<EventWalkModel> petWalks = ref.read(eventWalksProvider).when(
+        data: (data) => data
+            .where((walk) => walk!.petId == pet.id)
+            .map((walk) => walk!)
+            .toList(),
+        loading: () => [],
+        error: (error, stack) => [],
+      );
+
+  List<EventWalkModel> filteredWalks = petWalks.where((walk) {
+    return walk.dateTime.isAfter(dateRange.start) &&
+        walk.dateTime.isBefore(dateRange.end);
+  }).toList();
+
+  double totalSteps = filteredWalks.fold(0, (sum, walk) => sum + walk.distance);
+  double totalActiveMinutes =
+      filteredWalks.fold(0, (sum, walk) => sum + walk.walkTime);
+  double totalDistance = (totalSteps * 0.0008); // Assuming 1 step = 0.0008 km
+  double totalCaloriesBurned = totalSteps * 0.04;
+
+  double averageSteps = totalSteps / filteredWalks.length;
+  double averageDistance = totalDistance / filteredWalks.length;
+  double averageActiveMinutes = totalActiveMinutes / filteredWalks.length;
+
+  final avatar = await imageFromAssetBundle(pet.avatarImage);
+
+  pdf.addPage(
+    pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      theme: pw.ThemeData.withFont(
+        base: pw.Font.ttf(
+            await rootBundle.load("assets/fonts/OpenSans-Regular.ttf")),
+        bold: pw.Font.ttf(
+            await rootBundle.load("assets/fonts/OpenSans-Bold.ttf")),
+      ),
+      build: (pw.Context context) {
+        return [
+          pw.Container(
+            width: double.infinity,
+            color: PdfColor.fromHex('#B3E5FC'), // baby blue color
+            padding: pw.EdgeInsets.all(20),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text("PupilApp",
+                        style: pw.TextStyle(
+                            fontSize: 24,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColors.black)),
+                    pw.SizedBox(height: 10),
+                    pw.Text("Name: ${pet.name}",
+                        style:
+                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
+                    pw.Text("Age: ${calculateAge(pet.dateTime)}",
+                        style:
+                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
+                    pw.Text("Gender: ${pet.gender}",
+                        style:
+                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
+                    pw.Text("Breed: ${pet.breed}",
+                        style:
+                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
+                    pw.Text(
+                        "Birth Date: ${DateFormat('dd-MM-yyyy').format(pet.dateTime)}",
+                        style:
+                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
+                  ],
+                ),
+                pw.Container(
+                  width: 100,
+                  height: 100,
+                  child: pw.Image(avatar),
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Text("Health Activity Report",
+              style:
+                  pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          pw.Text(
+              "Date Range: ${DateFormat('dd-MM-yyyy').format(dateRange.start)} - ${DateFormat('dd-MM-yyyy').format(dateRange.end)}",
+              style: pw.TextStyle(fontSize: 18)),
+          pw.SizedBox(height: 20),
+          pw.Text("Activities",
+              style:
+                  pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
+          pw.Table.fromTextArray(
+            context: context,
+            cellAlignment: pw.Alignment.centerLeft,
+            headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+            headerHeight: 25,
+            cellHeight: 40,
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            cellStyle: pw.TextStyle(color: PdfColors.black),
+            headers: <String>['', 'Metric', 'Average', 'Total'],
+            data: <List<String>>[
+              [
+                '🐾',
+                'Daily Steps',
+                averageSteps.toStringAsFixed(2),
+                totalSteps.toStringAsFixed(2)
+              ],
+              [
+                '🕒',
+                'Daily Active Minutes',
+                averageActiveMinutes.toStringAsFixed(2),
+                totalActiveMinutes.toStringAsFixed(2)
+              ],
+              [
+                '📏',
+                'Daily Distance (km)',
+                averageDistance.toStringAsFixed(2),
+                totalDistance.toStringAsFixed(2)
+              ],
+              [
+                '🔥',
+                'Calories Burned',
+                (averageSteps * 0.04).toStringAsFixed(2),
+                totalCaloriesBurned.toStringAsFixed(2)
+              ],
+            ],
+            border: null,
+          ),
+        ];
+      },
+      footer: (pw.Context context) {
+        return pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
+          padding: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
+          child: pw.Column(
+            children: [
+              pw.Divider(color: PdfColors.black),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('©2024 PupilApp'),
+                  pw.Text(
+                      'Page ${context.pageNumber} of ${context.pagesCount}'),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+
+  await Printing.layoutPdf(
+    onLayout: (PdfPageFormat format) async => pdf.save(),
+  );
+}
+
+Future<pw.ImageProvider> imageFromAssetBundle(String path) async {
+  final ByteData data = await rootBundle.load(path);
+  return pw.MemoryImage(
+    data.buffer.asUint8List(),
+  );
+}
+
+String calculateAge(DateTime birthDate) {
+  final now = DateTime.now();
+  final years = now.year - birthDate.year;
+  final months = now.month - birthDate.month;
+  final weeks = now.difference(birthDate).inDays ~/ 7;
+
+  if (years > 0) {
+    return "$years years";
+  } else if (months > 0) {
+    return "$months months";
+  } else {
+    return "$weeks weeks";
+  }
+}
+
+Future<void> showDateRangeDialog(
+    BuildContext context, WidgetRef ref, Pet pet) async {
+  DateTimeRange? selectedDateRange;
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Wybierz zakres dat"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text("Aktualny miesiąc"),
+              onTap: () {
+                selectedDateRange = DateTimeRange(
+                  start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+                  end: DateTime.now(),
+                );
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Ostatni kwartał"),
+              onTap: () {
+                final now = DateTime.now();
+                final start = DateTime(now.year, now.month - 2, 1);
+                selectedDateRange = DateTimeRange(start: start, end: now);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Wybierz zakres dat"),
+              onTap: () async {
+                final range = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2101),
+                );
+                if (range != null) {
+                  selectedDateRange = range;
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+
+  if (selectedDateRange != null) {
+    await generateAndPrintReport(ref, pet, selectedDateRange!);
   }
 }
