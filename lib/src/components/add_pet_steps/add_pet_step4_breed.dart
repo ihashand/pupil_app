@@ -20,6 +20,7 @@ class AddPetStep4Breed extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _AddPetStep4BreedState createState() => _AddPetStep4BreedState();
 }
 
@@ -51,7 +52,7 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
   void _showOverlay() {
     OverlayState? overlayState = Overlay.of(context);
     overlayEntry = _createOverlayEntry();
-    overlayState?.insert(overlayEntry!);
+    overlayState.insert(overlayEntry!);
   }
 
   void _removeOverlay() {

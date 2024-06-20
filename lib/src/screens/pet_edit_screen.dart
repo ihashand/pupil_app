@@ -77,7 +77,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   void _showOverlay() {
     if (overlayEntry == null) {
       overlayEntry = _createOverlayEntry();
-      Overlay.of(context)!.insert(overlayEntry!);
+      Overlay.of(context).insert(overlayEntry!);
     } else {
       overlayEntry!.markNeedsBuild();
     }
@@ -346,6 +346,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
 
   void _deletePet(BuildContext context) async {
     await PetService().deletePet(widget.petId);
+    // ignore: use_build_context_synchronously
     Navigator.of(context).popUntil(ModalRoute.withName('/'));
   }
 
@@ -375,6 +376,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     );
     await ref.read(petServiceProvider).updatePet(updatedPet);
 
+    // ignore: use_build_context_synchronously
     Navigator.of(context).pop();
   }
 }

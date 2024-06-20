@@ -144,6 +144,9 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                             ),
                         ],
                       ),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     _buildSectionTitle(context, "Summary"),
                     _buildSummarySection(context),
                     if (selectedView != 'D') ...[
@@ -625,7 +628,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                             fontSize: 12)),
                     Row(
                       children: [
-                        Text(totalSteps.toStringAsFixed(2),
+                        Text(totalSteps.toStringAsFixed(0),
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).primaryColorDark,
@@ -642,13 +645,13 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                 ),
                 const Divider(color: Colors.grey, height: 20),
                 _buildActivityDataRow(context, "Time",
-                    "${totalActiveMinutes.toStringAsFixed(2)} min"),
+                    "${totalActiveMinutes.toStringAsFixed(0)} min"),
                 const Divider(color: Colors.grey, height: 20),
                 _buildActivityDataRow(context, "Distance",
-                    "${totalDistance.toStringAsFixed(2)} km"),
+                    "${totalDistance.toStringAsFixed(0)} km"),
                 const Divider(color: Colors.grey, height: 20),
                 _buildActivityDataRow(context, "Calories Burned",
-                    "${totalCaloriesBurned.toStringAsFixed(2)} kcal"),
+                    "${totalCaloriesBurned.toStringAsFixed(0)} kcal"),
               ],
             ),
           );
@@ -716,16 +719,16 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildActivityDataRow(
-                    context, "Average Steps", averageSteps.toStringAsFixed(2)),
+                    context, "Average Steps", averageSteps.toStringAsFixed(0)),
                 const Divider(color: Colors.grey, height: 20),
                 _buildActivityDataRow(context, "Average Active Minutes",
-                    "${averageActiveMinutes.toStringAsFixed(2)} min"),
+                    "${averageActiveMinutes.toStringAsFixed(0)} min"),
                 const Divider(color: Colors.grey, height: 20),
                 _buildActivityDataRow(context, "Average Distance",
-                    "${averageDistance.toStringAsFixed(2)} km"),
+                    "${averageDistance.toStringAsFixed(0)} km"),
                 const Divider(color: Colors.grey, height: 20),
                 _buildActivityDataRow(context, "Average Calories Burned",
-                    "${averageCaloriesBurned.toStringAsFixed(2)} kcal"),
+                    "${averageCaloriesBurned.toStringAsFixed(0)} kcal"),
               ],
             ),
           );
@@ -744,12 +747,10 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
       ),
       child: Column(
         children: [
-          Icon(Icons.picture_as_pdf,
-              size: 80,
-              color: Theme.of(context).primaryColorDark.withOpacity(0.5)),
-          const SizedBox(height: 8),
+          Icon(Icons.picture_as_pdf, size: 80, color: Color(0xff68a2b6)),
+          const SizedBox(height: 8), //todo0xffdfd785
           Text(
-            "Generate a detailed health report in PDF, CSV, or JSON format. Your data is secure and private.",
+            "Generate a detailed health report in PDF, chose the date range and generate it for free!",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).primaryColorDark.withOpacity(0.7),
@@ -761,6 +762,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
               final pet =
                   await ref.read(petServiceProvider).getPetById(widget.petId);
               if (pet != null) {
+                // ignore: use_build_context_synchronously
                 await showDateRangeDialog(context, ref, pet);
               }
             },
@@ -823,7 +825,7 @@ Widget _buildSectionTitle(BuildContext context, String title) {
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 18,
-        color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+        color: Theme.of(context).primaryColorDark,
       ),
     ),
   );
@@ -861,6 +863,7 @@ Future<void> generateAndPrintReport(
 
   pdf.addPage(
     pw.MultiPage(
+      margin: const pw.EdgeInsets.all(0),
       pageFormat: PdfPageFormat.a4,
       theme: pw.ThemeData.withFont(
         base: pw.Font.ttf(
@@ -868,121 +871,149 @@ Future<void> generateAndPrintReport(
         bold: pw.Font.ttf(
             await rootBundle.load("assets/fonts/OpenSans-Bold.ttf")),
       ),
-      build: (pw.Context context) {
-        return [
-          pw.Container(
-            width: double.infinity,
-            color: PdfColor.fromHex('#B3E5FC'), // baby blue color
-            padding: pw.EdgeInsets.all(20),
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      header: (context) => pw.Container(
+        color: PdfColor.fromHex('#f0f9ff'),
+        padding:
+            const pw.EdgeInsets.only(left: 40, right: 20, top: 20, bottom: 10),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text("PupilApp",
-                        style: pw.TextStyle(
-                            fontSize: 24,
-                            fontWeight: pw.FontWeight.bold,
-                            color: PdfColors.black)),
-                    pw.SizedBox(height: 10),
-                    pw.Text("Name: ${pet.name}",
-                        style:
-                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
-                    pw.Text("Age: ${calculateAge(pet.dateTime)}",
-                        style:
-                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
-                    pw.Text("Gender: ${pet.gender}",
-                        style:
-                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
-                    pw.Text("Breed: ${pet.breed}",
-                        style:
-                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
-                    pw.Text(
-                        "Birth Date: ${DateFormat('dd-MM-yyyy').format(pet.dateTime)}",
-                        style:
-                            pw.TextStyle(fontSize: 18, color: PdfColors.black)),
-                  ],
-                ),
-                pw.Container(
-                  width: 100,
-                  height: 100,
-                  child: pw.Image(avatar),
-                ),
+                pw.Text("P U P I L L A P P",
+                    style: pw.TextStyle(
+                        fontSize: 14,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black)),
+                pw.SizedBox(height: 13),
+                pw.Text(pet.name,
+                    style: pw.TextStyle(
+                        fontSize: 28,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.black)),
+                pw.Text(calculateAge(pet.dateTime),
+                    style: const pw.TextStyle(
+                        fontSize: 10, color: PdfColors.black)),
+                pw.SizedBox(height: 7),
               ],
             ),
-          ),
-          pw.SizedBox(height: 20),
-          pw.Text("Health Activity Report",
-              style:
-                  pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 10),
-          pw.Text(
-              "Date Range: ${DateFormat('dd-MM-yyyy').format(dateRange.start)} - ${DateFormat('dd-MM-yyyy').format(dateRange.end)}",
-              style: pw.TextStyle(fontSize: 18)),
-          pw.SizedBox(height: 20),
-          pw.Text("Activities",
-              style:
-                  pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 10),
-          pw.Table.fromTextArray(
-            context: context,
-            cellAlignment: pw.Alignment.centerLeft,
-            headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
-            headerHeight: 25,
-            cellHeight: 40,
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-            cellStyle: pw.TextStyle(color: PdfColors.black),
-            headers: <String>['', 'Metric', 'Average', 'Total'],
-            data: <List<String>>[
-              [
-                '🐾',
-                'Daily Steps',
-                averageSteps.toStringAsFixed(2),
-                totalSteps.toStringAsFixed(2)
-              ],
-              [
-                '🕒',
-                'Daily Active Minutes',
-                averageActiveMinutes.toStringAsFixed(2),
-                totalActiveMinutes.toStringAsFixed(2)
-              ],
-              [
-                '📏',
-                'Daily Distance (km)',
-                averageDistance.toStringAsFixed(2),
-                totalDistance.toStringAsFixed(2)
-              ],
-              [
-                '🔥',
-                'Calories Burned',
-                (averageSteps * 0.04).toStringAsFixed(2),
-                totalCaloriesBurned.toStringAsFixed(2)
-              ],
-            ],
-            border: null,
-          ),
+            pw.SizedBox(height: 40),
+            pw.Row(children: [
+              pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text("Gender: ${pet.gender}",
+                        style: const pw.TextStyle(
+                            fontSize: 11, color: PdfColors.black)),
+                    pw.Text("Breed: ${pet.breed}",
+                        style: const pw.TextStyle(
+                            fontSize: 11, color: PdfColors.black)),
+                    pw.Text("Birthdate: ${pet.age}",
+                        style: const pw.TextStyle(
+                            fontSize: 11, color: PdfColors.black)),
+                  ]),
+              pw.SizedBox(width: 20),
+              pw.Container(
+                width: 80,
+                height: 80,
+                child: pw.Image(avatar),
+              ),
+            ])
+          ],
+        ),
+      ),
+      build: (pw.Context context) {
+        return [
+          pw.Padding(
+              padding: const pw.EdgeInsets.all(30),
+              child: pw.Column(
+                children: [
+                  pw.SizedBox(height: 30),
+                  pw.Text("Health Report",
+                      style: pw.TextStyle(
+                          fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(height: 30),
+                  pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                            "Range: ${DateFormat('dd-MM-yyyy').format(dateRange.start)} - ${DateFormat('dd-MM-yyyy').format(dateRange.end)}",
+                            style: const pw.TextStyle(fontSize: 18)),
+                      ]),
+                  pw.SizedBox(height: 20),
+                  pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text("Activities",
+                            style: pw.TextStyle(
+                                fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                      ]),
+                  pw.SizedBox(height: 10),
+                  pw.TableHelper.fromTextArray(
+                    context: context,
+                    cellAlignment: pw.Alignment.centerLeft,
+                    headerDecoration:
+                        pw.BoxDecoration(color: PdfColor.fromHex('#f0f9ff')),
+                    headerHeight: 25,
+                    cellHeight: 40,
+                    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    cellStyle: const pw.TextStyle(color: PdfColors.black),
+                    headers: <String>['', 'Metric', 'Average', 'Total'],
+                    headerAlignment: pw.Alignment.centerLeft,
+                    data: <List<String>>[
+                      [
+                        '🐾',
+                        'Daily Steps',
+                        averageSteps.toStringAsFixed(0),
+                        totalSteps.toStringAsFixed(0)
+                      ],
+                      [
+                        '🕒',
+                        'Daily Active Minutes',
+                        averageActiveMinutes.toStringAsFixed(0),
+                        totalActiveMinutes.toStringAsFixed(0)
+                      ],
+                      [
+                        '📏',
+                        'Daily Distance (km)',
+                        averageDistance.toStringAsFixed(0),
+                        totalDistance.toStringAsFixed(0)
+                      ],
+                      [
+                        '🔥',
+                        'Calories Burned',
+                        (averageSteps * 0.04).toStringAsFixed(0),
+                        totalCaloriesBurned.toStringAsFixed(0)
+                      ],
+                    ],
+                    border: null,
+                  ),
+                ],
+              )),
         ];
       },
       footer: (pw.Context context) {
         return pw.Container(
-          alignment: pw.Alignment.center,
-          margin: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
-          padding: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
-          child: pw.Column(
-            children: [
-              pw.Divider(color: PdfColors.black),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            alignment: pw.Alignment.center,
+            margin: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
+            padding: const pw.EdgeInsets.only(top: 1.0 * PdfPageFormat.cm),
+            child: pw.Padding(
+              padding: const pw.EdgeInsets.all(20),
+              child: pw.Column(
                 children: [
-                  pw.Text('©2024 PupilApp'),
-                  pw.Text(
-                      'Page ${context.pageNumber} of ${context.pagesCount}'),
+                  pw.Divider(color: PdfColors.black),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text('©2024 Pupilapp'),
+                      pw.Text(
+                          'Page ${context.pageNumber} of ${context.pagesCount}'),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        );
+            ));
       },
     ),
   );
@@ -1021,42 +1052,78 @@ Future<void> showDateRangeDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text("Wybierz zakres dat"),
+        title: const Text("Chose date range"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              title: const Text("Aktualny miesiąc"),
-              onTap: () {
-                selectedDateRange = DateTimeRange(
-                  start: DateTime(DateTime.now().year, DateTime.now().month, 1),
-                  end: DateTime.now(),
-                );
-                Navigator.pop(context);
-              },
+            Container(
+              margin: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                  color: const Color(0xff68a2b6).withOpacity(0.2),
+                  borderRadius: const BorderRadius.all(Radius.circular(10))),
+              child: ListTile(
+                title: const Text("This month"),
+                onTap: () {
+                  selectedDateRange = DateTimeRange(
+                    start:
+                        DateTime(DateTime.now().year, DateTime.now().month, 1),
+                    end: DateTime.now(),
+                  );
+                  Navigator.pop(context);
+                },
+              ),
             ),
-            ListTile(
-              title: const Text("Ostatni kwartał"),
-              onTap: () {
-                final now = DateTime.now();
-                final start = DateTime(now.year, now.month - 2, 1);
-                selectedDateRange = DateTimeRange(start: start, end: now);
-                Navigator.pop(context);
-              },
+            Container(
+              margin: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                  color: const Color(0xff68a2b6).withOpacity(0.2),
+                  borderRadius: const BorderRadius.all(Radius.circular(10))),
+              child: ListTile(
+                title: const Text("Last quarter"),
+                onTap: () {
+                  final now = DateTime.now();
+                  final start = DateTime(now.year, now.month - 2, 1);
+                  selectedDateRange = DateTimeRange(start: start, end: now);
+                  Navigator.pop(context);
+                },
+              ),
             ),
-            ListTile(
-              title: const Text("Wybierz zakres dat"),
-              onTap: () async {
-                final range = await showDateRangePicker(
-                  context: context,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2101),
-                );
-                if (range != null) {
-                  selectedDateRange = range;
-                }
-                Navigator.pop(context);
-              },
+            Container(
+              margin: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                  color: const Color(0xff68a2b6).withOpacity(0.2),
+                  borderRadius: const BorderRadius.all(Radius.circular(10))),
+              child: ListTile(
+                title: const Text("Select range"),
+                onTap: () async {
+                  final range = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                              primary: const Color(0xff68a2b6),
+                              onPrimary:
+                                  Theme.of(context).colorScheme.onPrimary,
+                              surface: Theme.of(context).colorScheme.surface,
+                              onSurface:
+                                  Theme.of(context).colorScheme.onSurface,
+                              secondary: Color(0xffdfd785).withOpacity(0.5)),
+                          dialogBackgroundColor:
+                              Theme.of(context).colorScheme.background,
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (range != null) {
+                    selectedDateRange = range;
+                  }
+                  Navigator.pop(context);
+                },
+              ),
             ),
           ],
         ),
