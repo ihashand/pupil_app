@@ -92,7 +92,7 @@ class SummarySection extends StatelessWidget {
                           size: 40,
                         ),
                       ],
-                    ), // Dodana ikona
+                    ),
                   ],
                 ),
                 const Divider(color: Colors.grey, height: 20),

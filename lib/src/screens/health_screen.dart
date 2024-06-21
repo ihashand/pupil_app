@@ -82,13 +82,12 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             iconTheme: IconThemeData(
-              color: Theme.of(context).primaryColorDark,
-            ),
+                color: Theme.of(context).primaryColorDark, size: 20),
             title: Text(
-              'H e a l t h',
+              'H E A L T H',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 13,
                 color: Theme.of(context).primaryColorDark,
               ),
             ),
@@ -102,33 +101,52 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                   });
                 },
                 icon: Icon(
-                    isCalendarView ? Icons.grid_view : Icons.calendar_today,
-                    color: Theme.of(context).primaryColorDark),
+                  isCalendarView ? Icons.grid_view : Icons.calendar_today,
+                  color: Theme.of(context).primaryColorDark,
+                ),
               ),
             ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(64.0),
+              child: _buildSwitch(context),
+            ),
           ),
           body: isCalendarView
               ? _buildCalendarView(context, eventDateTime, petEvents)
               : Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(
-                          right: 20, left: 20, top: 40, bottom: 10),
-                      child: SizedBox(
-                        height: 50,
-                        child: TextField(
-                          controller: searchController,
-                          onChanged: (value) {
-                            setState(() {
-                              searchQuery = value.toLowerCase();
-                            });
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Search',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                            )),
+                        child: Column(
+                          children: [
+                            Divider(
+                                color: Colors.blueGrey.shade100, height: 20),
+                            TextField(
+                              controller: searchController,
+                              onChanged: (value) {
+                                setState(() {
+                                  searchQuery = value.toLowerCase();
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Search',
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 15, vertical: 8),
+                                suffixIcon: Icon(
+                                  Icons.search,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ),
@@ -163,6 +181,52 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
+  Widget _buildSwitch(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: ['Calendar', 'List'].map((label) {
+          String displayLabel = label;
+          Color bgColor = Colors.transparent;
+          if ((isCalendarView && label == 'Calendar') ||
+              (!isCalendarView && label == 'List')) {
+            displayLabel = label;
+            bgColor = const Color(0xff68a2b6)
+                .withOpacity(0.2); // Niebieskie tło dla wybranego przycisku
+          }
+          return TextButton(
+            onPressed: () {
+              setState(() {
+                isCalendarView = (label == 'Calendar');
+              });
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: bgColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              displayLabel,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: isCalendarView == (label == 'Calendar')
+                    ? Theme.of(context)
+                        .primaryColorDark // Biały tekst dla wybranego przycisku
+                    : Theme.of(context).primaryColorDark.withOpacity(0.5),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildCalendarView(
       BuildContext context, DateTime eventDateTime, List<Event> petEvents) {
     if (!isUserInteracted) {
@@ -179,58 +243,66 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       child: Column(
         children: <Widget>[
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12)),
               ),
-              child: TableCalendar(
-                firstDay: DateTime.utc(2010, 10, 16),
-                lastDay: DateTime.utc(2030, 3, 14),
-                focusedDay: eventDateTime,
-                calendarFormat: CalendarFormat.month,
-                startingDayOfWeek: StartingDayOfWeek.monday,
-                selectedDayPredicate: (day) {
-                  return isSameDay(selectedDateTime, day);
-                },
-                onDaySelected: (date, focusedDate) {
-                  setState(() {
-                    selectedDateTime = date;
-                    ref.read(eventDateControllerProvider.notifier).state = date;
-                    isUserInteracted = true;
-                  });
-                },
-                onPageChanged: (focusedDate) {
-                  setState(() {
-                    ref.read(eventDateControllerProvider.notifier).state =
-                        focusedDate;
-                    eventDateTime = focusedDate;
-                    isUserInteracted = true;
-                  });
-                },
-                locale: 'en_En',
-                calendarStyle: const CalendarStyle(
-                  selectedDecoration: BoxDecoration(
-                    color: Color(0xffdfd785),
-                    shape: BoxShape.circle,
+              child: Column(
+                children: [
+                  Divider(color: Colors.blueGrey.shade100, height: 20),
+                  TableCalendar(
+                    locale: 'en_US',
+                    firstDay: DateTime.utc(2010, 10, 16),
+                    lastDay: DateTime.utc(2050, 3, 14),
+                    focusedDay: selectedDateTime,
+                    calendarFormat: CalendarFormat.month,
+                    selectedDayPredicate: (day) {
+                      return isSameDay(selectedDateTime, day);
+                    },
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        selectedDateTime = selectedDay;
+                        ref.read(eventDateControllerProvider.notifier).state =
+                            selectedDay;
+                        isUserInteracted = true;
+                      });
+                    },
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      titleTextStyle: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      leftChevronIcon: Icon(
+                        Icons.chevron_left,
+                        color: Theme.of(context).primaryColorDark,
+                        size: 24,
+                      ),
+                      rightChevronIcon: Icon(
+                        Icons.chevron_right,
+                        color: Theme.of(context).primaryColorDark,
+                        size: 24,
+                      ),
+                    ),
+                    calendarStyle: const CalendarStyle(
+                      todayDecoration: BoxDecoration(
+                        color: Color(0xff68a2b6),
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: BoxDecoration(
+                        color: Color(0xffdfd785),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    daysOfWeekVisible: false,
+                    startingDayOfWeek: StartingDayOfWeek.monday,
                   ),
-                  todayDecoration: BoxDecoration(
-                    color: Color(0xff68a2b6),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                headerStyle: HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontWeight: FontWeight.bold),
-                  leftChevronIcon: Icon(Icons.chevron_left,
-                      color: Theme.of(context).primaryColorDark),
-                  rightChevronIcon: Icon(Icons.chevron_right,
-                      color: Theme.of(context).primaryColorDark),
-                ),
+                ],
               ),
             ),
           ),
@@ -248,21 +320,21 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(5.0),
                     margin: const EdgeInsets.symmetric(
-                        vertical: 4.0, horizontal: 14.0),
+                        vertical: 5.0, horizontal: 8.0),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 14),
                         Text(
                           event.emoticon,
                           style: const TextStyle(fontSize: 30),
                         ),
-                        const SizedBox(width: 20),
+                        const SizedBox(width: 30),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,10 +354,13 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                                 Text(
                                   event.description,
                                 ),
+                                const SizedBox(
+                                  height: 2,
+                                ),
                                 Text(
                                   DateFormat('dd-MM-yyyy')
                                       .format(event.eventDate),
-                                  style: const TextStyle(fontSize: 12),
+                                  style: const TextStyle(fontSize: 10),
                                 ),
                               ],
                             ],
@@ -322,7 +397,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.only(left: 2, right: 2),
         child: filteredTiles.isNotEmpty
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -330,16 +405,18 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               )
             : Column(
                 children: [
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 200),
                   const Text(
                     'No matching records found',
                     style: TextStyle(fontSize: 18),
                   ),
                   const SizedBox(
-                    height: 40,
+                    height: 20,
                   ),
                   Icon(Icons.sentiment_dissatisfied,
-                      size: 80, color: Theme.of(context).primaryColorDark),
+                      size: 200,
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.1)),
                 ],
               ),
       ),

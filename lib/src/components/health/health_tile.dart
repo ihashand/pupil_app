@@ -20,7 +20,7 @@ class HealthTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(
-        bottom: 8,
+        bottom: 5,
         left: 7,
         right: 7,
       ),
@@ -45,14 +45,12 @@ class HealthTile extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).primaryColorDark,
-                    ),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Text(title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).primaryColorDark,
+                      )),
                 ),
               ),
               Icon(
