@@ -238,7 +238,7 @@ class MedicineTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Card(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -258,7 +258,7 @@ class MedicineTile extends StatelessWidget {
                   ),
                 ),
                 Card(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -278,7 +278,7 @@ class MedicineTile extends StatelessWidget {
                   ),
                 ),
                 Card(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -298,7 +298,7 @@ class MedicineTile extends StatelessWidget {
                   ),
                 ),
                 Card(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -318,7 +318,7 @@ class MedicineTile extends StatelessWidget {
                   ),
                 ),
                 Card(
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(

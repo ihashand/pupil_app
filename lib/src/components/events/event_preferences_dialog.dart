@@ -40,7 +40,7 @@ class PreferencesDialogState extends ConsumerState<PreferencesDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       title: const Text('Configure Sections'),
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.9,

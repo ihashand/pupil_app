@@ -66,6 +66,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.black.withOpacity(0.7)),
         actions: <Widget>[
@@ -248,7 +249,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          'No events for today or in the future',
+                          'No events yet',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 16),
                         ),
@@ -274,12 +275,9 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                         height: 87,
                         width: 180,
                         child: EventTile(
-                          event: currentEvent,
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.7),
-                        ),
+                            event: currentEvent,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary),
                       );
                     },
                   ),

@@ -79,6 +79,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                 DateFormat('yyyy-MM-dd').format(eventDateTime))
             .toList();
         return Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             iconTheme: IconThemeData(
               color: Theme.of(context).primaryColorDark,
@@ -409,7 +410,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       onLongPress: () => _showPreferencesDialog(context),
       child: SingleChildScrollView(
         child: Container(
-          color: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.surface,
           padding: const EdgeInsets.all(20.0),
           child: visibleSections.isEmpty
               ? Center(
