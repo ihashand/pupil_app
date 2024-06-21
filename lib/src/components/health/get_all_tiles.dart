@@ -2,21 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/screens/health_activity_screen.dart';
-import 'package:pet_diary/src/screens/health_walk_screen.dart';
 
 List<TileInfoModel> getAllTiles(
     BuildContext context, String petId, List<Event> petEvents) {
   return [
     TileInfoModel(
       Icons.directions_walk,
-      'Walks',
+      'Activity',
       Colors.blue,
       ['activity', 'walk', 'wandern', 'fit', 'exercise', 'running'],
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (context) => HealthWalkScreen(petId, petEvents)),
+          MaterialPageRoute(builder: (context) => HealthActivityScreen(petId)),
         );
       },
     ),
@@ -25,12 +23,7 @@ List<TileInfoModel> getAllTiles(
       'Mood',
       Colors.amber,
       ['mood', 'emotion', 'feeling', 'happiness', 'sadness', 'joy'],
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HealthActivityScreen(petId)),
-        );
-      },
+      onTap: () {},
     ),
     TileInfoModel(
       Icons.medication,

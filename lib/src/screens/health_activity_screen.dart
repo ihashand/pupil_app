@@ -510,9 +510,6 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(
-                            width: 35,
-                          ),
                           IconButton(
                             icon: Icon(
                               Icons.arrow_forward,
@@ -747,7 +744,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
       ),
       child: Column(
         children: [
-          Icon(Icons.picture_as_pdf, size: 80, color: Color(0xff68a2b6)),
+          const Icon(Icons.picture_as_pdf, size: 80, color: Color(0xff68a2b6)),
           const SizedBox(height: 8), //todo0xffdfd785
           Text(
             "Generate a detailed health report in PDF, chose the date range and generate it for free!",
@@ -1110,7 +1107,8 @@ Future<void> showDateRangeDialog(
                               surface: Theme.of(context).colorScheme.surface,
                               onSurface:
                                   Theme.of(context).colorScheme.onSurface,
-                              secondary: Color(0xffdfd785).withOpacity(0.5)),
+                              secondary:
+                                  const Color(0xffdfd785).withOpacity(0.5)),
                           dialogBackgroundColor:
                               Theme.of(context).colorScheme.background,
                         ),
@@ -1121,6 +1119,7 @@ Future<void> showDateRangeDialog(
                   if (range != null) {
                     selectedDateRange = range;
                   }
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 },
               ),
