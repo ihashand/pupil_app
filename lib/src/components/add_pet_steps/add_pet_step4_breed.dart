@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step5_avatar.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
 import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 
-class AddPetStep4Breed extends StatelessWidget {
+class AddPetStep4Breed extends StatefulWidget {
   final WidgetRef ref;
   final String petName;
   final String petAge;
@@ -21,9 +20,100 @@ class AddPetStep4Breed extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController petBreedController = TextEditingController();
+  // ignore: library_private_types_in_public_api
+  _AddPetStep4BreedState createState() => _AddPetStep4BreedState();
+}
 
+class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
+  final TextEditingController petBreedController = TextEditingController();
+  final FocusNode focusNode = FocusNode();
+  OverlayEntry? overlayEntry;
+  List<String> suggestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        _showOverlay();
+      } else {
+        _removeOverlay();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    petBreedController.dispose();
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  void _showOverlay() {
+    OverlayState? overlayState = Overlay.of(context);
+    overlayEntry = _createOverlayEntry();
+    overlayState.insert(overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    overlayEntry?.remove();
+    overlayEntry = null;
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: LayerLink(),
+          showWhenUnlinked: false,
+          offset: Offset(0.0, size.height + 5.0),
+          child: Material(
+            elevation: 4.0,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: suggestions
+                  .map(
+                    (suggestion) => ListTile(
+                      title: Text(suggestion),
+                      onTap: () {
+                        petBreedController.text = suggestion;
+                        _removeOverlay();
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _updateSuggestions(String query) {
+    List<String> allBreeds = dogBreedGroups
+        .expand((group) => group.sections)
+        .expand((section) => section.breeds)
+        .map((breed) => breed.name)
+        .toList();
+
+    setState(() {
+      suggestions = allBreeds
+          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+
+    if (overlayEntry != null) {
+      overlayEntry?.markNeedsBuild();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: addPetAppBar(context, showCloseButton: true),
       body: SingleChildScrollView(
@@ -32,7 +122,7 @@ class AddPetStep4Breed extends StatelessWidget {
           children: [
             AddPetSegmentProgressBar(
               totalSegments: 5,
-              filledSegments: 4, // Ponieważ to drugi krok
+              filledSegments: 4,
               backgroundColor: Theme.of(context).colorScheme.primary,
               fillColor: const Color(0xffdfd785).withOpacity(0.7),
             ),
@@ -44,37 +134,20 @@ class AddPetStep4Breed extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const Text(
-              'You can change it leter.',
+              'You can change it later.',
             ),
             const SizedBox(height: 40),
-            SizedBox(
-              height: 60,
-              width: 200,
-              child: TypeAheadFormField(
-                textFieldConfiguration: TextFieldConfiguration(
-                  controller: petBreedController,
-                  decoration: const InputDecoration(
-                    labelText: 'Search breed',
-                    border: OutlineInputBorder(),
-                  ),
+            CompositedTransformTarget(
+              link: LayerLink(),
+              child: TextField(
+                controller: petBreedController,
+                focusNode: focusNode,
+                decoration: const InputDecoration(
+                  labelText: 'Search breed',
+                  border: OutlineInputBorder(),
                 ),
-                suggestionsCallback: (pattern) {
-                  List<String> allBreeds = dogBreedGroups
-                      .expand((group) => group.sections)
-                      .expand((section) => section.breeds)
-                      .map((breed) => breed.name)
-                      .toList();
-
-                  return allBreeds
-                      .where((item) =>
-                          item.toLowerCase().contains(pattern.toLowerCase()))
-                      .toList();
-                },
-                itemBuilder: (context, suggestion) {
-                  return ListTile(title: Text(suggestion.toString()));
-                },
-                onSuggestionSelected: (suggestion) {
-                  petBreedController.text = suggestion.toString();
+                onChanged: (query) {
+                  _updateSuggestions(query);
                 },
               ),
             ),
@@ -90,14 +163,14 @@ class AddPetStep4Breed extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Please select pet breed.')),
                     );
-                    return; // Przerywamy dalsze działanie przycisku
+                    return;
                   }
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => AddPetStep5Avatar(
-                      ref: ref,
-                      petName: petName,
-                      petAge: petAge,
-                      petGender: petGender,
+                      ref: widget.ref,
+                      petName: widget.petName,
+                      petAge: widget.petAge,
+                      petGender: widget.petGender,
                       petBreed: petBreedController.text,
                     ),
                   ));

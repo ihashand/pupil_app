@@ -10,43 +10,43 @@ Widget getWeaklyBootomTitles(double value, TitleMeta meta) {
   switch (value.toInt()) {
     case 0:
       text = const Text(
-        'M',
+        'Mon',
         style: style,
       );
       break;
     case 1:
       text = const Text(
-        'T',
+        'Tue',
         style: style,
       );
       break;
     case 2:
       text = const Text(
-        'W',
+        'Wed',
         style: style,
       );
       break;
     case 3:
       text = const Text(
-        'T',
+        'Thu',
         style: style,
       );
       break;
     case 4:
       text = const Text(
-        'F',
+        'Fri',
         style: style,
       );
       break;
     case 5:
       text = const Text(
-        'S',
+        'Sat',
         style: style,
       );
       break;
     case 6:
       text = const Text(
-        'S',
+        'Sun',
         style: style,
       );
       break;

@@ -1,6 +1,6 @@
-import 'package:pet_diary/src/models/walk_model.dart';
+import 'package:pet_diary/src/models/event_walk_model.dart';
 
-List<double> calculateYearlyWalks(List<Walk?> walks) {
+List<double> calculateYearlyWalks(List<EventWalkModel?> walks) {
   // Pobierz dzisiejszą datę
   DateTime today = DateTime.now();
 

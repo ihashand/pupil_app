@@ -2,15 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
+import 'package:pet_diary/src/models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 
 class MedicineNewReminderScreen extends ConsumerStatefulWidget {
   final String petId;
   final String newPillId;
-  final Medicine? pill;
+  final EventMedicineModel? pill;
 
   const MedicineNewReminderScreen({
     super.key,
@@ -45,14 +45,14 @@ class _MedicineNewReminderScreenState
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+          color: Theme.of(context).primaryColorDark,
         ),
         title: Text(
           'N e w   r e m i n d e r',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            color: Theme.of(context).primaryColorDark,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -63,234 +63,248 @@ class _MedicineNewReminderScreenState
               Icons.check,
             ),
             onPressed: () => _saveReminder(),
-            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-            iconSize: 35,
+            color: Theme.of(context).primaryColorDark,
+            iconSize: 30,
           ),
         ],
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(35, 10, 35, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Repeat',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  DropdownButton<String>(
-                    value: repeatOption,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        repeatOption = newValue!;
-                      });
-                    },
-                    items: <String>[
-                      'Daily',
-                      'Selected days',
-                      'Weekly',
-                      'Monthly',
-                      'Every x days',
-                    ].map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-              if (repeatOption == 'Selected days') ...[
-                Row(
-                  children: List.generate(7, (index) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedDays[index] = !selectedDays[index];
-                        });
-                      },
-                      child: Container(
-                        width: 36,
-                        height: 40,
-                        margin: const EdgeInsets.only(right: 10),
-                        decoration: BoxDecoration(
-                          border:
-                              Border.all(color: Colors.grey.withOpacity(0.5)),
-                          borderRadius: BorderRadius.circular(5),
-                          color: selectedDays[index]
-                              ? const Color(0xffdfd785)
-                              : Colors.white,
-                        ),
-                        child: Center(
-                          child: Text(
-                            [
-                              'Mon',
-                              'Tue',
-                              'Wed',
-                              'Thu',
-                              'Fri',
-                              'Sat',
-                              'Sun'
-                            ][index],
-                            style: TextStyle(
-                              color: selectedDays[index]
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ],
-              if (repeatOption == 'Weekly' ||
-                  repeatOption == 'Every x days' ||
-                  repeatOption == 'Monthly') ...[
+          padding: const EdgeInsets.fromLTRB(
+              20, 20, 20, 20), // Zwiększenie obszaru tła
+          child: Container(
+            padding:
+                const EdgeInsets.all(20), // Zwiększenie wewnętrznego paddingu
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(12), // Dodanie border radius
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Repeat Interval:',
-                      style: TextStyle(fontSize: 16),
+                      'Repeat',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      height: 45,
-                      width: 140,
-                      child: TextFormField(
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          setState(() {
-                            repeatInterval = int.tryParse(value);
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Interval',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10)),
-                            borderSide: BorderSide(color: Color(0xffdfd785)),
-                          ),
-                        ),
-                      ),
+                    DropdownButton<String>(
+                      value: repeatOption,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          repeatOption = newValue!;
+                        });
+                      },
+                      items: <String>[
+                        'Daily',
+                        'Selected days',
+                        'Weekly',
+                        'Monthly',
+                        'Every x days',
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
-              ],
-              const SizedBox(height: 10),
-              const Text(
-                'Time',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              GestureDetector(
-                onTap: () => _selectTime(context),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black),
-                    borderRadius: BorderRadius.circular(6),
+                if (repeatOption == 'Selected days') ...[
+                  Row(
+                    children: List.generate(7, (index) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedDays[index] = !selectedDays[index];
+                          });
+                        },
+                        child: Container(
+                          width: 34,
+                          height: 40,
+                          margin: const EdgeInsets.only(
+                              right: 5, left: 5, top: 10, bottom: 10),
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.grey.withOpacity(0.5)),
+                            borderRadius: BorderRadius.circular(5),
+                            color: selectedDays[index]
+                                ? const Color(0xffdfd785)
+                                : Colors.white,
+                          ),
+                          child: Center(
+                            child: Text(
+                              [
+                                'Mon',
+                                'Tue',
+                                'Wed',
+                                'Thu',
+                                'Fri',
+                                'Sat',
+                                'Sun'
+                              ][index],
+                              style: TextStyle(
+                                color: selectedDays[index]
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
                   ),
-                  child: Row(
+                ],
+                if (repeatOption == 'Weekly' ||
+                    repeatOption == 'Every x days' ||
+                    repeatOption == 'Monthly') ...[
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.access_time),
+                      const Text(
+                        'Repeat Interval:',
+                        style: TextStyle(fontSize: 16),
+                      ),
                       const SizedBox(width: 10),
-                      Text(
-                        '${selectedTime.hour}:${selectedTime.minute}',
-                        style: const TextStyle(fontSize: 14),
+                      SizedBox(
+                        height: 45,
+                        width: 140,
+                        child: TextFormField(
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            setState(() {
+                              repeatInterval = int.tryParse(value);
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Interval',
+                            border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                              borderSide: BorderSide(
+                                color: Colors.black,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                              borderSide: BorderSide(
+                                color: Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)),
+                              borderSide: BorderSide(color: Color(0xffdfd785)),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                ],
+                const SizedBox(height: 10),
+                const Text(
+                  'Time',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 5),
-              const Text(
-                'Name',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              SizedBox(
-                height: 60,
-                width: double.infinity,
-                child: TextFormField(
-                  controller: nameController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Default is Medicine name';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    labelText: nameController.text.isNotEmpty
-                        ? null
-                        : '''Optional: Enter title''',
-                    labelStyle: const TextStyle(fontSize: 12),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                          color: Color(0xffdfd785), width: 2.0),
-                      borderRadius: BorderRadius.circular(5.0),
+                const SizedBox(height: 5),
+                GestureDetector(
+                  onTap: () => _selectTime(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.black, width: 1.0),
-                      borderRadius: BorderRadius.circular(5.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.access_time),
+                        const SizedBox(width: 10),
+                        Text(
+                          '${selectedTime.hour}:${selectedTime.minute}',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
                     ),
                   ),
-                  onChanged: (value) {
-                    setState(() {});
-                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Description',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              SizedBox(
-                height: 60,
-                width: double.infinity,
-                child: TextFormField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: descriptionController.text.isNotEmpty
-                        ? null
-                        : 'Optional: Enter description',
-                    labelStyle: const TextStyle(fontSize: 12),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                          color: Color(0xffdfd785), width: 2.0),
-                      borderRadius: BorderRadius.circular(5.0),
+                const SizedBox(height: 5),
+                const Text(
+                  'Name',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                SizedBox(
+                  height: 60,
+                  width: double.infinity,
+                  child: TextFormField(
+                    controller: nameController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Default is Medicine name';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      labelText: nameController.text.isNotEmpty
+                          ? null
+                          : '''Optional: Enter title''',
+                      labelStyle: const TextStyle(fontSize: 12),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                            color: Color(0xffdfd785), width: 2.0),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(color: Colors.black, width: 1.0),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Colors.black, width: 1.0),
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
                   ),
-                  onChanged: (value) {
-                    setState(() {});
-                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                const Text(
+                  'Description',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                SizedBox(
+                  height: 60,
+                  width: double.infinity,
+                  child: TextFormField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: descriptionController.text.isNotEmpty
+                          ? null
+                          : 'Optional: Enter description',
+                      labelStyle: const TextStyle(fontSize: 12),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                            color: Color(0xffdfd785), width: 2.0),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            const BorderSide(color: Colors.black, width: 1.0),
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -363,11 +377,11 @@ class _MedicineNewReminderScreenState
       repeatOptionText = 'every $repeatInterval days';
     }
 
-    final Reminder newReminder = Reminder(
+    final EventReminderModel newReminder = EventReminderModel(
       id: generateUniqueId(),
       title: nameController.text.isNotEmpty
           ? nameController.text
-          : ref.read(medicineNameControllerProvider).text,
+          : ref.read(eventMedicineNameControllerProvider).text,
       description: descriptionController.text.isNotEmpty
           ? descriptionController.text
           : 'Remember to use $repeatOptionText ',
@@ -383,8 +397,8 @@ class _MedicineNewReminderScreenState
       newReminder.objectId = widget.pill!.id;
     }
 
-    ref.read(reminderServiceProvider).addReminder(newReminder);
-    ref.read(temporaryReminderIds.notifier).state!.add(newReminder.id);
+    ref.read(eventReminderServiceProvider).addReminder(newReminder);
+    ref.read(eventReminderTemporaryIds.notifier).state!.add(newReminder.id);
 
     nameController.clear();
     descriptionController.clear();

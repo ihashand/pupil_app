@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
 
 class MedicinieDetailsName extends ConsumerWidget {
   const MedicinieDetailsName({
@@ -20,7 +20,7 @@ class MedicinieDetailsName extends ConsumerWidget {
           labelStyle: TextStyle(fontSize: 16),
         ),
         child: TextFormField(
-          controller: ref.read(medicineNameControllerProvider),
+          controller: ref.read(eventMedicineNameControllerProvider),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Please enter a name';

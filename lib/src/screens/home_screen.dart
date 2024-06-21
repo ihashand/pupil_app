@@ -6,7 +6,7 @@ import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/components/my_button_widget.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
-import 'package:pet_diary/src/providers/avatar_provider.dart';
+import 'package:pet_diary/src/providers/user_avatar_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/pet_details_screen.dart';
@@ -22,7 +22,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    final avatarUrl = ref.watch(avatarProvider);
+    final avatarUrl = ref.watch(userAvatarProvider);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -72,7 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         showAvatarSelectionDialog(
                           context: context,
                           onAvatarSelected: (String path) {
-                            ref.read(avatarProvider.notifier).state = path;
+                            ref.read(userAvatarProvider.notifier).state = path;
                             FirebaseAuth.instance.currentUser
                                 ?.updatePhotoURL(path);
                           },

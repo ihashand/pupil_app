@@ -5,15 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
-import 'package:pet_diary/src/models/weight_model.dart';
-import 'package:pet_diary/src/services/pet_services.dart';
-import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
+import 'package:pet_diary/src/models/event_weight_model.dart';
+import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/weight_provider.dart';
+import 'package:pet_diary/src/providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
@@ -29,16 +28,17 @@ class PetDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
+  DateTime selectedDateTime = DateTime.now();
   Pet? _pet;
 
   @override
   void initState() {
     super.initState();
-    final petService = ref.read(petServiceProvider);
-    _fetchPet(petService);
+    _fetchPet();
   }
 
-  Future<void> _fetchPet(PetService petService) async {
+  Future<void> _fetchPet() async {
+    final petService = ref.read(petServiceProvider);
     final fetchedPet = await petService.getPetById(widget.petId);
     setState(() {
       _pet = fetchedPet;
@@ -47,8 +47,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var pet = _pet;
-
+    final pet = _pet;
     if (pet == null) {
       return Scaffold(
         appBar: AppBar(
@@ -66,26 +65,17 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
       );
     }
 
-    Color healthButtonColor = const Color(0xffdfd785);
-    Color eventTileBackgroundColor =
-        Theme.of(context).colorScheme.primary.withOpacity(0.7);
-    Color backgroundSectionTwo =
-        Theme.of(context).colorScheme.primary.withOpacity(0.8);
-    Color textSecondSectionColor = Colors.black;
-    Color appbarButtonsColor = Colors.black;
-    Color avatarBackgroundColor =
-        const Color.fromARGB(255, 90, 182, 232).withOpacity(0.2);
-
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: appbarButtonsColor.withOpacity(0.7)),
+        iconTheme: IconThemeData(color: Colors.black.withOpacity(0.7)),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
               icon: const Icon(Icons.more_horiz),
               iconSize: 35,
-              color: textSecondSectionColor.withOpacity(0.7),
+              color: Colors.black.withOpacity(0.7),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -117,9 +107,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
             ),
             child: Column(
               children: [
-                const SizedBox(
-                  height: 45,
-                ),
+                const SizedBox(height: 55),
                 GestureDetector(
                   onTap: () => showAvatarSelectionDialog(
                     context: context,
@@ -136,11 +124,11 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(5),
                         child: CircleAvatar(
-                          backgroundColor: avatarBackgroundColor,
+                          backgroundColor: Colors.transparent,
                           backgroundImage: pet.avatarImage.isNotEmpty
                               ? AssetImage(pet.avatarImage)
                               : null,
-                          radius: 85,
+                          radius: 65,
                         ),
                       ),
                     ),
@@ -151,15 +139,15 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
           ),
         ),
         elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(130.0),
-          child: Container(),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(100.0),
+          child: SizedBox(),
         ),
       ),
       body: Column(
         children: [
           Container(
-            color: backgroundSectionTwo,
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
             width: double.infinity,
             padding:
                 const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
@@ -167,28 +155,32 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PetDetailNameAgeButtonWidget(
-                    buttonColor: healthButtonColor, petId: widget.petId),
+                  buttonColor: const Color(0xffdfd785),
+                  petId: widget.petId,
+                ),
                 const SizedBox(height: 10),
                 Consumer(builder: (context, ref, _) {
-                  final asyncWeights = ref.watch(weightsProvider);
+                  final asyncWeights = ref.watch(eventWeightsProvider);
                   return asyncWeights.when(
                     loading: () => const Text('Loading...'),
                     error: (err, stack) => const Text('Error fetching weights'),
                     data: (weights) {
                       var weight = weights
                           .firstWhere(
-                              (element) => element!.petId == widget.petId,
-                              orElse: () => Weight(
-                                    id: '',
-                                    weight: 0.0,
-                                    eventId: '',
-                                    petId: widget.petId,
-                                    dateTime: DateTime.now(),
-                                  ))!
+                            (element) => element!.petId == widget.petId,
+                            orElse: () => EventWeightModel(
+                              id: '',
+                              weight: 0.0,
+                              eventId: '',
+                              petId: widget.petId,
+                              dateTime: DateTime.now(),
+                            ),
+                          )!
                           .weight;
-
                       return PetDetailIconWidget(
-                          petId: pet.id, weight: weight.toString());
+                        petId: pet.id,
+                        weight: weight.toString(),
+                      );
                     },
                   );
                 }),
@@ -223,7 +215,6 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 final petEvents = events
                     .where((element) => element.petId == widget.petId)
                     .toList();
-
                 List<Event> eventsToShow = [];
                 DateTime today = DateTime.now();
                 DateTime? nextEventDate;
@@ -258,7 +249,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          'No events for today or in the future',
+                          'No events yet',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 16),
                         ),
@@ -279,21 +270,15 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     scrollDirection: Axis.vertical,
                     itemCount: eventsToShow.length,
                     itemBuilder: (context, index) {
-                      if (eventsToShow.isEmpty) {
-                        return const Text(
-                          'No events for today or in the future',
-                        );
-                      } else {
-                        final currentEvent = eventsToShow[index];
-                        return SizedBox(
-                          height: 87,
-                          width: 180,
-                          child: EventTile(
+                      final currentEvent = eventsToShow[index];
+                      return SizedBox(
+                        height: 87,
+                        width: 180,
+                        child: EventTile(
                             event: currentEvent,
-                            backgroundColor: eventTileBackgroundColor,
-                          ),
-                        );
-                      }
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary),
+                      );
                     },
                   ),
                 );
@@ -310,8 +295,11 @@ class EventTile extends StatelessWidget {
   final Event event;
   final Color backgroundColor;
 
-  const EventTile(
-      {super.key, required this.event, required this.backgroundColor});
+  const EventTile({
+    super.key,
+    required this.event,
+    required this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -326,13 +314,15 @@ class EventTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(
-                height: 5,
-              ),
+              const SizedBox(height: 5),
               Text(formattedDate, style: const TextStyle(fontSize: 10)),
-              Text(formattedStartTime,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.bold)),
+              Text(
+                formattedStartTime,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 10),
             ],
           ),
@@ -354,16 +344,28 @@ class EventTile extends StatelessWidget {
                         Text(event.emoticon,
                             style: const TextStyle(fontSize: 30)),
                       const SizedBox(width: 20),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(event.title,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              event.title,
                               style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text(event.description,
-                              style: const TextStyle(fontSize: 10)),
-                        ],
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Wrap(
+                              children: [
+                                Text(
+                                  event.description,
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -373,29 +375,6 @@ class EventTile extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class ScheduleView extends StatelessWidget {
-  final List<Event> events;
-  final Color backgroundColor;
-
-  const ScheduleView(
-      {super.key, required this.events, required this.backgroundColor});
-
-  @override
-  Widget build(BuildContext context) {
-    events.sort((a, b) => a.eventDate.compareTo(b.eventDate));
-
-    return ListView.builder(
-      itemCount: events.length,
-      itemBuilder: (context, index) {
-        return EventTile(
-          event: events[index],
-          backgroundColor: backgroundColor,
-        );
-      },
     );
   }
 }

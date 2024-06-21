@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/medicine_new_reminder_screen.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
+import 'package:pet_diary/src/models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 
 Widget medicineNewReminderButton(
   WidgetRef ref,
   BuildContext context,
   String petId,
   String newPillId,
-  final Medicine? pill,
+  final EventMedicineModel? pill,
 ) {
-  return StreamBuilder<List<Reminder>>(
-    stream: ref.watch(reminderServiceProvider).getRemindersStream(),
+  return StreamBuilder<List<EventReminderModel>>(
+    stream: ref.watch(eventReminderServiceProvider).getRemindersStream(),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const CircularProgressIndicator();
@@ -39,13 +39,11 @@ Widget medicineNewReminderButton(
                   ),
                 );
               },
-              label: Text(' New reminder',
+              label: Text('New reminder',
                   style: TextStyle(
-                      color:
-                          Theme.of(context).primaryColorDark.withOpacity(0.7),
-                      fontSize: 14)),
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
               icon: Icon(Icons.notification_add,
-                  color: Theme.of(context).primaryColorDark.withOpacity(0.5)),
+                  color: Theme.of(context).primaryColorDark),
               backgroundColor: const Color(0xffdfd785),
               extendedPadding: const EdgeInsets.symmetric(horizontal: 5.0),
               shape: RoundedRectangleBorder(

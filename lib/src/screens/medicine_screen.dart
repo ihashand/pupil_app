@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/medicine_model.dart';
-import 'package:pet_diary/src/models/reminder_model.dart';
+import 'package:pet_diary/src/models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/medicine_provider.dart';
-import 'package:pet_diary/src/providers/reminder_provider.dart';
+import 'package:pet_diary/src/providers/event_medicine_provider.dart';
+import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 import 'package:pet_diary/src/screens/medicine_add_edit_screen.dart';
 
 class MedicineScreen extends ConsumerStatefulWidget {
@@ -35,14 +35,14 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+          color: Theme.of(context).primaryColorDark,
         ),
         title: Text(
           'M e d i c i n e',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            color: Theme.of(context).primaryColorDark,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -51,7 +51,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
           IconButton(
             icon: Icon(
               Icons.add,
-              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+              color: Theme.of(context).primaryColorDark,
             ),
             onPressed: () =>
                 addOrEditMedicine(context, ref, widget.petId, newPillId),
@@ -64,7 +64,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
         children: [
           Expanded(
             child: Consumer(builder: (context, ref, _) {
-              final asyncMedicines = ref.watch(medicinesProvider);
+              final asyncMedicines = ref.watch(eventMedicinesProvider);
 
               return asyncMedicines.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -107,8 +107,12 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 
   // Method to add or edit medicine
   void addOrEditMedicine(
-      BuildContext context, WidgetRef ref, String petId, String newMedicineId,
-      {Medicine? medicine}) async {
+    BuildContext context,
+    WidgetRef ref,
+    String petId,
+    String newMedicineId, {
+    EventMedicineModel? medicine,
+  }) async {
     final bool isEditing = medicine != null;
     final result = await Navigator.push(
       context,
@@ -122,18 +126,22 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     );
     if (result != null) {
       if (isEditing) {
-        await ref.read(medicineServiceProvider).updateMedicine(result);
+        await ref.read(eventMedicineServiceProvider).updateMedicine(result);
       } else {
-        await ref.read(medicineServiceProvider).addMedicine(result);
+        await ref.read(eventMedicineServiceProvider).addMedicine(result);
       }
     }
   }
 
-  void deletePill(BuildContext context, WidgetRef ref, String petId,
-      {Medicine? medicine}) async {
+  void deletePill(
+    BuildContext context,
+    WidgetRef ref,
+    String petId, {
+    EventMedicineModel? medicine,
+  }) async {
     // Get all reminders
-    List<Reminder> pillRemindersList =
-        await ref.read(reminderServiceProvider).getReminders();
+    List<EventReminderModel> pillRemindersList =
+        await ref.read(eventReminderServiceProvider).getReminders();
 
     // Filter all reminders to find those related to the pill
     pillRemindersList = pillRemindersList
@@ -143,14 +151,16 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     // Delete all reminders
     if (pillRemindersList.isNotEmpty) {
       for (var reminder in pillRemindersList) {
-        await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
+        await ref
+            .read(eventReminderServiceProvider)
+            .deleteReminder(reminder.id);
       }
     }
 
     // Wait for a while to ensure the deletion process
     await Future.delayed(const Duration(seconds: 1));
     // Delete the medicine and related event
-    await ref.read(medicineServiceProvider).deleteMedicine(medicine!.id);
+    await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
     await ref.read(eventServiceProvider).deleteEvent(medicine.eventId);
 
     // Get all events
@@ -168,7 +178,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 }
 
 class MedicineTile extends StatelessWidget {
-  final Medicine medicine;
+  final EventMedicineModel medicine;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -186,6 +196,7 @@ class MedicineTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       color: Theme.of(context).colorScheme.primary,
       child: ExpansionTile(
+        shape: const Border(), // Delete black lines on top and bootom of tile
         title: Row(
           children: [
             Text(
@@ -193,8 +204,14 @@ class MedicineTile extends StatelessWidget {
               style: const TextStyle(fontSize: 24),
             ),
             const SizedBox(width: 12),
-            Text(medicine.name),
-            const SizedBox(width: 12),
+            Text(
+              medicine.name,
+              style: TextStyle(
+                color: Theme.of(context).primaryColorDark,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         trailing: Row(
@@ -203,33 +220,122 @@ class MedicineTile extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.edit,
-                color: Theme.of(context).primaryColorLight.withOpacity(0.7),
+                color: Theme.of(context).primaryColorDark,
               ),
               onPressed: onEdit,
             ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: onDelete,
-              color: Theme.of(context).primaryColorLight.withOpacity(0.7),
+              color: Theme.of(context).primaryColorDark,
             ),
           ],
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16.0, bottom: 15),
+            padding: const EdgeInsets.all(8.0), // Zmniejszony padding
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dosage: ${medicine.dosage}'),
-                Text('Frequency: ${medicine.frequency}'),
-                Text(
-                  'Date added: ${dateFormat.format(medicine.addDate!)}',
+                Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        const Text('💊',
+                            style: TextStyle(
+                                fontSize: 20)), // Emotikon zamiast ikony
+                        const SizedBox(width: 8),
+                        Text(
+                          'Dosage: ${medicine.dosage != 'null' ? medicine.dosage : 'Not provided'}',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                Text(
-                  'Start date: ${dateFormat.format(medicine.startDate!)}',
+                Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        const Text('🔁',
+                            style: TextStyle(
+                                fontSize: 20)), // Emotikon zamiast ikony
+                        const SizedBox(width: 8),
+                        Text(
+                          'Frequency: ${medicine.dosage != 'null' ? medicine.frequency : 'Not provided'}',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                Text(
-                  'End date: ${dateFormat.format(medicine.endDate!)}',
+                Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        const Text('📅',
+                            style: TextStyle(
+                                fontSize: 20)), // Emotikon zamiast ikony
+                        const SizedBox(width: 8),
+                        Text(
+                          'Date added: ${dateFormat.format(medicine.addDate!)}',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        const Text('🛫',
+                            style: TextStyle(
+                                fontSize: 20)), // Emotikon zamiast ikony
+                        const SizedBox(width: 8),
+                        Text(
+                          'Start date: ${dateFormat.format(medicine.startDate!)}',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Card(
+                  color: Theme.of(context).colorScheme.surface,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        const Text('🏁',
+                            style: TextStyle(
+                                fontSize: 20)), // Emotikon zamiast ikony
+                        const SizedBox(width: 8),
+                        Text(
+                          'End date: ${dateFormat.format(medicine.endDate!)}',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
