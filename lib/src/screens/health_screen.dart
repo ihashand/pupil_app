@@ -332,7 +332,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                         const SizedBox(width: 14),
                         Text(
                           event.emoticon,
-                          style: const TextStyle(fontSize: 30),
+                          style: const TextStyle(fontSize: 25),
                         ),
                         const SizedBox(width: 30),
                         Expanded(
@@ -342,20 +342,15 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                               Text(
                                 event.title,
                                 style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).primaryColorDark,
                                 ),
                               ),
                               if (expandedEvents[event.id] ?? false) ...[
-                                const SizedBox(
-                                  height: 5,
-                                ),
                                 Text(
                                   event.description,
-                                ),
-                                const SizedBox(
-                                  height: 2,
+                                  style: const TextStyle(fontSize: 12),
                                 ),
                                 Text(
                                   DateFormat('dd-MM-yyyy')
@@ -367,8 +362,11 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete,
-                              color: Theme.of(context).primaryColorDark),
+                          icon: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).primaryColorDark,
+                            size: 18,
+                          ),
                           onPressed: () =>
                               _showDeleteConfirmation(context, event),
                         ),

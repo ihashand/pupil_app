@@ -41,7 +41,7 @@ class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.only(left: 15, right: 10, top: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,7 +51,9 @@ class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
               Text(
                 'Icons',
                 style: TextStyle(
-                    fontSize: 16, color: Theme.of(context).primaryColorDark),
+                    fontSize: 13,
+                    color: Theme.of(context).primaryColorDark,
+                    fontWeight: FontWeight.bold),
               ),
               TextButton(
                 onPressed: () {
@@ -63,14 +65,16 @@ class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
                 child: Text(
                   showMore ? 'Show less' : 'Show more',
                   style: TextStyle(
-                      color: Theme.of(context).primaryColorDark, fontSize: 12),
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
           Wrap(
-            spacing: 1,
+            spacing: 25,
+            runSpacing: 15,
             children: (showMore ? emojis : emojis.take(5)).map((emoji) {
               bool isSelected = emoji == selectedEmoji;
               return GestureDetector(
@@ -81,14 +85,14 @@ class _EmojiPillDetailsState extends ConsumerState<MedicineDetailsEmoji> {
                   });
                 },
                 child: CircleAvatar(
-                  radius: 30,
+                  radius: 20,
                   backgroundColor: isSelected
                       ? Theme.of(context).colorScheme.secondary
                       : Colors.transparent,
                   child: Text(
                     emoji,
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 22,
                       color: isSelected ? Colors.black : Colors.white,
                     ),
                   ),

@@ -36,11 +36,11 @@ class MedicineAddEditScreen extends ConsumerStatefulWidget {
 }
 
 class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
-  double containerHeight = 410;
+  double containerHeight = 375;
 
   void toggleContainerHeight(bool showMore) {
     setState(() {
-      containerHeight = showMore ? 530 : 410;
+      containerHeight = showMore ? 485 : 375;
     });
   }
 
@@ -113,16 +113,16 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
         ref.read(eventReminderTemporaryIds.notifier).state!.clear();
       },
       child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           iconTheme: IconThemeData(
-            color: Theme.of(context).primaryColorDark,
-          ),
+              color: Theme.of(context).primaryColorDark, size: 20),
           title: Text(
             widget.medicine == null
-                ? 'N e w   m e d i c i n e'
-                : 'E d i t   m e d i c i n e',
+                ? 'N E W   M E D I C I N E'
+                : 'E D I T  M E D I C I N E',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColorDark,
             ),
@@ -134,10 +134,11 @@ class _MedicineAddEditScreenState extends ConsumerState<MedicineAddEditScreen> {
               icon: Icon(
                 Icons.check,
                 color: Theme.of(context).primaryColorDark,
+                size: 20,
               ),
               onPressed: () => savePill(context, ref, widget.formKey,
                   widget.petId, widget.medicineId, widget.medicine),
-              iconSize: 30,
+              iconSize: 20,
             ),
           ],
         ),

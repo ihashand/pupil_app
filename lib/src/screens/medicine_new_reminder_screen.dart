@@ -43,14 +43,14 @@ class _MedicineNewReminderScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Theme.of(context).primaryColorDark,
-        ),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).primaryColorDark, size: 20),
         title: Text(
-          'N e w   r e m i n d e r',
+          'N E W  R E M I N D E R',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).primaryColorDark,
           ),
@@ -64,20 +64,18 @@ class _MedicineNewReminderScreenState
             ),
             onPressed: () => _saveReminder(),
             color: Theme.of(context).primaryColorDark,
-            iconSize: 30,
+            iconSize: 20,
           ),
         ],
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-              20, 20, 20, 20), // Zwiększenie obszaru tła
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
           child: Container(
-            padding:
-                const EdgeInsets.all(20), // Zwiększenie wewnętrznego paddingu
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(12), // Dodanie border radius
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

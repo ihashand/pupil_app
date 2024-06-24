@@ -33,15 +33,15 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     var newPillId = generateUniqueId();
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Theme.of(context).primaryColorDark,
-        ),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).primaryColorDark, size: 20),
         title: Text(
-          'M e d i c i n e',
+          'M E D I C I N E',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: 13,
             color: Theme.of(context).primaryColorDark,
           ),
         ),
@@ -52,20 +52,25 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
             icon: Icon(
               Icons.add,
               color: Theme.of(context).primaryColorDark,
+              size: 24,
             ),
             onPressed: () =>
                 addOrEditMedicine(context, ref, widget.petId, newPillId),
-            color: Theme.of(context).colorScheme.onPrimary,
-            iconSize: 35,
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4.0),
+          child: Container(),
+        ),
       ),
       body: Column(
         children: [
+          const SizedBox(
+            height: 7,
+          ),
           Expanded(
             child: Consumer(builder: (context, ref, _) {
               final asyncMedicines = ref.watch(eventMedicinesProvider);
-
               return asyncMedicines.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Center(child: Text('Error: $err')),
@@ -105,7 +110,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     );
   }
 
-  // Method to add or edit medicine
   void addOrEditMedicine(
     BuildContext context,
     WidgetRef ref,
@@ -139,16 +143,13 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     String petId, {
     EventMedicineModel? medicine,
   }) async {
-    // Get all reminders
     List<EventReminderModel> pillRemindersList =
         await ref.read(eventReminderServiceProvider).getReminders();
 
-    // Filter all reminders to find those related to the pill
     pillRemindersList = pillRemindersList
         .where((element) => element.objectId == medicine!.id)
         .toList();
 
-    // Delete all reminders
     if (pillRemindersList.isNotEmpty) {
       for (var reminder in pillRemindersList) {
         await ref
@@ -157,20 +158,15 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
       }
     }
 
-    // Wait for a while to ensure the deletion process
     await Future.delayed(const Duration(seconds: 1));
-    // Delete the medicine and related event
     await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
     await ref.read(eventServiceProvider).deleteEvent(medicine.eventId);
 
-    // Get all events
     final asyncEvents = await _eventsFuture;
 
-    // Filter all events to find those referenced
     final relatedEvents =
         asyncEvents.where((event) => event.id == medicine.eventId).toList();
 
-    // Delete all related events
     for (var event in relatedEvents) {
       await ref.read(eventServiceProvider).deleteEvent(event.id);
     }
@@ -193,23 +189,30 @@ class MedicineTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 3, bottom: 3),
       color: Theme.of(context).colorScheme.primary,
       child: ExpansionTile(
-        shape: const Border(), // Delete black lines on top and bootom of tile
+        shape: const Border(),
         title: Row(
           children: [
-            Text(
-              medicine.emoji,
-              style: const TextStyle(fontSize: 24),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              medicine.name,
-              style: TextStyle(
-                color: Theme.of(context).primaryColorDark,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.all(2.0),
+              child: Row(
+                children: [
+                  Text(
+                    medicine.emoji,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(
+                    medicine.name,
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -221,126 +224,87 @@ class MedicineTile extends StatelessWidget {
               icon: Icon(
                 Icons.edit,
                 color: Theme.of(context).primaryColorDark,
+                size: 17,
               ),
               onPressed: onEdit,
             ),
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: Icon(
+                Icons.delete,
+                color: Theme.of(context).primaryColorDark,
+                size: 17,
+              ),
               onPressed: onDelete,
-              color: Theme.of(context).primaryColorDark,
             ),
           ],
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0), // Zmniejszony padding
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        const Text('💊',
-                            style: TextStyle(
-                                fontSize: 20)), // Emotikon zamiast ikony
-                        const SizedBox(width: 8),
-                        Text(
-                          'Dosage: ${medicine.dosage != 'null' ? medicine.dosage : 'Not provided'}',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Card(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        const Text('🔁',
-                            style: TextStyle(
-                                fontSize: 20)), // Emotikon zamiast ikony
-                        const SizedBox(width: 8),
-                        Text(
-                          'Frequency: ${medicine.dosage != 'null' ? medicine.frequency : 'Not provided'}',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Card(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        const Text('📅',
-                            style: TextStyle(
-                                fontSize: 20)), // Emotikon zamiast ikony
-                        const SizedBox(width: 8),
-                        Text(
-                          'Date added: ${dateFormat.format(medicine.addDate!)}',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Card(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        const Text('🛫',
-                            style: TextStyle(
-                                fontSize: 20)), // Emotikon zamiast ikony
-                        const SizedBox(width: 8),
-                        Text(
-                          'Start date: ${dateFormat.format(medicine.startDate!)}',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Card(
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        const Text('🏁',
-                            style: TextStyle(
-                                fontSize: 20)), // Emotikon zamiast ikony
-                        const SizedBox(width: 8),
-                        Text(
-                          'End date: ${dateFormat.format(medicine.endDate!)}',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _buildInfoRow(
+                    context,
+                    '💊',
+                    '${medicine.dosage != 'null' ? medicine.dosage : 'Not provided'}',
+                    'dosage'),
+                _buildInfoRow(
+                    context,
+                    '🔁',
+                    '${medicine.dosage != 'null' ? medicine.frequency : 'Not provided'}',
+                    "frequency"),
+                _buildInfoRow(context, '📅',
+                    dateFormat.format(medicine.addDate!), "add date"),
+                _buildInfoRow(context, '🛫',
+                    dateFormat.format(medicine.startDate!), "start date"),
+                _buildInfoRow(context, '🏁',
+                    dateFormat.format(medicine.endDate!), "end date"),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      BuildContext context, String emoji, String firstText, String secondText) {
+    return Card(
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 3),
+        child: Row(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 20)),
+            const SizedBox(
+              width: 15,
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    firstText,
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                  Text(
+                    secondText,
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              width: 5,
+            ),
+          ],
+        ),
       ),
     );
   }
