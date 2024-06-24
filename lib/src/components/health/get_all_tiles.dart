@@ -8,7 +8,7 @@ List<TileInfoModel> getAllTiles(
   return [
     TileInfoModel(
       Icons.directions_walk,
-      'Activity',
+      'A c t i v i t y',
       Colors.blue,
       ['activity', 'walk', 'wandern', 'fit', 'exercise', 'running'],
       onTap: () {
@@ -20,14 +20,14 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.mood,
-      'Mood',
+      'M o o d',
       Colors.amber,
       ['mood', 'emotion', 'feeling', 'happiness', 'sadness', 'joy'],
       onTap: () {},
     ),
     TileInfoModel(
       Icons.medication,
-      'Medications',
+      'M e d i c a t i o n s',
       Colors.green,
       ['medication', 'drugs', 'pills', 'therapy', 'prescription', 'dosage'],
       onTap: () {
@@ -36,7 +36,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.warning,
-      'Symptoms',
+      'S y m p t o m s',
       Colors.red,
       ['symptom', 'illness', 'pain', 'discomfort', 'condition', 'disease'],
       onTap: () {
@@ -45,7 +45,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.timeline,
-      'Measurements',
+      'M e a s u r e m e n t s',
       Colors.orange,
       ['measurement', 'data', 'metrics', 'record', 'result', 'analysis'],
       onTap: () {
@@ -54,7 +54,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.bedtime,
-      'Sleep',
+      'S l e e p',
       Colors.indigo,
       ['sleep', 'rest', 'nap', 'slumber', 'insomnia', 'bedtime'],
       onTap: () {
@@ -63,7 +63,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.favorite,
-      'Heart',
+      'H e a r t',
       Colors.pink,
       ['heart', 'cardio', 'pulse', 'blood pressure', 'rate', 'exercise'],
       onTap: () {
@@ -72,7 +72,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.track_changes,
-      'Cycle',
+      'C y c l e',
       Colors.teal,
       [
         'cycle',
@@ -88,7 +88,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.pregnant_woman,
-      'Pregnancy',
+      'P r e g n a n c y',
       Colors.deepOrange,
       ['pregnancy', 'maternity', 'expecting', 'baby', 'prenatal', 'parenthood'],
       onTap: () {
@@ -97,7 +97,7 @@ List<TileInfoModel> getAllTiles(
     ),
     TileInfoModel(
       Icons.dashboard_customize,
-      'Other Data',
+      'O t h e r  D a t a',
       Colors.brown,
       ['data', 'information', 'records', 'details', 'statistics', 'history'],
       onTap: () {

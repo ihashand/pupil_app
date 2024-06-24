@@ -24,11 +24,12 @@ Widget medicineNewReminderButton(
       }
 
       return Flexible(
-          child: Column(
-        children: [
+          child: Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: Column(children: [
           SizedBox(
+            width: 400,
             height: 40,
-            width: 330,
             child: FloatingActionButton.extended(
               onPressed: () {
                 Navigator.push(
@@ -50,7 +51,7 @@ Widget medicineNewReminderButton(
                   borderRadius: BorderRadius.circular(10.0)),
             ),
           ),
-        ],
+        ]),
       ));
     },
   );
