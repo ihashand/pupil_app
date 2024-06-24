@@ -49,7 +49,7 @@ class Popup extends StatelessWidget {
                           element?.dateTime.month == dateTime.month)
                       .toList();
                   for (var walk in todaySortedWalks) {
-                    steps += walk!.distance;
+                    steps += walk!.steps;
                   }
                   return Column(
                     children: [

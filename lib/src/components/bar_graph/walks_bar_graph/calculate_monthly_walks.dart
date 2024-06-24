@@ -29,7 +29,7 @@ List<double> calculateMonthlyWalks(List<EventWalkModel?> walks) {
     if (walk != null) {
       int day = walk.dateTime.day -
           1; // Pobierz indeks dla dnia miesiąca (0 - pierwszy dzień, ..., 29/30/31 - ostatni dzień)
-      double distance = walk.distance;
+      double distance = walk.steps;
       daysData[day] += distance;
     }
   }

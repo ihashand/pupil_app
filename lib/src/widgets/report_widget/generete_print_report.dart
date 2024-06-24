@@ -27,7 +27,7 @@ Future<void> generateAndPrintReport(
         walk.dateTime.isBefore(dateRange.end);
   }).toList();
 
-  double totalSteps = filteredWalks.fold(0, (sum, walk) => sum + walk.distance);
+  double totalSteps = filteredWalks.fold(0, (sum, walk) => sum + walk.steps);
   double totalActiveMinutes =
       filteredWalks.fold(0, (sum, walk) => sum + walk.walkTime);
   double totalDistance = (totalSteps * 0.0008); // Assuming 1 step = 0.0008 km

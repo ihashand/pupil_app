@@ -26,13 +26,16 @@ class PetDetailIconWidget extends ConsumerWidget {
                 snapshot.data!.where((element) => element!.id == petId).first;
 
             return Padding(
-              padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+              padding: const EdgeInsets.only(left: 20, right: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      const SizedBox(
+                        height: 2,
+                      ),
                       if (pet!.gender == 'Male')
                         const Icon(
                           Icons.male,
@@ -43,16 +46,13 @@ class PetDetailIconWidget extends ConsumerWidget {
                           Icons.female,
                           size: 40,
                         ),
-                      const SizedBox(
-                        height: 5,
-                      ),
                       const Text(
                         'Gender',
-                        style: TextStyle(fontSize: 10),
+                        style: TextStyle(fontSize: 9),
                       ),
                       Text(pet.gender,
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 13)),
+                              fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                   Column(
@@ -60,15 +60,15 @@ class PetDetailIconWidget extends ConsumerWidget {
                     children: [
                       const Text(
                         '🎂',
-                        style: TextStyle(fontSize: 35),
+                        style: TextStyle(fontSize: 30),
                       ),
                       const Text(
                         'Birth date',
-                        style: TextStyle(fontSize: 10),
+                        style: TextStyle(fontSize: 9),
                       ),
                       Text(pet.age,
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 13)),
+                              fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                   Column(
@@ -76,7 +76,7 @@ class PetDetailIconWidget extends ConsumerWidget {
                     children: [
                       const Text(
                         '🐶',
-                        style: TextStyle(fontSize: 35),
+                        style: TextStyle(fontSize: 30),
                       ),
                       const Text(
                         'Breed',
@@ -84,7 +84,7 @@ class PetDetailIconWidget extends ConsumerWidget {
                       ),
                       Text(pet.breed,
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 13)),
+                              fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                   Column(
@@ -92,7 +92,7 @@ class PetDetailIconWidget extends ConsumerWidget {
                     children: [
                       const Text(
                         '⚖️',
-                        style: TextStyle(fontSize: 35),
+                        style: TextStyle(fontSize: 30),
                       ),
                       const Text(
                         'Weight',
@@ -101,7 +101,7 @@ class PetDetailIconWidget extends ConsumerWidget {
                       Text(
                         '$weight kg',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13),
+                            fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                     ],
                   ),

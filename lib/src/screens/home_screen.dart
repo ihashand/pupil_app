@@ -9,7 +9,7 @@ import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/providers/user_avatar_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/pet_details_screen.dart';
+import 'package:pet_diary/src/screens/health_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -257,9 +257,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           height: 93,
                           width: 400,
                           child: EventTile(
-                              event: currentEvent,
-                              backgroundColor:
-                                  const Color(0xff68a2b6).withOpacity(0.5)),
+                            event: currentEvent,
+                            ref: ref,
+                            isExpanded: false,
+                          ),
                         );
                       },
                     ),

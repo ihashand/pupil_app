@@ -29,7 +29,7 @@ Future<void> showBackgroundSelectionDialog({
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(15.0),
               child: const Center(
                 child: Text(
                   'Choose Background',
@@ -51,8 +51,8 @@ Future<void> showBackgroundSelectionDialog({
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
-                        width: 300,
-                        height: 200, // zmniejszamy wysokość
+                        width: 250,
+                        height: 175,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           image: DecorationImage(

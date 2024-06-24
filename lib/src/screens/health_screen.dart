@@ -20,6 +20,7 @@ import 'package:pet_diary/src/components/events/event_weight.dart';
 import 'package:pet_diary/src/components/events/event_mood.dart';
 import 'package:pet_diary/src/models/event_preferences.dart';
 import 'package:pet_diary/src/providers/event_preferences_provider.dart';
+import 'package:pet_diary/src/screens/health_activity_screen.dart';
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
@@ -319,59 +320,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                           !(expandedEvents[event.id] ?? false);
                     });
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(5.0),
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 5.0, horizontal: 8.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 14),
-                        Text(
-                          event.emoticon,
-                          style: const TextStyle(fontSize: 25),
-                        ),
-                        const SizedBox(width: 30),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                event.title,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                              if (expandedEvents[event.id] ?? false) ...[
-                                Text(
-                                  event.description,
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                Text(
-                                  DateFormat('dd-MM-yyyy')
-                                      .format(event.eventDate),
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.delete,
-                            color: Theme.of(context).primaryColorDark,
-                            size: 18,
-                          ),
-                          onPressed: () =>
-                              _showDeleteConfirmation(context, event),
-                        ),
-                      ],
-                    ),
+                  child: EventTile(
+                    ref: ref,
+                    event: event,
+                    isExpanded: expandedEvents[event.id] ?? false,
                   ),
                 );
               },
@@ -997,6 +949,160 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       ),
     );
   }
+}
+
+class EventTile extends StatelessWidget {
+  final Event event;
+  final bool isExpanded;
+  final WidgetRef ref;
+
+  const EventTile({
+    super.key,
+    required this.event,
+    required this.isExpanded,
+    required this.ref,
+  });
+
+  void navigateToScreen(BuildContext context) {
+    if (event.weightId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.temperatureId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.walkId.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HealthActivityScreen(event.petId),
+        ),
+      );
+    } else if (event.waterId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.noteId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.pillId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.moodId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.stomachId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.psychicId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.stoolId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.urineId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.serviceId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else if (event.careId.isNotEmpty) {
+      showWorkingProgress(context);
+    } else {
+      showWorkingProgress(context);
+    }
+  }
+
+  void showWorkingProgress(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Working progress')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String formattedStartTime =
+        DateFormat('HH:mm').format(event.dateWhenEventAdded);
+    String formattedDate = DateFormat('d MMM').format(event.dateWhenEventAdded);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: Column(
+                  children: [
+                    Text(formattedDate, style: const TextStyle(fontSize: 10)),
+                    Text(
+                      formattedStartTime,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      if (event.emoticon.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10, right: 15),
+                          child: Text(event.emoticon,
+                              style: const TextStyle(fontSize: 30)),
+                        ),
+                      Expanded(
+                        child: Text(
+                          event.title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign:
+                              isExpanded ? TextAlign.left : TextAlign.left,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isExpanded) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15, top: 5),
+                      child: Text(
+                        event.description,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          color: Theme.of(context).primaryColorDark,
+                          onPressed: () => navigateToScreen(context),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          color: Theme.of(context).primaryColorDark,
+                          onPressed: () =>
+                              _showDeleteConfirmation(context, event),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showDeleteConfirmation(BuildContext context, Event event) {
     showDialog(
@@ -1004,7 +1110,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Event'),
-          content: const Text('Are you sure you want to delete this event?'),
+          content: const Text('Are you sure you want to delete?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -1015,8 +1121,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             ),
             TextButton(
               onPressed: () {
-                var allEvents = [event];
-                eventDeleteFunc(ref, context, allEvents, event.id);
+                // Assuming `ref` and `eventDeleteFunc` are accessible in this context.
+                eventDeleteFunc(ref, context, [event], event.id);
                 Navigator.of(context).pop();
               },
               child: Text(

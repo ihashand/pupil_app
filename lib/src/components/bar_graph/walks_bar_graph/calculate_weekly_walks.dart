@@ -28,7 +28,7 @@ List<double> calculateWeeklyWalks(List<EventWalkModel?> walks) {
     if (walk != null) {
       int day = walk.dateTime.weekday -
           1; // Pobierz indeks dla dnia tygodnia (0 - poniedziałek, ..., 6 - niedziela)
-      double distance = walk.distance;
+      double distance = walk.steps;
       daysData[day] += distance;
     }
   }

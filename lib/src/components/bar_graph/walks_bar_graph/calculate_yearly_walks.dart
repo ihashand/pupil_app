@@ -14,7 +14,7 @@ List<double> calculateYearlyWalks(List<EventWalkModel?> walks) {
       if (walkDate.year == today.year) {
         int month = walkDate.month -
             1; // Pobierz indeks dla miesiąca (0 - styczeń, ..., 11 - grudzień)
-        double distance = walk.distance;
+        double distance = walk.steps;
         monthsData[month] += distance;
       }
     }

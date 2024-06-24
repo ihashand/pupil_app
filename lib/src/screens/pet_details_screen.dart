@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
@@ -13,6 +11,7 @@ import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/event_weight_provider.dart';
+import 'package:pet_diary/src/screens/health_screen.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
@@ -30,6 +29,7 @@ class PetDetailsScreen extends ConsumerStatefulWidget {
 class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
   DateTime selectedDateTime = DateTime.now();
   Pet? _pet;
+  Map<String, bool> expandedEvents = {};
 
   @override
   void initState() {
@@ -68,14 +68,14 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.black.withOpacity(0.7)),
+        iconTheme: const IconThemeData(color: Colors.black),
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
             child: IconButton(
               icon: const Icon(Icons.more_horiz),
-              iconSize: 35,
-              color: Colors.black.withOpacity(0.7),
+              iconSize: 25,
+              color: Colors.black,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -107,28 +107,30 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
             ),
             child: Column(
               children: [
-                const SizedBox(height: 55),
-                GestureDetector(
-                  onTap: () => showAvatarSelectionDialog(
-                    context: context,
-                    onAvatarSelected: (String path) {
-                      setState(() {
-                        pet.avatarImage = path;
-                      });
-                      ref.watch(petServiceProvider).updatePet(pet);
-                    },
-                  ),
-                  child: SizedBox(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          backgroundImage: pet.avatarImage.isNotEmpty
-                              ? AssetImage(pet.avatarImage)
-                              : null,
-                          radius: 65,
+                Padding(
+                  padding: const EdgeInsets.only(top: 60),
+                  child: GestureDetector(
+                    onTap: () => showAvatarSelectionDialog(
+                      context: context,
+                      onAvatarSelected: (String path) {
+                        setState(() {
+                          pet.avatarImage = path;
+                        });
+                        ref.watch(petServiceProvider).updatePet(pet);
+                      },
+                    ),
+                    child: SizedBox(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.transparent,
+                            backgroundImage: pet.avatarImage.isNotEmpty
+                                ? AssetImage(pet.avatarImage)
+                                : null,
+                            radius: 65,
+                          ),
                         ),
                       ),
                     ),
@@ -147,7 +149,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
       body: Column(
         children: [
           Container(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            color: Theme.of(context).colorScheme.primary,
             width: double.infinity,
             padding:
                 const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
@@ -189,16 +191,15 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
           ),
           const SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 5),
+            padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 10),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    'E v e n t s',
+                    'E V E N T S',
                     style: TextStyle(
-                      fontSize: 15,
-                      color:
-                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      fontSize: 13,
+                      color: Theme.of(context).primaryColorDark,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -242,22 +243,24 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 }
 
                 if (eventsToShow.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(15.0),
+                  return Padding(
+                    padding: const EdgeInsets.all(5.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           'No events yet',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 16),
                         ),
-                        SizedBox(height: 30),
                         Icon(
                           Icons.sentiment_dissatisfied,
-                          size: 100,
-                          color: Colors.blueGrey,
+                          size: 200,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.5),
                         ),
                       ],
                     ),
@@ -271,13 +274,18 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     itemCount: eventsToShow.length,
                     itemBuilder: (context, index) {
                       final currentEvent = eventsToShow[index];
-                      return SizedBox(
-                        height: 87,
-                        width: 180,
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            expandedEvents[currentEvent.id] =
+                                !(expandedEvents[currentEvent.id] ?? false);
+                          });
+                        },
                         child: EventTile(
-                            event: currentEvent,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary),
+                          event: currentEvent,
+                          isExpanded: expandedEvents[currentEvent.id] ?? false,
+                          ref: ref,
+                        ),
                       );
                     },
                   ),
@@ -285,94 +293,6 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
               },
             );
           }),
-        ],
-      ),
-    );
-  }
-}
-
-class EventTile extends StatelessWidget {
-  final Event event;
-  final Color backgroundColor;
-
-  const EventTile({
-    super.key,
-    required this.event,
-    required this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    String formattedStartTime = DateFormat('HH:mm').format(event.eventDate);
-    String formattedDate = DateFormat('d MMM').format(event.eventDate);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 5),
-              Text(formattedDate, style: const TextStyle(fontSize: 10)),
-              Text(
-                formattedStartTime,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (event.emoticon.isNotEmpty)
-                        Text(event.emoticon,
-                            style: const TextStyle(fontSize: 30)),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              event.title,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Wrap(
-                              children: [
-                                Text(
-                                  event.description,
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

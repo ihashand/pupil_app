@@ -2,9 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventWalkModel {
   String id = '';
-  late double walkTime; // Walktime is in minutes
-  late double distance =
-      0.0; // It's not meters or km, it's steps. This is important
+  late double walkTime;
+  late double steps = 0.0;
   late String eventId;
   late String petId;
   late DateTime dateTime;
@@ -14,13 +13,13 @@ class EventWalkModel {
       required this.walkTime,
       required this.eventId,
       required this.petId,
-      required this.distance,
+      required this.steps,
       required this.dateTime});
 
   EventWalkModel.fromDocument(DocumentSnapshot doc) {
     id = doc.id;
     walkTime = doc.get('walkTime');
-    distance = doc.get('walkDistance') ?? 0.0;
+    steps = doc.get('steps') ?? 0.0;
     eventId = doc.get('eventId') ?? '';
     petId = doc.get('petId') ?? '';
     dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
@@ -30,7 +29,7 @@ class EventWalkModel {
     return {
       'id': id,
       'walkTime': walkTime,
-      'walkDistance': distance,
+      'steps': steps,
       'eventId': eventId,
       'petId': petId,
       'dateTime': Timestamp.fromDate(dateTime),
