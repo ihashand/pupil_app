@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
-import 'package:pet_diary/src/components/events/event_delete_func.dart';
 import 'package:pet_diary/src/components/events/event_preferences_dialog.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';
@@ -20,11 +19,12 @@ import 'package:pet_diary/src/components/events/event_weight.dart';
 import 'package:pet_diary/src/components/events/event_mood.dart';
 import 'package:pet_diary/src/models/event_preferences.dart';
 import 'package:pet_diary/src/providers/event_preferences_provider.dart';
-import 'package:pet_diary/src/screens/health_activity_screen.dart';
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/screens/vet_visit_screen.dart';
+import 'package:pet_diary/src/widgets/health_events_widgets/event_tile.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
@@ -66,7 +66,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget build(BuildContext context) {
     final eventDateTime = ref.watch(eventDateControllerProvider);
     final asyncEvents = ref.watch(eventsProvider);
-    final preferences = ref.watch(preferencesProvider);
 
     return asyncEvents.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -160,15 +159,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
-                  return SingleChildScrollView(
-                    child: Container(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height / 2,
-                      ),
-                      child: _buildAddEventMenu(
-                          context, widget.petId, eventDateTime, preferences),
-                    ),
-                  );
+                  return _buildAddEventTypeSelection(context);
                 },
               );
             },
@@ -387,6 +378,178 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       }
       return false;
     }).toList();
+  }
+
+  Widget _buildAddEventTypeSelection(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      padding: const EdgeInsets.all(20.0),
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Select Event Type',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: 250,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _showEasyAddOptions(context);
+              },
+              child: Text(
+                'Detailed',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: 250,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _showDetailedAddMenu(context);
+              },
+              child: Text(
+                'Quick',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEasyAddOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          color: Theme.of(context).colorScheme.surface,
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Select event',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+              Divider(color: Colors.blueGrey.shade100, height: 20),
+              const SizedBox(height: 15),
+              Expanded(
+                child: ListView(
+                  children: [
+                    _buildEasyAddTile(
+                        context, 'Vet Visit', 'assets/images/vet_one.jpeg', () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => VetVisitScreen(),
+                      ));
+                    }),
+                    Divider(color: Colors.blueGrey.shade100, height: 20),
+                    _buildEasyAddTile(context, 'Groomer Visit',
+                        'assets/images/groomer_one.jpeg', () {}),
+                    Divider(color: Colors.blueGrey.shade100, height: 20),
+                    _buildEasyAddTile(context, 'Behaviorist',
+                        'assets/images/behaviorist_one.jpeg', () {}),
+                    Divider(color: Colors.blueGrey.shade100, height: 20),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEasyAddTile(BuildContext context, String title, String imagePath,
+      VoidCallback onTap) {
+    bool hasImage = imagePath.isNotEmpty;
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Column(
+          children: [
+            Text(
+              title.split('').join(' '),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: hasImage ? null : Colors.blue,
+                image: hasImage
+                    ? DecorationImage(
+                        image: AssetImage(imagePath),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 5),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDetailedAddMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SingleChildScrollView(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height / 2,
+            ),
+            child: _buildAddEventMenu(context, widget.petId, eventDateTime,
+                ref.watch(preferencesProvider)),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildAddEventMenu(BuildContext context, String petId,
@@ -947,192 +1110,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class EventTile extends StatelessWidget {
-  final Event event;
-  final bool isExpanded;
-  final WidgetRef ref;
-
-  const EventTile({
-    super.key,
-    required this.event,
-    required this.isExpanded,
-    required this.ref,
-  });
-
-  void navigateToScreen(BuildContext context) {
-    if (event.weightId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.temperatureId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.walkId.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HealthActivityScreen(event.petId),
-        ),
-      );
-    } else if (event.waterId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.noteId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.pillId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.moodId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.stomachId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.psychicId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.stoolId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.urineId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.serviceId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else if (event.careId.isNotEmpty) {
-      showWorkingProgress(context);
-    } else {
-      showWorkingProgress(context);
-    }
-  }
-
-  void showWorkingProgress(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Working progress')),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    String formattedStartTime =
-        DateFormat('HH:mm').format(event.dateWhenEventAdded);
-    String formattedDate = DateFormat('d MMM').format(event.dateWhenEventAdded);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 5),
-                child: Column(
-                  children: [
-                    Text(formattedDate, style: const TextStyle(fontSize: 10)),
-                    Text(
-                      formattedStartTime,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      if (event.emoticon.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10, right: 15),
-                          child: Text(event.emoticon,
-                              style: const TextStyle(fontSize: 30)),
-                        ),
-                      Expanded(
-                        child: Text(
-                          event.title,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign:
-                              isExpanded ? TextAlign.left : TextAlign.left,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (isExpanded) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15, top: 5),
-                      child: Text(
-                        event.description,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_forward),
-                          color: Theme.of(context).primaryColorDark,
-                          onPressed: () => navigateToScreen(context),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          color: Theme.of(context).primaryColorDark,
-                          onPressed: () =>
-                              _showDeleteConfirmation(context, event),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(BuildContext context, Event event) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete Event'),
-          content: const Text('Are you sure you want to delete?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                // Assuming `ref` and `eventDeleteFunc` are accessible in this context.
-                eventDeleteFunc(ref, context, [event], event.id);
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Delete',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }
