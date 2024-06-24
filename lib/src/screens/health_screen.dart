@@ -23,8 +23,8 @@ import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/screens/vet_visit_screen.dart';
 import 'package:pet_diary/src/widgets/health_events_widgets/event_tile.dart';
+import 'package:pet_diary/src/widgets/vet_visit_widgets/vet_visit_reason_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
@@ -477,7 +477,10 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     _buildEasyAddTile(
                         context, 'Vet Visit', 'assets/images/vet_one.jpeg', () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => VetVisitScreen(),
+                        builder: (_) => VetVisitReasonScreen(
+                          ref: ref,
+                          petId: widget.petId,
+                        ),
                       ));
                     }),
                     Divider(color: Colors.blueGrey.shade100, height: 20),

@@ -60,6 +60,82 @@ class EventTile extends StatelessWidget {
     );
   }
 
+  List<Widget> buildDescription(BuildContext context) {
+    if (event.vetVisitId.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.only(left: 15, top: 5),
+          child: Text(
+            event.description,
+            style: const TextStyle(fontSize: 12),
+          ),
+        )
+      ];
+    }
+
+    // Parse the description string into a Map
+    final Map<String, dynamic> description =
+        _parseDescription(event.description);
+
+    return [
+      Padding(
+        padding: const EdgeInsets.only(left: 15, top: 5, bottom: 5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (description.containsKey('visitReason'))
+              _buildDescriptionRow('Reason', description['visitReason']),
+            if (description.containsKey('symptoms'))
+              _buildDescriptionRow('Symptoms', description['symptoms']),
+            if (description.containsKey('vaccines'))
+              _buildDescriptionRow('Vaccines', description['vaccines']),
+            if (description.containsKey('followUpRequired'))
+              _buildDescriptionRow(
+                  'Follow-up Required', description['followUpRequired']),
+            if (description.containsKey('followUpDate'))
+              _buildDescriptionRow(
+                  'Follow-up Date', description['followUpDate']),
+            if (description.containsKey('notes'))
+              _buildDescriptionRow('Notes', description['notes']),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  Map<String, dynamic> _parseDescription(String description) {
+    final Map<String, dynamic> parsedDescription = {};
+    final List<String> pairs = description.split(',');
+    for (String pair in pairs) {
+      final List<String> keyValue = pair.split(':');
+      if (keyValue.length == 2) {
+        parsedDescription[keyValue[0].trim()] = keyValue[1].trim();
+      }
+    }
+    return parsedDescription;
+  }
+
+  Widget _buildDescriptionRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$title: ',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedStartTime =
@@ -125,13 +201,7 @@ class EventTile extends StatelessWidget {
                     ],
                   ),
                   if (isExpanded) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15, top: 5),
-                      child: Text(
-                        event.description,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
+                    ...buildDescription(context),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
