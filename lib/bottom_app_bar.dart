@@ -33,6 +33,7 @@ class BotomAppBarState extends State<BotomAppBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: _screens[_currentIndex],
       bottomNavigationBar: GNav(
         gap: 5,

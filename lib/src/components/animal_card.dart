@@ -35,91 +35,239 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.all(5.0),
       child: Container(
+        width: 155,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(30.0),
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).colorScheme.surface,
+              spreadRadius: 2,
+              blurRadius: 4,
+              offset: const Offset(3, 3),
+            ),
+          ],
         ),
-        child: Stack(
-          alignment: Alignment.topCenter,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Positioned(
-              child: Container(
-                height: 115,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30)),
-                  image: DecorationImage(
-                    image: ExactAssetImage(pet.backgroundImage),
-                    fit: BoxFit.fill,
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                image: DecorationImage(
+                  image: ExactAssetImage(pet.backgroundImage),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Center(
+                  child: ClipOval(
+                    child: Image.asset(
+                      pet.avatarImage,
+                      fit: BoxFit.cover,
+                      width: 80,
+                      height: 80,
+                    ),
                   ),
                 ),
               ),
             ),
-            Positioned(
-              width: 90,
-              height: 90,
-              top: 12,
-              child: ClipOval(
-                child: Image.asset(pet.avatarImage, fit: BoxFit.cover),
-              ),
-            ),
-            Positioned(
-              left: 20,
-              bottom: 0,
-              top: 100,
+            SizedBox(
+              height: 100,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(
-                    height: 19,
-                  ),
-                  Text(
-                    calculateAge(pet.age),
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 11,
-                    ),
-                  ),
-                  Text(
-                    pet.name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'San Francisco',
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 7.0, bottom: 10.0, left: 10.0, right: 10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          calculateAge(pet.age),
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: 10,
+                          ),
+                        ),
+                        Text(
+                          pet.name,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'San Francisco',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
-                    child: SizedBox(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: buttonColor,
-                          minimumSize: const Size(30, 30),
+                    padding: const EdgeInsets.only(top: 10, left: 15),
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: buttonColor,
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(120, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  PetDetailsScreen(petId: pet.id),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'Details',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'San Francisco',
-                            color: Theme.of(context).primaryColorDark,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PetDetailsScreen(petId: pet.id),
                           ),
+                        );
+                      },
+                      child: Text(
+                        'D e t a i l s',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).primaryColorDark,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class WalkCard extends ConsumerStatefulWidget {
+  const WalkCard({
+    super.key,
+    this.buttonWidth = 120,
+    this.buttonHeight = 35,
+    this.buttonFontSize = 13,
+  });
+
+  final double buttonWidth;
+  final double buttonHeight;
+  final double buttonFontSize;
+
+  @override
+  ConsumerState<WalkCard> createState() => _WalkCardState();
+}
+
+class _WalkCardState extends ConsumerState<WalkCard> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 140,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
+                image: DecorationImage(
+                  image: AssetImage('assets/images/walk_background.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: 15, top: 10),
+                            child: Text(
+                              '5600',
+                              style: TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'San Francisco',
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 15),
+                            child: Text(
+                              'Total steps today',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15, right: 15),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color(0xff68a2b6),
+                            // backgroundColor: const Color(0xffff8a70),
+                            minimumSize:
+                                Size(widget.buttonWidth, widget.buttonHeight),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () {},
+                          child: Text(
+                            'G e t   i n !',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

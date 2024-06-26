@@ -51,7 +51,7 @@ class PreferencesScreenState extends ConsumerState<PreferencesScreen>
     _controller.forward();
 
     // Hide the info message after 10 seconds
-    Future.delayed(Duration(seconds: 10), () {
+    Future.delayed(const Duration(seconds: 10), () {
       if (mounted) {
         _controller.reverse().then((value) {
           if (mounted) {
