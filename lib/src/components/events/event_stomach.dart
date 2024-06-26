@@ -22,17 +22,17 @@ class EventStomach extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> stomachIssues = [
-      {'icon': '🤢', 'color': Colors.transparent, 'description': 'Wzdęcia'},
-      {'icon': '🤮', 'color': Colors.transparent, 'description': 'Wymioty'},
-      {'icon': '💩', 'color': Colors.transparent, 'description': 'Biegunka'},
+      {'icon': '🤢', 'color': Colors.transparent, 'description': 'Bloating'},
+      {'icon': '🤮', 'color': Colors.transparent, 'description': 'Vomiting'},
+      {'icon': '💩', 'color': Colors.transparent, 'description': 'Diarrhea'},
+      {'icon': '🤧', 'color': Colors.transparent, 'description': 'Indigestion'},
+      {'icon': '😷', 'color': Colors.transparent, 'description': 'Gas'},
       {
-        'icon': '🤧',
+        'icon': '😩',
         'color': Colors.transparent,
-        'description': 'Niestrawność'
+        'description': 'Constipation'
       },
-      {'icon': '😷', 'color': Colors.transparent, 'description': 'Gazy'},
-      {'icon': '😩', 'color': Colors.transparent, 'description': 'Zaparcia'},
-      {'icon': '🍔', 'color': Colors.transparent, 'description': 'Głód'},
+      {'icon': '🍔', 'color': Colors.transparent, 'description': 'Hunger'},
     ];
 
     return SingleChildScrollView(
@@ -42,105 +42,118 @@ class EventStomach extends ConsumerWidget {
         children: stomachIssues.map((issue) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Confirm Stomach Issue'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                              'Are you sure you want to add this issue?'),
-                          Text(
-                            issue['icon'],
-                            style: const TextStyle(fontSize: 50),
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirm Stomach Issue'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                  'Are you sure you want to add this issue?'),
+                              Text(
+                                issue['icon'],
+                                style: const TextStyle(fontSize: 50),
+                              ),
+                              Text(issue['description']),
+                            ],
                           ),
-                          Text(issue['description']),
-                        ],
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text(
-                            'Confirm',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onPressed: () {
-                            String eventId = generateUniqueId();
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text(
+                                'Confirm',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                String eventId = generateUniqueId();
 
-                            EventStomachModel newStomach = EventStomachModel(
-                              id: generateUniqueId(),
-                              eventId: eventId,
-                              petId: petId,
-                              emoji: issue['icon'],
-                              description: issue['description'],
-                              dateTime: eventDateTime,
-                            );
+                                EventStomachModel newStomach =
+                                    EventStomachModel(
+                                  id: generateUniqueId(),
+                                  eventId: eventId,
+                                  petId: petId,
+                                  emoji: issue['icon'],
+                                  description: issue['description'],
+                                  dateTime: eventDateTime,
+                                );
 
-                            ref
-                                .read(eventStomachServiceProvider)
-                                .addStomach(newStomach);
+                                ref
+                                    .read(eventStomachServiceProvider)
+                                    .addStomach(newStomach);
 
-                            Event newEvent = Event(
-                                id: eventId,
-                                title: 'Stomach',
-                                eventDate: eventDateTime,
-                                dateWhenEventAdded: DateTime.now(),
-                                userId: FirebaseAuth.instance.currentUser!.uid,
-                                petId: petId,
-                                weightId: '',
-                                temperatureId: '',
-                                walkId: '',
-                                waterId: '',
-                                noteId: '',
-                                pillId: '',
-                                description: issue['description'],
-                                proffesionId: 'BRAK',
-                                personId: 'BRAK',
-                                avatarImage: 'assets/images/dog_avatar_014.png',
-                                emoticon: issue['icon'],
-                                moodId: '',
-                                stomachId: newStomach.id,
-                                psychicId: '',
-                                stoolId: '',
-                                urineId: '',
-                                serviceId: '',
-                                careId: '');
+                                Event newEvent = Event(
+                                    id: eventId,
+                                    title: 'Stomach',
+                                    eventDate: eventDateTime,
+                                    dateWhenEventAdded: DateTime.now(),
+                                    userId:
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                    petId: petId,
+                                    weightId: '',
+                                    temperatureId: '',
+                                    walkId: '',
+                                    waterId: '',
+                                    noteId: '',
+                                    pillId: '',
+                                    description: issue['description'],
+                                    proffesionId: 'NONE',
+                                    personId: 'NONE',
+                                    avatarImage:
+                                        'assets/images/dog_avatar_014.png',
+                                    emoticon: issue['icon'],
+                                    moodId: '',
+                                    stomachId: newStomach.id,
+                                    psychicId: '',
+                                    stoolId: '',
+                                    urineId: '',
+                                    serviceId: '',
+                                    careId: '');
 
-                            ref.read(eventServiceProvider).addEvent(newEvent);
+                                ref
+                                    .read(eventServiceProvider)
+                                    .addEvent(newEvent);
 
-                            Navigator.of(context)
-                                .pop(); // Close the confirmation dialog
-                            Navigator.of(context)
-                                .pop(); // Close the bottom sheet
-                          },
-                        ),
-                      ],
+                                Navigator.of(context)
+                                    .pop(); // Close the confirmation dialog
+                                Navigator.of(context)
+                                    .pop(); // Close the bottom sheet
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
-                );
-              },
-              child: CircleAvatar(
-                radius: iconSize / 2,
-                backgroundColor: issue['color'],
-                child: Text(
-                  issue['icon'],
-                  style: TextStyle(fontSize: iconSize / 2),
+                  child: CircleAvatar(
+                    radius: iconSize / 2,
+                    backgroundColor: issue['color'],
+                    child: Text(
+                      issue['icon'],
+                      style: TextStyle(fontSize: iconSize / 2),
+                    ),
+                  ),
                 ),
-              ),
+                Text(
+                  issue['description'],
+                  style: const TextStyle(fontSize: 10), // Small font
+                ),
+              ],
             ),
           );
         }).toList(),

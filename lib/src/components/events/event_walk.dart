@@ -285,13 +285,13 @@ class _EventWalkState extends ConsumerState<EventWalk> {
     EventWalkModel newWalk = EventWalkModel(
         id: generateUniqueId(),
         walkTime: totalDurationInSeconds.toDouble(),
-        distance: walkDistance,
+        steps: walkDistance,
         eventId: generateUniqueId(),
         petId: widget.petId,
         dateTime: widget.eventDateTime);
 
     newWalk.id = generateUniqueId();
-    newWalk.distance = walkDistance;
+    newWalk.steps = walkDistance;
     newWalk.walkTime = totalDurationInSeconds.toDouble();
 
     String eventId = generateUniqueId();

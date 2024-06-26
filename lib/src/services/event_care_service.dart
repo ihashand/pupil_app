@@ -16,7 +16,7 @@ class EventCareService {
     _firestore
         .collection('users')
         .doc(_currentUser.uid)
-        .collection('cares')
+        .collection('event_cares')
         .snapshots()
         .listen((snapshot) {
       _caresController.add(
@@ -31,7 +31,7 @@ class EventCareService {
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
-        .collection('cares')
+        .collection('event_cares')
         .doc(care.id)
         .set(care.toMap());
   }
@@ -40,7 +40,7 @@ class EventCareService {
     await _firestore
         .collection('users')
         .doc(_currentUser!.uid)
-        .collection('cares')
+        .collection('event_cares')
         .doc(careId)
         .delete();
   }

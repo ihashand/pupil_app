@@ -25,32 +25,37 @@ class Event {
   late String careId;
   late String avatarImage;
   late String emoticon;
+  late String vetVisitId;
+  late String vaccineId;
 
-  Event(
-      {required this.id,
-      required this.title,
-      required this.eventDate,
-      required this.dateWhenEventAdded,
-      required this.userId,
-      required this.petId,
-      required this.weightId,
-      required this.temperatureId,
-      required this.walkId,
-      required this.waterId,
-      required this.noteId,
-      required this.pillId,
-      required this.description,
-      required this.proffesionId,
-      required this.personId,
-      required this.avatarImage,
-      required this.emoticon,
-      required this.moodId,
-      required this.stomachId,
-      required this.stoolId,
-      required this.urineId,
-      required this.serviceId,
-      required this.careId,
-      required this.psychicId});
+  Event({
+    required this.id,
+    required this.title,
+    required this.eventDate,
+    required this.dateWhenEventAdded,
+    required this.userId,
+    required this.petId,
+    required this.weightId,
+    required this.temperatureId,
+    required this.walkId,
+    required this.waterId,
+    required this.noteId,
+    required this.pillId,
+    required this.description,
+    required this.proffesionId,
+    required this.personId,
+    required this.avatarImage,
+    required this.emoticon,
+    required this.moodId,
+    required this.stomachId,
+    required this.stoolId,
+    required this.urineId,
+    required this.serviceId,
+    required this.careId,
+    required this.psychicId,
+    this.vetVisitId = '',
+    this.vaccineId = '',
+  });
 
   Event.fromDocument(DocumentSnapshot doc) {
     id = doc.id;
@@ -78,8 +83,10 @@ class Event {
     psychicId = doc.get('psychicId') ?? '';
     serviceId = doc.get('serviceId') ?? '';
     careId = doc.get('careId') ?? '';
+    vaccineId = doc.get('vaccineId') ?? '';
     avatarImage = doc.get('avatarImage') ?? '';
     emoticon = doc.get('emoticon') ?? '';
+    vetVisitId = doc.get('vetVisitId') ?? '';
   }
 
   Map<String, dynamic> toMap() {
@@ -105,8 +112,10 @@ class Event {
       'stoolId': stoolId,
       'urineId': urineId,
       'careId': careId,
+      'serviceId': serviceId,
       'stomachId': stomachId,
-      'serviceId': serviceId
+      'vetVisitId': vetVisitId,
+      'vaccineId': vaccineId,
     };
   }
 }

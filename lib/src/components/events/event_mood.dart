@@ -34,115 +34,131 @@ class EventMood extends ConsumerWidget {
       {'icon': '😞', 'description': 'Disappointed'},
     ];
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: moods.map((mood) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3.0),
-          child: GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Confirm Mood'),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Are you sure you want to add this mood?'),
-                        Text(
-                          mood['icon'],
-                          style: const TextStyle(fontSize: 70),
-                        ),
-                        Text(mood['description']),
-                      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: moods.map((mood) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirm Mood'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                  'Are you sure you want to add this mood?'),
+                              Text(
+                                mood['icon'],
+                                style: const TextStyle(fontSize: 70),
+                              ),
+                              Text(mood['description']),
+                            ],
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text(
+                                'Confirm',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                String eventId = generateUniqueId();
+                                int moodRating =
+                                    EventMoodModel.determineMoodRating(
+                                        mood['icon']);
+                                EventMoodModel newMood = EventMoodModel(
+                                  id: generateUniqueId(),
+                                  eventId: eventId,
+                                  petId: petId,
+                                  emoji: mood['icon'],
+                                  description: mood['description'],
+                                  dateTime: eventDateTime,
+                                  moodRating: moodRating,
+                                );
+
+                                ref
+                                    .read(eventMoodServiceProvider)
+                                    .addMood(newMood);
+
+                                Event newEvent = Event(
+                                    id: eventId,
+                                    title: 'Mood',
+                                    eventDate: eventDateTime,
+                                    dateWhenEventAdded: DateTime.now(),
+                                    userId:
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                    petId: petId,
+                                    weightId: '',
+                                    temperatureId: '',
+                                    walkId: '',
+                                    waterId: '',
+                                    noteId: '',
+                                    pillId: '',
+                                    description: mood['description'],
+                                    proffesionId: 'NONE',
+                                    personId: 'NONE',
+                                    avatarImage:
+                                        'assets/images/dog_avatar_014.png',
+                                    emoticon: mood['icon'],
+                                    moodId: newMood.id,
+                                    stomachId: '',
+                                    psychicId: '',
+                                    stoolId: '',
+                                    urineId: '',
+                                    serviceId: '',
+                                    careId: '');
+
+                                ref
+                                    .read(eventServiceProvider)
+                                    .addEvent(newEvent);
+
+                                Navigator.of(context)
+                                    .pop(); // Close the confirmation dialog
+                                Navigator.of(context)
+                                    .pop(); // Close the bottom sheet
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: iconSize / 2,
+                    backgroundColor: Colors.transparent,
+                    child: Text(
+                      mood['icon'],
+                      style: TextStyle(fontSize: iconSize / 2),
                     ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                              color: Theme.of(context).primaryColorDark),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: Text(
-                          'Confirm',
-                          style: TextStyle(
-                              color: Theme.of(context).primaryColorDark),
-                        ),
-                        onPressed: () {
-                          String eventId = generateUniqueId();
-                          int moodRating =
-                              EventMoodModel.determineMoodRating(mood['icon']);
-                          EventMoodModel newMood = EventMoodModel(
-                            id: generateUniqueId(),
-                            eventId: eventId,
-                            petId: petId,
-                            emoji: mood['icon'],
-                            description: mood['description'],
-                            dateTime: eventDateTime,
-                            moodRating: moodRating,
-                          );
-
-                          ref.read(eventMoodServiceProvider).addMood(newMood);
-
-                          Event newEvent = Event(
-                              id: eventId,
-                              title: 'Mood',
-                              eventDate: eventDateTime,
-                              dateWhenEventAdded: DateTime.now(),
-                              userId: FirebaseAuth.instance.currentUser!.uid,
-                              petId: petId,
-                              weightId: '',
-                              temperatureId: '',
-                              walkId: '',
-                              waterId: '',
-                              noteId: '',
-                              pillId: '',
-                              description: mood['description'],
-                              proffesionId: 'BRAK',
-                              personId: 'BRAK',
-                              avatarImage: 'assets/images/dog_avatar_014.png',
-                              emoticon: mood['icon'],
-                              moodId: newMood.id,
-                              stomachId: '',
-                              psychicId: '',
-                              stoolId: '',
-                              urineId: '',
-                              serviceId: '',
-                              careId: '');
-
-                          ref.read(eventServiceProvider).addEvent(newEvent);
-
-                          Navigator.of(context)
-                              .pop(); // Close the confirmation dialog
-                          Navigator.of(context).pop(); // Close the bottom sheet
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: Container(
-              width: iconSize,
-              height: iconSize,
-              decoration: const BoxDecoration(
-                  shape: BoxShape.circle, color: Colors.transparent),
-              child: Center(
-                child: Text(
-                  mood['icon'],
-                  style: TextStyle(fontSize: iconSize * 0.6),
+                  ),
                 ),
-              ),
+                Text(
+                  mood['description'],
+                  style: const TextStyle(fontSize: 10), // Small font
+                ),
+              ],
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 }

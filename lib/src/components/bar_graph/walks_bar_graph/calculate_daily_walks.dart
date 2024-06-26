@@ -25,7 +25,7 @@ List<double> calculateDailyWalks(List<EventWalkModel?> walks) {
   for (var walk in todayWalks) {
     if (walk != null) {
       int hour = walk.dateTime.hour;
-      double distance = walk.distance;
+      double distance = walk.steps;
       hoursData[hour] += distance;
     }
   }

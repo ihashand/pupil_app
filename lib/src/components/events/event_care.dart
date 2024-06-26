@@ -22,19 +22,31 @@ class EventCare extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> careOptions = [
-      {'icon': '🛁', 'color': Colors.transparent, 'description': 'Mycie'},
+      {'icon': '🛁', 'color': Colors.transparent, 'description': 'Bathing'},
       {
         'icon': '✂️',
         'color': Colors.transparent,
-        'description': 'Obcinanie paznokci'
+        'description': 'Nail Trimming'
       },
-      {'icon': '🧼', 'color': Colors.transparent, 'description': 'Czesanie'},
-      {'icon': '👀', 'color': Colors.transparent, 'description': 'Mycie oczu'},
-      {'icon': '👂', 'color': Colors.transparent, 'description': 'Mycie uszu'},
-      {'icon': '🧴', 'color': Colors.transparent, 'description': 'Krem'},
-      {'icon': '🪲', 'color': Colors.transparent, 'description': 'Kleszcz'},
-      {'icon': '🐜', 'color': Colors.transparent, 'description': 'Pchły'},
-      {'icon': '🪥', 'color': Colors.transparent, 'description': 'Mycie zębów'},
+      {'icon': '🧼', 'color': Colors.transparent, 'description': 'Brushing'},
+      {
+        'icon': '👀',
+        'color': Colors.transparent,
+        'description': 'Eye Cleaning'
+      },
+      {
+        'icon': '👂',
+        'color': Colors.transparent,
+        'description': 'Ear Cleaning'
+      },
+      {'icon': '🧴', 'color': Colors.transparent, 'description': 'Cream'},
+      {'icon': '🪲', 'color': Colors.transparent, 'description': 'Tick'},
+      {'icon': '🐜', 'color': Colors.transparent, 'description': 'Fleas'},
+      {
+        'icon': '🪥',
+        'color': Colors.transparent,
+        'description': 'Teeth Brushing'
+      },
     ];
 
     return SingleChildScrollView(
@@ -43,105 +55,119 @@ class EventCare extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: careOptions.map((option) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Confirm Care Option'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                              'Are you sure you want to add this care option?'),
-                          Text(
-                            option['icon'],
-                            style: const TextStyle(fontSize: 50),
+            padding: const EdgeInsets.symmetric(horizontal: 5.0),
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirm Care Option'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                  'Are you sure you want to add this care option?'),
+                              Text(
+                                option['icon'],
+                                style: const TextStyle(fontSize: 50),
+                              ),
+                              Text(option['description']),
+                            ],
                           ),
-                          Text(option['description']),
-                        ],
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text(
-                            'Confirm',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onPressed: () {
-                            String eventId = generateUniqueId();
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text(
+                                'Confirm',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                String eventId = generateUniqueId();
 
-                            EventCareModel newCare = EventCareModel(
-                              id: generateUniqueId(),
-                              eventId: eventId,
-                              petId: petId,
-                              careType: option['description'],
-                              emoji: option['icon'],
-                              description: option['description'],
-                              dateTime: eventDateTime,
-                            );
+                                EventCareModel newCare = EventCareModel(
+                                  id: generateUniqueId(),
+                                  eventId: eventId,
+                                  petId: petId,
+                                  careType: option['description'],
+                                  emoji: option['icon'],
+                                  description: option['description'],
+                                  dateTime: eventDateTime,
+                                );
 
-                            ref.read(eventCareServiceProvider).addCare(newCare);
+                                ref
+                                    .read(eventCareServiceProvider)
+                                    .addCare(newCare);
 
-                            Event newEvent = Event(
-                                id: eventId,
-                                title: 'Care',
-                                eventDate: eventDateTime,
-                                dateWhenEventAdded: DateTime.now(),
-                                userId: FirebaseAuth.instance.currentUser!.uid,
-                                petId: petId,
-                                weightId: '',
-                                temperatureId: '',
-                                walkId: '',
-                                waterId: '',
-                                noteId: '',
-                                pillId: '',
-                                description: option['description'],
-                                proffesionId: 'BRAK',
-                                personId: 'BRAK',
-                                avatarImage: 'assets/images/dog_avatar_014.png',
-                                emoticon: option['icon'],
-                                moodId: '',
-                                stomachId: '',
-                                psychicId: '',
-                                stoolId: '',
-                                urineId: '',
-                                serviceId: '',
-                                careId: newCare.id);
+                                Event newEvent = Event(
+                                    id: eventId,
+                                    title: 'Care',
+                                    eventDate: eventDateTime,
+                                    dateWhenEventAdded: DateTime.now(),
+                                    userId:
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                    petId: petId,
+                                    weightId: '',
+                                    temperatureId: '',
+                                    walkId: '',
+                                    waterId: '',
+                                    noteId: '',
+                                    pillId: '',
+                                    description: option['description'],
+                                    proffesionId: 'NONE',
+                                    personId: 'NONE',
+                                    avatarImage:
+                                        'assets/images/dog_avatar_014.png',
+                                    emoticon: option['icon'],
+                                    moodId: '',
+                                    stomachId: '',
+                                    psychicId: '',
+                                    stoolId: '',
+                                    urineId: '',
+                                    serviceId: '',
+                                    careId: newCare.id);
 
-                            ref.read(eventServiceProvider).addEvent(newEvent);
+                                ref
+                                    .read(eventServiceProvider)
+                                    .addEvent(newEvent);
 
-                            Navigator.of(context)
-                                .pop(); // Close the confirmation dialog
-                            Navigator.of(context)
-                                .pop(); // Close the bottom sheet
-                          },
-                        ),
-                      ],
+                                Navigator.of(context)
+                                    .pop(); // Close the confirmation dialog
+                                Navigator.of(context)
+                                    .pop(); // Close the bottom sheet
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
-                );
-              },
-              child: CircleAvatar(
-                radius: iconSize / 2,
-                backgroundColor: option['color'],
-                child: Text(
-                  option['icon'],
-                  style: TextStyle(fontSize: iconSize / 2),
+                  child: CircleAvatar(
+                    radius: iconSize / 2,
+                    backgroundColor: option['color'],
+                    child: Text(
+                      option['icon'],
+                      style: TextStyle(fontSize: iconSize / 2),
+                    ),
+                  ),
                 ),
-              ),
+                Text(
+                  option['description'],
+                  style: const TextStyle(fontSize: 10), // Small font
+                ),
+              ],
             ),
           );
         }).toList(),

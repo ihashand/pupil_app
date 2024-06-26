@@ -53,11 +53,11 @@ class AverageSection extends StatelessWidget {
           }
 
           double totalSteps =
-              filteredWalks.fold(0, (sum, walk) => sum + walk!.distance);
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.steps);
           double totalActiveMinutes =
               filteredWalks.fold(0, (sum, walk) => sum + walk!.walkTime);
           double totalDistance =
-              filteredWalks.fold(0, (sum, walk) => sum + walk!.distance);
+              filteredWalks.fold(0, (sum, walk) => sum + walk!.steps);
           double totalCaloriesBurned = totalSteps * 0.04;
 
           double averageSteps = totalSteps / totalDays;

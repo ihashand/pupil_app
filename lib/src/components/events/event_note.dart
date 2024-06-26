@@ -114,7 +114,7 @@ class _EventNoteState extends ConsumerState<EventNote> {
                                           color: Theme.of(context)
                                               .primaryColorDark,
                                           fontSize: 24)),
-                                  content: Text('Filelds can not be empty.',
+                                  content: Text('Fields cannot be empty.',
                                       style: TextStyle(
                                           color: Theme.of(context)
                                               .primaryColorDark,
@@ -165,8 +165,8 @@ class _EventNoteState extends ConsumerState<EventNote> {
                               pillId: '',
                               description:
                                   '${newNote.title} /n ${newNote.contentText}',
-                              proffesionId: 'BRAK',
-                              personId: 'BRAK',
+                              proffesionId: 'NONE',
+                              personId: 'NONE',
                               avatarImage: 'assets/images/dog_avatar_014.png',
                               emoticon: '📝',
                               moodId: '',

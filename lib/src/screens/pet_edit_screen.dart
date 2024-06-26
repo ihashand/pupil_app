@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +7,8 @@ import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
 import 'package:pet_diary/src/services/pet_services.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
+import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 
 class PetEditScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -26,6 +29,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   late DateTime _selectedDate = DateTime.now();
   String _gender = 'Male';
   String _selectedAvatar = '';
+  String _backgroundImage = '';
   List<String> suggestions = [];
   OverlayEntry? overlayEntry;
   final LayerLink _layerLink = LayerLink();
@@ -47,13 +51,14 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       _birthDateController.text = pet.age;
       _breedController.text = pet.breed;
       _selectedAvatar = pet.avatarImage;
+      _backgroundImage = pet.backgroundImage;
       try {
         _selectedDate = DateFormat('dd/MM/yyyy').parse(pet.age);
       } catch (e) {
         _selectedDate = DateTime.now();
       }
+      setState(() {});
     }
-    setState(() {});
   }
 
   void _updateSuggestions(String query) {
@@ -151,19 +156,41 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     return picked;
   }
 
+  Future<void> _selectAvatar(BuildContext context) async {
+    await showAvatarSelectionDialog(
+      context: context,
+      onAvatarSelected: (String path) {
+        setState(() {
+          _selectedAvatar = path;
+        });
+      },
+    );
+  }
+
+  Future<void> _selectBackground(BuildContext context) async {
+    await showBackgroundSelectionDialog(
+      context: context,
+      onBackgroundSelected: (String path) {
+        setState(() {
+          _backgroundImage = path;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-        ),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).primaryColorDark, size: 20),
         title: Text(
-          'E d i t',
+          'E D I T',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+            fontSize: 13,
+            color: Theme.of(context).primaryColorDark,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -177,8 +204,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
             },
             icon: Icon(
               Icons.check,
-              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-              size: 30,
+              color: Theme.of(context).primaryColorDark,
+              size: 20,
             ),
           )
         ],
@@ -188,103 +215,155 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
           key: _formKey,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(15, 20, 15, 0),
-            child: Container(
-              height: 330,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.pets),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter pet\'s name';
-                      }
-                      return null;
-                    },
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 70,
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Date',
-                        border: OutlineInputBorder(),
-                        labelStyle: TextStyle(fontSize: 16),
-                      ),
-                      child: TextButton(
-                        onPressed: () async {
-                          final DateTime? picked =
-                              await _selectDate(context, _selectedDate);
-                          if (picked != null && picked != _selectedDate) {
-                            setState(() {
-                              _selectedDate = picked;
-                              _birthDateController.text =
-                                  DateFormat('yyyy-MM-dd').format(picked);
-                            });
-                          }
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            DateFormat('dd/MM/yyyy').format(_selectedDate),
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () => _selectAvatar(context),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Avatar',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.account_circle),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(right: 35.0),
+                                child: CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.transparent,
+                                  backgroundImage: _selectedAvatar.isNotEmpty
+                                      ? AssetImage(_selectedAvatar)
+                                      : null,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  CompositedTransformTarget(
-                    link: _layerLink,
-                    child: TextField(
-                      controller: _breedController,
-                      decoration: const InputDecoration(
-                        labelText: 'Breed',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.category),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.pets),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter pet\'s name';
+                          }
+                          return null;
+                        },
                       ),
-                      onChanged: (query) {
-                        _updateSuggestions(query);
-                      },
-                    ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 70,
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Date',
+                            border: OutlineInputBorder(),
+                            labelStyle: TextStyle(fontSize: 16),
+                          ),
+                          child: TextButton(
+                            onPressed: () async {
+                              final DateTime? picked =
+                                  await _selectDate(context, _selectedDate);
+                              if (picked != null && picked != _selectedDate) {
+                                setState(() {
+                                  _selectedDate = picked;
+                                  _birthDateController.text =
+                                      DateFormat('yyyy-MM-dd').format(picked);
+                                });
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                DateFormat('dd/MM/yyyy').format(_selectedDate),
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      CompositedTransformTarget(
+                        link: _layerLink,
+                        child: TextField(
+                          controller: _breedController,
+                          decoration: const InputDecoration(
+                            labelText: 'Breed',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.category),
+                          ),
+                          onChanged: (query) {
+                            _updateSuggestions(query);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _gender,
+                        decoration: const InputDecoration(
+                          labelText: 'Gender',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.transgender),
+                        ),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _gender = newValue!;
+                          });
+                        },
+                        items: <String>['Male', 'Female']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => _selectBackground(context),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Background',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.wallpaper),
+                          ),
+                          child: Container(
+                            height: 80,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: _backgroundImage.isNotEmpty
+                                    ? AssetImage(_backgroundImage)
+                                    : const AssetImage(
+                                        'assets/default_background.png'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _gender,
-                    decoration: const InputDecoration(
-                      labelText: 'Gender',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.transgender),
-                    ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _gender = newValue!;
-                      });
-                    },
-                    items: <String>['Male', 'Female']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -318,11 +397,13 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Confirm Delete',
+            'Delete pupil',
             style: TextStyle(color: Theme.of(context).primaryColorDark),
           ),
-          content: Text('Are you sure you want to delete your pet?',
-              style: TextStyle(color: Theme.of(context).primaryColorDark)),
+          content: Text(
+              'Are you sure you want to delete your pet? You cannot undo this operation.',
+              style: TextStyle(
+                  color: Theme.of(context).primaryColorDark, fontSize: 13)),
           actions: <Widget>[
             TextButton(
               onPressed: () {

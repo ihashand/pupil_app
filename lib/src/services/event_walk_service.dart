@@ -20,7 +20,7 @@ class EventWalkService {
           .collection('users')
           .doc(_currentUser.uid)
           .collection('event_walks')
-          .orderBy('dateTime', descending: true) // Sortowanie dokumentów
+          .orderBy('dateTime', descending: true)
           .snapshots()
           .listen((snapshot) {
         final walks = snapshot.docs
