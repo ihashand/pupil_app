@@ -24,28 +24,34 @@ class EventUrine extends ConsumerWidget {
     final List<Map<String, dynamic>> urineColors = [
       {
         'color': Colors.grey.withOpacity(0.2),
+        'name': 'Transparent',
         'description': 'Transparent: Your dog is over-hydrated'
       },
       {
         'color': const Color.fromARGB(255, 236, 226, 139),
+        'name': 'Yellow',
         'description': 'Pale yellow: Perfect!'
       },
       {
         'color': const Color.fromARGB(255, 158, 142, 2),
+        'name': 'Yellow',
         'description':
             'Dark yellow: Your dog is dehydrated – encourage drinking more'
       },
       {
         'color': Colors.red,
+        'name': 'Red',
         'description':
             'Red or pink: Possible UTI, kidney infection or other illness – see a vet'
       },
       {
         'color': Colors.green,
+        'name': 'Green',
         'description': 'Green: Possible kidney problems – see a vet'
       },
       {
         'color': Colors.brown,
+        'name': 'Brown',
         'description':
             'Brown: Possible internal bleeding or toxic reaction – seek immediate medical attention'
       },
@@ -58,101 +64,113 @@ class EventUrine extends ConsumerWidget {
         children: urineColors.map((urine) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Confirm Urine Color'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                              'Are you sure you want to add this urine color?'),
-                          Container(
-                            width: 50,
-                            height: 50,
-                            color: urine['color'],
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Confirm Urine Color'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                  'Are you sure you want to add this urine color?'),
+                              Container(
+                                width: 50,
+                                height: 50,
+                                color: urine['color'],
+                              ),
+                              Text(urine['description']),
+                            ],
                           ),
-                          Text(urine['description']),
-                        ],
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        TextButton(
-                          child: Text(
-                            'Confirm',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onPressed: () {
-                            String eventId = generateUniqueId();
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            TextButton(
+                              child: Text(
+                                'Confirm',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                              onPressed: () {
+                                String eventId = generateUniqueId();
 
-                            EventUrineModel newUrine = EventUrineModel(
-                              id: generateUniqueId(),
-                              eventId: eventId,
-                              petId: petId,
-                              color: urine['color'].toString(),
-                              description: urine['description'],
-                              dateTime: eventDateTime,
-                            );
+                                EventUrineModel newUrine = EventUrineModel(
+                                  id: generateUniqueId(),
+                                  eventId: eventId,
+                                  petId: petId,
+                                  color: urine['color'].toString(),
+                                  description: urine['description'],
+                                  dateTime: eventDateTime,
+                                );
 
-                            ref
-                                .read(eventUrineServiceProvider)
-                                .addUrineEvent(newUrine);
-                            Event newEvent = Event(
-                                id: eventId,
-                                title: 'Urine',
-                                eventDate: eventDateTime,
-                                dateWhenEventAdded: DateTime.now(),
-                                userId: FirebaseAuth.instance.currentUser!.uid,
-                                petId: petId,
-                                weightId: '',
-                                temperatureId: '',
-                                walkId: '',
-                                waterId: '',
-                                noteId: '',
-                                pillId: '',
-                                description: urine['description'],
-                                proffesionId: 'BRAK',
-                                personId: 'BRAK',
-                                avatarImage: 'assets/images/dog_avatar_014.png',
-                                emoticon: '💦',
-                                moodId: '',
-                                stomachId: '',
-                                psychicId: '',
-                                stoolId: '',
-                                urineId: newUrine.id,
-                                serviceId: '',
-                                careId: '');
+                                ref
+                                    .read(eventUrineServiceProvider)
+                                    .addUrineEvent(newUrine);
+                                Event newEvent = Event(
+                                    id: eventId,
+                                    title: 'Urine',
+                                    eventDate: eventDateTime,
+                                    dateWhenEventAdded: DateTime.now(),
+                                    userId:
+                                        FirebaseAuth.instance.currentUser!.uid,
+                                    petId: petId,
+                                    weightId: '',
+                                    temperatureId: '',
+                                    walkId: '',
+                                    waterId: '',
+                                    noteId: '',
+                                    pillId: '',
+                                    description: urine['description'],
+                                    proffesionId: 'NONE',
+                                    personId: 'NONE',
+                                    avatarImage:
+                                        'assets/images/dog_avatar_014.png',
+                                    emoticon: '💦',
+                                    moodId: '',
+                                    stomachId: '',
+                                    psychicId: '',
+                                    stoolId: '',
+                                    urineId: newUrine.id,
+                                    serviceId: '',
+                                    careId: '');
 
-                            ref.read(eventServiceProvider).addEvent(newEvent);
-                            Navigator.of(context)
-                                .pop(); // Close the confirmation dialog
-                            Navigator.of(context)
-                                .pop(); // Close the bottom sheet
-                          },
-                        ),
-                      ],
+                                ref
+                                    .read(eventServiceProvider)
+                                    .addEvent(newEvent);
+                                Navigator.of(context)
+                                    .pop(); // Close the confirmation dialog
+                                Navigator.of(context)
+                                    .pop(); // Close the bottom sheet
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
-                );
-              },
-              child: Container(
-                width: iconSize,
-                height: iconSize,
-                color: urine['color'],
-              ),
+                  child: Container(
+                    width: iconSize,
+                    height: iconSize,
+                    color: urine['color'],
+                  ),
+                ),
+                Text(
+                  urine['name'],
+                  style: const TextStyle(fontSize: 10), // Small font
+                ),
+              ],
             ),
           );
         }).toList(),

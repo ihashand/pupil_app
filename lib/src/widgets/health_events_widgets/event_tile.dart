@@ -56,7 +56,7 @@ class EventTile extends StatelessWidget {
 
   void showWorkingProgress(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Working progress')),
+      const SnackBar(content: Text('Work in progress')),
     );
   }
 
@@ -138,9 +138,8 @@ class EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String formattedStartTime =
-        DateFormat('HH:mm').format(event.dateWhenEventAdded);
-    String formattedDate = DateFormat('d MMM').format(event.dateWhenEventAdded);
+    String formattedStartTime = DateFormat('HH:mm').format(event.eventDate);
+    String formattedDate = DateFormat('d MMM').format(event.eventDate);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),

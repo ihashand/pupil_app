@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
-import 'package:pet_diary/src/components/events/event_preferences_dialog.dart';
+import 'package:pet_diary/src/screens/event_preferences_screen.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';
 import 'package:pet_diary/src/components/events/event_stomach.dart';
 import 'package:pet_diary/src/components/events/event_stool.dart';
 import 'package:pet_diary/src/components/events/event_urine.dart';
+import 'package:pet_diary/src/components/events/event_vaccine.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/components/events/event_note.dart';
@@ -24,7 +25,6 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/widgets/health_events_widgets/event_tile.dart';
-import 'package:pet_diary/src/widgets/vet_visit_widgets/vet_visit_reason_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
@@ -156,12 +156,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: const Color(0xff68a2b6),
             onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return _buildAddEventTypeSelection(context);
-                },
-              );
+              _showDetailedAddMenu(context);
             },
             child: Icon(
               Icons.add,
@@ -257,12 +252,31 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     },
                     onDaySelected: (selectedDay, focusedDay) {
                       setState(() {
-                        selectedDateTime = selectedDay;
+                        selectedDateTime = DateTime(
+                            selectedDay.year,
+                            selectedDay.month,
+                            selectedDay.day,
+                            DateTime.now().hour,
+                            DateTime.now().minute);
+
                         ref.read(eventDateControllerProvider.notifier).state =
                             selectedDay;
                         isUserInteracted = true;
                       });
                     },
+                    eventLoader: (day) {
+                      return petEvents
+                          .where((event) => isSameDay(event.eventDate, day))
+                          .toList();
+                    },
+                    calendarBuilders: CalendarBuilders(
+                      markerBuilder: (context, date, events) {
+                        if (events.isNotEmpty) {
+                          return _buildEventsMarker(date, events);
+                        }
+                        return null;
+                      },
+                    ),
                     headerStyle: HeaderStyle(
                       formatButtonVisible: false,
                       titleCentered: true,
@@ -325,6 +339,38 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
+  void _showDetailedAddMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SingleChildScrollView(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height / 2,
+            ),
+            child: _buildAddEventMenu(context, widget.petId, selectedDateTime,
+                ref.watch(preferencesProvider)),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEventsMarker(DateTime date, List<dynamic> events) {
+    return Align(
+      alignment: Alignment.topRight,
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red,
+        ),
+        width: 5.0,
+        height: 5.0,
+        margin: const EdgeInsets.only(top: 7, right: 7),
+      ),
+    );
+  }
+
   Widget buildHealthTileView(BuildContext context, List<Event> petEvents) {
     List<Widget> filteredTiles =
         _filterTiles(context, widget.petId, petEvents).map((tile) {
@@ -380,181 +426,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     }).toList();
   }
 
-  Widget _buildAddEventTypeSelection(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      padding: const EdgeInsets.all(20.0),
-      width: double.infinity,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Select Event Type',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColorDark,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: 250,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _showEasyAddOptions(context);
-              },
-              child: Text(
-                'Detailed',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColorDark,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: 250,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _showDetailedAddMenu(context);
-              },
-              child: Text(
-                'Quick',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColorDark,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEasyAddOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Container(
-          color: Theme.of(context).colorScheme.surface,
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Select event',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColorDark,
-                ),
-              ),
-              Divider(color: Colors.blueGrey.shade100, height: 20),
-              const SizedBox(height: 15),
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildEasyAddTile(
-                        context, 'Vet Visit', 'assets/images/vet_one.jpeg', () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => VetVisitReasonScreen(
-                          ref: ref,
-                          petId: widget.petId,
-                        ),
-                      ));
-                    }),
-                    Divider(color: Colors.blueGrey.shade100, height: 20),
-                    _buildEasyAddTile(context, 'Groomer Visit',
-                        'assets/images/groomer_one.jpeg', () {}),
-                    Divider(color: Colors.blueGrey.shade100, height: 20),
-                    _buildEasyAddTile(context, 'Behaviorist',
-                        'assets/images/behaviorist_one.jpeg', () {}),
-                    Divider(color: Colors.blueGrey.shade100, height: 20),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEasyAddTile(BuildContext context, String title, String imagePath,
-      VoidCallback onTap) {
-    bool hasImage = imagePath.isNotEmpty;
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Column(
-          children: [
-            Text(
-              title.split('').join(' '),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Container(
-              height: 100,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: hasImage ? null : Colors.blue,
-                image: hasImage
-                    ? DecorationImage(
-                        image: AssetImage(imagePath),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 5),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDetailedAddMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SingleChildScrollView(
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height / 2,
-            ),
-            child: _buildAddEventMenu(context, widget.petId, eventDateTime,
-                ref.watch(preferencesProvider)),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildAddEventMenu(BuildContext context, String petId,
       DateTime eventDateTime, PreferencesModel preferences) {
     List<Widget Function()> sectionBuilders = [
@@ -568,6 +439,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       () => buildStomachIssuesSection(context, petId, eventDateTime),
       () => buildNotesSection(context, petId, eventDateTime),
       () => buildMedsSection(context, petId),
+      () => buildVaccineSection(context, petId, eventDateTime),
     ];
 
     List<Widget> visibleSections = preferences.sectionOrder
@@ -580,20 +452,22 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           return sectionBuilders[1]();
         case 'Services':
           return sectionBuilders[2]();
-        case 'Psychic Issues':
+        case 'Psychic':
           return sectionBuilders[3]();
-        case 'Stool Type':
+        case 'Stool':
           return sectionBuilders[4]();
-        case 'Urine Color':
+        case 'Urine':
           return sectionBuilders[5]();
         case 'Mood':
           return sectionBuilders[6]();
-        case 'Stomach Issues':
+        case 'Stomach':
           return sectionBuilders[7]();
         case 'Notes':
           return sectionBuilders[8]();
         case 'Meds':
           return sectionBuilders[9]();
+        case 'Vaccine':
+          return sectionBuilders[10]();
         default:
           return Container();
       }
@@ -602,55 +476,85 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     return GestureDetector(
       onLongPress: () => _showPreferencesDialog(context),
       child: SingleChildScrollView(
-        child: Container(
-          color: Theme.of(context).colorScheme.surface,
-          padding: const EdgeInsets.all(20.0),
-          child: visibleSections.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 10),
-                      Text(
-                        'No sections available to display.',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Long press to configure preferences.',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 30),
-                    ],
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Pick your event',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
                   ),
-                )
-              : Column(
-                  children: visibleSections
-                      .expand((section) => [
-                            Row(
-                              children: [
-                                Expanded(child: section),
-                              ],
-                            ),
-                            const SizedBox(height: 8)
-                          ])
-                      .toList(),
-                ),
+                  IconButton(
+                    onPressed: () {
+                      _showPreferencesDialog(context);
+                    },
+                    icon: Icon(
+                      Icons.edit,
+                      color: Theme.of(context).primaryColorDark,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: Color(0xff68a2b6)),
+            Container(
+              color: Theme.of(context).colorScheme.surface,
+              padding: const EdgeInsets.all(10.0),
+              child: visibleSections.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 10),
+                          Text(
+                            'No sections available to display.',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Long press to configure preferences.',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
+                    )
+                  : Column(
+                      children: visibleSections
+                          .expand((section) => [
+                                Row(
+                                  children: [
+                                    Expanded(child: section),
+                                  ],
+                                ),
+                                const SizedBox(height: 8)
+                              ])
+                          .toList(),
+                    ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   void _showPreferencesDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return PreferencesDialog(petId: widget.petId);
-      },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PreferencesScreen(petId: widget.petId),
+      ),
     );
   }
 
@@ -669,7 +573,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
               SizedBox(width: 8),
               Text(
                 'Lifestyle',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -677,29 +581,53 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              EventWalk(
-                iconSize: 40,
-                iconColor: Colors.green.withOpacity(0.7),
-                petId: petId,
-                eventDateTime: eventDateTime,
+              Column(
+                children: [
+                  EventWalk(
+                    iconSize: 40,
+                    iconColor: Colors.green.withOpacity(0.7),
+                    petId: petId,
+                    eventDateTime: eventDateTime,
+                  ),
+                  const SizedBox(height: 5),
+                  const Text('Walk', style: TextStyle(fontSize: 13)),
+                ],
               ),
-              EventWater(
-                iconSize: 40,
-                iconColor: Colors.blue.withOpacity(0.7),
-                petId: petId,
-                eventDateTime: eventDateTime,
+              Column(
+                children: [
+                  EventWater(
+                    iconSize: 40,
+                    iconColor: Colors.blue.withOpacity(0.7),
+                    petId: petId,
+                    eventDateTime: eventDateTime,
+                  ),
+                  const SizedBox(height: 5),
+                  const Text('Water', style: TextStyle(fontSize: 13)),
+                ],
               ),
-              EventTemperature(
-                iconSize: 40,
-                iconColor: Colors.red.withOpacity(0.7),
-                petId: petId,
-                eventDateTime: eventDateTime,
+              Column(
+                children: [
+                  EventTemperature(
+                    iconSize: 40,
+                    iconColor: Colors.red.withOpacity(0.7),
+                    petId: petId,
+                    eventDateTime: eventDateTime,
+                  ),
+                  const SizedBox(height: 5),
+                  const Text('Temp', style: TextStyle(fontSize: 13)),
+                ],
               ),
-              EventWeight(
-                iconSize: 40,
-                iconColor: Colors.orange.withOpacity(0.7),
-                petId: petId,
-                eventDateTime: eventDateTime,
+              Column(
+                children: [
+                  EventWeight(
+                    iconSize: 40,
+                    iconColor: Colors.orange.withOpacity(0.7),
+                    petId: petId,
+                    eventDateTime: eventDateTime,
+                  ),
+                  const SizedBox(height: 5),
+                  const Text('Weight', style: TextStyle(fontSize: 13)),
+                ],
               ),
             ],
           ),
@@ -711,42 +639,52 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildCareSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Care',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(10),
+          const Padding(
+            padding: EdgeInsets.only(top: 7),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'G r o o m i n g',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            child: Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    EventCare(
-                      iconSize: 50,
-                      petId: petId,
-                      eventDateTime: eventDateTime,
-                    ),
-                  ],
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          EventCare(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                          ),
+                          const SizedBox(height: 5),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -759,67 +697,92 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildServicesSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Services',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(10),
+          const Padding(
+            padding: EdgeInsets.only(top: 7),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'S e r v i c e s',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            child: Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    EventService(
-                      iconSize: 50,
-                      petId: petId,
-                      eventDateTime: eventDateTime,
-                      serviceType: 'Groomer',
-                    ),
-                    EventService(
-                      iconSize: 50,
-                      petId: petId,
-                      eventDateTime: eventDateTime,
-                      serviceType: 'Vet',
-                    ),
-                    EventService(
-                      iconSize: 50,
-                      petId: petId,
-                      eventDateTime: eventDateTime,
-                      serviceType: 'Training',
-                    ),
-                    EventService(
-                      iconSize: 50,
-                      petId: petId,
-                      eventDateTime: eventDateTime,
-                      serviceType: 'Daycare',
-                    ),
-                    EventService(
-                      iconSize: 50,
-                      petId: petId,
-                      eventDateTime: eventDateTime,
-                      serviceType: 'Hotel',
-                    ),
-                  ],
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          EventService(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                            serviceType: 'Groomer',
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          EventService(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                            serviceType: 'Vet',
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          EventService(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                            serviceType: 'Training',
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          EventService(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                            serviceType: 'Daycare',
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          EventService(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                            serviceType: 'Hotel',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -832,34 +795,44 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildPsychicIssuesSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Psychic Issues',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          const Padding(
+            padding: EdgeInsets.only(top: 7),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                EventPsychic(
-                  iconSize: 50,
-                  petId: petId,
-                  eventDateTime: eventDateTime,
+                Text(
+                  'P s y c h i c',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ],
+            ),
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      EventPsychic(
+                        iconSize: 50,
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -870,34 +843,44 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildStoolTypeSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Stool Type',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          const Padding(
+            padding: EdgeInsets.only(top: 7),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                EventStool(
-                  iconSize: 50,
-                  petId: petId,
-                  eventDateTime: eventDateTime,
+                Text(
+                  'S t o o l',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ],
+            ),
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      EventStool(
+                        iconSize: 50,
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -908,34 +891,44 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildUrineColorSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Urine Color',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          const Padding(
+            padding: EdgeInsets.only(top: 7),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                EventUrine(
-                  iconSize: 39,
-                  petId: petId,
-                  eventDateTime: eventDateTime,
+                Text(
+                  'U r i n e',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ],
+            ),
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      EventUrine(
+                        iconSize: 39,
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -946,38 +939,147 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildMoodSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Mood',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(10),
+          const Padding(
+            padding: EdgeInsets.only(top: 7.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'M o o d',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            child: Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: Container(
+              width: double.infinity,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          EventMood(
+                            iconSize: 50,
+                            petId: petId,
+                            eventDateTime: eventDateTime,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildStomachIssuesSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 7.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'S t o m a c h',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      EventStomach(
+                        iconSize: 50,
+                        petId: petId,
+                        eventDateTime: eventDateTime,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildNotesSection(
+      BuildContext context, String petId, DateTime eventDateTime) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 7.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'N o t e s',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: Container(
+              width: double.infinity,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Column(
                   children: [
-                    EventMood(
+                    EventNote(
                       iconSize: 50,
+                      iconColor: const Color.fromARGB(255, 234, 223, 105),
                       petId: petId,
                       eventDateTime: eventDateTime,
                     ),
@@ -991,128 +1093,104 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget buildStomachIssuesSection(
-      BuildContext context, String petId, DateTime eventDateTime) {
+  Widget buildMedsSection(BuildContext context, String petId) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         children: [
           const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(width: 8),
               Text(
-                'Stomach Issues',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                'M e d i c i n e s',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          SingleChildScrollView(
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => MedicineScreen(petId),
+                ));
+              },
+              child: Container(
+                width: double.infinity,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.medication,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget buildVaccineSection(
+    BuildContext context, String petId, DateTime eventDateTime) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.primary,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 7.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'V a c c i n e',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+        Padding(
+          padding:
+              const EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
+          child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                EventStomach(
-                  iconSize: 50,
-                  petId: petId,
-                  eventDateTime: eventDateTime,
+                Column(
+                  children: [
+                    EventVaccine(
+                      iconSize: 50,
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildNotesSection(
-      BuildContext context, String petId, DateTime eventDateTime) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Notes',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: EventNote(
-                iconSize: 50,
-                iconColor: const Color.fromARGB(255, 234, 223, 105),
-                petId: petId,
-                eventDateTime: eventDateTime,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildMedsSection(BuildContext context, String petId) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Meds',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          InkWell(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => MedicineScreen(petId),
-              ));
-            },
-            child: Container(
-              width: double.infinity,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.medication,
-                  size: 50,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }

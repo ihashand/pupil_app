@@ -2,17 +2,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/models/event_stool_model.dart';
-import 'package:pet_diary/src/providers/event_stool_provider.dart';
 import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/event_vacine_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/event_vacine_provider.dart';
 
-class EventStool extends ConsumerWidget {
+class EventVaccine extends ConsumerWidget {
   final double iconSize;
   final String petId;
   final DateTime eventDateTime;
 
-  const EventStool({
+  const EventVaccine({
     super.key,
     required this.iconSize,
     required this.petId,
@@ -21,48 +21,36 @@ class EventStool extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<Map<String, dynamic>> stoolTypes = [
+    final List<Map<String, dynamic>> stomachIssues = [
+      {'icon': '🦠', 'color': Colors.transparent, 'description': 'Rabies'},
+      {'icon': '💊', 'color': Colors.transparent, 'description': 'Distemper'},
+      {'icon': '🧬', 'color': Colors.transparent, 'description': 'Hepatitis'},
+      {'icon': '🧪', 'color': Colors.transparent, 'description': 'Bordatella'},
+      {'icon': '💉', 'color': Colors.transparent, 'description': 'Parvovirus'},
       {
-        'icon': '💩',
+        'icon': '🐛',
         'color': Colors.transparent,
-        'name': 'Type 1',
-        'description': 'Separate hard lumps, like nuts'
+        'description': 'Leptospirosis'
       },
       {
-        'icon': '💩',
+        'icon': '🐕',
         'color': Colors.transparent,
-        'name': 'Type 2',
-        'description': 'Sausage-shaped but lumpy'
+        'description': 'Lyme Disease',
       },
       {
-        'icon': '💩',
+        'icon': '🦊',
         'color': Colors.transparent,
-        'name': 'Type 3',
-        'description': 'Like a sausage but with cracks on the surface'
+        'description': 'Coronavirus',
       },
       {
-        'icon': '💩',
+        'icon': '🌡️',
         'color': Colors.transparent,
-        'name': 'Type 4',
-        'description': 'Like a sausage or snake, smooth and soft'
+        'description': 'Giardina',
       },
       {
-        'icon': '💩',
+        'icon': '🐍',
         'color': Colors.transparent,
-        'name': 'Type 5',
-        'description': 'Soft blobs with clear-cut edges'
-      },
-      {
-        'icon': '💩',
-        'color': Colors.transparent,
-        'name': 'Type 6',
-        'description': 'Fluffy pieces with ragged edges, a mushy stool'
-      },
-      {
-        'icon': '💩',
-        'color': Colors.transparent,
-        'name': 'Type 7',
-        'description': 'Watery, no solid pieces'
+        'description': 'Canine Influenza H3N8',
       },
     ];
 
@@ -70,7 +58,7 @@ class EventStool extends ConsumerWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: stoolTypes.map((type) {
+        children: stomachIssues.map((issue) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 3.0),
             child: Column(
@@ -81,17 +69,17 @@ class EventStool extends ConsumerWidget {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Confirm Stool Type'),
+                          title: const Text('Confirm Vaccine'),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
-                                  'Are you sure you want to add this stool type?'),
+                                  'Are you sure you want to add this vaccine?'),
                               Text(
-                                type['icon'],
+                                issue['icon'],
                                 style: const TextStyle(fontSize: 50),
                               ),
-                              Text(type['description']),
+                              Text(issue['description']),
                             ],
                           ),
                           actions: <Widget>[
@@ -114,21 +102,23 @@ class EventStool extends ConsumerWidget {
                               onPressed: () {
                                 String eventId = generateUniqueId();
 
-                                EventStoolModel newStool = EventStoolModel(
+                                EventVaccineModel newVaccine =
+                                    EventVaccineModel(
                                   id: generateUniqueId(),
                                   eventId: eventId,
                                   petId: petId,
-                                  emoji: type['icon'],
-                                  description: type['description'],
+                                  emoticon: issue['icon'],
+                                  description: issue['description'],
                                   dateTime: eventDateTime,
                                 );
 
                                 ref
-                                    .read(eventStoolServiceProvider)
-                                    .addStoolEvent(newStool);
+                                    .read(eventVaccineServiceProvider)
+                                    .addVaccine(newVaccine);
+
                                 Event newEvent = Event(
                                     id: eventId,
-                                    title: 'Stool',
+                                    title: 'Vaccine',
                                     eventDate: eventDateTime,
                                     dateWhenEventAdded: DateTime.now(),
                                     userId:
@@ -140,27 +130,27 @@ class EventStool extends ConsumerWidget {
                                     waterId: '',
                                     noteId: '',
                                     pillId: '',
-                                    description: type['description'],
+                                    description: issue['description'],
                                     proffesionId: 'NONE',
                                     personId: 'NONE',
                                     avatarImage:
                                         'assets/images/dog_avatar_014.png',
-                                    emoticon: type['icon'],
+                                    emoticon: issue['icon'],
                                     moodId: '',
                                     stomachId: '',
                                     psychicId: '',
-                                    stoolId: newStool.id,
+                                    stoolId: '',
                                     urineId: '',
                                     serviceId: '',
-                                    careId: '');
+                                    careId: '',
+                                    vaccineId: newVaccine.id);
 
                                 ref
                                     .read(eventServiceProvider)
                                     .addEvent(newEvent);
-                                Navigator.of(context)
-                                    .pop(); // Close the confirmation dialog
-                                Navigator.of(context)
-                                    .pop(); // Close the bottom sheet
+
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -170,16 +160,16 @@ class EventStool extends ConsumerWidget {
                   },
                   child: CircleAvatar(
                     radius: iconSize / 2,
-                    backgroundColor: type['color'],
+                    backgroundColor: issue['color'],
                     child: Text(
-                      type['icon'],
+                      issue['icon'],
                       style: TextStyle(fontSize: iconSize / 2),
                     ),
                   ),
                 ),
                 Text(
-                  type['name'],
-                  style: const TextStyle(fontSize: 10), // Small font
+                  issue['description'],
+                  style: const TextStyle(fontSize: 10),
                 ),
               ],
             ),
