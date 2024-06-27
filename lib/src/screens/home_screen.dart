@@ -1,13 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/animal_card.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/providers/user_avatar_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/widgets/health_events_widgets/event_tile.dart';
+import 'package:pet_diary/src/widgets/home_widgets/animal_card.dart';
+import 'package:pet_diary/src/widgets/home_widgets/walk_card.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -132,8 +133,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               );
             }),
-            Padding(
-              padding: const EdgeInsets.only(top: 15, bottom: 20),
+            const Padding(
+              padding: EdgeInsets.only(top: 15, bottom: 20),
               child: WalkCard(),
             ),
             Consumer(builder: (context, ref, _) {
