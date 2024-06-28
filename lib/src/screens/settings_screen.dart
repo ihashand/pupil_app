@@ -104,7 +104,10 @@ class SettingsScreen extends ConsumerWidget {
                   }
                 } catch (e) {
                   displayMessageToUser(
-                      "Error signing out: ${e.toString()}", context);
+                      // ignore: use_build_context_synchronously
+                      "Error signing out: ${e.toString()}",
+                      // ignore: use_build_context_synchronously
+                      context);
                 }
               },
             ),

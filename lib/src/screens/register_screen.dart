@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_diary/src/components/my_textfield.dart';
 import 'package:pet_diary/src/components/signin_button.dart';
 import '../helper/helper_functions.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   final void Function()? onTap;
@@ -20,6 +21,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
   final TextEditingController userNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    userNameController.dispose();
+    super.dispose();
+  }
+
+  void registerUser() async {
+    showDialog(
+      context: context,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    if (passwordController.text != confirmPasswordController.text) {
+      if (mounted) {
+        Navigator.pop(context);
+        displayMessageToUser("Passwords don't match!", context);
+      }
+      return;
+    }
+
+    final userName = userNameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    try {
+      final userCollection = FirebaseFirestore.instance.collection('users');
+
+      print("Checking if username exists...");
+      final usernameQuery =
+          await userCollection.where('username', isEqualTo: userName).get();
+
+      if (usernameQuery.docs.isNotEmpty) {
+        if (mounted) {
+          Navigator.pop(context);
+          displayMessageToUser("Username already exists!", context);
+        }
+        return;
+      }
+
+      print("Checking if email exists...");
+      final emailQuery =
+          await userCollection.where('email', isEqualTo: email).get();
+
+      if (emailQuery.docs.isNotEmpty) {
+        if (mounted) {
+          Navigator.pop(context);
+          displayMessageToUser("Email already exists!", context);
+        }
+        return;
+      }
+
+      print("Creating user...");
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      await userCredential.user!.updateProfile(displayName: userName);
+
+      print("Saving user to Firestore...");
+      await userCollection.doc(userCredential.user!.uid).set({
+        'username': userName,
+        'email': email,
+        'uid': userCredential.user!.uid,
+      });
+
+      if (mounted) {
+        Navigator.pop(context); // Zamknij dialog
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        displayMessageToUser(e.message ?? e.code, context);
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        displayMessageToUser(e.toString(), context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,57 +181,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
-  }
-
-  void registerUser() async {
-    showDialog(
-      context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    if (passwordController.text != confirmPasswordController.text) {
-      Navigator.pop(context);
-      displayMessageToUser("Passwords don't match!", context);
-      return;
-    }
-
-    final userName = userNameController.text.trim();
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-
-    try {
-      final userCollection = FirebaseFirestore.instance.collection('users');
-      final usernameQuery =
-          await userCollection.where('username', isEqualTo: userName).get();
-
-      if (usernameQuery.docs.isNotEmpty) {
-        Navigator.pop(context);
-        displayMessageToUser("Username already exists!", context);
-        return;
-      }
-
-      final emailQuery =
-          await userCollection.where('email', isEqualTo: email).get();
-
-      if (emailQuery.docs.isNotEmpty) {
-        Navigator.pop(context);
-        displayMessageToUser("Email already exists!", context);
-        return;
-      }
-
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-
-      await userCollection.doc(userCredential.user!.uid).set({
-        'username': userName,
-        'email': email,
-        'uid': userCredential.user!.uid,
-      });
-
-      Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
-      Navigator.pop(context);
-      displayMessageToUser(e.message ?? e.code, context);
-    }
   }
 }

@@ -436,12 +436,10 @@ class FriendsLeaderboard extends ConsumerWidget {
                   backgroundImage:
                       AssetImage(petsWithSteps[index]['pet'].avatarImage),
                 ),
-                title: Text('User ${user}'),
-                subtitle: Text('Steps this month: $steps'),
+                title: Text('$user'),
+                subtitle: Text('Actual steps: $steps'),
                 trailing: Text('#${index + 1}'),
-                onTap: () {
-                  // Navigate to user profile screen if needed
-                },
+                onTap: () {},
               );
             },
           ),
