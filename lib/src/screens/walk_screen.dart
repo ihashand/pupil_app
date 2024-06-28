@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,65 +7,188 @@ import 'package:pet_diary/src/models/event_walk_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
 import 'package:pet_diary/src/services/event_walk_service.dart';
 
 class WalkScreen extends ConsumerStatefulWidget {
   const WalkScreen({super.key});
 
   @override
-  ConsumerState<WalkScreen> createState() => _WalkScreenState();
+  createState() => _WalkScreenState();
 }
 
-class _WalkScreenState extends ConsumerState<WalkScreen> {
+class _WalkScreenState extends ConsumerState<WalkScreen>
+    with SingleTickerProviderStateMixin {
   late TextEditingController searchController;
   String searchQuery = '';
   Map<String, bool> expandedEvents = {};
+  late AnimationController _animationController;
+  late Animation<Color?> _colorAnimation;
+  List<int> selectedPetIndexes = [];
 
   @override
   void initState() {
     super.initState();
     searchController = TextEditingController();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _colorAnimation = ColorTween(
+      begin: Color.fromARGB(255, 146, 195, 211),
+      end: const Color(0xff68a2b6),
+    ).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _selectDog(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select Dog'),
-          content: Consumer(
-            builder: (context, ref, _) {
-              final asyncPets = ref.watch(petsProvider);
-              return asyncPets.when(
-                loading: () => const CircularProgressIndicator(),
-                error: (err, stack) => const Text('Error fetching pets'),
-                data: (pets) {
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: pets.length,
-                    itemBuilder: (context, index) {
-                      final currentPet = pets[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: AssetImage(currentPet.avatarImage),
-                        ),
-                        title: Text(currentPet.name),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    WalkStartScreen(pet: currentPet)),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              );
-            },
-          ),
+        return Consumer(
+          builder: (context, ref, _) {
+            final asyncPets = ref.watch(petsProvider);
+
+            return asyncPets.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (err, stack) => const Text('Error fetching pets'),
+              data: (pets) {
+                return StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setModalState) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 25,
+                              right: 20,
+                              top: 15,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'S e l e c t  D o g',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: selectedPetIndexes.isNotEmpty
+                                      ? () {
+                                          Navigator.pop(context);
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  WalkInProgressScreen(
+                                                pets: selectedPetIndexes
+                                                    .map((index) => pets[index])
+                                                    .toList(),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      : null,
+                                  child: Text(
+                                    'Start Walk',
+                                    style: TextStyle(
+                                      color: selectedPetIndexes.isNotEmpty
+                                          ? Theme.of(context).primaryColorDark
+                                          : Colors.grey.withOpacity(0.5),
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(color: Color(0xff68a2b6)),
+                          Container(
+                            color: Theme.of(context).colorScheme.surface,
+                            child: pets.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'No dogs available to display.',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Add a dog to start a walk.',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 30),
+                                      ],
+                                    ),
+                                  )
+                                : Column(
+                                    children: pets
+                                        .map(
+                                          (pet) => GestureDetector(
+                                            onTap: () {
+                                              setModalState(() {
+                                                int index = pets.indexOf(pet);
+                                                if (selectedPetIndexes
+                                                    .contains(index)) {
+                                                  selectedPetIndexes
+                                                      .remove(index);
+                                                } else {
+                                                  selectedPetIndexes.add(index);
+                                                }
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    selectedPetIndexes.contains(
+                                                            pets.indexOf(pet))
+                                                        ? Colors.grey
+                                                            .withOpacity(0.2)
+                                                        : Colors.transparent,
+                                              ),
+                                              child: ListTile(
+                                                leading: CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: AssetImage(
+                                                      pet.avatarImage),
+                                                ),
+                                                title: Text(pet.name),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
         );
       },
     );
@@ -94,20 +218,27 @@ class _WalkScreenState extends ConsumerState<WalkScreen> {
             child: MapWidget(),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () => _selectDog(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xffdfd785),
-                minimumSize: const Size(350, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(
-                'Start Walk',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
+            padding: const EdgeInsets.only(bottom: 15, top: 5),
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return ElevatedButton(
+                  onPressed: () => _selectDog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _colorAnimation.value,
+                    minimumSize: const Size(350, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  child: Text(
+                    'Start Walk',
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 16),
+                  ),
+                );
+              },
             ),
           ),
           const FriendsLeaderboard(),
@@ -151,54 +282,85 @@ class MapWidget extends ConsumerWidget {
         final maxStepsPet = petsWithSteps
             .reduce((a, b) => a['steps'] > b['steps'] ? a : b)['pet'];
 
-        return Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/green_wallpaper.jpg'),
-              fit: BoxFit.cover,
+        return Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/walk_background.jpg'),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-          ),
-          child: CustomPaint(
-            painter: PathPainter(),
-            size: Size.infinite,
-            child: Stack(
-              children: [
-                ..._buildUserAvatarOnPath(maxStepsPet, petsWithSteps),
-                const PositionedMarker(
-                  position: Offset(120, 70),
-                  steps: 10000,
-                  icon: Icons.directions_walk,
-                ),
-                const PositionedMarker(
-                  position: Offset(60, 195),
-                  steps: 20000,
-                  icon: Icons.directions_walk,
-                ),
-                const PositionedMarker(
-                  position: Offset(165, 270),
-                  steps: 50000,
-                  icon: Icons.directions_walk,
-                ),
-                const PositionedMarker(
-                  position: Offset(265, 170),
-                  steps: 70000,
-                  icon: Icons.directions_walk,
-                ),
-                const PositionedMarker(
-                  position: Offset(355, 50),
-                  steps: 100000,
-                  icon: Icons.flag,
-                ),
-              ],
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+              child: Container(
+                color: Colors.black.withOpacity(0), // Kontener przezroczysty
+              ),
             ),
-          ),
+            CustomPaint(
+              painter: PathPainter(),
+              size: Size.infinite,
+              child: Stack(
+                children: [
+                  ..._buildUserAvatarOnPath(
+                      maxStepsPet, petsWithSteps, context),
+                  const PositionedMarker(
+                    position: Offset(120, 70),
+                    steps: 10000,
+                    icon: Icons.directions_walk,
+                    backgroundColor: Colors.yellow,
+                    iconColor: Colors.white,
+                    iconSize: 30,
+                    circleSize: 40,
+                  ),
+                  const PositionedMarker(
+                    position: Offset(60, 195),
+                    steps: 20000,
+                    icon: Icons.directions_walk,
+                    backgroundColor: Colors.pink,
+                    iconColor: Colors.white,
+                    iconSize: 30,
+                    circleSize: 40,
+                  ),
+                  const PositionedMarker(
+                    position: Offset(165, 270),
+                    steps: 50000,
+                    icon: Icons.directions_walk,
+                    backgroundColor: Colors.blue,
+                    iconColor: Colors.white,
+                    iconSize: 30,
+                    circleSize: 40,
+                  ),
+                  const PositionedMarker(
+                    position: Offset(265, 170),
+                    steps: 70000,
+                    icon: Icons.directions_walk,
+                    backgroundColor: Colors.green,
+                    iconColor: Colors.white,
+                    iconSize: 30,
+                    circleSize: 40,
+                  ),
+                  const PositionedMarker(
+                    position: Offset(355, 50),
+                    steps: 100000,
+                    icon: Icons.flag,
+                    backgroundColor: Colors.red,
+                    iconColor: Colors.white,
+                    iconSize: 30,
+                    circleSize: 40,
+                  ),
+                ],
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  List<Widget> _buildUserAvatarOnPath(
-      Pet maxStepsPet, List<Map<String, dynamic>> petsWithSteps) {
+  List<Widget> _buildUserAvatarOnPath(Pet maxStepsPet,
+      List<Map<String, dynamic>> petsWithSteps, BuildContext context) {
     final userPosition = _getPositionForSteps(
         petsWithSteps.firstWhere((p) => p['pet'] == maxStepsPet)['steps']);
 
@@ -206,8 +368,32 @@ class MapWidget extends ConsumerWidget {
       Positioned(
         left: userPosition.dx,
         top: userPosition.dy,
-        child: CircleAvatar(
-          backgroundImage: AssetImage(maxStepsPet.avatarImage),
+        child: GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                final user = FirebaseAuth.instance.currentUser?.displayName;
+                final steps = petsWithSteps
+                    .firstWhere((p) => p['pet'] == maxStepsPet)['steps'];
+                return AlertDialog(
+                  title: Text('$user'),
+                  content: Text('Current steps: $steps'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Close'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: CircleAvatar(
+            backgroundImage: AssetImage(maxStepsPet.avatarImage),
+          ),
         ),
       ),
     ];
@@ -353,10 +539,10 @@ class PositionedMarker extends StatelessWidget {
     required this.position,
     required this.steps,
     required this.icon,
-    this.backgroundColor = Colors.yellow,
-    this.iconColor = Colors.white,
-    this.iconSize = 24.0,
-    this.circleSize = 40.0,
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.iconSize,
+    required this.circleSize,
   });
 
   @override
@@ -370,14 +556,29 @@ class PositionedMarker extends StatelessWidget {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: const Text('Milestone'),
-                content: Text('Steps to go: $steps'),
+                title: Text(
+                  'Milestone',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
+                content: Text(
+                  'Steps to go: $steps',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: const Text('Close'),
+                    child: Text(
+                      'Close',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -425,23 +626,108 @@ class FriendsLeaderboard extends ConsumerWidget {
 
         petsWithSteps.sort((a, b) => b['steps'].compareTo(a['steps']));
 
-        return Expanded(
-          child: ListView.builder(
-            itemCount: petsWithSteps.length,
-            itemBuilder: (context, index) {
-              final user = FirebaseAuth.instance.currentUser?.displayName;
-              final steps = petsWithSteps[index]['steps'];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundImage:
-                      AssetImage(petsWithSteps[index]['pet'].avatarImage),
+        return Container(
+          height: 335,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 10, bottom: 2),
+                child: Text(
+                  'L e a d e r b o a r d',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
-                title: Text('$user'),
-                subtitle: Text('Actual steps: $steps'),
-                trailing: Text('#${index + 1}'),
-                onTap: () {},
-              );
-            },
+              ),
+              Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
+              Flexible(
+                fit: FlexFit.loose,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: petsWithSteps.length,
+                  itemBuilder: (context, index) {
+                    final user =
+                        FirebaseAuth.instance.currentUser?.displayName ??
+                            'User';
+                    final steps = petsWithSteps[index]['steps'];
+                    final petName = petsWithSteps[index]['pet'].name;
+                    return Column(
+                      children: [
+                        ListTile(
+                          leading: Text(
+                            '#${index + 1}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          title: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundImage: AssetImage(
+                                    petsWithSteps[index]['pet'].avatarImage),
+                                radius: 25,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 20.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Text('Owner: ',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                              )),
+                                          Text('$user',
+                                              style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Text('Pupil: ',
+                                              style: TextStyle(fontSize: 11)),
+                                          Text('$petName',
+                                              style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Text('Steps: ',
+                                      style: TextStyle(fontSize: 11)),
+                                  Text('$steps',
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                          onTap: () {},
+                        ),
+                        Divider(
+                            color: const Color(0xff68a2b6).withOpacity(0.2)),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -548,10 +834,30 @@ class WalkStats extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text('Time: ${_formatTime(time)}'),
-        Text('Steps: $steps'),
-        Text('Calories: ${calories.toStringAsFixed(2)} kcal'),
-        Text('Distance: ${distance.toStringAsFixed(2)} km'),
+        Text(
+          'Time: ${_formatTime(time)}',
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        Text(
+          'Steps: $steps',
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        Text(
+          'Calories: ${calories.toStringAsFixed(2)} kcal',
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        Text(
+          'Distance: ${distance.toStringAsFixed(2)} km',
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
       ],
     );
   }

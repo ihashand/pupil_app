@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/components/my_textfield.dart';
 import 'package:pet_diary/src/components/signin_button.dart';
@@ -52,7 +53,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final userCollection = FirebaseFirestore.instance.collection('users');
 
-      print("Checking if username exists...");
+      if (kDebugMode) {
+        print("Checking if username exists...");
+      }
       final usernameQuery =
           await userCollection.where('username', isEqualTo: userName).get();
 
@@ -64,7 +67,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
-      print("Checking if email exists...");
+      if (kDebugMode) {
+        print("Checking if email exists...");
+      }
       final emailQuery =
           await userCollection.where('email', isEqualTo: email).get();
 
@@ -76,13 +81,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
 
-      print("Creating user...");
+      if (kDebugMode) {
+        print("Creating user...");
+      }
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
       await userCredential.user!.updateProfile(displayName: userName);
 
-      print("Saving user to Firestore...");
+      if (kDebugMode) {
+        print("Saving user to Firestore...");
+      }
       await userCollection.doc(userCredential.user!.uid).set({
         'username': userName,
         'email': email,

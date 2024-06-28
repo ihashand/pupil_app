@@ -39,6 +39,8 @@ dependencies:
   table_calendar: ^3.0.9
   intl: ^0.19.0
   flame: ^1.18.0
+  pedometer: ^4.0.1
+  shared_preferences: ^2.0.8
 
 dev_dependencies:
   flutter_test:

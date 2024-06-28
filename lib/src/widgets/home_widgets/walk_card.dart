@@ -114,7 +114,7 @@ class _WalkCardState extends ConsumerState<WalkCard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const WalkScreen()),
+                                  builder: (context) => WalkScreen()),
                             );
                           },
                           child: Text(
