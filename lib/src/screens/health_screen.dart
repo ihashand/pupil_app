@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
-import 'package:pet_diary/src/screens/event_preferences_screen.dart';
+import 'package:pet_diary/src/screens/health_preferences_screen.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';
 import 'package:pet_diary/src/components/events/event_stomach.dart';
@@ -553,7 +553,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   void _showPreferencesDialog(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => PreferencesScreen(petId: widget.petId),
+        builder: (context) => HealthPreferencesScreen(petId: widget.petId),
       ),
     );
   }

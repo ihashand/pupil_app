@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:pet_diary/src/screens/walk_screen.dart';
 
 class WalkCard extends ConsumerStatefulWidget {
   const WalkCard({
@@ -109,7 +110,13 @@ class _WalkCardState extends ConsumerState<WalkCard> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const WalkScreen()),
+                            );
+                          },
                           child: Text(
                             'G e t   i n !',
                             style: TextStyle(

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/helper_functions.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/providers/notification_provider.dart';
 
@@ -96,10 +97,15 @@ class SettingsScreen extends ConsumerWidget {
             child: ListTile(
               title: const Text("LOGOUT"),
               onTap: () async {
-                await FirebaseAuth.instance.signOut();
-
-                // ignore: use_build_context_synchronously
-                Navigator.popUntil(context, ModalRoute.withName("/"));
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                  }
+                } catch (e) {
+                  displayMessageToUser(
+                      "Error signing out: ${e.toString()}", context);
+                }
               },
             ),
           )
