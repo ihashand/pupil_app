@@ -49,7 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const Text(
                           'Welcome back,',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             fontFamily: 'San Francisco',
                           ),
                         ),
@@ -58,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               FirebaseAuth.instance.currentUser?.email ??
                               'Brak dostępnych informacji o użytkowniku',
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'San Francisco',
                           ),
@@ -88,7 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: CircleAvatar(
                         backgroundColor: Colors.transparent,
                         backgroundImage: AssetImage(avatarUrl),
-                        radius: 30,
+                        radius: 35,
                       ),
                     ),
                 ],
