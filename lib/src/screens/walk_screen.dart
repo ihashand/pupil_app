@@ -36,7 +36,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
     )..repeat(reverse: true);
 
     _colorAnimation = ColorTween(
-      begin: Color.fromARGB(255, 146, 195, 211),
+      begin: const Color.fromARGB(255, 146, 195, 211),
       end: const Color(0xff68a2b6),
     ).animate(_animationController);
   }
@@ -685,7 +685,7 @@ class FriendsLeaderboard extends ConsumerWidget {
                                               style: TextStyle(
                                                 fontSize: 11,
                                               )),
-                                          Text('$user',
+                                          Text(user,
                                               style: const TextStyle(
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.bold)),

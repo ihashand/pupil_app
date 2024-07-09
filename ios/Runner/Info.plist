@@ -49,17 +49,21 @@
     <string>This application tracks your steps</string>
     <key>UIBackgroundModes</key>
     <array>
-        <!-- Dodaj tutaj tryby tła, jeśli są potrzebne -->
     </array>
     <key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to track your walking routes.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to your location to track your walking routes even when the app is in the background.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to track your walking routes.</string>
-	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
-	<dict>
-    <key>List of features</key>
     <string>This app needs access to your location to track your walking routes.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to your location to track your walking routes even when the app is in the background.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app needs access to your location to track your walking routes.</string>
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+        <key>List of features</key>
+        <string>This app needs access to your location to track your walking routes.</string>
+    </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs access to your camera to take photos.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs access to your photo library to select photos.</string>
 </dict>
 </plist>
