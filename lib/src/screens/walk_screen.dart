@@ -7,6 +7,7 @@ import 'package:pet_diary/src/models/event_walk_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
 import 'package:pet_diary/src/services/event_walk_service.dart';
 
@@ -196,6 +197,8 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
 
   @override
   Widget build(BuildContext context) {
+    final walkState = ref.watch(walkProvider);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -223,7 +226,20 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
               animation: _animationController,
               builder: (context, child) {
                 return ElevatedButton(
-                  onPressed: () => _selectDog(context),
+                  onPressed: walkState.isWalking
+                      ? () {
+                          // Jeśli spacer jest aktywny, przenieś do WalkInProgressScreen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => WalkInProgressScreen(
+                                pets: [], // Tutaj możesz przekazać aktualnie wybrane zwierzęta, jeśli jest taka potrzeba
+                              ),
+                            ),
+                          );
+                        }
+                      : () => _selectDog(
+                          context), // Inaczej, wybierz psa i zacznij nowy spacer
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _colorAnimation.value,
                     minimumSize: const Size(350, 50),
@@ -232,7 +248,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
                     ),
                   ),
                   child: Text(
-                    'Start Walk',
+                    walkState.isWalking ? 'Back to your walk' : 'Start Walk',
                     style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
                         fontSize: 16),
@@ -869,92 +885,3 @@ class WalkStats extends StatelessWidget {
     return '$hours:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 }
-
-class PetProfileScreen extends StatelessWidget {
-  final Pet pet;
-
-  const PetProfileScreen({super.key, required this.pet});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(pet.name),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: CircleAvatar(
-                backgroundImage: AssetImage(pet.avatarImage),
-                radius: 50,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text('Name: ${pet.name}', style: const TextStyle(fontSize: 20)),
-            Text('Age: ${pet.age}', style: const TextStyle(fontSize: 16)),
-            Text('Gender: ${pet.gender}', style: const TextStyle(fontSize: 16)),
-            Text('Breed: ${pet.breed}', style: const TextStyle(fontSize: 16)),
-            Consumer(
-              builder: (context, ref, _) {
-                final asyncWalks = ref.watch(eventWalksProvider);
-                return asyncWalks.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error: (err, stack) => const Text('Error loading steps'),
-                  data: (walks) {
-                    final totalSteps = walks
-                        .where((walk) => walk!.petId == pet.id)
-                        .fold(0.0, (sum, walk) => sum + walk!.steps);
-                    return Text('Steps this month: $totalSteps',
-                        style: const TextStyle(fontSize: 16));
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            const Text('Rewards:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class Reward {
-  final String title;
-  final String description;
-  final int stepsThreshold;
-
-  Reward(
-      {required this.title,
-      required this.description,
-      required this.stepsThreshold});
-}
-
-final List<Reward> rewards = [
-  Reward(
-      title: 'Bronze Medal',
-      description: 'Walk 1000 steps',
-      stepsThreshold: 1000),
-  Reward(
-      title: 'Silver Medal',
-      description: 'Walk 5000 steps',
-      stepsThreshold: 5000),
-  Reward(
-      title: 'Gold Medal',
-      description: 'Walk 10000 steps',
-      stepsThreshold: 10000),
-];
-
-List<Reward> getRewardsForSteps(double steps) {
-  return rewards.where((reward) => steps >= reward.stepsThreshold).toList();
-}
-
-// Placeholder providers for time, steps, calories, and distance
-final timeProvider = StateProvider<String>((ref) => '00:00:00');
-final stepsProvider = StateProvider<int>((ref) => 0);
-final caloriesProvider = StateProvider<int>((ref) => 0);
-final distanceProvider = StateProvider<double>((ref) => 0.0);

@@ -6,7 +6,9 @@ import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/providers/user_avatar_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/providers/walk_state_provider.dart';
 import 'package:pet_diary/src/widgets/health_events_widgets/event_tile.dart';
+import 'package:pet_diary/src/widgets/home_widgets/active_walk_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/animal_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/walk_card.dart';
 import 'settings_screen.dart';
@@ -137,6 +139,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: EdgeInsets.only(top: 15, bottom: 20),
               child: WalkCard(),
             ),
+            Consumer(builder: (context, ref, _) {
+              final walkState = ref.watch(walkProvider);
+              return walkState.isWalking
+                  ? const Padding(
+                      padding: EdgeInsets.only(top: 15, bottom: 20),
+                      child: ActiveWalkCard(
+                        pets: [],
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            }),
             Consumer(builder: (context, ref, _) {
               final asyncEvents = ref.watch(eventsProvider);
               return asyncEvents.when(
