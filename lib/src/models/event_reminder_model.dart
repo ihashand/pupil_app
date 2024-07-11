@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventReminderModel {
   late String id;
@@ -12,6 +12,7 @@ class EventReminderModel {
   late String repeatOption;
   late int? repeatInterval;
   late DateTime dateTime;
+  late DateTime endDate;
 
   EventReminderModel({
     required this.id,
@@ -21,9 +22,11 @@ class EventReminderModel {
     this.title = '',
     this.description = '',
     required this.selectedDays,
-    this.repeatOption = 'Daily',
+    this.repeatOption = 'Once',
     this.repeatInterval,
-  }) : dateTime = DateTime.now();
+    required this.dateTime,
+    required this.endDate,
+  });
 
   EventReminderModel.fromDocument(DocumentSnapshot doc) {
     id = doc.id;
@@ -38,9 +41,11 @@ class EventReminderModel {
     selectedDays = selectedDaysData != null && selectedDaysData is List
         ? List<int>.from(selectedDaysData)
         : [];
-    repeatOption = doc.get('repeatOption') ?? 'Daily';
+    repeatOption = doc.get('repeatOption') ?? 'Once';
     repeatInterval = doc.get('repeatInterval');
     dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
+    endDate = (doc.get('endDate') as Timestamp?)?.toDate() ??
+        DateTime.now(); // new field
   }
 
   Map<String, dynamic> toMap() {
@@ -55,6 +60,7 @@ class EventReminderModel {
       'repeatOption': repeatOption,
       'repeatInterval': repeatInterval,
       'dateTime': Timestamp.fromDate(dateTime),
+      'endDate': Timestamp.fromDate(endDate), // new field
     };
   }
 }

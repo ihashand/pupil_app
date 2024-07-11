@@ -1,8 +1,18 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:pedometer/pedometer.dart';
+import 'package:pet_diary/src/models/pet_model.dart';
+
+// Provider for active walk state
+final walkProvider = StateNotifierProvider<WalkNotifier, WalkState>((ref) {
+  return WalkNotifier();
+});
+
+// Provider for active walk pets
+final activeWalkPetsProvider = StateProvider<List<Pet>>((ref) => []);
 
 class WalkState {
   final bool isWalking;
@@ -65,36 +75,33 @@ class WalkState {
 }
 
 class WalkNotifier extends StateNotifier<WalkState> {
-  late Stream<StepCount> _stepCountStream;
-  late Stream<PedestrianStatus> _pedestrianStatusStream;
-  late StreamSubscription<StepCount> _stepCountSubscription;
-  late StreamSubscription<PedestrianStatus> _pedestrianStatusSubscription;
-  late Timer _timer;
+  Stream<StepCount>? _stepCountStream;
+  Stream<PedestrianStatus>? _pedestrianStatusStream;
+  StreamSubscription<StepCount>? _stepCountSubscription;
+  StreamSubscription<PedestrianStatus>? _pedestrianStatusSubscription;
+  Timer? _timer;
   final Location _location = Location();
 
-  WalkNotifier() : super(WalkState()) {
-    _initialize();
-  }
+  WalkNotifier() : super(WalkState());
 
-  void _initialize() {
+  void initialize() {
     _pedestrianStatusStream = Pedometer.pedestrianStatusStream;
-    _pedestrianStatusSubscription = _pedestrianStatusStream
+    _pedestrianStatusSubscription = _pedestrianStatusStream!
         .listen(_onPedestrianStatusChanged)
       ..onError(_onPedestrianStatusError);
 
     try {
       _stepCountStream = Pedometer.stepCountStream;
-      _stepCountSubscription = _stepCountStream.listen(_onStepCount)
+      _stepCountSubscription = _stepCountStream!.listen(_onStepCount)
         ..onError(_onStepCountError);
     } catch (e) {
-      // Obsługa błędu gdy licznik kroków nie jest dostępny
       state = state.copyWith(status: 'Step Count not available');
-      print('Error: Step Count not available');
+      if (kDebugMode) {
+        print('Error: Step Count not available');
+      }
     }
 
     _checkLocationPermission();
-    _startTimer();
-    _startWalk();
   }
 
   void _onStepCount(StepCount event) {
@@ -172,22 +179,24 @@ class WalkNotifier extends StateNotifier<WalkState> {
     }
   }
 
-  void _startWalk() {
-    _stepCountStream.first.then((StepCount event) {
+  void startWalk() {
+    initialize();
+    _stepCountStream?.first.then((StepCount event) {
       state = state.copyWith(
           initialSteps: event.steps,
           isWalking: true,
           isPaused: false,
           currentSteps: 0);
+      _startTimer();
     }).catchError((error) {
       state = state.copyWith(status: 'Step Count not available');
     });
   }
 
   void stopWalk() {
-    _timer.cancel();
-    _stepCountSubscription.cancel();
-    _pedestrianStatusSubscription.cancel();
+    _timer?.cancel();
+    _stepCountSubscription?.cancel();
+    _pedestrianStatusSubscription?.cancel();
     state = state.copyWith(isWalking: false, isPaused: false, seconds: 0);
   }
 
@@ -212,7 +221,3 @@ class WalkNotifier extends StateNotifier<WalkState> {
 
   bool get isWalkActive => state.isWalking && !state.isPaused;
 }
-
-final walkProvider = StateNotifierProvider<WalkNotifier, WalkState>((ref) {
-  return WalkNotifier();
-});

@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/main.dart';
 import 'package:pet_diary/src/components/events/medicine/medicinie_details_dosage.dart';
 import 'package:pet_diary/src/components/events/medicine/medicine_details_end_date.dart';
 import 'package:pet_diary/src/components/events/medicine/medicine_details_frequency.dart';
@@ -10,7 +9,6 @@ import 'package:pet_diary/src/components/events/medicine/medicine_details_emoji.
 import 'package:pet_diary/src/components/events/medicine/medicine_new_reminder_button.dart';
 import 'package:pet_diary/src/components/events/medicine/medicine_details_start_date.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/helper/schedule_notification.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/event_medicine_model.dart';
@@ -380,21 +378,21 @@ Future<void> savePill(
         .where((element) => element.objectId == newPillId)
         .toList();
 
-    if (newPillRemindersList.isNotEmpty) {
-      for (var reminder in newPillRemindersList) {
-        await schedulePillReminder(
-          flutterLocalNotificationsPlugin,
-          reminder.title,
-          int.parse(generateUniqueIdWithinRange()),
-          reminder.time,
-          ref.read(eventMedicineEndDateControllerProvider),
-          reminder.description,
-          ref.read(eventReminderSelectedRepeatType),
-          reminder.repeatInterval,
-          reminder.selectedDays,
-        );
-      }
-    }
+    // if (newPillRemindersList.isNotEmpty) {
+    //   for (var reminder in newPillRemindersList) {
+    //     await schedulePillReminder(
+    //       flutterLocalNotificationsPlugin,
+    //       reminder.title,
+    //       int.parse(generateUniqueIdWithinRange()),
+    //       reminder.time,
+    //       ref.read(eventMedicineEndDateControllerProvider),
+    //       reminder.description,
+    //       ref.read(eventReminderSelectedRepeatType),
+    //       reminder.repeatInterval,
+    //       reminder.selectedDays,
+    //     );
+    //   }
+    // }
     if (isNewPill) {
       Pet? pet = await ref.watch(petServiceProvider).getPetById(petId);
       final String eventId = generateUniqueId();
@@ -467,24 +465,24 @@ Future<void> savePill(
           .where((element) => element.objectId == pill.id)
           .toList();
 
-      if (editingPillRemindersList.isNotEmpty) {
-        for (var reminder in editingPillRemindersList) {
-          String descriptionForReminder =
-              '${reminder.title} - ${reminder.description}';
+      // if (editingPillRemindersList.isNotEmpty) {
+      //   for (var reminder in editingPillRemindersList) {
+      //     String descriptionForReminder =
+      //         '${reminder.title} - ${reminder.description}';
 
-          await schedulePillReminder(
-            flutterLocalNotificationsPlugin,
-            pill.name,
-            int.parse(generateUniqueIdWithinRange()),
-            reminder.time,
-            ref.read(eventMedicineEndDateControllerProvider),
-            descriptionForReminder,
-            ref.read(eventReminderSelectedRepeatType),
-            reminder.repeatInterval,
-            reminder.selectedDays,
-          );
-        }
-      }
+      //     await schedulePillReminder(
+      //       flutterLocalNotificationsPlugin,
+      //       pill.name,
+      //       int.parse(generateUniqueIdWithinRange()),
+      //       reminder.time,
+      //       ref.read(eventMedicineEndDateControllerProvider),
+      //       descriptionForReminder,
+      //       ref.read(eventReminderSelectedRepeatType),
+      //       reminder.repeatInterval,
+      //       reminder.selectedDays,
+      //     );
+      //   }
+      // }
 
       ref.read(eventReminderTemporaryIds.notifier).state!.clear();
 

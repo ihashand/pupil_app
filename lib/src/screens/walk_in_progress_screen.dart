@@ -127,6 +127,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                         const SnackBar(content: Text('Failed to save image.')),
                       );
                     }
+                    // ignore: use_build_context_synchronously
                     Navigator.pop(context);
                   },
                   child: const Icon(
@@ -206,7 +207,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                       options: MapOptions(
                         initialCenter: walkState.routePoints.isNotEmpty
                             ? walkState.routePoints.last
-                            : LatLng(51.5, -0.09),
+                            : const LatLng(51.5, -0.09),
                         initialZoom: 16.0,
                         minZoom: 5,
                         maxZoom: 25,
@@ -331,9 +332,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                         ),
                       ),
                       if (walkState.currentSteps == 0)
-                        Text(
+                        const Text(
                           'Step Count not available',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             color: Colors.red,
                           ),

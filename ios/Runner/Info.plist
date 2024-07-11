@@ -49,6 +49,8 @@
     <string>This application tracks your steps</string>
     <key>UIBackgroundModes</key>
     <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
     </array>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>This app needs access to your location to track your walking routes.</string>
@@ -65,5 +67,17 @@
     <string>This app needs access to your camera to take photos.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>This app needs access to your photo library to select photos.</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>We need your consent to track ads</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>UNNotificationCategoryOptions</key>
+    <array>
+        <string>allowInCarPlay</string>
+        <string>customDismissAction</string>
+    </array>
 </dict>
 </plist>

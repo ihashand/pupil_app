@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
+import 'package:pet_diary/src/providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/screens/health_preferences_screen.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';
@@ -56,9 +57,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     selectedDateTime = DateTime.now();
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      ref
-          .read(preferencesProvider.notifier)
-          .setUserIdAndPetId(user.uid, widget.petId);
+      ref.read(homePreferencesProvider.notifier).setUserId(user.uid);
     }
   }
 

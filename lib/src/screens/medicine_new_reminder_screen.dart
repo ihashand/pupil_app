@@ -389,6 +389,8 @@ class _MedicineNewReminderScreenState
       selectedDays: selectedDaysIndexes,
       repeatOption: repeatOption,
       repeatInterval: repeatInterval,
+      dateTime: DateTime.now(),
+      endDate: DateTime.now(),
     );
 
     if (widget.pill != null) {

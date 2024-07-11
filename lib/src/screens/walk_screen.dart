@@ -1,15 +1,13 @@
-import 'dart:async';
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_walk_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
-import 'package:pet_diary/src/services/event_walk_service.dart';
 
 class WalkScreen extends ConsumerStatefulWidget {
   const WalkScreen({super.key});
@@ -86,15 +84,31 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
                                 TextButton(
                                   onPressed: selectedPetIndexes.isNotEmpty
                                       ? () {
+                                          final selectedPets =
+                                              selectedPetIndexes
+                                                  .map((index) => pets[index])
+                                                  .toList();
+                                          if (kDebugMode) {
+                                            print(
+                                                'Selected Pets: $selectedPets');
+                                          }
+                                          ref
+                                              .read(activeWalkPetsProvider
+                                                  .notifier)
+                                              .state = selectedPets;
+
                                           Navigator.pop(context);
+
+                                          final walkNotifier =
+                                              ref.read(walkProvider.notifier);
+                                          walkNotifier.startWalk();
+
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
                                                   WalkInProgressScreen(
-                                                pets: selectedPetIndexes
-                                                    .map((index) => pets[index])
-                                                    .toList(),
+                                                pets: selectedPets,
                                               ),
                                             ),
                                           );
@@ -198,7 +212,6 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
   @override
   Widget build(BuildContext context) {
     final walkState = ref.watch(walkProvider);
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -228,18 +241,16 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
                 return ElevatedButton(
                   onPressed: walkState.isWalking
                       ? () {
-                          // Jeśli spacer jest aktywny, przenieś do WalkInProgressScreen
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => WalkInProgressScreen(
-                                pets: [], // Tutaj możesz przekazać aktualnie wybrane zwierzęta, jeśli jest taka potrzeba
+                                pets: ref.read(activeWalkPetsProvider),
                               ),
                             ),
                           );
                         }
-                      : () => _selectDog(
-                          context), // Inaczej, wybierz psa i zacznij nowy spacer
+                      : () => _selectDog(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _colorAnimation.value,
                     minimumSize: const Size(350, 50),
@@ -248,7 +259,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
                     ),
                   ),
                   child: Text(
-                    walkState.isWalking ? 'Back to your walk' : 'Start Walk',
+                    walkState.isWalking ? 'Go to your walk' : 'Start Walk',
                     style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
                         fontSize: 16),
@@ -748,140 +759,5 @@ class FriendsLeaderboard extends ConsumerWidget {
         );
       },
     );
-  }
-}
-
-class WalkStartScreen extends StatefulWidget {
-  final Pet pet;
-
-  const WalkStartScreen({super.key, required this.pet});
-
-  @override
-  createState() => _WalkStartScreenState();
-}
-
-class _WalkStartScreenState extends State<WalkStartScreen> {
-  late Timer _timer;
-  int _seconds = 0;
-  int _steps = 0;
-  double _calories = 0.0;
-  double _distance = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _seconds++;
-        _steps++;
-        _calories += 0.05;
-        _distance += 0.01;
-      });
-    });
-  }
-
-  void _stopWalk() {
-    _timer.cancel();
-    final walkService = EventWalkService();
-    final eventWalk = EventWalkModel(
-      id: '',
-      walkTime: _seconds.toDouble(),
-      eventId: '',
-      petId: widget.pet.id,
-      steps: _steps.toDouble(),
-      dateTime: DateTime.now(),
-    );
-    walkService.addWalk(eventWalk);
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Walking with ${widget.pet.name}'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            WalkStats(
-              time: _seconds,
-              steps: _steps,
-              calories: _calories,
-              distance: _distance,
-            ),
-            ElevatedButton(
-              onPressed: _stopWalk,
-              child: const Text('Stop Walk'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class WalkStats extends StatelessWidget {
-  final int time;
-  final int steps;
-  final double calories;
-  final double distance;
-
-  const WalkStats({
-    super.key,
-    required this.time,
-    required this.steps,
-    required this.calories,
-    required this.distance,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          'Time: ${_formatTime(time)}',
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-        Text(
-          'Steps: $steps',
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-        Text(
-          'Calories: ${calories.toStringAsFixed(2)} kcal',
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-        Text(
-          'Distance: ${distance.toStringAsFixed(2)} km',
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatTime(int seconds) {
-    final int hours = seconds ~/ 3600;
-    final int minutes = (seconds % 3600) ~/ 60;
-    final int secs = seconds % 60;
-    return '$hours:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 }

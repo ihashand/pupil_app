@@ -120,7 +120,7 @@ class _WalkCardState extends ConsumerState<WalkCard> {
                           child: Text(
                             'G e t   i n !',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 11,
                               color: Theme.of(context).primaryColorDark,
                             ),
                           ),
