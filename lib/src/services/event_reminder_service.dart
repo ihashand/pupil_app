@@ -4,20 +4,25 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/event_reminder_model.dart';
 
 class EventReminderService {
-  final _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore firestore;
+  final FirebaseAuth auth;
+  final StreamController<List<EventReminderModel>> _reminderController =
+      StreamController.broadcast();
 
-  final _reminderController =
-      StreamController<List<EventReminderModel>>.broadcast();
+  EventReminderService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  })  : firestore = firestore ?? FirebaseFirestore.instance,
+        auth = auth ?? FirebaseAuth.instance;
 
   Stream<List<EventReminderModel>> getRemindersStream() {
-    if (_currentUser == null) {
+    if (auth.currentUser == null) {
       return Stream.value([]);
     }
 
-    _firestore
+    firestore
         .collection('users')
-        .doc(_currentUser.uid)
+        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .snapshots()
         .listen((snapshot) {
@@ -30,13 +35,13 @@ class EventReminderService {
   }
 
   Future<List<EventReminderModel>> getReminders() async {
-    if (_currentUser == null) {
+    if (auth.currentUser == null) {
       return [];
     }
 
-    final querySnapshot = await _firestore
+    final querySnapshot = await firestore
         .collection('users')
-        .doc(_currentUser.uid)
+        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .get();
 
@@ -46,13 +51,13 @@ class EventReminderService {
   }
 
   Future<EventReminderModel?> getReminderById(String reminderId) async {
-    if (_currentUser == null) {
+    if (auth.currentUser == null) {
       return null;
     }
 
-    final docSnapshot = await _firestore
+    final docSnapshot = await firestore
         .collection('users')
-        .doc(_currentUser.uid)
+        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminderId)
         .get();
@@ -63,30 +68,44 @@ class EventReminderService {
   }
 
   Future<void> addReminder(EventReminderModel reminder) async {
-    await _firestore
+    await firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminder.id)
         .set(reminder.toMap());
   }
 
   Future<void> updateReminder(EventReminderModel reminder) async {
-    await _firestore
+    await firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminder.id)
         .update(reminder.toMap());
   }
 
   Future<void> deleteReminder(String reminderId) async {
-    await _firestore
+    await firestore
         .collection('users')
-        .doc(_currentUser!.uid)
+        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminderId)
         .delete();
+  }
+
+  Future<void> removeExpiredReminders() async {
+    final reminders = await getReminders();
+    final now = DateTime.now();
+
+    for (final reminder in reminders) {
+      if (reminder.dateTime.isBefore(now) && reminder.repeatOption == 'Once') {
+        await deleteReminder(reminder.id);
+      } else if (reminder.repeatOption != 'Once' &&
+          reminder.endDate.isBefore(now)) {
+        await deleteReminder(reminder.id);
+      }
+    }
   }
 
   void dispose() {

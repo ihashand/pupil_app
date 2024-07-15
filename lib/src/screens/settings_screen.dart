@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/helper_functions.dart';
+import 'package:pet_diary/src/providers/settings_providers.dart';
 import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/providers/notification_provider.dart';
+import 'package:pet_diary/src/widgets/reminders_widgets/number_picker_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -14,6 +16,9 @@ class SettingsScreen extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
     final notificationTime = ref.watch(notificationTimeProvider);
     final isNotificationEnabled = ref.watch(notificationEnabledProvider);
+    final autoRemoveEnabled = ref.watch(autoRemoveEnabledProvider);
+    final autoRemoveHours = ref.watch(autoRemoveHoursProvider);
+    final autoRemoveMinutes = ref.watch(autoRemoveMinutesProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -34,7 +39,11 @@ class SettingsScreen extends ConsumerWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Dark Mode"),
+                      Text(
+                        "Dark Mode",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
                       CupertinoSwitch(
                         value: theme.isDarkMode,
                         onChanged: ((value) => theme.toggleTheme()),
@@ -50,7 +59,11 @@ class SettingsScreen extends ConsumerWidget {
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Mood Notifications"),
+                      Text(
+                        "Mood Notifications",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
                       CupertinoSwitch(
                         value: isNotificationEnabled,
                         onChanged: (value) {
@@ -70,7 +83,11 @@ class SettingsScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Notification Time"),
+                      Text(
+                        "Notification Time",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
                       TextButton(
                         onPressed: () async {
                           final TimeOfDay? picked = await showTimePicker(
@@ -84,8 +101,108 @@ class SettingsScreen extends ConsumerWidget {
                         },
                         child: Text(
                           notificationTime.format(context),
-                          style: const TextStyle(fontSize: 16),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).primaryColorDark),
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+              Container(
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Auto Remove Past Reminders",
+                      style:
+                          TextStyle(color: Theme.of(context).primaryColorDark),
+                    ),
+                    CupertinoSwitch(
+                      value: autoRemoveEnabled,
+                      onChanged: (value) {
+                        ref
+                            .read(autoRemoveEnabledProvider.notifier)
+                            .toggle(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (autoRemoveEnabled)
+                Container(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Remove after:",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              final hours = await showDialog<int>(
+                                context: context,
+                                builder: (context) {
+                                  return NumberPickerDialog(
+                                    initialValue: autoRemoveHours,
+                                    minValue: 0,
+                                    maxValue: 24,
+                                  );
+                                },
+                              );
+                              if (hours != null) {
+                                await ref
+                                    .read(autoRemoveHoursProvider.notifier)
+                                    .setHours(hours);
+                              }
+                            },
+                            child: Text(
+                              "$autoRemoveHours hrs",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final minutes = await showDialog<int>(
+                                context: context,
+                                builder: (context) {
+                                  return NumberPickerDialog(
+                                    initialValue: autoRemoveMinutes,
+                                    minValue: 0,
+                                    maxValue: 59,
+                                  );
+                                },
+                              );
+                              if (minutes != null) {
+                                await ref
+                                    .read(autoRemoveMinutesProvider.notifier)
+                                    .setMinutes(minutes);
+                              }
+                            },
+                            child: Text(
+                              "$autoRemoveMinutes mins",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -95,7 +212,10 @@ class SettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 25.0, bottom: 25),
             child: ListTile(
-              title: const Text("LOGOUT"),
+              title: Text(
+                "LOGOUT",
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
               onTap: () async {
                 try {
                   await FirebaseAuth.instance.signOut();

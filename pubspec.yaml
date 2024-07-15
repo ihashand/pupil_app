@@ -51,6 +51,10 @@ dependencies:
   image_gallery_saver: ^1.7.1
   photo_view: ^0.15.0
   timezone: ^0.9.4
+  numberpicker: ^2.1.2
+  fake_cloud_firestore: ^3.0.1
+  build_runner: ^2.4.11
+  mockito: ^5.4.4
 
 dev_dependencies:
   flutter_test:

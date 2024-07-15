@@ -376,22 +376,22 @@ class _MedicineNewReminderScreenState
     }
 
     final EventReminderModel newReminder = EventReminderModel(
-      id: generateUniqueId(),
-      title: nameController.text.isNotEmpty
-          ? nameController.text
-          : ref.read(eventMedicineNameControllerProvider).text,
-      description: descriptionController.text.isNotEmpty
-          ? descriptionController.text
-          : 'Remember to use $repeatOptionText ',
-      time: selectedTime,
-      userId: FirebaseAuth.instance.currentUser!.uid,
-      objectId: widget.newPillId,
-      selectedDays: selectedDaysIndexes,
-      repeatOption: repeatOption,
-      repeatInterval: repeatInterval,
-      dateTime: DateTime.now(),
-      endDate: DateTime.now(),
-    );
+        id: generateUniqueId(),
+        title: nameController.text.isNotEmpty
+            ? nameController.text
+            : ref.read(eventMedicineNameControllerProvider).text,
+        description: descriptionController.text.isNotEmpty
+            ? descriptionController.text
+            : 'Remember to use $repeatOptionText ',
+        time: selectedTime,
+        userId: FirebaseAuth.instance.currentUser!.uid,
+        objectId: widget.newPillId,
+        selectedDays: selectedDaysIndexes,
+        repeatOption: repeatOption,
+        repeatInterval: repeatInterval,
+        dateTime: DateTime.now(),
+        endDate: DateTime.now(),
+        selectedPets: [widget.petId]);
 
     if (widget.pill != null) {
       newReminder.objectId = widget.pill!.id;
