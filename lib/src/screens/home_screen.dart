@@ -286,7 +286,7 @@ class _ShakeAnimationState extends State<ShakeAnimation>
 
     _offsetAnimation = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(0.03, 0),
+      end: const Offset(0.027, 0),
     ).animate(CurvedAnimation(
       parent: _animationController!,
       curve: Curves.elasticIn,
