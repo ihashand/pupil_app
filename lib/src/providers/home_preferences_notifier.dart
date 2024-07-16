@@ -8,6 +8,7 @@ class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
   static final HomePreferencesModel _initialPreferences = HomePreferencesModel(
     sectionOrder: [
       'AnimalCard',
+      'FriendRequestsCard',
       'WalkCard',
       'ActiveWalkCard',
       'ReminderCard',
@@ -15,6 +16,7 @@ class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
     ],
     visibleSections: [
       'AnimalCard',
+      'FriendRequestsCard',
       'WalkCard',
       'ActiveWalkCard',
       'ReminderCard',

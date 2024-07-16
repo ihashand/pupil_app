@@ -15,7 +15,7 @@ class LocalUserService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('localUsers')
         .snapshots()
@@ -33,7 +33,7 @@ class LocalUserService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('localUsers')
         .doc(localUserId)
@@ -44,7 +44,7 @@ class LocalUserService {
 
   Future<void> addLocalUser(LocalUser localUser) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('localUsers')
         .doc(localUser.id)
@@ -53,7 +53,7 @@ class LocalUserService {
 
   Future<void> updateLocalUser(LocalUser localUser) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('localUsers')
         .doc(localUser.id)
@@ -62,7 +62,7 @@ class LocalUserService {
 
   Future<void> deleteLocalUser(String localUserId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('localUsers')
         .doc(localUserId)

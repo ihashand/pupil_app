@@ -15,7 +15,7 @@ class WalkService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('walks')
         .snapshots()
@@ -37,7 +37,7 @@ class WalkService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('walks')
         .doc(walkId)
@@ -48,7 +48,7 @@ class WalkService {
 
   Future<void> addWalk(WalkModel walk) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('walks')
         .doc(walk.id)
@@ -57,7 +57,7 @@ class WalkService {
 
   Future<void> updateWalk(WalkModel walk) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('walks')
         .doc(walk.id)
@@ -66,7 +66,7 @@ class WalkService {
 
   Future<void> deleteWalk(String walkId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('walks')
         .doc(walkId)

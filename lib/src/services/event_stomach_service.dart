@@ -15,7 +15,7 @@ class EventStomachService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_stomachs')
         .snapshots()
@@ -30,7 +30,7 @@ class EventStomachService {
 
   Future<void> addStomach(EventStomachModel event) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_stomachs')
         .doc(event.id)
@@ -39,7 +39,7 @@ class EventStomachService {
 
   Future<void> deleteStomach(String eventId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_stomachs')
         .doc(eventId)

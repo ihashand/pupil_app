@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
+import 'package:pet_diary/src/models/app_user_model.dart';
+import 'package:pet_diary/src/providers/app_user_provider.dart';
+import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/home_preferences_notifier.dart';
-import 'package:pet_diary/src/providers/user_avatar_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/widgets/home_widgets/active_walk_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/animal_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/appoitment_card.dart';
+import 'package:pet_diary/src/widgets/home_widgets/friend_request_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/walk_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/reminder_card.dart';
-import 'settings_screen.dart';
+import 'package:pet_diary/src/screens/settings_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -21,23 +24,35 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  Map<String, bool> expandedEvents = {};
+  AppUserModel? _appUser;
 
   @override
   void initState() {
     super.initState();
-    // Inicjalizujemy userId w HomePreferencesNotifier podczas inicjalizacji
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
+      ref.read(appUserServiceProvider).getAppUserById(userId).then((user) {
+        if (mounted) {
+          setState(() {
+            _appUser = user;
+          });
+        }
+      });
       ref.read(homePreferencesProvider.notifier).setUserId(userId);
     }
   }
 
+  String capitalizeFirstLetter(String name) {
+    if (name.isEmpty) return name;
+    return name[0].toUpperCase() + name.substring(1);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final avatarUrl = ref.watch(userAvatarProvider);
+    final appUser = _appUser;
     final homePreferences = ref.watch(homePreferencesProvider);
     final homePreferencesNotifier = ref.read(homePreferencesProvider.notifier);
+    final friendRequestsAsyncValue = ref.watch(friendRequestsStreamProvider);
 
     return SafeArea(
       child: Column(
@@ -63,9 +78,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                       Text(
-                        FirebaseAuth.instance.currentUser?.displayName ??
-                            FirebaseAuth.instance.currentUser?.email ??
-                            'Brak dostępnych informacji o użytkowniku',
+                        appUser?.username != null
+                            ? capitalizeFirstLetter(appUser!.username)
+                            : 'No information available for the user',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -75,7 +90,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                 ),
-                if (FirebaseAuth.instance.currentUser != null)
+                if (appUser != null)
                   InkWell(
                     onTap: () {
                       Navigator.push(
@@ -87,16 +102,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     onLongPress: () {
                       showAvatarSelectionDialog(
                         context: context,
-                        onAvatarSelected: (String path) {
-                          ref.read(userAvatarProvider.notifier).state = path;
-                          FirebaseAuth.instance.currentUser
-                              ?.updatePhotoURL(path);
+                        onAvatarSelected: (String path) async {
+                          final user = FirebaseAuth.instance.currentUser;
+
+                          if (user != null) {
+                            final updatedUser = appUser.copyWith(
+                              avatarUrl: path,
+                            );
+                            await ref
+                                .read(appUserServiceProvider)
+                                .updateAppUser(updatedUser);
+                            setState(() {
+                              _appUser = updatedUser;
+                            });
+                          }
                         },
                       );
                     },
                     child: CircleAvatar(
                       backgroundColor: Colors.transparent,
-                      backgroundImage: AssetImage(avatarUrl),
+                      backgroundImage: AssetImage(appUser.avatarUrl),
                       radius: 35,
                     ),
                   ),
@@ -160,6 +185,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       child: AppointmentCard(),
                     );
+                  case 'FriendRequestsCard':
+                    return Padding(
+                      key: const ValueKey('FriendRequestsCard'),
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                      ),
+                      child: friendRequestsAsyncValue.when(
+                        data: (friendRequests) => friendRequests.isNotEmpty
+                            ? const ShakeAnimation(
+                                child: FriendRequestsCard(),
+                              )
+                            : Container(),
+                        loading: () => const CircularProgressIndicator(),
+                        error: (error, stack) => Text('Error: $error'),
+                      ),
+                    );
                   default:
                     return Container(
                       key: ValueKey(section),
@@ -216,6 +258,59 @@ class AnimalSection extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class ShakeAnimation extends StatefulWidget {
+  final Widget child;
+
+  const ShakeAnimation({super.key, required this.child});
+
+  @override
+  createState() => _ShakeAnimationState();
+}
+
+class _ShakeAnimationState extends State<ShakeAnimation>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _animationController;
+  Animation<Offset>? _offsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _offsetAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0.03, 0),
+    ).animate(CurvedAnimation(
+      parent: _animationController!,
+      curve: Curves.elasticIn,
+    ));
+
+    // Stop the animation after 7 seconds
+    Future.delayed(const Duration(seconds: 7), () {
+      if (mounted) {
+        _animationController?.stop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _offsetAnimation!,
+      child: widget.child,
     );
   }
 }

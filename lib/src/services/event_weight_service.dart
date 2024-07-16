@@ -16,7 +16,7 @@ class EventWeightService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_weights')
         .snapshots()
@@ -39,7 +39,7 @@ class EventWeightService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_weights')
         .doc(weightId)
@@ -52,7 +52,7 @@ class EventWeightService {
 
   Future<void> addWeight(EventWeightModel weight) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_weights')
         .doc(weight.id)
@@ -61,7 +61,7 @@ class EventWeightService {
 
   Future<void> updateWeight(EventWeightModel weight) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_weights')
         .doc(weight.id)
@@ -70,7 +70,7 @@ class EventWeightService {
 
   Future<void> deleteWeight(String weightId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_weights')
         .doc(weightId)

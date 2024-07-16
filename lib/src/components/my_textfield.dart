@@ -4,21 +4,25 @@ class MyTextField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
   final TextEditingController controller;
+  final Widget? suffixIcon;
 
-  const MyTextField(
-      {super.key,
-      required this.hintText,
-      required this.obscureText,
-      required this.controller});
+  const MyTextField({
+    super.key,
+    required this.hintText,
+    required this.obscureText,
+    required this.controller,
+    this.suffixIcon,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      decoration: InputDecoration(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          hintText: hintText),
       obscureText: obscureText,
+      decoration: InputDecoration(
+        hintText: hintText,
+        suffixIcon: suffixIcon,
+      ),
     );
   }
 }

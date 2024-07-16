@@ -10,7 +10,7 @@ class SettingsService {
     final user = _auth.currentUser;
     if (user != null) {
       await _firestore
-          .collection('users')
+          .collection('app_users')
           .doc(user.uid)
           .collection('settings')
           .doc('auto_remove')
@@ -22,7 +22,7 @@ class SettingsService {
     final user = _auth.currentUser;
     if (user != null) {
       final doc = await _firestore
-          .collection('users')
+          .collection('app_users')
           .doc(user.uid)
           .collection('settings')
           .doc('auto_remove')

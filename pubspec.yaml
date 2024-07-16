@@ -55,6 +55,9 @@ dependencies:
   fake_cloud_firestore: ^3.0.1
   build_runner: ^2.4.11
   mockito: ^5.4.4
+  qr_flutter: ^4.1.0
+  share_plus: ^9.0.0
+  qr_code_scanner: ^ 1.0.1
 
 dev_dependencies:
   flutter_test:

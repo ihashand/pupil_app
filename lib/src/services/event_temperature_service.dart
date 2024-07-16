@@ -16,7 +16,7 @@ class EventTemperatureService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_temperatures')
         .snapshots()
@@ -36,7 +36,7 @@ class EventTemperatureService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_temperatures')
         .doc(temperatureId)
@@ -49,7 +49,7 @@ class EventTemperatureService {
 
   Future<void> addTemperature(EventTemperatureModel temperature) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_temperatures')
         .doc(temperature.id)
@@ -58,7 +58,7 @@ class EventTemperatureService {
 
   Future<void> updateTemperature(EventTemperatureModel temperature) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_temperatures')
         .doc(temperature.id)
@@ -67,7 +67,7 @@ class EventTemperatureService {
 
   Future<void> deleteTemperature(String temperatureId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_temperatures')
         .doc(temperatureId)

@@ -15,7 +15,7 @@ class EventUrineService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_urines')
         .snapshots()
@@ -30,7 +30,7 @@ class EventUrineService {
 
   Future<void> addUrineEvent(EventUrineModel event) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_urines')
         .doc(event.id)
@@ -39,7 +39,7 @@ class EventUrineService {
 
   Future<void> deleteUrineEvent(String eventId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_urines')
         .doc(eventId)

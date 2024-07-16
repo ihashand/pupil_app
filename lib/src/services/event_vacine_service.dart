@@ -15,7 +15,7 @@ class VaccineService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('eventVaccines')
         .snapshots()
@@ -30,7 +30,7 @@ class VaccineService {
 
   Future<void> addVaccine(EventVaccineModel vaccine) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('eventVaccines')
         .doc(vaccine.id)
@@ -39,7 +39,7 @@ class VaccineService {
 
   Future<void> deleteVaccine(String vaccineId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('eventVaccines')
         .doc(vaccineId)

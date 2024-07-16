@@ -15,7 +15,7 @@ class EventServiceService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_services')
         .snapshots()
@@ -32,7 +32,7 @@ class EventServiceService {
 
   Future<void> addServiceEvent(EventServiceModel service) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_services')
         .doc(service.id)
@@ -41,7 +41,7 @@ class EventServiceService {
 
   Future<void> deleteServiceEvent(String serviceId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_services')
         .doc(serviceId)

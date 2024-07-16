@@ -15,7 +15,7 @@ class PetService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('pets')
         .snapshots()
@@ -37,7 +37,7 @@ class PetService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('pets')
         .doc(petId)
@@ -48,7 +48,7 @@ class PetService {
 
   Future<void> addPet(Pet pet) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('pets')
         .doc(pet.id)
@@ -57,7 +57,7 @@ class PetService {
 
   Future<void> updatePet(Pet pet) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('pets')
         .doc(pet.id)
@@ -66,7 +66,7 @@ class PetService {
 
   Future<void> deletePet(String petId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('pets')
         .doc(petId)

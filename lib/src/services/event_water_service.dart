@@ -15,7 +15,7 @@ class EventWaterService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_waters')
         .snapshots()
@@ -38,7 +38,7 @@ class EventWaterService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_waters')
         .doc(waterId)
@@ -51,7 +51,7 @@ class EventWaterService {
 
   Future<void> addWater(EventWaterModel water) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_waters')
         .doc(water.id)
@@ -60,7 +60,7 @@ class EventWaterService {
 
   Future<void> updateWater(EventWaterModel water) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_waters')
         .doc(water.id)
@@ -69,7 +69,7 @@ class EventWaterService {
 
   Future<void> deleteWater(String waterId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_waters')
         .doc(waterId)

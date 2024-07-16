@@ -7,6 +7,7 @@ import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/walk_state_provider.dart';
+import 'package:pet_diary/src/screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
 
 class WalkScreen extends ConsumerStatefulWidget {
@@ -215,8 +216,10 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme:
-            IconThemeData(color: Theme.of(context).primaryColorDark, size: 20),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).primaryColorDark,
+          size: 20,
+        ),
         title: Text(
           'W A L K',
           style: TextStyle(
@@ -227,6 +230,21 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 50,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.people),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FriendsScreen(),
+                ),
+              );
+            },
+            color: Theme.of(context).primaryColorDark,
+            iconSize: 20,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -282,50 +300,52 @@ class MapWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPets = ref.watch(petsProvider);
 
-    return asyncPets.when(
-      loading: () => const CircularProgressIndicator(),
-      error: (err, stack) => const Text('Error loading map'),
-      data: (pets) {
-        final petsWithSteps = pets
-            .map((pet) {
-              final asyncWalks = ref.watch(eventWalksProvider);
-              return asyncWalks.when(
-                loading: () => null,
-                error: (err, stack) => null,
-                data: (walks) {
-                  final totalSteps = walks
-                      .where((walk) => walk!.petId == pet.id)
-                      .fold(0.0, (sum, walk) => sum + walk!.steps);
-                  return {'pet': pet, 'steps': totalSteps};
-                },
-              );
-            })
-            .whereType<Map<String, dynamic>>()
-            .where((petWithSteps) => petWithSteps['steps'] >= 100)
-            .toList();
-
-        if (petsWithSteps.isEmpty) return Container();
-
-        final maxStepsPet = petsWithSteps
-            .reduce((a, b) => a['steps'] > b['steps'] ? a : b)['pet'];
-
-        return Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/walk_background.jpg'),
-                  fit: BoxFit.cover,
-                ),
-              ),
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/walk_background.jpg'),
+              fit: BoxFit.cover,
             ),
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
-              child: Container(
-                color: Colors.black.withOpacity(0), // Kontener przezroczysty
-              ),
-            ),
-            CustomPaint(
+          ),
+        ),
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+          child: Container(
+            color: Colors.black.withOpacity(0),
+          ),
+        ),
+        asyncPets.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (err, stack) => const Text('Error loading map'),
+          data: (pets) {
+            final petsWithSteps = pets
+                .map((pet) {
+                  final asyncWalks = ref.watch(eventWalksProvider);
+                  return asyncWalks.when(
+                    loading: () => null,
+                    error: (err, stack) => null,
+                    data: (walks) {
+                      final totalSteps = walks
+                          .where((walk) => walk!.petId == pet.id)
+                          .fold(0.0, (sum, walk) => sum + walk!.steps);
+                      return {'pet': pet, 'steps': totalSteps};
+                    },
+                  );
+                })
+                .whereType<Map<String, dynamic>>()
+                .where((petWithSteps) => petWithSteps['steps'] >= 100)
+                .toList();
+
+            if (petsWithSteps.isEmpty) {
+              return const SizedBox();
+            }
+
+            final maxStepsPet = petsWithSteps
+                .reduce((a, b) => a['steps'] > b['steps'] ? a : b)['pet'];
+
+            return CustomPaint(
               painter: PathPainter(),
               size: Size.infinite,
               child: Stack(
@@ -379,10 +399,10 @@ class MapWidget extends ConsumerWidget {
                   ),
                 ],
               ),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 

@@ -21,7 +21,7 @@ class EventReminderService {
     }
 
     firestore
-        .collection('users')
+        .collection('app_users')
         .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .snapshots()
@@ -40,7 +40,7 @@ class EventReminderService {
     }
 
     final querySnapshot = await firestore
-        .collection('users')
+        .collection('app_users')
         .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .get();
@@ -56,7 +56,7 @@ class EventReminderService {
     }
 
     final docSnapshot = await firestore
-        .collection('users')
+        .collection('app_users')
         .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminderId)
@@ -69,7 +69,7 @@ class EventReminderService {
 
   Future<void> addReminder(EventReminderModel reminder) async {
     await firestore
-        .collection('users')
+        .collection('app_users')
         .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminder.id)
@@ -78,7 +78,7 @@ class EventReminderService {
 
   Future<void> updateReminder(EventReminderModel reminder) async {
     await firestore
-        .collection('users')
+        .collection('app_users')
         .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminder.id)
@@ -87,7 +87,7 @@ class EventReminderService {
 
   Future<void> deleteReminder(String reminderId) async {
     await firestore
-        .collection('users')
+        .collection('app_users')
         .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminderId)
