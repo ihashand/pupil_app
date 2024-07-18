@@ -22,3 +22,8 @@ final eventWalkDateControllerProvider = StateProvider<DateTime>((ref) {
 final eventWalksProvider = StreamProvider<List<EventWalkModel?>>((ref) {
   return EventWalkService().getWalksStream();
 });
+
+final eventWalksFriendProvider =
+    StreamProvider.family<List<EventWalkModel>, String>((ref, id) {
+  return EventWalkService().getWalksFriend(id);
+});

@@ -8,13 +8,13 @@ import 'package:pet_diary/src/providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/screens/friend_profile_screen.dart';
 import 'package:pet_diary/src/widgets/home_widgets/active_walk_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/animal_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/appoitment_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/friend_request_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/walk_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/reminder_card.dart';
-import 'package:pet_diary/src/screens/settings_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -96,7 +96,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SettingsScreen()),
+                          builder: (context) => FriendProfileScreen(
+                            userId: appUser.id,
+                          ),
+                        ),
                       );
                     },
                     onLongPress: () {

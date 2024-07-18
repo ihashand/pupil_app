@@ -31,6 +31,25 @@ class EventWalkService {
     }
   }
 
+  Stream<List<EventWalkModel>> getWalksFriend(String uid) {
+    if (_currentUser == null) {
+      return Stream.value([]);
+    }
+
+    _firestore
+        .collection('app_users')
+        .doc(uid)
+        .collection('event_walks')
+        .snapshots()
+        .listen((snapshot) {
+      _walksController.add(snapshot.docs
+          .map((doc) => EventWalkModel.fromDocument(doc))
+          .toList());
+    });
+
+    return _walksController.stream;
+  }
+
   Stream<List<EventWalkModel>> getWalksStream() => _walksController.stream;
 
   Future<EventWalkModel?> getWalkById(String walkId) async {

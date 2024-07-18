@@ -27,6 +27,24 @@ class PetService {
     return _petsController.stream;
   }
 
+  Stream<List<Pet>> getPetsFriend(String uid) {
+    if (_currentUser == null) {
+      return Stream.value([]);
+    }
+
+    _firestore
+        .collection('app_users')
+        .doc(uid)
+        .collection('pets')
+        .snapshots()
+        .listen((snapshot) {
+      _petsController
+          .add(snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
+    });
+
+    return _petsController.stream;
+  }
+
   Stream<Pet?> getPetByIdStream(String petId) {
     return Stream.fromFuture(getPetById(petId));
   }

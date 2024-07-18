@@ -6,6 +6,7 @@ import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/friend_search_provider.dart';
 import 'package:pet_diary/src/providers/friends_notifier_provider.dart';
+import 'package:pet_diary/src/screens/friend_profile_screen.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -91,179 +92,182 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
     final friendsAsyncValue = ref.watch(friendsStreamProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: const Text('Friends'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text(
+          'F R I E N D S',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).primaryColorDark, size: 20),
+        toolbarHeight: 50,
       ),
       body: Container(
-        color: Theme.of(context).colorScheme.primary,
-        padding: const EdgeInsets.all(16.0),
+        color: Theme.of(context).colorScheme.surface,
+        padding: const EdgeInsets.only(bottom: 10),
         child: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.all(10),
-              child: TextField(
-                controller: _searchController,
-                cursorColor: Colors.black,
-                decoration: InputDecoration(
-                  hintText: 'Search by email',
-                  border: InputBorder.none,
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: _searchFriend,
+            Padding(
+              padding: const EdgeInsets.only(top: 0),
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: _searchResult == null
+                            ? const Radius.circular(12)
+                            : const Radius.circular(0),
+                        bottomRight: _searchResult == null
+                            ? const Radius.circular(12)
+                            : const Radius.circular(0),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Divider(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 10.0, right: 10, top: 5),
+                          child: TextField(
+                            controller: _searchController,
+                            cursorColor: Colors.black,
+                            decoration: InputDecoration(
+                              hintText: 'Search by email',
+                              border: InputBorder.none,
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.search),
+                                onPressed: _searchFriend,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
             if (_searchResult != null) ...[
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: AssetImage(_searchResult!.avatarUrl),
-                ),
-                title: Text(
-                  _searchResult!.username,
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
-                ),
-                subtitle: Text(
-                  _searchResult!.email,
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
-                ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.person_add),
-                  onPressed: () => _sendFriendRequest(_searchResult!),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (friendRequestsAsyncValue.when(
-                data: (data) => data.isNotEmpty,
-                loading: () => false,
-                error: (error, stack) => false)) ...[
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(10),
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
                 ),
-                padding: const EdgeInsets.all(10),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Friend Requests',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Divider(
+                      color: Theme.of(context).colorScheme.surface,
                     ),
-                    const SizedBox(height: 8),
-                    friendRequestsAsyncValue.when(
-                      data: (friendRequests) => ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: friendRequests.length,
-                        itemBuilder: (context, index) {
-                          final request = friendRequests[index];
-                          return Consumer(
-                            builder: (context, ref, child) {
-                              final userAsyncValue = ref.watch(
-                                  appUserDetailsProvider(request.fromUserId));
-                              return userAsyncValue.when(
-                                data: (user) => ListTile(
-                                  leading: CircleAvatar(
-                                    backgroundImage: AssetImage(user.avatarUrl),
-                                  ),
-                                  title: Text(user.username),
-                                  subtitle: Text(user.email),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.check),
-                                        onPressed: () => _acceptFriendRequest(
-                                            request.fromUserId,
-                                            request.toUserId),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.close),
-                                        onPressed: () => _declineFriendRequest(
-                                            request.fromUserId,
-                                            request.toUserId),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                loading: () =>
-                                    const CircularProgressIndicator(),
-                                error: (error, stack) => Text('Error: $error'),
-                              );
-                            },
-                          );
-                        },
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: AssetImage(_searchResult!.avatarUrl),
                       ),
-                      loading: () => const CircularProgressIndicator(),
-                      error: (error, stack) => Text('Error: $error'),
+                      title: Text(
+                        _searchResult!.username,
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      subtitle: Text(
+                        _searchResult!.email,
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.person_add),
+                        onPressed: () => _sendFriendRequest(_searchResult!),
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Friends',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            if (friendRequestsAsyncValue.when(
+                data: (data) => data.isNotEmpty,
+                loading: () => false,
+                error: (error, stack) => false)) ...[
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  const SizedBox(height: 8),
-                  friendsAsyncValue.when(
-                    data: (friends) => friends.isEmpty
-                        ? const Text(
-                            'You have no friends yet. Use the search above to add friends.',
-                          )
-                        : ListView.builder(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(10))),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Padding(
+                          padding:
+                              EdgeInsets.only(left: 10.0, top: 15, bottom: 10),
+                          child: Text(
+                            'F R I E N D   R E Q U E S T S',
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Divider(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        friendRequestsAsyncValue.when(
+                          data: (friendRequests) => ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: friends.length,
+                            itemCount: friendRequests.length,
                             itemBuilder: (context, index) {
-                              final friend = friends[index];
+                              final request = friendRequests[index];
                               return Consumer(
                                 builder: (context, ref, child) {
                                   final userAsyncValue = ref.watch(
-                                      appUserDetailsProvider(friend.friendId));
+                                      appUserDetailsProvider(
+                                          request.fromUserId));
                                   return userAsyncValue.when(
                                     data: (user) => ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundImage:
-                                            AssetImage(user.avatarUrl),
+                                      leading: GestureDetector(
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                FriendProfileScreen(
+                                              userId: user.id,
+                                            ),
+                                          ),
+                                        ),
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              AssetImage(user.avatarUrl),
+                                        ),
                                       ),
-                                      title: Text(
-                                        user.username[0].toUpperCase() +
-                                            user.username.substring(1),
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .primaryColorDark),
-                                      ),
-                                      subtitle: Text(
-                                        user.email,
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .primaryColorDark),
-                                      ),
-                                      trailing: IconButton(
-                                        icon: const Icon(Icons.delete),
-                                        onPressed: () =>
-                                            _removeFriend(friend.friendId),
+                                      title: Text(user.username),
+                                      subtitle: Text(user.email),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.check),
+                                            onPressed: () =>
+                                                _acceptFriendRequest(
+                                                    request.fromUserId,
+                                                    request.toUserId),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.close),
+                                            onPressed: () =>
+                                                _declineFriendRequest(
+                                                    request.fromUserId,
+                                                    request.toUserId),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     loading: () =>
@@ -275,10 +279,109 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                               );
                             },
                           ),
-                    loading: () => const CircularProgressIndicator(),
-                    error: (error, stack) => Text('Error: $error'),
+                          loading: () => const CircularProgressIndicator(),
+                          error: (error, stack) => Text('Error: $error'),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
+              ),
+            ],
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                      ),
+                      child: Text(
+                        'F R I E N D S  L I S T ',
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Divider(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: friendsAsyncValue.when(
+                        data: (friends) => friends.isEmpty
+                            ? const Text(
+                                'You have no friends yet. Use the search above to find your friends.',
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: friends.length,
+                                itemBuilder: (context, index) {
+                                  final friend = friends[index];
+                                  return Consumer(
+                                    builder: (context, ref, child) {
+                                      final userAsyncValue = ref.watch(
+                                          appUserDetailsProvider(
+                                              friend.friendId));
+                                      return userAsyncValue.when(
+                                        data: (user) => ListTile(
+                                          leading: GestureDetector(
+                                            onTap: () => Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    FriendProfileScreen(
+                                                  userId: user.id,
+                                                ),
+                                              ),
+                                            ),
+                                            child: CircleAvatar(
+                                              backgroundImage:
+                                                  AssetImage(user.avatarUrl),
+                                            ),
+                                          ),
+                                          title: Text(
+                                            user.username[0].toUpperCase() +
+                                                user.username.substring(1),
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .primaryColorDark),
+                                          ),
+                                          subtitle: Text(
+                                            user.email,
+                                            style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .primaryColorDark),
+                                          ),
+                                          trailing: IconButton(
+                                            icon: const Icon(Icons.delete),
+                                            onPressed: () =>
+                                                _removeFriend(friend.friendId),
+                                          ),
+                                        ),
+                                        loading: () =>
+                                            const CircularProgressIndicator(),
+                                        error: (error, stack) =>
+                                            Text('Error: $error'),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                        loading: () => const CircularProgressIndicator(),
+                        error: (error, stack) => Text('Error: $error'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

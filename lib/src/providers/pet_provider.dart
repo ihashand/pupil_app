@@ -9,3 +9,8 @@ final petServiceProvider = Provider((ref) {
 final petsProvider = StreamProvider<List<Pet>>((ref) {
   return PetService().getPets();
 });
+
+final petFriendServiceProvider =
+    StreamProvider.family<List<Pet>, String>((ref, id) {
+  return PetService().getPetsFriend(id);
+});
