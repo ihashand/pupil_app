@@ -15,7 +15,7 @@ class EventPsychicService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_psychics')
         .snapshots()
@@ -30,7 +30,7 @@ class EventPsychicService {
 
   Future<void> addPsychicEvent(EventPsychicModel event) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_psychics')
         .doc(event.id)
@@ -39,7 +39,7 @@ class EventPsychicService {
 
   Future<void> deletePsychicEvent(String eventId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_psychics')
         .doc(eventId)

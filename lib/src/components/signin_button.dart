@@ -13,7 +13,7 @@ class SignInButton extends StatelessWidget {
           decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.all(25),
+          padding: const EdgeInsets.all(15),
           child: Center(
               child: Text(text,
                   style: const TextStyle(

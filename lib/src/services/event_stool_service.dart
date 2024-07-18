@@ -15,7 +15,7 @@ class EventStoolService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_stools')
         .snapshots()
@@ -30,7 +30,7 @@ class EventStoolService {
 
   Future<void> addStoolEvent(EventStoolModel event) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_stools')
         .doc(event.id)
@@ -39,7 +39,7 @@ class EventStoolService {
 
   Future<void> deleteStoolEvent(String eventId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_stools')
         .doc(eventId)

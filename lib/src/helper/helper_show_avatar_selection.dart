@@ -5,14 +5,13 @@ Future<void> showAvatarSelectionDialog({
   required Function(String) onAvatarSelected,
 }) async {
   // final picker = ImagePicker();
-
   await showModalBottomSheet(
     context: context,
     builder: (BuildContext context) {
-      return SizedBox(
-        child: SingleChildScrollView(
+      return SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               // ListTile(
               //   leading: const Icon(Icons.camera_alt),
@@ -45,12 +44,14 @@ Future<void> showAvatarSelectionDialog({
               //     }
               //   },
               // ),
-              const ListTile(
-                title: Text(
-                  'Defaults avatars',
+              const Padding(
+                padding: EdgeInsets.all(6.0),
+                child: Text(
+                  'Pick an avatar',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),
+              Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
               GridView.count(
                 shrinkWrap: true,
                 crossAxisCount: 5,
@@ -65,7 +66,7 @@ Future<void> showAvatarSelectionDialog({
                       onAvatarSelected(avatarPath);
                     },
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
+                      padding: const EdgeInsets.all(5.0),
                       child: CircleAvatar(
                         backgroundImage: AssetImage(avatarPath),
                         radius: 10,

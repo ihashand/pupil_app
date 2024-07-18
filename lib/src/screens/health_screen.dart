@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
-import 'package:pet_diary/src/screens/event_preferences_screen.dart';
+import 'package:pet_diary/src/providers/home_preferences_notifier.dart';
+import 'package:pet_diary/src/screens/health_preferences_screen.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';
 import 'package:pet_diary/src/components/events/event_stomach.dart';
@@ -56,9 +57,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     selectedDateTime = DateTime.now();
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      ref
-          .read(preferencesProvider.notifier)
-          .setUserIdAndPetId(user.uid, widget.petId);
+      ref.read(homePreferencesProvider.notifier).setUserId(user.uid);
     }
   }
 
@@ -479,14 +478,14 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+              padding: const EdgeInsets.only(left: 25, right: 20, top: 15),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Pick your event',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).primaryColorDark,
                     ),
@@ -553,7 +552,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   void _showPreferencesDialog(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => PreferencesScreen(petId: widget.petId),
+        builder: (context) => HealthPreferencesScreen(petId: widget.petId),
       ),
     );
   }
@@ -561,73 +560,87 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   Widget buildLifestyleSection(
       BuildContext context, String petId, DateTime eventDateTime) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          const Row(
-            children: [
-              SizedBox(width: 8),
-              Text(
-                'Lifestyle',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
-            ],
+          const Padding(
+            padding: EdgeInsets.only(top: 7),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'L i f e s t y l e',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
+          Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Column(
-                children: [
-                  EventWalk(
-                    iconSize: 40,
-                    iconColor: Colors.green.withOpacity(0.7),
-                    petId: petId,
-                    eventDateTime: eventDateTime,
-                  ),
-                  const SizedBox(height: 5),
-                  const Text('Walk', style: TextStyle(fontSize: 13)),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(top: 15, right: 20, bottom: 5),
+                child: Column(
+                  children: [
+                    EventWalk(
+                      iconSize: 30,
+                      iconColor: Colors.green.withOpacity(0.7),
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Walk', style: TextStyle(fontSize: 11)),
+                  ],
+                ),
               ),
-              Column(
-                children: [
-                  EventWater(
-                    iconSize: 40,
-                    iconColor: Colors.blue.withOpacity(0.7),
-                    petId: petId,
-                    eventDateTime: eventDateTime,
-                  ),
-                  const SizedBox(height: 5),
-                  const Text('Water', style: TextStyle(fontSize: 13)),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(top: 15, right: 20, bottom: 5),
+                child: Column(
+                  children: [
+                    EventWater(
+                      iconSize: 30,
+                      iconColor: Colors.blue.withOpacity(0.7),
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Water', style: TextStyle(fontSize: 11)),
+                  ],
+                ),
               ),
-              Column(
-                children: [
-                  EventTemperature(
-                    iconSize: 40,
-                    iconColor: Colors.red.withOpacity(0.7),
-                    petId: petId,
-                    eventDateTime: eventDateTime,
-                  ),
-                  const SizedBox(height: 5),
-                  const Text('Temp', style: TextStyle(fontSize: 13)),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(top: 15, right: 20, bottom: 5),
+                child: Column(
+                  children: [
+                    EventTemperature(
+                      iconSize: 30,
+                      iconColor: Colors.red.withOpacity(0.7),
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Temp', style: TextStyle(fontSize: 11)),
+                  ],
+                ),
               ),
-              Column(
-                children: [
-                  EventWeight(
-                    iconSize: 40,
-                    iconColor: Colors.orange.withOpacity(0.7),
-                    petId: petId,
-                    eventDateTime: eventDateTime,
-                  ),
-                  const SizedBox(height: 5),
-                  const Text('Weight', style: TextStyle(fontSize: 13)),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(top: 15, bottom: 5),
+                child: Column(
+                  children: [
+                    EventWeight(
+                      iconSize: 30,
+                      iconColor: Colors.orange.withOpacity(0.7),
+                      petId: petId,
+                      eventDateTime: eventDateTime,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Weight', style: TextStyle(fontSize: 11)),
+                  ],
+                ),
               ),
             ],
           ),

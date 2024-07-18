@@ -15,8 +15,26 @@ class PetService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
+        .collection('pets')
+        .snapshots()
+        .listen((snapshot) {
+      _petsController
+          .add(snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
+    });
+
+    return _petsController.stream;
+  }
+
+  Stream<List<Pet>> getPetsFriend(String uid) {
+    if (_currentUser == null) {
+      return Stream.value([]);
+    }
+
+    _firestore
+        .collection('app_users')
+        .doc(uid)
         .collection('pets')
         .snapshots()
         .listen((snapshot) {
@@ -37,7 +55,7 @@ class PetService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('pets')
         .doc(petId)
@@ -48,7 +66,7 @@ class PetService {
 
   Future<void> addPet(Pet pet) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('pets')
         .doc(pet.id)
@@ -57,7 +75,7 @@ class PetService {
 
   Future<void> updatePet(Pet pet) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('pets')
         .doc(pet.id)
@@ -66,7 +84,7 @@ class PetService {
 
   Future<void> deletePet(String petId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('pets')
         .doc(petId)

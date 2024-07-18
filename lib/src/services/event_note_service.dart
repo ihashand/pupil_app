@@ -15,7 +15,7 @@ class EventNoteService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_notes')
         .snapshots()
@@ -38,7 +38,7 @@ class EventNoteService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_notes')
         .doc(noteId)
@@ -49,7 +49,7 @@ class EventNoteService {
 
   Future<void> addNote(EventNoteModel note) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_notes')
         .doc(note.id)
@@ -58,7 +58,7 @@ class EventNoteService {
 
   Future<void> updateNote(EventNoteModel note) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_notes')
         .doc(note.id)
@@ -67,7 +67,7 @@ class EventNoteService {
 
   Future<void> deleteNote(String noteId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_notes')
         .doc(noteId)

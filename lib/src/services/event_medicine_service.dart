@@ -39,7 +39,7 @@ class EventMedicineService {
     }
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_medicines')
         .doc(medicineId)
@@ -52,7 +52,7 @@ class EventMedicineService {
 
   Future<void> addMedicine(EventMedicineModel medicine) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_medicines')
         .doc(medicine.id)
@@ -61,7 +61,7 @@ class EventMedicineService {
 
   Future<void> updateMedicine(EventMedicineModel medicine) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_medicines')
         .doc(medicine.id)
@@ -70,7 +70,7 @@ class EventMedicineService {
 
   Future<void> deleteMedicine(String medicineId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_medicines')
         .doc(medicineId)

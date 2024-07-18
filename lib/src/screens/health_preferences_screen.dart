@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/event_preferences.dart';
 import 'package:pet_diary/src/providers/event_preferences_provider.dart';
 
-class PreferencesScreen extends ConsumerStatefulWidget {
+class HealthPreferencesScreen extends ConsumerStatefulWidget {
   final String petId;
 
-  const PreferencesScreen({super.key, required this.petId});
+  const HealthPreferencesScreen({super.key, required this.petId});
 
   @override
-  PreferencesScreenState createState() => PreferencesScreenState();
+  HealthPreferencesScreenState createState() => HealthPreferencesScreenState();
 }
 
-class PreferencesScreenState extends ConsumerState<PreferencesScreen>
+class HealthPreferencesScreenState
+    extends ConsumerState<HealthPreferencesScreen>
     with SingleTickerProviderStateMixin {
   late List<String> sectionOrder;
   late List<String> visibleSections;
@@ -51,7 +52,7 @@ class PreferencesScreenState extends ConsumerState<PreferencesScreen>
     _controller.forward();
 
     // Hide the info message after 10 seconds
-    Future.delayed(Duration(seconds: 10), () {
+    Future.delayed(const Duration(seconds: 10), () {
       if (mounted) {
         _controller.reverse().then((value) {
           if (mounted) {
@@ -100,6 +101,7 @@ class PreferencesScreenState extends ConsumerState<PreferencesScreen>
                       visibleSections: visibleSections,
                     ),
                   );
+              Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
           ),

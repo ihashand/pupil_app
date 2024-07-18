@@ -17,7 +17,7 @@ class EventWalkService {
   void _initWalksStream() {
     if (_currentUser != null) {
       _firestore
-          .collection('users')
+          .collection('app_users')
           .doc(_currentUser.uid)
           .collection('event_walks')
           .orderBy('dateTime', descending: true)
@@ -31,13 +31,32 @@ class EventWalkService {
     }
   }
 
+  Stream<List<EventWalkModel>> getWalksFriend(String uid) {
+    if (_currentUser == null) {
+      return Stream.value([]);
+    }
+
+    _firestore
+        .collection('app_users')
+        .doc(uid)
+        .collection('event_walks')
+        .snapshots()
+        .listen((snapshot) {
+      _walksController.add(snapshot.docs
+          .map((doc) => EventWalkModel.fromDocument(doc))
+          .toList());
+    });
+
+    return _walksController.stream;
+  }
+
   Stream<List<EventWalkModel>> getWalksStream() => _walksController.stream;
 
   Future<EventWalkModel?> getWalkById(String walkId) async {
     if (_currentUser == null) return null;
 
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_walks')
         .doc(walkId)
@@ -49,7 +68,7 @@ class EventWalkService {
   Future<void> addWalk(EventWalkModel walk) async {
     if (_currentUser == null) return;
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_walks')
         .doc(walk.id)
@@ -59,7 +78,7 @@ class EventWalkService {
   Future<void> updateWalk(EventWalkModel walk) async {
     if (_currentUser == null) return;
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_walks')
         .doc(walk.id)
@@ -69,7 +88,7 @@ class EventWalkService {
   Future<void> deleteWalk(String walkId) async {
     if (_currentUser == null) return;
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_walks')
         .doc(walkId)

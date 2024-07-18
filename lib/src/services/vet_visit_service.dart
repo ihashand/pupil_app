@@ -8,7 +8,7 @@ class VetVisitService {
 
   Future<void> addVetVisit(VetVisitModel visit) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('vet_visits')
         .doc(visit.id)
@@ -17,7 +17,7 @@ class VetVisitService {
 
   Future<void> updateVetVisit(VetVisitModel visit) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('vet_visits')
         .doc(visit.id)
@@ -26,7 +26,7 @@ class VetVisitService {
 
   Future<void> deleteVetVisit(String visitId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('vet_visits')
         .doc(visitId)
@@ -35,7 +35,7 @@ class VetVisitService {
 
   Future<VetVisitModel?> getVetVisitById(String visitId) async {
     final docSnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('vet_visits')
         .doc(visitId)
@@ -46,7 +46,7 @@ class VetVisitService {
 
   Future<List<VetVisitModel>> getVetVisits() async {
     final querySnapshot = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('vet_visits')
         .get();

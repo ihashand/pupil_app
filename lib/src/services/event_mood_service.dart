@@ -15,7 +15,7 @@ class EventMoodService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_moods')
         .snapshots()
@@ -30,7 +30,7 @@ class EventMoodService {
 
   Future<void> addMood(EventMoodModel mood) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_moods')
         .doc(mood.id)
@@ -39,7 +39,7 @@ class EventMoodService {
 
   Future<void> deleteMood(String moodId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_moods')
         .doc(moodId)

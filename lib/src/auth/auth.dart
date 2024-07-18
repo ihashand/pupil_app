@@ -9,10 +9,10 @@ class AuthWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
+      body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // If user is loged in
+          // If user is logged in
           if (snapshot.hasData) {
             return const BotomAppBar();
           }

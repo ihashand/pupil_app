@@ -14,7 +14,7 @@ class EventCareService {
     }
 
     _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_cares')
         .snapshots()
@@ -29,7 +29,7 @@ class EventCareService {
 
   Future<void> addCare(EventCareModel care) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_cares')
         .doc(care.id)
@@ -38,7 +38,7 @@ class EventCareService {
 
   Future<void> deleteCare(String careId) async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_cares')
         .doc(careId)
