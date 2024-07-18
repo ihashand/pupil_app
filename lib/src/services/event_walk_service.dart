@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pet_diary/src/models/achievement.dart';
 import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/models/user_achievement.dart';
+import 'package:uuid/uuid.dart';
 
 class EventWalkService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -67,12 +70,66 @@ class EventWalkService {
 
   Future<void> addWalk(EventWalkModel walk) async {
     if (_currentUser == null) return;
+
+    // Dodaj spacer do bazy danych
     await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_walks')
         .doc(walk.id)
         .set(walk.toMap());
+
+    // Sprawdź osiągnięcia
+    await _checkAndAwardAchievements(walk);
+  }
+
+  Future<void> _checkAndAwardAchievements(EventWalkModel walk) async {
+    final petWalks = await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('event_walks')
+        .where('petId', isEqualTo: walk.petId)
+        .get();
+
+    double totalSteps = walk.steps;
+
+    for (var doc in petWalks.docs) {
+      totalSteps += EventWalkModel.fromDocument(doc).steps;
+    }
+
+    final achievementsSnapshot =
+        await _firestore.collection('achievements').get();
+    final achievements = achievementsSnapshot.docs
+        .map((doc) => Achievement.fromDocument(doc))
+        .toList();
+
+    for (var achievement in achievements) {
+      if (totalSteps >= achievement.stepsRequired) {
+        // Sprawdź, czy pies już zdobył to osiągnięcie
+        final userAchievementsSnapshot = await _firestore
+            .collection('user_achievements')
+            .where('userId', isEqualTo: _currentUser.uid)
+            .where('petId', isEqualTo: walk.petId)
+            .where('achievementId', isEqualTo: achievement.id)
+            .get();
+
+        if (userAchievementsSnapshot.docs.isEmpty) {
+          // Przyznaj nowe osiągnięcie
+          final userAchievement = UserAchievement(
+            id: const Uuid().v4(),
+            userId: _currentUser.uid,
+            petId: walk.petId,
+            achievementId: achievement.id,
+            achievedAt: DateTime.now(),
+          );
+
+          await _firestore
+              .collection('user_achievements')
+              .doc(userAchievement.id)
+              .set(userAchievement.toMap());
+        }
+      }
+    }
   }
 
   Future<void> updateWalk(EventWalkModel walk) async {

@@ -9,6 +9,7 @@ import 'package:pet_diary/src/providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/login_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:pet_diary/src/services/notification_services.dart';
+import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -20,6 +21,7 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService().init();
+  initializeAchievements();
 
   runApp(ProviderScope(
     child: EasyLocalization(

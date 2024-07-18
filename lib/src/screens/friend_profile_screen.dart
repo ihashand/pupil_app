@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
+import 'package:pet_diary/src/models/achievement.dart';
 import 'package:pet_diary/src/models/app_user_model.dart';
 import 'package:pet_diary/src/models/friend_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
@@ -13,17 +14,19 @@ import 'package:pet_diary/src/providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friend_pet_detail_screen.dart';
 import 'package:pet_diary/src/screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/pet_details_screen.dart';
+import 'package:pet_diary/src/services/achievement_service.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
 import 'package:pet_diary/src/widgets/report_widget/show_date_range_dialog.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {
   final String userId;
 
-  const FriendProfileScreen({required this.userId, Key? key}) : super(key: key);
+  const FriendProfileScreen({required this.userId, super.key});
 
   @override
   createState() => _FriendProfileScreenState();
@@ -292,32 +295,63 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   }
 
   Widget _buildAchievementsSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+    final asyncAchievements = ref.watch(userAchievementsProvider);
+
+    return asyncAchievements.when(
+      data: (userAchievements) {
+        if (userAchievements.isEmpty) {
+          return const Text('No achievements found.');
+        }
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const SectionTitle(title: "Achievements"),
-              TextButton(
-                onPressed: () {
-                  // Navigate to achievements screen
+            children: userAchievements.map((achievement) {
+              return FutureBuilder<Achievement>(
+                future: _getAchievementById(achievement.achievementId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (!snapshot.hasData || snapshot.data == null) {
+                    return const Text('Achievement not found');
+                  }
+
+                  final achievementData = snapshot.data!;
+                  return _buildAchievementCard(achievementData);
                 },
-                child: Text(
-                  'See All',
-                  style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
+              );
+            }).toList(),
           ),
-        ),
-        // Add your achievements list here
-      ],
+        );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stack) => Text('Error: $error'),
+    );
+  }
+
+  Future<Achievement> _getAchievementById(String achievementId) async {
+    final service = AchievementService();
+    final achievements = await service.getAllAchievements();
+    return achievements
+        .firstWhere((achievement) => achievement.id == achievementId);
+  }
+
+  Widget _buildAchievementCard(Achievement achievement) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          CircleAvatar(
+            backgroundImage: AssetImage(achievement.avatarUrl),
+          ),
+          Text(achievement.name),
+          Text(achievement.description),
+        ],
+      ),
     );
   }
 
@@ -423,6 +457,7 @@ class GenerateReportSection extends ConsumerWidget {
             onPressed: () async {
               final pet = await ref.read(petServiceProvider).getPetById(petId);
               if (pet != null) {
+                // ignore: use_build_context_synchronously
                 await showDateRangeDialog(context, ref, pet);
               }
             },
