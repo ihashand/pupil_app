@@ -8,8 +8,10 @@ class UserAchievementService {
 
   Future<List<UserAchievement>> getUserAchievements() async {
     final snapshot = await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
         .collection('user_achievements')
-        .where('userId', isEqualTo: _currentUser?.uid)
+        .where('userId', isEqualTo: _currentUser.uid)
         .get();
     return snapshot.docs
         .map((doc) => UserAchievement.fromDocument(doc))
@@ -18,6 +20,8 @@ class UserAchievementService {
 
   Future<void> addUserAchievement(UserAchievement userAchievement) async {
     await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
         .collection('user_achievements')
         .doc(userAchievement.id)
         .set(userAchievement.toMap());
@@ -25,6 +29,8 @@ class UserAchievementService {
 
   Future<void> updateUserAchievement(UserAchievement userAchievement) async {
     await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
         .collection('user_achievements')
         .doc(userAchievement.id)
         .update(userAchievement.toMap());
@@ -32,6 +38,8 @@ class UserAchievementService {
 
   Future<void> deleteUserAchievement(String userAchievementId) async {
     await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
         .collection('user_achievements')
         .doc(userAchievementId)
         .delete();

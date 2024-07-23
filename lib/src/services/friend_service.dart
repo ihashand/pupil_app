@@ -14,6 +14,8 @@ class FriendService {
     }
 
     return _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
@@ -29,6 +31,8 @@ class FriendService {
     return _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
+        .collection('friends')
+        .doc(_currentUser.uid)
         .collection('friend_requests')
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -37,13 +41,19 @@ class FriendService {
   }
 
   Future<void> addFriend(Friend friend) async {
-    await _firestore.collection('friends').add(friend.toMap());
+    await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('friends')
+        .add(friend.toMap());
   }
 
   Future<void> removeFriend(String friendId) async {
     final currentUserId = _currentUser!.uid;
 
     final currentUserFriendDocs = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: currentUserId)
         .where('friendId', isEqualTo: friendId)
@@ -54,6 +64,8 @@ class FriendService {
     }
 
     final friendDocs = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: friendId)
         .where('friendId', isEqualTo: currentUserId)
@@ -70,6 +82,8 @@ class FriendService {
 
     await _firestore
         .collection('app_users')
+        .doc(_currentUser.uid)
+        .collection('friends')
         .doc(toUserId)
         .collection('friend_requests')
         .add({
@@ -83,6 +97,8 @@ class FriendService {
     final currentUserId = _currentUser!.uid;
     final querySnapshot = await _firestore
         .collection('app_users')
+        .doc(_currentUser.uid)
+        .collection('friends')
         .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: currentUserId)
@@ -99,6 +115,8 @@ class FriendService {
 
     final friendRequestDoc = await _firestore
         .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('friends')
         .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: fromUserId)
@@ -112,6 +130,8 @@ class FriendService {
   Future<void> declineFriendRequest(String fromUserId, String toUserId) async {
     final friendRequestDoc = await _firestore
         .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('friends')
         .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: fromUserId)

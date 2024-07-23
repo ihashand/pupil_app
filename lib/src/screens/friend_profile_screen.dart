@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
-import 'package:pet_diary/src/models/achievement.dart';
 import 'package:pet_diary/src/models/app_user_model.dart';
 import 'package:pet_diary/src/models/friend_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
@@ -19,9 +18,13 @@ import 'package:pet_diary/src/screens/friend_pet_detail_screen.dart';
 import 'package:pet_diary/src/screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/pet_details_screen.dart';
-import 'package:pet_diary/src/services/achievement_service.dart';
+import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
 import 'package:pet_diary/src/widgets/report_widget/show_date_range_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:confetti/confetti.dart';
+
+import '../models/achievement.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -37,12 +40,22 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   int selectedMonthIndex = DateTime.now().month - 1;
   final int maxMonths = 12;
   late List<BarChartGroupData> barGroups;
+  String selectedCategory = 'all';
+  ConfettiController? _confettiController;
 
   @override
   void initState() {
     super.initState();
     barGroups = showingGroups();
     selectedMonthIndex = DateTime.now().month - 1;
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
+  }
+
+  @override
+  void dispose() {
+    _confettiController?.dispose();
+    super.dispose();
   }
 
   List<BarChartGroupData> showingGroups() {
@@ -115,8 +128,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                 const SectionTitle(title: "Generate Report"),
                 GenerateReportSection(petId: user.id),
               ],
-              const SectionTitle(title: "Achievements"),
-              _buildAchievementsSection(context),
+              _buildAchievementsSection(context, user.id),
               const SizedBox(height: 20),
               _buildActionButtons(context, asyncWalks),
             ],
@@ -294,36 +306,73 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Widget _buildAchievementsSection(BuildContext context) {
+  Widget _buildAchievementsSection(BuildContext context, String userId) {
     final asyncAchievements = ref.watch(userAchievementsProvider);
 
     return asyncAchievements.when(
       data: (userAchievements) {
         if (userAchievements.isEmpty) {
-          return const Text('No achievements found.');
+          return Center(
+            child: ElevatedButton(
+              onPressed: () {
+                _showAchievementsMenu(context, userId);
+              },
+              child: Text(
+                'View Achievements',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+          );
         }
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: userAchievements.map((achievement) {
-              return FutureBuilder<Achievement>(
-                future: _getAchievementById(achievement.achievementId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (!snapshot.hasData || snapshot.data == null) {
-                    return const Text('Achievement not found');
-                  }
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SectionTitle(title: "Achievements"),
+                TextButton(
+                  onPressed: () {
+                    _showAchievementsMenu(context, userId);
+                  },
+                  child: Text(
+                    'See All',
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: userAchievements.map((userAchievement) {
+                  return FutureBuilder<Achievement>(
+                    future: _getAchievementById(userAchievement.achievementId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else if (!snapshot.hasData || snapshot.data == null) {
+                        return const Text('Achievement not found');
+                      }
 
-                  final achievementData = snapshot.data!;
-                  return _buildAchievementCard(achievementData);
-                },
-              );
-            }).toList(),
-          ),
+                      final achievementData = snapshot.data!;
+                      return GestureDetector(
+                        onTap: () => _showAchievementDetail(
+                            context, achievementData, true),
+                        child: _buildAchievementCard(achievementData),
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         );
       },
       loading: () => const CircularProgressIndicator(),
@@ -332,26 +381,280 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   }
 
   Future<Achievement> _getAchievementById(String achievementId) async {
-    final service = AchievementService();
-    final achievements = await service.getAllAchievements();
-    return achievements
-        .firstWhere((achievement) => achievement.id == achievementId);
+    return achievements.firstWhere(
+      (achievement) => achievement.id == achievementId,
+    );
   }
 
   Widget _buildAchievementCard(Achievement achievement) {
     return Card(
+      color: Theme.of(context).colorScheme.primary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            backgroundImage: AssetImage(achievement.avatarUrl),
-          ),
-          Text(achievement.name),
-          Text(achievement.description),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        width: 120,
+        height: 180,
+        child: Column(
+          children: [
+            CircleAvatar(
+              backgroundImage: AssetImage(achievement.avatarUrl),
+              radius: 40,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              achievement.name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              achievement.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showAchievementsMenu(BuildContext context, String userId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Column(
+              children: [
+                const Text(
+                  'Achievements',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildCategoryButton(context, setState, 'all'),
+                    _buildCategoryButton(context, setState, 'steps'),
+                    _buildCategoryButton(context, setState, 'nature'),
+                    _buildCategoryButton(context, setState, 'fantasy'),
+                  ],
+                ),
+                Expanded(
+                  child: FutureBuilder<Set<String>>(
+                    future: _getUserAchievementIds(userId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Text('Error: ${snapshot.error}'),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text('No achievements found.'),
+                        );
+                      } else {
+                        final achievedIds = snapshot.data!;
+                        return ListView(
+                          children: [
+                            _buildAchievementsCategory(
+                                context, userId, selectedCategory, achievedIds),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryButton(
+      BuildContext context, StateSetter setState, String category) {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          selectedCategory = category;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Theme.of(context).primaryColorDark,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+      child: Text(
+        category.toUpperCase(),
+        style: TextStyle(color: Theme.of(context).primaryColorDark),
+      ),
+    );
+  }
+
+  Widget _buildAchievementsCategory(BuildContext context, String userId,
+      String category, Set<String> achievedIds) {
+    final categoryAchievements = achievements
+        .where((achievement) =>
+            category == 'all' || achievement.category == category)
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          category.toUpperCase(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.5,
+          ),
+          itemCount: categoryAchievements.length,
+          itemBuilder: (context, index) {
+            final achievement = categoryAchievements[index];
+            final hasAchieved = achievedIds.contains(achievement.id);
+            return GestureDetector(
+              onTap: hasAchieved
+                  ? () =>
+                      _showAchievementDetail(context, achievement, hasAchieved)
+                  : null,
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: hasAchieved
+                      ? null
+                      : BoxDecoration(
+                          color: Colors.grey.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        child: hasAchieved
+                            ? null
+                            : const Icon(Icons.lock, color: Colors.white),
+                        backgroundImage: hasAchieved
+                            ? AssetImage(achievement.avatarUrl)
+                            : null,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        hasAchieved ? achievement.name : '???',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: hasAchieved ? Colors.black : Colors.grey),
+                      ),
+                      if (!hasAchieved)
+                        Text(
+                          achievement.description,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<Set<String>> _getUserAchievementIds(String userId) async {
+    final userAchievementsSnapshot = await FirebaseFirestore.instance
+        .collection('app_users')
+        .doc(userId)
+        .collection('user_achievements')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    return userAchievementsSnapshot.docs
+        .map((doc) => doc.get('achievementId') as String)
+        .toSet();
+  }
+
+  void _showAchievementDetail(
+      BuildContext context, Achievement achievement, bool hasAchieved) {
+    if (hasAchieved) {
+      _confettiController?.play();
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(achievement.avatarUrl),
+                    radius: 50,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    achievement.name,
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    achievement.description,
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add share functionality here
+                    },
+                    child: const Text('Share'),
+                  ),
+                ],
+              ),
+            ),
+            if (hasAchieved)
+              ConfettiWidget(
+                confettiController: _confettiController!,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                colors: const [
+                  Colors.green,
+                  Colors.blue,
+                  Colors.pink,
+                  Colors.orange,
+                  Colors.purple
+                ],
+              ),
+          ],
+        );
+      },
     );
   }
 

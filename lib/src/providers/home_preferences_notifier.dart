@@ -34,7 +34,7 @@ class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
 
   Future<void> _loadPreferences() async {
     final doc = await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(userId)
         .collection('preferences')
         .doc('home_preferences')
@@ -46,7 +46,7 @@ class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
 
   Future<void> _savePreferences() async {
     await _firestore
-        .collection('users')
+        .collection('app_users')
         .doc(userId)
         .collection('preferences')
         .doc('home_preferences')

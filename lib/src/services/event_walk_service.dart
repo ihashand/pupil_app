@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/achievement.dart';
 import 'package:pet_diary/src/models/event_walk_model.dart';
 import 'package:pet_diary/src/models/user_achievement.dart';
+import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
 import 'package:uuid/uuid.dart';
 
 class EventWalkService {
@@ -84,50 +84,58 @@ class EventWalkService {
   }
 
   Future<void> _checkAndAwardAchievements(EventWalkModel walk) async {
-    final petWalks = await _firestore
+    // Pobierz wszystkie spacery psa
+    final petWalksSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_walks')
         .where('petId', isEqualTo: walk.petId)
         .get();
 
-    double totalSteps = walk.steps;
+    double totalSteps = 0;
 
-    for (var doc in petWalks.docs) {
+    // Zsumuj kroki ze wszystkich spacerów
+    for (var doc in petWalksSnapshot.docs) {
       totalSteps += EventWalkModel.fromDocument(doc).steps;
     }
 
-    final achievementsSnapshot =
-        await _firestore.collection('achievements').get();
-    final achievements = achievementsSnapshot.docs
-        .map((doc) => Achievement.fromDocument(doc))
-        .toList();
+    // Pobierz osiągnięcia, które pies już zdobył
+    final userAchievementsSnapshot = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
+        .collection('user_achievements')
+        .where('userId', isEqualTo: _currentUser.uid)
+        .where('petId', isEqualTo: walk.petId)
+        .get();
 
+    // Zbierz ID osiągnięć, które już zostały przyznane
+    final achievedIds = userAchievementsSnapshot.docs
+        .map((doc) => doc.get('achievementId') as String)
+        .toSet();
+
+    // Sprawdź i przyznaj nowe osiągnięcia z predefiniowanej listy
     for (var achievement in achievements) {
-      if (totalSteps >= achievement.stepsRequired) {
-        // Sprawdź, czy pies już zdobył to osiągnięcie
-        final userAchievementsSnapshot = await _firestore
+      // Sprawdź, czy pies nie zdobył jeszcze tego osiągnięcia
+      if (!achievedIds.contains(achievement.id) &&
+          totalSteps >= achievement.stepsRequired) {
+        final userAchievement = UserAchievement(
+          id: const Uuid().v4(),
+          userId: _currentUser.uid,
+          petId: walk.petId,
+          achievementId: achievement.id,
+          achievedAt: DateTime.now(),
+        );
+
+        // Przyznaj nowe osiągnięcie
+        await _firestore
+            .collection('app_users')
+            .doc(_currentUser.uid)
             .collection('user_achievements')
-            .where('userId', isEqualTo: _currentUser.uid)
-            .where('petId', isEqualTo: walk.petId)
-            .where('achievementId', isEqualTo: achievement.id)
-            .get();
+            .doc(userAchievement.id)
+            .set(userAchievement.toMap());
 
-        if (userAchievementsSnapshot.docs.isEmpty) {
-          // Przyznaj nowe osiągnięcie
-          final userAchievement = UserAchievement(
-            id: const Uuid().v4(),
-            userId: _currentUser.uid,
-            petId: walk.petId,
-            achievementId: achievement.id,
-            achievedAt: DateTime.now(),
-          );
-
-          await _firestore
-              .collection('user_achievements')
-              .doc(userAchievement.id)
-              .set(userAchievement.toMap());
-        }
+        // Dodaj osiągnięcie do listy przyznanych, aby nie przyznawać go ponownie
+        achievedIds.add(achievement.id);
       }
     }
   }
