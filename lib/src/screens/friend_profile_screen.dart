@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/models/app_user_model.dart';
 import 'package:pet_diary/src/models/friend_model.dart';
@@ -21,6 +24,8 @@ import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
 import '../models/achievement.dart';
+import 'package:share/share.dart';
+import 'package:screenshot/screenshot.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -38,6 +43,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   late List<BarChartGroupData> barGroups;
   String selectedCategory = 'all';
   ConfettiController? _confettiController;
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -119,7 +125,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             children: [
               _buildUserInfoAndFriends(context, user, friendsAsyncValue),
               _buildAchievementsSection(context, user.id),
-
               _buildActionButtons(context, asyncWalks),
               if (user.id == currentUserId) ...[
                 const SectionTitle(title: "Generate Report"),
@@ -682,6 +687,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Ikona zamykająca przeniesiona poza obszar Screenshot
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -694,7 +700,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                           child: IconButton(
                             icon: Icon(
                               Icons.close,
-                              size: 22, // Ustawienie rozmiaru ikony
+                              size: 22,
                               color: Theme.of(context).primaryColorDark,
                             ),
                             onPressed: () {
@@ -706,25 +712,34 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(25.0),
-                    child: CircleAvatar(
-                      backgroundImage: AssetImage(achievement.avatarUrl),
-                      radius: 100,
+                  Screenshot(
+                    controller: _screenshotController,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: CircleAvatar(
+                            backgroundImage: AssetImage(achievement.avatarUrl),
+                            radius: 100,
+                          ),
+                        ),
+                        Text(
+                          achievement.name,
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          achievement.description,
+                          style: const TextStyle(fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
                   ),
-                  Text(
-                    achievement.name,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    achievement.description,
-                    style: const TextStyle(fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
+                  // Przycisk udostępniania przeniesiony poza obszar Screenshot
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: const Size(160, 40),
@@ -734,8 +749,20 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    onPressed: () {
-                      // Add share functionality here
+                    onPressed: () async {
+                      final Uint8List? imageBytes =
+                          await _screenshotController.capture();
+                      if (imageBytes != null) {
+                        final tempDir = await getTemporaryDirectory();
+                        final file =
+                            await File('${tempDir.path}/achievement.png')
+                                .create();
+                        await file.writeAsBytes(imageBytes);
+
+                        Share.shareFiles([file.path],
+                            text:
+                                'I unlocked the achievement ${achievement.name}!\n\n${achievement.description}');
+                      }
                     },
                     child: Text(
                       'Share',
