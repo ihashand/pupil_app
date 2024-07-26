@@ -60,6 +60,8 @@ dependencies:
   qr_code_scanner: ^ 1.0.1
   carousel_slider: ^4.2.1
   confetti: ^0.7.0
+  share: ^2.0.4
+  screenshot: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +78,9 @@ flutter:
     - assets/translations/
     - assets/images/
     - assets/fonts/
+    - assets/images/achievements/natural/
+    - assets/images/achievements/steps/
+    - assets/images/achievements/fantasy/
 
 flutter_icons:
   android: true
