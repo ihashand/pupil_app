@@ -9,8 +9,7 @@ import 'package:pet_diary/src/providers/pet_provider.dart';
 class FriendPetDetailScreen extends ConsumerWidget {
   final String petId;
 
-  const FriendPetDetailScreen({required this.petId, Key? key})
-      : super(key: key);
+  const FriendPetDetailScreen({required this.petId, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

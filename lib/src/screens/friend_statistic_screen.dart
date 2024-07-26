@@ -38,7 +38,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text(
-          'S T A T I S T I C S',
+          'S T A T I S T I T C',
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
         ),
         iconTheme:
@@ -202,7 +202,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
             ],
           ),
           Divider(color: Theme.of(context).colorScheme.secondary, height: 20),
-          ActivityDataRow(context, "Time", _formatDuration(totalActiveMinutes)),
+          ActivityDataRow(
+              context, "Time", "${totalActiveMinutes.toStringAsFixed(0)} min"),
           Divider(color: Theme.of(context).colorScheme.secondary, height: 20),
           ActivityDataRow(
               context, "Distance", "${totalDistance.toStringAsFixed(0)} km"),
@@ -243,7 +244,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               context, "Average Steps", averageSteps.toStringAsFixed(0)),
           Divider(color: Theme.of(context).colorScheme.secondary, height: 20),
           ActivityDataRow(context, "Average Active Minutes",
-              _formatDuration(averageActiveMinutes)),
+              "${averageActiveMinutes.toStringAsFixed(0)} min"),
           Divider(color: Theme.of(context).colorScheme.secondary, height: 20),
           ActivityDataRow(context, "Average Distance",
               "${averageDistance.toStringAsFixed(0)} km"),
@@ -253,20 +254,5 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
         ],
       ),
     );
-  }
-
-  String _formatDuration(double totalMinutes) {
-    final int minutes = totalMinutes.toInt();
-    if (minutes < 60) {
-      return '$minutes min';
-    } else if (minutes < 1440) {
-      final int hours = minutes ~/ 60;
-      final int remainingMinutes = minutes % 60;
-      return '$hours h ${remainingMinutes > 0 ? '$remainingMinutes min' : ''}';
-    } else {
-      final int days = minutes ~/ 1440;
-      final int remainingHours = (minutes % 1440) ~/ 60;
-      return '$days d ${remainingHours > 0 ? '$remainingHours h' : ''}';
-    }
   }
 }
