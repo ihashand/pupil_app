@@ -7,23 +7,19 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/models/app_user_model.dart';
 import 'package:pet_diary/src/models/friend_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/user_achievement_provider.dart';
-import 'package:pet_diary/src/screens/friend_pet_detail_screen.dart';
 import 'package:pet_diary/src/screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';
-import 'package:pet_diary/src/screens/pet_details_screen.dart';
 import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
+import 'package:pet_diary/src/widgets/health_activity_widgets/generate_report_section.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
-import 'package:pet_diary/src/widgets/report_widget/show_date_range_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
-
 import '../models/achievement.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {
@@ -49,7 +45,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     barGroups = showingGroups();
     selectedMonthIndex = DateTime.now().month - 1;
     _confettiController =
-        ConfettiController(duration: const Duration(seconds: 3));
+        ConfettiController(duration: const Duration(seconds: 2));
   }
 
   @override
@@ -122,15 +118,12 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildUserInfoAndFriends(context, user, friendsAsyncValue),
-              _buildPetsList(context, user),
-              const SizedBox(height: 20),
+              _buildActionButtons(context, asyncWalks),
+              _buildAchievementsSection(context, user.id),
               if (user.id == currentUserId) ...[
                 const SectionTitle(title: "Generate Report"),
                 GenerateReportSection(petId: user.id),
               ],
-              _buildAchievementsSection(context, user.id),
-              const SizedBox(height: 20),
-              _buildActionButtons(context, asyncWalks),
             ],
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -142,6 +135,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
 
   Widget _buildUserInfoAndFriends(BuildContext context, AppUserModel user,
       AsyncValue<List<Friend>> friendsAsyncValue) {
+    final asyncPets = ref.watch(petFriendServiceProvider(user.id));
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
@@ -190,26 +184,48 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             child: friendsAsyncValue.when(
               data: (friends) {
                 final friendCount = friends.length;
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FriendsScreen(),
+                return asyncPets.when(
+                  data: (pets) {
+                    final petCount =
+                        pets.where((pet) => pet.userId == user.id).length;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const FriendsScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'Friends: $friendCount',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).primaryColorDark),
                           ),
-                        );
-                      },
-                      child: Text(
-                        'Friends: $friendCount',
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                    ),
-                  ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 14.0),
+                          child: TextButton(
+                            onPressed: () {
+                              _showPetsList(context, user.id);
+                            },
+                            child: Text(
+                              'Pets: $petCount',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stack) => Text('Error: $error'),
                 );
               },
               loading: () => const CircularProgressIndicator(),
@@ -221,88 +237,54 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Widget _buildPetsList(BuildContext context, AppUserModel user) {
-    final asyncPets = ref.watch(petFriendServiceProvider(user.id));
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: asyncPets.when(
-        data: (pets) {
-          final userPets = pets.where((pet) => pet.userId == user.id).toList();
-          if (userPets.isEmpty) {
-            return const Text('No pets found.');
-          }
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: userPets.asMap().entries.map((entry) {
-                int index = entry.key;
-                Pet pet = entry.value;
-                return Column(
-                  children: [
-                    _buildPetTile(context, pet, currentUserId == user.id),
-                    if (index < userPets.length - 1)
-                      Divider(color: Theme.of(context).colorScheme.surface),
-                  ],
-                );
-              }).toList(),
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Text('Error: $error'),
-      ),
-    );
-  }
-
-  Widget _buildPetTile(BuildContext context, Pet pet, bool isCurrentUser) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 2),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 25,
-          backgroundImage: AssetImage(pet.avatarImage),
-        ),
-        title: Padding(
-          padding: const EdgeInsets.only(left: 15.0),
-          child: Text(
-            pet.name,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(left: 15.0),
-          child: Text(
-            calculateAge(pet.age),
-            style: const TextStyle(fontSize: 12),
-          ),
-        ),
-        trailing: TextButton(
-          onPressed: () {
-            if (isCurrentUser) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PetDetailsScreen(petId: pet.id),
-                ),
-              );
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FriendPetDetailScreen(petId: pet.id),
-                ),
-              );
+  void _showPetsList(BuildContext context, String userId) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      context: context,
+      builder: (BuildContext context) {
+        final asyncPets = ref.watch(petFriendServiceProvider(userId));
+        return asyncPets.when(
+          data: (pets) {
+            final userPets = pets.where((pet) => pet.userId == userId).toList();
+            if (userPets.isEmpty) {
+              return const Center(child: Text('No pets found.'));
             }
+            double heightFactor = userPets.length * 0.1;
+            heightFactor = heightFactor > 1.0 ? 1.0 : heightFactor;
+
+            return FractionallySizedBox(
+              heightFactor: heightFactor,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ListView.builder(
+                  itemCount: userPets.length,
+                  itemBuilder: (context, index) {
+                    final pet = userPets[index];
+                    return Container(
+                      margin: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: AssetImage(pet.avatarImage),
+                          radius: 35,
+                        ),
+                        title: Text(pet.name),
+                        subtitle: Text('Age: ${calculateAge(pet.age)}'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
           },
-          child: const Text('See'),
-        ),
-      ),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Text('Error: $error'),
+        );
+      },
     );
   }
 
@@ -324,7 +306,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             ),
           );
         }
-
         return Column(
           children: [
             Row(
@@ -393,21 +374,21 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Container(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(12.0),
         width: 120,
         height: 180,
         child: Column(
           children: [
             CircleAvatar(
               backgroundImage: AssetImage(achievement.avatarUrl),
-              radius: 40,
+              radius: 45,
             ),
             const SizedBox(height: 10),
             Text(
               achievement.name,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColorDark,
               ),
@@ -417,7 +398,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               achievement.description,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 color: Theme.of(context).primaryColorDark,
               ),
             ),
@@ -430,56 +411,99 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   void _showAchievementsMenu(BuildContext context, String userId) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              children: [
-                const Text(
-                  'Achievements',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildCategoryButton(context, setState, 'all'),
-                    _buildCategoryButton(context, setState, 'steps'),
-                    _buildCategoryButton(context, setState, 'nature'),
-                    _buildCategoryButton(context, setState, 'fantasy'),
-                  ],
-                ),
-                Expanded(
-                  child: FutureBuilder<Set<String>>(
-                    future: _getUserAchievementIds(userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text('Error: ${snapshot.error}'),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text('No achievements found.'),
-                        );
-                      } else {
-                        final achievedIds = snapshot.data!;
-                        return ListView(
-                          children: [
-                            _buildAchievementsCategory(
-                                context, userId, selectedCategory, achievedIds),
-                          ],
-                        );
-                      }
-                    },
+        return FractionallySizedBox(
+          heightFactor: 0.85,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding:
+                            EdgeInsets.only(top: 18.0, left: 16, bottom: 2),
+                        child: Text(
+                          'Achievements',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 18.0, right: 16),
+                        child: CircleAvatar(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          radius: 15,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.close,
+                                size: 22, // Ustawienie rozmiaru ikony
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            );
-          },
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: Row(
+                      children: [
+                        _buildCategoryButton(context, setState, 'all'),
+                        _buildCategoryButton(context, setState, 'steps'),
+                        _buildCategoryButton(context, setState, 'nature'),
+                        _buildCategoryButton(context, setState, 'fantasy'),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  Expanded(
+                    child: FutureBuilder<Set<String>>(
+                      future: _getUserAchievementIds(userId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text('Error: ${snapshot.error}'),
+                          );
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Center(
+                            child: Text('No achievements found.'),
+                          );
+                        } else {
+                          final achievedIds = snapshot.data!;
+                          return ListView(
+                            children: [
+                              _buildAchievementsCategory(context, userId,
+                                  selectedCategory, achievedIds),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );
@@ -487,19 +511,29 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
 
   Widget _buildCategoryButton(
       BuildContext context, StateSetter setState, String category) {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          selectedCategory = category;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Theme.of(context).primaryColorDark,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-      child: Text(
-        category.toUpperCase(),
-        style: TextStyle(color: Theme.of(context).primaryColorDark),
+    bool isSelected = selectedCategory == category;
+    return Padding(
+      padding: const EdgeInsets.only(left: 7.0),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            selectedCategory = category;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Theme.of(context).primaryColorDark,
+          backgroundColor: isSelected
+              ? const Color(0xff68a2b6)
+              : Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        child: Text(
+          category.toUpperCase(),
+          style: TextStyle(
+              color: Theme.of(context).primaryColorDark, fontSize: 12),
+        ),
       ),
     );
   }
@@ -510,76 +544,107 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         .where((achievement) =>
             category == 'all' || achievement.category == category)
         .toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          category.toUpperCase(),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.5,
+
+    if (category == 'all') {
+      categoryAchievements.sort((a, b) {
+        final aAchieved = achievedIds.contains(a.id);
+        final bAchieved = achievedIds.contains(b.id);
+        if (aAchieved && !bAchieved) return -1;
+        if (!aAchieved && bAchieved) return 1;
+        return 0; // Here we can replace with a custom sort if needed
+      });
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, bottom: 10),
+            child: Text(
+              category.toUpperCase(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
           ),
-          itemCount: categoryAchievements.length,
-          itemBuilder: (context, index) {
-            final achievement = categoryAchievements[index];
-            final hasAchieved = achievedIds.contains(achievement.id);
-            return GestureDetector(
-              onTap: hasAchieved
-                  ? () =>
-                      _showAchievementDetail(context, achievement, hasAchieved)
-                  : null,
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: hasAchieved
-                      ? null
-                      : BoxDecoration(
-                          color: Colors.grey.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(10),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 2 / 3,
+            ),
+            itemCount: categoryAchievements.length,
+            itemBuilder: (context, index) {
+              final achievement = categoryAchievements[index];
+              final hasAchieved = achievedIds.contains(achievement.id);
+              return GestureDetector(
+                onTap: hasAchieved
+                    ? () => _showAchievementDetail(
+                        context, achievement, hasAchieved)
+                    : null,
+                child: Card(
+                  color: Theme.of(context).colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(.0),
+                    decoration: hasAchieved
+                        ? null
+                        : BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 45,
+                          backgroundColor: hasAchieved
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.secondary,
+                          backgroundImage: hasAchieved
+                              ? AssetImage(
+                                  achievement.avatarUrl,
+                                )
+                              : null,
+                          child: hasAchieved
+                              ? null
+                              : Icon(
+                                  Icons.lock,
+                                  color: Theme.of(context)
+                                      .primaryColorDark
+                                      .withOpacity(0.5),
+                                  size: 60,
+                                ),
                         ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        child: hasAchieved
-                            ? null
-                            : const Icon(Icons.lock, color: Colors.white),
-                        backgroundImage: hasAchieved
-                            ? AssetImage(achievement.avatarUrl)
-                            : null,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        hasAchieved ? achievement.name : '???',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: hasAchieved ? Colors.black : Colors.grey),
-                      ),
-                      if (!hasAchieved)
+                        const SizedBox(height: 10),
+                        Text(
+                          hasAchieved ? achievement.name : '???',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: hasAchieved ? Colors.black : Colors.grey),
+                        ),
                         Text(
                           achievement.description,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.white),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -612,29 +677,66 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage(achievement.avatarUrl),
-                    radius: 50,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                        radius: 15,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              size: 22, // Ustawienie rozmiaru ikony
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.all(25.0),
+                    child: CircleAvatar(
+                      backgroundImage: AssetImage(achievement.avatarUrl),
+                      radius: 100,
+                    ),
+                  ),
                   Text(
                     achievement.name,
                     style: const TextStyle(
-                        fontSize: 24, fontWeight: FontWeight.bold),
+                        fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 10),
                   Text(
                     achievement.description,
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      fixedSize: const Size(160, 40),
+                      foregroundColor: Theme.of(context).primaryColorDark,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
                     onPressed: () {
                       // Add share functionality here
                     },
-                    child: const Text('Share'),
+                    child: Text(
+                      'Share',
+                      style:
+                          TextStyle(color: Theme.of(context).primaryColorDark),
+                    ),
                   ),
                 ],
               ),
@@ -642,14 +744,15 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             if (hasAchieved)
               ConfettiWidget(
                 confettiController: _confettiController!,
-                blastDirectionality: BlastDirectionality.explosive,
+                blastDirectionality: BlastDirectionality.directional,
                 shouldLoop: false,
+                blastDirection: -pi / 2,
+                maxBlastForce: 30,
+                minBlastForce: 15,
+                gravity: 0.03,
                 colors: const [
-                  Colors.green,
-                  Colors.blue,
-                  Colors.pink,
-                  Colors.orange,
-                  Colors.purple
+                  Color(0xffdfd785),
+                  Color(0xff68a2b6),
                 ],
               ),
           ],
@@ -661,20 +764,21 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   Widget _buildActionButtons(
       BuildContext context, AsyncValue<List<EventWalkModel?>> asyncWalks) {
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 0),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(10),
         ),
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(5),
         child: Column(
           children: [
             ListTile(
               leading: Icon(Icons.bar_chart,
                   color: Theme.of(context).primaryColorDark),
               title: Text('Statistics',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
               onTap: () {
                 final userAsyncValue =
                     ref.read(appUserDetailsProvider(widget.userId));
@@ -703,10 +807,9 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               leading: Icon(Icons.directions_walk,
                   color: Theme.of(context).primaryColorDark),
               title: Text('Activity',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-              onTap: () {
-                // Navigate to activity screen
-              },
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
+              onTap: () {},
             ),
             Divider(
               color: Theme.of(context).colorScheme.surface,
@@ -715,64 +818,12 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               leading:
                   Icon(Icons.map, color: Theme.of(context).primaryColorDark),
               title: Text('Routes',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-              onTap: () {
-                // Navigate to routes screen
-              },
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
+              onTap: () {},
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class GenerateReportSection extends ConsumerWidget {
-  final String petId;
-
-  const GenerateReportSection({
-    required this.petId,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.picture_as_pdf, size: 80, color: Color(0xff68a2b6)),
-          const SizedBox(height: 8),
-          Text(
-            "Generate a detailed health report in PDF, chose the date range and generate it for free!",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-            ),
-          ),
-          const Divider(color: Colors.grey, height: 20),
-          TextButton(
-            onPressed: () async {
-              final pet = await ref.read(petServiceProvider).getPetById(petId);
-              if (pet != null) {
-                // ignore: use_build_context_synchronously
-                await showDateRangeDialog(context, ref, pet);
-              }
-            },
-            child: Text(
-              "Generate Report",
-              style: TextStyle(
-                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
