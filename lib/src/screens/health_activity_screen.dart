@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/average_section.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/day_view.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/generate_report_section.dart';
+import 'package:pet_diary/src/widgets/report_widget/generate_report_card.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/month_view.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/popup.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
@@ -239,7 +239,7 @@ class _HealthActivityScreenState extends ConsumerState<HealthActivityScreen>
                       ),
                     ],
                     const SectionTitle(title: "Generate Report"),
-                    GenerateReportSection(
+                    GenerateReportCard(
                       petId: widget.petId,
                     ),
                   ],

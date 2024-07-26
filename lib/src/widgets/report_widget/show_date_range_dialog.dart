@@ -10,17 +10,42 @@ Future<void> showDateRangeDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text("Chose date range"),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Chose date range',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 18),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close,
+                      color: Theme.of(context).primaryColorDark),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            Divider(color: Theme.of(context).colorScheme.primary),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              margin: const EdgeInsets.all(2),
+              margin: const EdgeInsets.symmetric(vertical: 5.0),
               decoration: BoxDecoration(
-                  color: const Color(0xff68a2b6).withOpacity(0.2),
-                  borderRadius: const BorderRadius.all(Radius.circular(10))),
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: ListTile(
-                title: const Text("This month"),
+                title: Text(
+                  "This month",
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14),
+                ),
                 onTap: () {
                   selectedDateRange = DateTimeRange(
                     start:
@@ -32,12 +57,17 @@ Future<void> showDateRangeDialog(
               ),
             ),
             Container(
-              margin: const EdgeInsets.all(2),
+              margin: const EdgeInsets.symmetric(vertical: 5.0),
               decoration: BoxDecoration(
-                  color: const Color(0xff68a2b6).withOpacity(0.2),
-                  borderRadius: const BorderRadius.all(Radius.circular(10))),
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: ListTile(
-                title: const Text("Last quarter"),
+                title: Text(
+                  "Last quarter",
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14),
+                ),
                 onTap: () {
                   final now = DateTime.now();
                   final start = DateTime(now.year, now.month - 2, 1);
@@ -47,12 +77,17 @@ Future<void> showDateRangeDialog(
               ),
             ),
             Container(
-              margin: const EdgeInsets.all(2),
+              margin: const EdgeInsets.symmetric(vertical: 5.0),
               decoration: BoxDecoration(
-                  color: const Color(0xff68a2b6).withOpacity(0.2),
-                  borderRadius: const BorderRadius.all(Radius.circular(10))),
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: ListTile(
-                title: const Text("Select range"),
+                title: Text(
+                  "Select range",
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14),
+                ),
                 onTap: () async {
                   final range = await showDateRangePicker(
                     context: context,
@@ -62,14 +97,12 @@ Future<void> showDateRangeDialog(
                       return Theme(
                         data: Theme.of(context).copyWith(
                           colorScheme: ColorScheme.light(
-                              primary: const Color(0xff68a2b6),
-                              onPrimary:
-                                  Theme.of(context).colorScheme.onPrimary,
-                              surface: Theme.of(context).colorScheme.surface,
-                              onSurface:
-                                  Theme.of(context).colorScheme.onSurface,
-                              secondary:
-                                  const Color(0xffdfd785).withOpacity(0.5)),
+                            primary: const Color(0xff68a2b6),
+                            onPrimary: Theme.of(context).colorScheme.onPrimary,
+                            surface: Theme.of(context).colorScheme.surface,
+                            onSurface: Theme.of(context).colorScheme.onSurface,
+                            secondary: const Color(0xffdfd785).withOpacity(0.5),
+                          ),
                           dialogBackgroundColor:
                               Theme.of(context).colorScheme.surface,
                         ),
