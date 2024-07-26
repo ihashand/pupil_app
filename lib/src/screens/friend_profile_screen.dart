@@ -16,7 +16,7 @@ import 'package:pet_diary/src/providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';
 import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/generate_report_section.dart';
+import 'package:pet_diary/src/widgets/report_widget/generate_report_card.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
@@ -122,8 +122,12 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               _buildAchievementsSection(context, user.id),
               if (user.id == currentUserId) ...[
                 const SectionTitle(title: "Generate Report"),
-                GenerateReportSection(petId: user.id),
+                GenerateReportCard(petId: user.id),
               ],
+              // sizedbox is here to get better user experience in friend profile. Like this we get better look.
+              const SizedBox(
+                height: 50,
+              )
             ],
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
