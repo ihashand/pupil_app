@@ -118,8 +118,9 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildUserInfoAndFriends(context, user, friendsAsyncValue),
-              _buildActionButtons(context, asyncWalks),
               _buildAchievementsSection(context, user.id),
+
+              _buildActionButtons(context, asyncWalks),
               if (user.id == currentUserId) ...[
                 const SectionTitle(title: "Generate Report"),
                 GenerateReportCard(petId: user.id),

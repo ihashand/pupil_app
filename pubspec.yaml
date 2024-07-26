@@ -76,6 +76,9 @@ flutter:
     - assets/translations/
     - assets/images/
     - assets/fonts/
+    - assets/images/achievements/natural/
+    - assets/images/achievements/steps/
+    - assets/images/achievements/fantasy/
 
 flutter_icons:
   android: true
