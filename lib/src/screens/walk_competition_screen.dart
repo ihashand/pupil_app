@@ -10,14 +10,14 @@ import 'package:pet_diary/src/providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
 
-class WalkScreen extends ConsumerStatefulWidget {
-  const WalkScreen({super.key});
+class WalkCompetitionScreen extends ConsumerStatefulWidget {
+  const WalkCompetitionScreen({super.key});
 
   @override
-  createState() => _WalkScreenState();
+  createState() => _WalkCompetitionScreenState();
 }
 
-class _WalkScreenState extends ConsumerState<WalkScreen>
+class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
     with SingleTickerProviderStateMixin {
   late TextEditingController searchController;
   String searchQuery = '';
@@ -102,6 +102,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
 
                                           final walkNotifier =
                                               ref.read(walkProvider.notifier);
+                                          walkNotifier.stopWalk();
                                           walkNotifier.startWalk();
 
                                           Navigator.push(
@@ -221,7 +222,7 @@ class _WalkScreenState extends ConsumerState<WalkScreen>
           size: 20,
         ),
         title: Text(
-          'W A L K',
+          'C O M P E T I T I O N',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,

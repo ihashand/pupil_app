@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:pet_diary/src/models/achievement.dart';
 
 const String _avatarUrl = 'assets/images/achievement_step9.jpeg';

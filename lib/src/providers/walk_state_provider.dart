@@ -81,6 +81,8 @@ class WalkNotifier extends StateNotifier<WalkState> {
   StreamSubscription<PedestrianStatus>? _pedestrianStatusSubscription;
   Timer? _timer;
   final Location _location = Location();
+  DateTime? _lastResumeTime;
+  int _accumulatedSeconds = 0;
 
   WalkNotifier() : super(WalkState());
 
@@ -198,16 +200,26 @@ class WalkNotifier extends StateNotifier<WalkState> {
     _stepCountSubscription?.cancel();
     _pedestrianStatusSubscription?.cancel();
     state = state.copyWith(isWalking: false, isPaused: false, seconds: 0);
+    _accumulatedSeconds = 0;
   }
 
   void pauseWalk() {
+    if (state.isPaused) {
+      _lastResumeTime = DateTime.now();
+    } else {
+      _accumulatedSeconds +=
+          DateTime.now().difference(_lastResumeTime!).inSeconds;
+    }
     state = state.copyWith(isPaused: !state.isPaused);
   }
 
   void _startTimer() {
+    _lastResumeTime = DateTime.now();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!state.isPaused) {
-        state = state.copyWith(seconds: state.seconds + 1);
+        final elapsed = DateTime.now().difference(_lastResumeTime!).inSeconds +
+            _accumulatedSeconds;
+        state = state.copyWith(seconds: elapsed);
       }
     });
   }

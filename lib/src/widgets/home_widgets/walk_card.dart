@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/screens/walk_screen.dart';
+import 'package:pet_diary/src/screens/walk_competition_screen.dart';
 
 class WalkCard extends ConsumerStatefulWidget {
   const WalkCard({
@@ -114,7 +114,8 @@ class _WalkCardState extends ConsumerState<WalkCard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const WalkScreen()),
+                                  builder: (context) =>
+                                      const WalkCompetitionScreen()),
                             );
                           },
                           child: Text(

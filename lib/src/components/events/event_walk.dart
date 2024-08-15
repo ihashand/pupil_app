@@ -288,7 +288,11 @@ class _EventWalkState extends ConsumerState<EventWalk> {
         steps: walkDistance,
         eventId: generateUniqueId(),
         petId: widget.petId,
-        dateTime: widget.eventDateTime);
+        dateTime: widget.eventDateTime,
+        caloriesBurned: 0,
+        distance: 0,
+        routePoints: [],
+        images: []);
 
     newWalk.id = generateUniqueId();
     newWalk.steps = walkDistance;

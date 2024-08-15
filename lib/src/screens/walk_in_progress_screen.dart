@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member, use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -11,6 +13,8 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/walk_state_provider.dart';
+import 'package:pet_diary/src/screens/walk_summary_screen.dart';
+import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -25,11 +29,10 @@ class WalkInProgressScreen extends ConsumerStatefulWidget {
 class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  String selectedView = 'S';
   final MapController _mapController = MapController();
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _notesController = TextEditingController();
   final List<File> _images = [];
+  bool _showDetails = false;
 
   @override
   void initState() {
@@ -44,7 +47,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   void dispose() {
     _animationController.dispose();
     _scrollController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
 
@@ -116,18 +118,15 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   onTap: () async {
                     final result = await ImageGallerySaver.saveFile(image.path);
                     if (result["isSuccess"]) {
-                      // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text('Image saved to gallery!')),
                       );
                     } else {
-                      // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Failed to save image.')),
                       );
                     }
-                    // ignore: use_build_context_synchronously
                     Navigator.pop(context);
                   },
                   child: const Icon(
@@ -144,6 +143,66 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
+  Future<bool> _showConfirmationDialog(
+      BuildContext context, String action) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(action),
+          content: Text('Are you sure you want to $action the walk?'),
+          actions: [
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: Text(
+                action,
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
+    String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
+    bool confirm = await _showConfirmationDialog(context, action);
+    if (confirm) {
+      walkNotifier.pauseWalk();
+    }
+  }
+
+  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
+    bool confirm = await _showConfirmationDialog(context, 'End');
+    if (confirm) {
+      walkNotifier.stopWalk();
+      final petIds = widget.pets.map((pet) => pet.id).toList();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WalkSummaryScreen(
+            images: _images,
+            walkState: walkNotifier.state,
+            petIds: petIds,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final walkState = ref.watch(walkProvider);
@@ -153,7 +212,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text(
-          'W A L K  I N  P R O G R E S S',
+          'W A L K',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
@@ -163,91 +222,88 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         actions: [
           IconButton(
             icon: Icon(
-              Icons.more_horiz,
+              _showDetails ? Icons.expand_less : Icons.expand_more,
               color: Theme.of(context).primaryColorDark,
               size: 24,
             ),
             onPressed: () {
-              //todo Add menu logic
-            },
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(64.0),
-          child: SwitchWidget(
-            selectedView: selectedView,
-            onSelectedViewChanged: (String newView) {
               setState(() {
-                selectedView = newView;
+                _showDetails = !_showDetails;
               });
             },
           ),
-        ),
+        ],
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         children: [
           Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(15),
                   bottomRight: Radius.circular(15)),
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.primary,
             ),
             child: Column(
               children: [
                 Divider(
                     color: Theme.of(context).colorScheme.secondary, height: 1),
                 Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: SizedBox(
-                    height: 200,
-                    child: FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: walkState.routePoints.isNotEmpty
-                            ? walkState.routePoints.last
-                            : const LatLng(51.5, -0.09),
-                        initialZoom: 16.0,
-                        minZoom: 5,
-                        maxZoom: 25,
-                        onPositionChanged: (MapCamera camera, bool hasGesture) {
-                          setState(() {
-                            _mapController.move(camera.center, camera.zoom);
-                          });
-                        },
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                          subdomains: const ['a', 'b', 'c'],
-                        ),
-                        PolylineLayer(
-                          polylines: [
-                            Polyline(
-                                points: walkState.routePoints,
-                                strokeWidth: 15,
-                                color: const Color(0xffdfd785)),
+                    padding: const EdgeInsets.all(10.0),
+                    child: SizedBox(
+                      height: 220,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: FlutterMap(
+                          mapController: _mapController,
+                          options: MapOptions(
+                            initialCenter: walkState.routePoints.isNotEmpty
+                                ? walkState.routePoints.last
+                                : const LatLng(51.5, -0.09),
+                            initialZoom: 16.0,
+                            minZoom: 5,
+                            maxZoom: 25,
+                            onPositionChanged:
+                                (MapCamera camera, bool hasGesture) {
+                              setState(() {
+                                _mapController.move(camera.center, camera.zoom);
+                              });
+                            },
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+                              subdomains: const ['a', 'b', 'c'],
+                            ),
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: walkState.routePoints,
+                                  strokeWidth: 15,
+                                  color: const Color(0xff68a2b6),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
+                    )),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           Expanded(
-            child: selectedView == 'S'
-                ? _buildSimpleView(context, walkState, walkNotifier)
-                : ListView(
-                    children: [
-                      _buildActivityData(context, walkState, walkNotifier),
-                      _buildNotesSection(context),
-                    ],
-                  ),
+            child: ListView(
+              children: [
+                _buildSimpleView(context, walkState, walkNotifier),
+                if (_showDetails) const SectionTitle(title: "Details"),
+                if (_showDetails)
+                  _buildDetailedView(context, walkState, walkNotifier),
+                if (_showDetails) const SectionTitle(title: "Photos"),
+                if (_showDetails) _buildImageGallerySection(context),
+              ],
+            ),
           ),
         ],
       ),
@@ -256,130 +312,273 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
   Widget _buildSimpleView(
       BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
-    double progress =
+    double progressSteps =
         (walkState.currentSteps % walkState.goalSteps) / walkState.goalSteps;
+    double progressTime = walkState.seconds / 3600;
 
     return Column(
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(15),
           ),
           margin: const EdgeInsets.all(10),
           child: Column(
             children: [
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SectionTitle(title: "Progress"),
+                ],
+              ),
+              // Progress circural indicator
+              Padding(
+                padding: const EdgeInsets.only(top: 15.0, bottom: 5),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            height: 200,
+                            width: 200,
+                            child: CircularProgressIndicator(
+                              value: progressSteps,
+                              strokeWidth: 20,
+                              backgroundColor: Colors.grey[200],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Color(0xffdfd785)),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 160,
+                            width: 160,
+                            child: CircularProgressIndicator(
+                              value: progressTime,
+                              strokeWidth: 22,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Color(0xff68a2b6)),
+                            ),
+                          ),
+                          Icon(
+                            Icons.pets,
+                            size: 70,
+                            color: Theme.of(context)
+                                .primaryColorDark
+                                .withOpacity(0.65),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Left data
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 20),
-                    child: Text(
-                      walkNotifier.formatTime(walkState.seconds),
-                      style: TextStyle(
-                        fontSize: 25,
-                        color: Theme.of(context).primaryColorDark,
-                      ),
+                    padding: const EdgeInsets.only(left: 35.0, top: 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Text(
+                            'STEPS',
+                            style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(context).primaryColorDark,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                '🦶🏼 ',
+                                style: TextStyle(
+                                  fontSize: 25,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                              Text(
+                                '${walkState.currentSteps}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: Text(
+                                'DISTANCE',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  '🚶🏽‍♂️‍➡️ ',
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                Text(
+                                  '${walkState.totalDistance} km',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                  // Right data
                   Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.only(right: 35, top: 5),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          walkState.status == 'walking'
-                              ? Icons.directions_walk
-                              : Icons.accessibility_new,
-                          color: Theme.of(context).primaryColorDark,
-                          size: 30,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: Text(
+                                'TIME',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10.0),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '⌛ ',
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    walkNotifier.formatTime(walkState.seconds),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          walkState.status == 'walking' ? 'Walking' : 'Stopped',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).primaryColorDark,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: Text(
+                                'STATUS',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  walkState.status == 'walking' ? '🟢' : '⛔',
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                Text(
+                                  walkState.status == 'walking'
+                                      ? ' Walking'
+                                      : ' Stopped',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 175,
-                    height: 175,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 10,
-                      backgroundColor: Colors.grey[300],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        walkState.currentSteps.toString(),
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                      ),
-                      if (walkState.currentSteps == 0)
-                        const Text(
-                          'Step Count not available',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.red,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
+              // Buttons
               Padding(
                 padding: const EdgeInsets.only(
-                    left: 20, right: 20, top: 40, bottom: 10),
+                    left: 12, right: 12, bottom: 5, top: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      onPressed: walkNotifier.pauseWalk,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    SizedBox(
+                      width: 140,
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            _pauseResumeWalk(context, walkNotifier),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.inversePrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        fixedSize: const Size(125, 35),
-                      ),
-                      child: Text(
-                        walkState.isPaused ? 'Resume' : 'Pause',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Theme.of(context).primaryColorDark,
+                        child: Text(
+                          walkState.isPaused ? 'Resume' : 'Pause',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                         ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: walkNotifier.stopWalk,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.withOpacity(0.8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    SizedBox(
+                      width: 140,
+                      child: ElevatedButton(
+                        onPressed: () => _endWalk(context, walkNotifier),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.withOpacity(0.8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        fixedSize: const Size(125, 35),
-                      ),
-                      child: Text(
-                        'End Walk',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Theme.of(context).primaryColorDark,
+                        child: Text(
+                          'End Walk',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                         ),
                       ),
                     ),
@@ -393,7 +592,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  Widget _buildActivityData(
+  Widget _buildDetailedView(
       BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
     return Container(
       padding: const EdgeInsets.all(15.0),
@@ -451,7 +650,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  Widget _buildNotesSection(BuildContext context) {
+  Widget _buildImageGallerySection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(15.0),
       margin: const EdgeInsets.all(10.0),
@@ -462,40 +661,47 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Notes",
-            style: TextStyle(
-              color: Theme.of(context).primaryColorDark,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          const Divider(color: Colors.grey, height: 20),
-          TextField(
-            controller: _notesController,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: "Add your notes here...",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ElevatedButton.icon(
                 onPressed: () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera),
-                label: const Text("Add Photo"),
+                icon: Icon(Icons.camera,
+                    color: Theme.of(context).primaryColorDark),
+                label: Text(
+                  "Camera",
+                  style: TextStyle(color: Theme.of(context).primaryColorDark),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: TextStyle(
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
               ),
               ElevatedButton.icon(
                 onPressed: () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.photo),
-                label: const Text("From Gallery"),
+                icon: Icon(Icons.photo,
+                    color: Theme.of(context).primaryColorDark),
+                label: Text(
+                  "Gallery",
+                  style: TextStyle(color: Theme.of(context).primaryColorDark),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: TextStyle(
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
           _buildImageGallery(),
         ],
       ),
@@ -503,91 +709,40 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   }
 
   Widget _buildImageGallery() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: _images.map((image) {
-        return GestureDetector(
-          onTap: () {
-            _showImageDialog(context, image);
-          },
-          child: Stack(
-            children: [
-              Image.file(
-                image,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _images.remove(image);
-                    });
-                  },
-                  child: const Icon(
-                    Icons.remove_circle,
-                    color: Colors.red,
+    return Padding(
+      padding: const EdgeInsets.only(top: 15.0),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: _images.map((image) {
+          return GestureDetector(
+            onTap: () {
+              _showImageDialog(context, image);
+            },
+            child: Stack(
+              children: [
+                Image.file(
+                  image,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _images.remove(image);
+                      });
+                    },
+                    child: const Icon(
+                      Icons.remove_circle,
+                      color: Colors.red,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class SwitchWidget extends StatelessWidget {
-  final String selectedView;
-  final ValueChanged<String> onSelectedViewChanged;
-
-  const SwitchWidget({
-    required this.selectedView,
-    required this.onSelectedViewChanged,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 5.0, right: 5, bottom: 15),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: ['S', 'D'].map((label) {
-          String displayLabel = label == 'D' ? 'Detailed' : 'Simple';
-          Color bgColor = Colors.transparent;
-          if (selectedView == label) {
-            bgColor = const Color(0xff68a2b6).withOpacity(
-                0.5); // Primary color background for selected button
-          }
-          return TextButton(
-            onPressed: () {
-              onSelectedViewChanged(label);
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: bgColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              displayLabel,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: selectedView == label
-                    ? Theme.of(context)
-                        .primaryColorDark // Dark color for selected button text
-                    : Theme.of(context).primaryColorDark.withOpacity(0.5),
-              ),
+              ],
             ),
           );
         }).toList(),
