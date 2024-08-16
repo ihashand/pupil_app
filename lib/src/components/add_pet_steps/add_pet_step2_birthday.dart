@@ -28,24 +28,30 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
     selectedDate = DateTime.now();
 
     // Animacja wysuwania sektora z AppBar
-    Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _showContainer = true;
-      });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _showContainer = true;
+        });
+      }
 
       // Rozpoczęcie animacji wyświetlania porady po 5 sekundach
-      Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
-          _showTip = true;
-          _containerOffset = 35.0;
-        });
-
-        // Ukrycie porady po 10 sekundach
-        Future.delayed(const Duration(seconds: 10), () {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
           setState(() {
-            _hideTip = true;
-            _containerOffset = 20.0;
+            _showTip = true;
+            _containerOffset = 35.0;
           });
+        }
+
+        // Ukrycie porady po 13 sekundach
+        Future.delayed(const Duration(seconds: 13), () {
+          if (mounted) {
+            setState(() {
+              _hideTip = true;
+              _containerOffset = 20.0;
+            });
+          }
         });
       });
     });
@@ -83,10 +89,10 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
               ),
               AnimatedOpacity(
                 opacity: _showTip && !_hideTip ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 250),
                 curve: Curves.easeInOut,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
                   padding: const EdgeInsets.symmetric(horizontal: 20.0)
                       .copyWith(
@@ -106,7 +112,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                 ),
               ),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 1600),
+                duration: const Duration(milliseconds: 1200),
                 curve: Curves.easeOut,
                 padding: EdgeInsets.only(
                     top: _showContainer ? _containerOffset : 0.0,
@@ -114,7 +120,7 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                     right: 20),
                 child: AnimatedOpacity(
                   opacity: _showContainer ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 400),
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
@@ -184,15 +190,18 @@ class _AddPetStep2BirthdayState extends State<AddPetStep2Birthday> {
                                 );
 
                                 if (pickedDate != null) {
-                                  setState(() {
-                                    selectedDate = pickedDate;
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      selectedDate = pickedDate;
+                                    });
+                                  }
                                 }
                               },
                               style: ElevatedButton.styleFrom(
                                 foregroundColor:
                                     Theme.of(context).primaryColorDark,
-                                backgroundColor: const Color(0xff68a2b6),
+                                backgroundColor:
+                                    const Color(0xff68a2b6).withOpacity(0.6),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 10),
                                 shape: RoundedRectangleBorder(

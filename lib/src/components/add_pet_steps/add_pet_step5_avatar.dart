@@ -47,21 +47,27 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar>
     );
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _showContainer = true;
-      });
+      if (mounted) {
+        setState(() {
+          _showContainer = true;
+        });
+      }
 
       Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
-          _showTip = true;
-          _containerOffset = 35.0;
-        });
+        if (mounted) {
+          setState(() {
+            _showTip = true;
+            _containerOffset = 35.0;
+          });
+        }
 
         Future.delayed(const Duration(seconds: 10), () {
-          setState(() {
-            _hideTip = true;
-            _containerOffset = 20.0;
-          });
+          if (mounted) {
+            setState(() {
+              _hideTip = true;
+              _containerOffset = 20.0;
+            });
+          }
         });
       });
     });
@@ -177,9 +183,11 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar>
                           onTap: () => showAvatarSelectionDialog(
                             context: context,
                             onAvatarSelected: (String path) {
-                              setState(() {
-                                petSelectedAvatar = path;
-                              });
+                              if (mounted) {
+                                setState(() {
+                                  petSelectedAvatar = path;
+                                });
+                              }
                             },
                           ),
                           child: Padding(
@@ -242,7 +250,9 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar>
                     }
                   }
 
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  if (mounted) {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  }
                 },
                 label: Text('Save',
                     style: TextStyle(

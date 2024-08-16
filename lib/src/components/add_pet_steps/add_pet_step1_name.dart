@@ -16,41 +16,51 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
   bool _showTip = false;
   bool _hideTip = false;
   bool _showContainer = false;
-  double _containerOffset =
-      20.0; // Zmieniono początkowy offset, aby podnieść sektor wyżej
+  double _containerOffset = 20.0;
+
+  late TextEditingController petNameController;
 
   @override
   void initState() {
     super.initState();
 
-    // Animacja wysuwania sektora z AppBar
-    Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _showContainer = true;
-      });
+    petNameController = TextEditingController();
 
-      // Rozpoczęcie animacji wyświetlania porady po 5 sekundach
-      Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
         setState(() {
-          _showTip = true;
-          _containerOffset = 35.0; // Podniesienie głównego sektora
+          _showContainer = true;
         });
+      }
 
-        // Ukrycie porady po 10 sekundach
-        Future.delayed(const Duration(seconds: 15), () {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
           setState(() {
-            _hideTip = true;
-            _containerOffset = 20.0; // Powrót głównego sektora
+            _showTip = true;
+            _containerOffset = 35.0;
           });
+        }
+
+        Future.delayed(const Duration(seconds: 13), () {
+          if (mounted) {
+            setState(() {
+              _hideTip = true;
+              _containerOffset = 20.0;
+            });
+          }
         });
       });
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    TextEditingController petNameController = TextEditingController();
+  void dispose() {
+    petNameController.dispose();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: addPetAppBar(context, showCloseButton: true),
@@ -77,14 +87,13 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
               ),
               AnimatedOpacity(
                 opacity: _showTip && !_hideTip ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 250),
                 curve: Curves.easeInOut,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
                   padding: const EdgeInsets.symmetric(horizontal: 20.0)
-                      .copyWith(
-                          top: 35.0), // Pozycjonowanie Tip 20px nad sektorem
+                      .copyWith(top: 35.0),
                   child: Container(
                     padding: const EdgeInsets.all(12.0),
                     decoration: BoxDecoration(
@@ -100,7 +109,7 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
                 ),
               ),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 1600),
+                duration: const Duration(milliseconds: 1200),
                 curve: Curves.easeOut,
                 padding: EdgeInsets.only(
                     top: _showContainer ? _containerOffset : 0.0,
@@ -108,7 +117,7 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
                     right: 20),
                 child: AnimatedOpacity(
                   opacity: _showContainer ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 400),
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
@@ -140,9 +149,7 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(
-                            top: 30,
-                          ),
+                          padding: const EdgeInsets.only(top: 30, bottom: 15),
                           child: SizedBox(
                             height: 50,
                             width: 300,

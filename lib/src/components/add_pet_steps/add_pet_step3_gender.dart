@@ -17,7 +17,7 @@ class AddPetStep3Gender extends StatefulWidget {
   });
 
   @override
-  _AddPetStep3GenderState createState() => _AddPetStep3GenderState();
+  createState() => _AddPetStep3GenderState();
 }
 
 class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
@@ -28,10 +28,12 @@ class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
     super.initState();
 
     // Opóźnienie w celu wywołania animacji po załadowaniu ekranu
-    Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _showContainer = true;
-      });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {
+          _showContainer = true;
+        });
+      }
     });
   }
 
@@ -64,17 +66,16 @@ class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
                 ),
               ),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 1600),
+                duration: const Duration(milliseconds: 1200),
                 curve: Curves.easeOut,
                 padding: EdgeInsets.only(
-                  top: _showContainer ? 150 : 200, // Zmienia pozycję na ekranie
+                  top: _showContainer ? 150 : 200,
                   left: 20,
                   right: 20,
                 ),
                 child: AnimatedOpacity(
-                  opacity:
-                      _showContainer ? 1.0 : 0.0, // Zmienia przezroczystość
-                  duration: const Duration(milliseconds: 800),
+                  opacity: _showContainer ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 600),
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
@@ -105,11 +106,10 @@ class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(top: 30.0),
+                          padding: const EdgeInsets.only(top: 30.0, bottom: 15),
                           child: SizedBox(
                             height: 60,
-                            width:
-                                300, // Dopasowano szerokość do poprzednich ekranów
+                            width: 300,
                             child: DropdownButtonFormField<String>(
                               items: ['Male', 'Female'].map((String value) {
                                 return DropdownMenuItem<String>(
@@ -123,9 +123,31 @@ class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
                               onChanged: (newValue) {
                                 petGenderController.text = newValue!;
                               },
-                              decoration: const InputDecoration(
-                                labelText: 'Select Pet Gender',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: 'Choose gender',
+                                labelStyle: TextStyle(
+                                  fontSize: 18,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                filled: false,
                               ),
                             ),
                           ),

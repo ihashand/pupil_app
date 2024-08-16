@@ -25,7 +25,8 @@ class AddPetStep4Breed extends StatefulWidget {
 
 class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
   bool _showContainer = false;
-  double _containerOffset = 10.0;
+  bool _showScrollHint = false; // Zmienna do wyświetlania sugestii przewijania
+  final double _containerOffset = 10.0;
 
   final TextEditingController searchController = TextEditingController();
   String selectedCategory = 'All';
@@ -40,16 +41,30 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
     filteredBreeds = _getAllBreeds();
 
     // Ustawienie animacji kontenera
-    Future.delayed(const Duration(milliseconds: 500), () {
-      setState(() {
-        _showContainer = true;
-      });
-
-      Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
         setState(() {
-          _containerOffset = 10.0;
+          _showContainer = true;
         });
-      });
+
+        // Pokazanie sugestii przewijania po 500ms od wejścia
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            setState(() {
+              _showScrollHint = true;
+            });
+
+            // Ukrycie sugestii przewijania po 2 sekundach
+            Future.delayed(const Duration(seconds: 4), () {
+              if (mounted) {
+                setState(() {
+                  _showScrollHint = false;
+                });
+              }
+            });
+          }
+        });
+      }
     });
   }
 
@@ -116,7 +131,7 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
           ),
           const SizedBox(height: 15),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 2500),
+            duration: const Duration(milliseconds: 1200),
             curve: Curves.easeOut,
             padding: EdgeInsets.only(
                 top: _showContainer ? _containerOffset : 0.0,
@@ -124,7 +139,7 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
                 right: 20),
             child: AnimatedOpacity(
               opacity: _showContainer ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 1200),
+              duration: const Duration(milliseconds: 600),
               child: Container(
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
@@ -143,6 +158,16 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
                         style: TextStyle(
                             fontSize: 22, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        'Category',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     Padding(
@@ -207,42 +232,67 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 25.0),
-                      child: SizedBox(
-                        height: 250,
-                        child: ListView.builder(
-                          itemCount: filteredBreeds.length,
-                          itemBuilder: (context, index) {
-                            final breed = filteredBreeds[index];
-                            final isSelected = breed == selectedBreed;
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              padding: const EdgeInsets.all(1.0),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xff68a2b6).withOpacity(0.5)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: ListTile(
-                                title: Text(
-                                  breed,
+                      child: Stack(
+                        children: [
+                          SizedBox(
+                            height: 250,
+                            child: ListView.builder(
+                              itemCount: filteredBreeds.length,
+                              itemBuilder: (context, index) {
+                                final breed = filteredBreeds[index];
+                                final isSelected = breed == selectedBreed;
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  padding: const EdgeInsets.all(1.0),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xff68a2b6)
+                                            .withOpacity(0.5)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: ListTile(
+                                    title: Text(
+                                      breed,
+                                      style: TextStyle(
+                                        fontSize: isSelected ? 16 : 13,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        selectedBreed = breed;
+                                        searchController.text = breed;
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (_showScrollHint)
+                            Positioned(
+                              right: 50,
+                              bottom: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: Text(
+                                  'Scroll down to see more breeds',
                                   style: TextStyle(
-                                    fontSize: isSelected ? 16 : 13,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 12,
                                   ),
                                 ),
-                                onTap: () {
-                                  setState(() {
-                                    selectedBreed = breed;
-                                    searchController.text = breed;
-                                  });
-                                },
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                        ],
                       ),
                     ),
                   ],
@@ -251,7 +301,7 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(40.0),
+            padding: const EdgeInsets.all(20.0),
             child: SizedBox(
               height: 40,
               width: 300,
