@@ -20,146 +20,244 @@ class AddPetStep4Breed extends StatefulWidget {
   });
 
   @override
-  // ignore: library_private_types_in_public_api
-  _AddPetStep4BreedState createState() => _AddPetStep4BreedState();
+  createState() => _AddPetStep4BreedState();
 }
 
 class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
-  final TextEditingController petBreedController = TextEditingController();
-  final FocusNode focusNode = FocusNode();
-  OverlayEntry? overlayEntry;
-  List<String> suggestions = [];
+  bool _showContainer = false;
+  double _containerOffset = 10.0;
+
+  final TextEditingController searchController = TextEditingController();
+  String selectedCategory = 'All';
+  List<String> filteredBreeds = [];
+  String selectedBreed = '';
 
   @override
   void initState() {
     super.initState();
-    focusNode.addListener(() {
-      if (focusNode.hasFocus) {
-        _showOverlay();
-      } else {
-        _removeOverlay();
-      }
+
+    // Inicjalizacja filtrowanej listy ras
+    filteredBreeds = _getAllBreeds();
+
+    // Ustawienie animacji kontenera
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _showContainer = true;
+      });
+
+      Future.delayed(const Duration(seconds: 5), () {
+        setState(() {
+          _containerOffset = 10.0;
+        });
+      });
     });
+  }
+
+  List<String> _getAllBreeds() {
+    // Użyj `Set` aby usunąć duplikaty
+    return dogBreedGroups
+        .expand((group) => group.sections)
+        .expand((section) => section.breeds)
+        .map((breed) => breed.name)
+        .toSet()
+        .toList();
+  }
+
+  void _filterBreeds(String query) {
+    setState(() {
+      filteredBreeds = _getBreedsByCategory(selectedCategory)
+          .where((breed) => breed.toLowerCase().contains(query.toLowerCase()))
+          .toSet()
+          .toList();
+    });
+  }
+
+  List<String> _getBreedsByCategory(String category) {
+    if (category == 'All') {
+      return _getAllBreeds();
+    }
+    return dogBreedGroups
+        .where((group) => group.groupName == category)
+        .expand((group) => group.sections)
+        .expand((section) => section.breeds)
+        .map((breed) => breed.name)
+        .toSet()
+        .toList();
   }
 
   @override
   void dispose() {
-    petBreedController.dispose();
-    focusNode.dispose();
+    searchController.dispose();
     super.dispose();
-  }
-
-  void _showOverlay() {
-    OverlayState? overlayState = Overlay.of(context);
-    overlayEntry = _createOverlayEntry();
-    overlayState.insert(overlayEntry!);
-  }
-
-  void _removeOverlay() {
-    overlayEntry?.remove();
-    overlayEntry = null;
-  }
-
-  OverlayEntry _createOverlayEntry() {
-    RenderBox renderBox = context.findRenderObject() as RenderBox;
-    var size = renderBox.size;
-
-    return OverlayEntry(
-      builder: (context) => Positioned(
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: LayerLink(),
-          showWhenUnlinked: false,
-          offset: Offset(0.0, size.height + 5.0),
-          child: Material(
-            elevation: 4.0,
-            child: ListView(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              children: suggestions
-                  .map(
-                    (suggestion) => ListTile(
-                      title: Text(suggestion),
-                      onTap: () {
-                        petBreedController.text = suggestion;
-                        _removeOverlay();
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _updateSuggestions(String query) {
-    List<String> allBreeds = dogBreedGroups
-        .expand((group) => group.sections)
-        .expand((section) => section.breeds)
-        .map((breed) => breed.name)
-        .toList();
-
-    setState(() {
-      suggestions = allBreeds
-          .where((item) => item.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
-
-    if (overlayEntry != null) {
-      overlayEntry?.markNeedsBuild();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: addPetAppBar(context, showCloseButton: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            AddPetSegmentProgressBar(
-              totalSegments: 5,
-              filledSegments: 4,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              fillColor: const Color(0xffdfd785).withOpacity(0.7),
-            ),
-            const SizedBox(
-              height: 150,
-            ),
-            const Text(
-              'Choose your pet breed',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              'You can change it later.',
-            ),
-            const SizedBox(height: 40),
-            CompositedTransformTarget(
-              link: LayerLink(),
-              child: TextField(
-                controller: petBreedController,
-                focusNode: focusNode,
-                decoration: const InputDecoration(
-                  labelText: 'Search breed',
-                  border: OutlineInputBorder(),
+      body: Column(
+        children: [
+          Container(
+            color: Theme.of(context).colorScheme.primary,
+            child: Column(
+              children: [
+                Divider(
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
-                onChanged: (query) {
-                  _updateSuggestions(query);
-                },
+                AddPetSegmentProgressBar(
+                  totalSegments: 5,
+                  filledSegments: 4,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  fillColor: const Color(0xffdfd785),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 15),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 2500),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+                top: _showContainer ? _containerOffset : 0.0,
+                left: 20,
+                right: 20),
+            child: AnimatedOpacity(
+              opacity: _showContainer ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 1200),
+              child: Container(
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text(
+                        'Choose your pet breed',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: DropdownButton<String>(
+                        value: selectedCategory,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedCategory = newValue!;
+                            searchController.clear(); // Czyszczenie inputu
+                            _filterBreeds(''); // Resetowanie filtrów
+                          });
+                        },
+                        items: <String>[
+                          'All',
+                          ...dogBreedGroups.map((group) => group.groupName)
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value.replaceFirst(
+                                  'Group ', ''), // Usuwa "Group "
+                            ),
+                          );
+                        }).toList(),
+                        isExpanded: true,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Search breed',
+                          labelStyle: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          filled: false,
+                        ),
+                        cursorColor: Theme.of(context).primaryColorDark,
+                        onChanged: _filterBreeds,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 25.0),
+                      child: SizedBox(
+                        height: 250,
+                        child: ListView.builder(
+                          itemCount: filteredBreeds.length,
+                          itemBuilder: (context, index) {
+                            final breed = filteredBreeds[index];
+                            final isSelected = breed == selectedBreed;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              padding: const EdgeInsets.all(1.0),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? const Color(0xff68a2b6).withOpacity(0.5)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: ListTile(
+                                title: Text(
+                                  breed,
+                                  style: TextStyle(
+                                    fontSize: isSelected ? 16 : 13,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    selectedBreed = breed;
+                                    searchController.text = breed;
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(
-              height: 340,
-            ),
-            SizedBox(
+          ),
+          Padding(
+            padding: const EdgeInsets.all(40.0),
+            child: SizedBox(
               height: 40,
               width: 300,
               child: FloatingActionButton.extended(
                 onPressed: () {
-                  if (petBreedController.text.isEmpty) {
+                  if (searchController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Please select pet breed.')),
                     );
@@ -171,7 +269,7 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
                       petName: widget.petName,
                       petAge: widget.petAge,
                       petGender: widget.petGender,
-                      petBreed: petBreedController.text,
+                      petBreed: searchController.text,
                     ),
                   ));
                 },
@@ -179,13 +277,13 @@ class _AddPetStep4BreedState extends State<AddPetStep4Breed> {
                     style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
                         fontSize: 16)),
-                backgroundColor: const Color(0xff68a2b6).withOpacity(0.7),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0)),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

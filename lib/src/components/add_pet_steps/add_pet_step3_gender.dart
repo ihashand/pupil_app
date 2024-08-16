@@ -64,7 +64,7 @@ class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
                 ),
               ),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 2500),
+                duration: const Duration(milliseconds: 1600),
                 curve: Curves.easeOut,
                 padding: EdgeInsets.only(
                   top: _showContainer ? 150 : 200, // Zmienia pozycję na ekranie
@@ -74,7 +74,7 @@ class _AddPetStep3GenderState extends State<AddPetStep3Gender> {
                 child: AnimatedOpacity(
                   opacity:
                       _showContainer ? 1.0 : 0.0, // Zmienia przezroczystość
-                  duration: const Duration(milliseconds: 1200),
+                  duration: const Duration(milliseconds: 800),
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(

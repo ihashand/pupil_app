@@ -100,7 +100,7 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
                 ),
               ),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 2500),
+                duration: const Duration(milliseconds: 1600),
                 curve: Curves.easeOut,
                 padding: EdgeInsets.only(
                     top: _showContainer ? _containerOffset : 0.0,
@@ -108,7 +108,7 @@ class _AddPetStep1NameState extends State<AddPetStep1Name> {
                     right: 20),
                 child: AnimatedOpacity(
                   opacity: _showContainer ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 1200),
+                  duration: const Duration(milliseconds: 800),
                   child: Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
