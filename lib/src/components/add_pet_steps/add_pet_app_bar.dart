@@ -6,9 +6,8 @@ AppBar addPetAppBar(BuildContext context, {required bool showCloseButton}) {
     actions: [
       if (showCloseButton)
         IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.close,
-            color: Theme.of(context).primaryColorDark.withOpacity(0.5),
           ),
           onPressed: () => Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const BotomAppBar()),
@@ -16,13 +15,12 @@ AppBar addPetAppBar(BuildContext context, {required bool showCloseButton}) {
           ),
         ),
     ],
-    backgroundColor: Colors.transparent,
-    foregroundColor: Theme.of(context).primaryColorDark.withOpacity(0.5),
+    backgroundColor: Theme.of(context).colorScheme.primary,
     elevation: 0,
-    title: Icon(
+    title: const Icon(
       Icons.pets,
-      color: const Color(0xff68a2b6).withOpacity(0.7),
-      size: 45,
+      color: Color(0xff68a2b6),
+      size: 35,
     ),
   );
 }

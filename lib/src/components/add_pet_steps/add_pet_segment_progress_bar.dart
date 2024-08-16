@@ -16,17 +16,22 @@ class AddPetSegmentProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 8,
-      child: Row(
-        children: List.generate(
-          totalSegments,
-          (index) => Expanded(
-            child: Container(
-              margin: EdgeInsets.only(right: index < totalSegments - 1 ? 5 : 0),
-              decoration: BoxDecoration(
-                color: index < filledSegments ? fillColor : backgroundColor,
-                borderRadius: BorderRadius.circular(4),
+    return Padding(
+      padding:
+          const EdgeInsets.only(left: 30.0, right: 30, top: 20, bottom: 25),
+      child: SizedBox(
+        height: 8,
+        child: Row(
+          children: List.generate(
+            totalSegments,
+            (index) => Expanded(
+              child: Container(
+                margin:
+                    EdgeInsets.only(right: index < totalSegments - 1 ? 5 : 0),
+                decoration: BoxDecoration(
+                  color: index < filledSegments ? fillColor : backgroundColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
           ),
