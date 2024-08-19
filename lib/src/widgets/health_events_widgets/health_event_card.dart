@@ -34,8 +34,8 @@ class HealthEventCard extends StatelessWidget {
                 ),
                 image: DecorationImage(
                   image: AssetImage(
-                      'assets/images/health_event_card/health_event_card.jpeg'),
-                  fit: BoxFit.fill,
+                      'assets/images/health_event_card/health_event_card_03.jpeg'),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),

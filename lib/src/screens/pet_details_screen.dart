@@ -12,99 +12,8 @@ import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
+import 'package:pet_diary/src/widgets/health_events_widgets/health_event_card.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/event_tile.dart';
-
-class HealthEventCard extends StatelessWidget {
-  final VoidCallback onCreatePressed;
-
-  const HealthEventCard({super.key, required this.onCreatePressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(20.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              height: 120,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
-                image: DecorationImage(
-                  image: AssetImage(
-                      'assets/images/health_event_card/health_event_card.jpeg'),
-                  fit: BoxFit.fill,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(5.0),
-              child: Container(
-                alignment: Alignment.center,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Intuitive way to add new health events for your pet!',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).primaryColorDark,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xff68a2b6),
-                        minimumSize: const Size(150, 35),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: onCreatePressed,
-                      child: Text(
-                        'C r e a t e',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -144,7 +53,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
-          expand: true,
+          expand: false,
           initialChildSize: 0.94,
           builder: (context, scrollController) {
             return Container(
@@ -185,46 +94,43 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                      ),
                       children: [
                         _buildEventTypeCard(context, 'Notes',
-                            'assets/images/achievements/natural/nileriver.jpeg',
-                            () {
+                            'assets/images/health_event_card/notes.png', () {
                           // TODO: Implement navigation to Notes screen
                         }),
                         _buildEventTypeCard(context, 'Feeding',
-                            'assets/images/achievements/natural/nileriver.jpeg',
+                            'assets/images/health_event_card/dog_bowl_02.png',
                             () {
                           // TODO: Implement navigation to Feeding screen
                         }),
                         _buildEventTypeCard(context, 'Mesuring',
-                            'assets/images/achievements/natural/nileriver.jpeg',
+                            'assets/images/health_event_card/termometr.png',
                             () {
                           // TODO: Implement navigation to Weight & Temperature screen
                         }),
                         _buildEventTypeCard(context, 'Grooming',
-                            'assets/images/achievements/natural/nileriver.jpeg',
+                            'assets/images/health_event_card/hair_brush.png',
                             () {
                           // TODO: Implement navigation to Grooming screen
                         }),
                         _buildEventTypeCard(context, 'Mood & Mental',
-                            'assets/images/achievements/natural/nileriver.jpeg',
-                            () {
+                            'assets/images/health_event_card/dog_love.png', () {
                           // TODO: Implement navigation to Mood & Mental Health screen
                         }),
                         _buildEventTypeCard(context, 'Physiologic',
-                            'assets/images/achievements/natural/nileriver.jpeg',
-                            () {
+                            'assets/images/health_event_card/poo.png', () {
                           // TODO: Implement navigation to Physiological Needs screen
                         }),
                         _buildEventTypeCard(context, 'Medications',
-                            'assets/images/achievements/natural/nileriver.jpeg',
-                            () {
+                            'assets/images/health_event_card/pills.png', () {
                           // TODO: Implement navigation to Medications & Vaccines screen
                         }),
                         _buildEventTypeCard(context, 'Others',
-                            'assets/images/achievements/natural/nileriver.jpeg',
-                            () {
+                            'assets/images/health_event_card/others.png', () {
                           // TODO: Implement navigation to Medications & Vaccines screen
                         }),
                       ],
@@ -251,7 +157,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              height: 110,
+              height: 120,
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(15),
@@ -259,12 +165,12 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 ),
                 image: DecorationImage(
                   image: AssetImage(imagePath),
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 15.0, left: 5, right: 5),
+              padding: const EdgeInsets.only(top: 13.0, left: 5, right: 5),
               child: Text(
                 title,
                 style: TextStyle(

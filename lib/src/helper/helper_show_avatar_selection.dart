@@ -4,51 +4,41 @@ Future<void> showAvatarSelectionDialog({
   required BuildContext context,
   required Function(String) onAvatarSelected,
 }) async {
-  // final picker = ImagePicker();
+  final avatars = [
+    'assets/images/dogs_avatars/beagle.png',
+    'assets/images/dogs_avatars/border_collie.png',
+    'assets/images/dogs_avatars/buldog_francski.png',
+    'assets/images/dogs_avatars/chiuaua.png',
+    'assets/images/dogs_avatars/doberman.png',
+    'assets/images/dogs_avatars/husky.png',
+    'assets/images/dogs_avatars/jamnik.png',
+    'assets/images/dogs_avatars/kundelek.png',
+    'assets/images/dogs_avatars/labradrod.png',
+    'assets/images/dogs_avatars/owczarek.png',
+    'assets/images/dogs_avatars/rottwailer.png',
+    'assets/images/dogs_avatars/shitzu.png',
+    'assets/images/dogs_avatars/sznaucer.png',
+    'assets/images/dogs_avatars/west_highland_white_terier.png',
+    'assets/images/dogs_avatars/york.png',
+  ];
+
   await showModalBottomSheet(
     context: context,
+    backgroundColor: Theme.of(context).colorScheme.primary,
     builder: (BuildContext context) {
       return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: <Widget>[
-              // ListTile(
-              //   leading: const Icon(Icons.camera_alt),
-              //   title: const Text('Take a Photo'),
-              //   onTap: () async {
-              //     Navigator.pop(context);
-              //     final pickedFile = await picker.pickImage(
-              //       source: ImageSource.camera,
-              //     );
-              //     if (pickedFile != null) {
-              //       final directory = await getApplicationDocumentsDirectory();
-              //       final path = directory.path;
-              //       final fileName = basename(pickedFile.path);
-              //       final savedImage =
-              //           await File(pickedFile.path).copy('$path/$fileName');
-              //       onAvatarSelected(savedImage.path);
-              //     }
-              //   },
-              // ),
-              // ListTile(
-              //   leading: const Icon(Icons.photo),
-              //   title: const Text('Choose from Gallery'),
-              //   onTap: () async {
-              //     Navigator.pop(context);
-              //     final pickedFile = await picker.pickImage(
-              //       source: ImageSource.gallery,
-              //     );
-              //     if (pickedFile != null) {
-              //       onAvatarSelected(pickedFile.path);
-              //     }
-              //   },
-              // ),
               const Padding(
                 padding: EdgeInsets.all(6.0),
                 child: Text(
                   'Pick an avatar',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18, // Zwiększenie rozmiaru tekstu
+                  ),
                 ),
               ),
               Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
@@ -56,10 +46,8 @@ Future<void> showAvatarSelectionDialog({
                 shrinkWrap: true,
                 crossAxisCount: 5,
                 physics: const NeverScrollableScrollPhysics(),
-                children: List.generate(5, (index) {
-                  final avatarIndex = index + 1;
-                  final avatarPath =
-                      'assets/images/dog_avatar_${avatarIndex.toString().padLeft(2, '0')}.png';
+                children: List.generate(avatars.length, (index) {
+                  final avatarPath = avatars[index];
                   return GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
@@ -68,8 +56,12 @@ Future<void> showAvatarSelectionDialog({
                     child: Padding(
                       padding: const EdgeInsets.all(5.0),
                       child: CircleAvatar(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .surface
+                            .withOpacity(0.5),
                         backgroundImage: AssetImage(avatarPath),
-                        radius: 10,
+                        radius: 40,
                       ),
                     ),
                   );
