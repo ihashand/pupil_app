@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
+import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/services/pet_services.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 
 class PetEditScreen extends ConsumerStatefulWidget {
@@ -148,6 +148,10 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                 foregroundColor: Colors.black,
               ),
             ),
+            colorScheme: ColorScheme.light(
+              primary: const Color(0xffdfd785).withOpacity(0.7),
+              onPrimary: Colors.black,
+            ),
           ),
           child: child!,
         );
@@ -229,10 +233,20 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       GestureDetector(
                         onTap: () => _selectAvatar(context),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Avatar',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.account_circle),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.account_circle),
+                            labelStyle: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -254,10 +268,20 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _nameController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Name',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.pets),
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.pets),
+                          labelStyle: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -270,10 +294,19 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       SizedBox(
                         height: 70,
                         child: InputDecorator(
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Date',
-                            border: OutlineInputBorder(),
-                            labelStyle: TextStyle(fontSize: 16),
+                            border: const OutlineInputBorder(),
+                            labelStyle: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
                           ),
                           child: TextButton(
                             onPressed: () async {
@@ -306,10 +339,20 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                         link: _layerLink,
                         child: TextField(
                           controller: _breedController,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Breed',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.category),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.category),
+                            labelStyle: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
                           ),
                           onChanged: (query) {
                             _updateSuggestions(query);
@@ -319,10 +362,20 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         value: _gender,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Gender',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.transgender),
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.transgender),
+                          labelStyle: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                            borderSide: BorderSide(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
                         ),
                         onChanged: (String? newValue) {
                           setState(() {
@@ -341,10 +394,20 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                       GestureDetector(
                         onTap: () => _selectBackground(context),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Background',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.wallpaper),
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.wallpaper),
+                            labelStyle: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
                           ),
                           child: Container(
                             height: 80,

@@ -18,69 +18,84 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<List<Pet?>>(
-        stream: ref.watch(petServiceProvider).getPets(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Text('Error fetching pets');
+      stream: ref.watch(petServiceProvider).getPets(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Error fetching pets');
+        }
+        if (snapshot.hasData) {
+          // Sprawdzenie, czy lista zawiera petId
+          final petList =
+              snapshot.data!.where((element) => element!.id == petId).toList();
+          if (petList.isEmpty) {
+            // Obsługa przypadku, gdy zwierzę zostało usunięte
+            return const Center(
+              child: Text(
+                'Pet not found or has been deleted',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            );
           }
-          if (snapshot.hasData) {
-            final pet =
-                snapshot.data!.where((element) => element!.id == petId).first;
 
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        pet!.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+          // Ponieważ `petList` ma co najmniej jeden element, można użyć `first`
+          final pet = petList.first!;
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pet.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        calculateAge(pet.age),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Theme.of(context).primaryColorDark,
-                        ),
+                    ),
+                    Text(
+                      calculateAge(pet.age),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).primaryColorDark,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 5, top: 10, bottom: 10),
-                  child: SizedBox(
-                    height: 40,
-                    width: 120,
-                    child: FloatingActionButton(
-                      backgroundColor: buttonColor,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => HealthScreen(petId)),
-                        );
-                      },
-                      child: Text(
-                        'H E A L T H',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 5, top: 10, bottom: 10),
+                child: SizedBox(
+                  height: 40,
+                  width: 120,
+                  child: FloatingActionButton(
+                    backgroundColor: buttonColor,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HealthScreen(petId),
                         ),
+                      );
+                    },
+                    child: Text(
+                      'H E A L T H',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
                       ),
                     ),
                   ),
                 ),
-              ],
-            );
-          }
-          return const Center(child: CircularProgressIndicator());
-        });
+              ),
+            ],
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
   }
 }
