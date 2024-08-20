@@ -1,19 +1,24 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
+import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/models/event_weight_model.dart';
 import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 import 'package:pet_diary/src/widgets/health_events_widgets/health_event_card.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/event_tile.dart';
+
+import '../models/event_note_model.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -47,6 +52,8 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
   }
 
   void _showEventTypeSelection(BuildContext context) {
+    var titleController = TextEditingController();
+    var contentTextController = TextEditingController();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -98,10 +105,8 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                         horizontal: 12.0,
                       ),
                       children: [
-                        _buildEventTypeCard(context, 'Notes',
-                            'assets/images/health_event_card/notes.png', () {
-                          // TODO: Implement navigation to Notes screen
-                        }),
+                        buildEventTypeCardNotes(
+                            context, titleController, contentTextController),
                         _buildEventTypeCard(context, 'Feeding',
                             'assets/images/health_event_card/dog_bowl_02.png',
                             () {
@@ -134,6 +139,230 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                           // TODO: Implement navigation to Medications & Vaccines screen
                         }),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget buildEventTypeCardNotes(
+      BuildContext context,
+      TextEditingController titleController,
+      TextEditingController contentTextController) {
+    return _buildEventTypeCard(
+      context,
+      'Notes',
+      'assets/images/health_event_card/notes.png',
+      () {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled:
+              true, // Umożliwia dynamiczne dopasowanie wysokości
+          builder: (BuildContext context) {
+            return Container(
+              height: MediaQuery.of(context).size.height *
+                  0.71, // Zwiększenie wysokości
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize
+                    .max, // Zwiększa wysokość kolumny do maksymalnej dostępnej wysokości
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0, left: 8, top: 8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.close,
+                              color: Theme.of(context).primaryColorDark),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 107),
+                          child: Text(
+                            'N O T E S',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        children: [
+                          InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Title',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: TextFormField(
+                              controller: titleController,
+                              keyboardType: TextInputType.text,
+                              cursorColor: Theme.of(context)
+                                  .primaryColorDark
+                                  .withOpacity(0.5),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Note',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: TextFormField(
+                              controller: contentTextController,
+                              keyboardType: TextInputType.multiline,
+                              maxLines: 10, // Zwiększenie liczby linii
+                              textAlign: TextAlign.start,
+                              cursorColor: Theme.of(context)
+                                  .primaryColorDark
+                                  .withOpacity(0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        right: 25, left: 25, bottom: 0, top: 10),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        width: double
+                            .infinity, // Szerokość przycisku wypełnia całą dostępną szerokość
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color(0xff68a2b6), // Kolor tła przycisku
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: () async {
+                            if (titleController.text.isEmpty &&
+                                contentTextController.text.isEmpty) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text(
+                                      'Error',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                        fontSize: 24,
+                                      ),
+                                    ),
+                                    content: Text(
+                                      'Fields cannot be empty.',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                          'OK',
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              return;
+                            }
+
+                            String eventId = generateUniqueId();
+                            String noteId = generateUniqueId();
+                            EventNoteModel newNote = EventNoteModel(
+                              id: noteId,
+                              title: titleController.text,
+                              eventId: eventId,
+                              petId: widget.petId,
+                              dateTime: DateTime.now(),
+                              contentText: contentTextController.text,
+                            );
+
+                            Event newEvent = Event(
+                              id: eventId,
+                              title: 'Note',
+                              eventDate: DateTime.now(),
+                              dateWhenEventAdded: DateTime.now(),
+                              userId: FirebaseAuth.instance.currentUser!.uid,
+                              petId: widget.petId,
+                              weightId: '',
+                              temperatureId: '',
+                              walkId: '',
+                              waterId: '',
+                              noteId: newNote.id,
+                              pillId: '',
+                              description:
+                                  '${newNote.title} /n ${newNote.contentText}',
+                              proffesionId: 'NONE',
+                              personId: 'NONE',
+                              avatarImage: 'assets/images/dog_avatar_014.png',
+                              emoticon: '📝',
+                              moodId: '',
+                              stomachId: '',
+                              psychicId: '',
+                              stoolId: '',
+                              urineId: '',
+                              serviceId: '',
+                              careId: '',
+                            );
+
+                            ref.read(eventServiceProvider).addEvent(newEvent);
+                            ref.read(eventNoteServiceProvider).addNote(newNote);
+
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'S A V E',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
