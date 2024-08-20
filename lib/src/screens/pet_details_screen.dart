@@ -12,7 +12,8 @@ import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
-import 'package:pet_diary/src/widgets/health_events_widgets/event_tile.dart';
+import 'package:pet_diary/src/widgets/health_events_widgets/health_event_card.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/event_tile.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -43,6 +44,147 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
     setState(() {
       _pet = fetchedPet;
     });
+  }
+
+  void _showEventTypeSelection(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.94,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.close,
+                              color: Theme.of(context).primaryColorDark),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        Text(
+                          'Choose Event Type',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                        const SizedBox(width: 48),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: GridView.count(
+                      controller: scrollController,
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                      ),
+                      children: [
+                        _buildEventTypeCard(context, 'Notes',
+                            'assets/images/health_event_card/notes.png', () {
+                          // TODO: Implement navigation to Notes screen
+                        }),
+                        _buildEventTypeCard(context, 'Feeding',
+                            'assets/images/health_event_card/dog_bowl_02.png',
+                            () {
+                          // TODO: Implement navigation to Feeding screen
+                        }),
+                        _buildEventTypeCard(context, 'Mesuring',
+                            'assets/images/health_event_card/termometr.png',
+                            () {
+                          // TODO: Implement navigation to Weight & Temperature screen
+                        }),
+                        _buildEventTypeCard(context, 'Grooming',
+                            'assets/images/health_event_card/hair_brush.png',
+                            () {
+                          // TODO: Implement navigation to Grooming screen
+                        }),
+                        _buildEventTypeCard(context, 'Mood & Mental',
+                            'assets/images/health_event_card/dog_love.png', () {
+                          // TODO: Implement navigation to Mood & Mental Health screen
+                        }),
+                        _buildEventTypeCard(context, 'Physiologic',
+                            'assets/images/health_event_card/poo.png', () {
+                          // TODO: Implement navigation to Physiological Needs screen
+                        }),
+                        _buildEventTypeCard(context, 'Medications',
+                            'assets/images/health_event_card/pills.png', () {
+                          // TODO: Implement navigation to Medications & Vaccines screen
+                        }),
+                        _buildEventTypeCard(context, 'Others',
+                            'assets/images/health_event_card/others.png', () {
+                          // TODO: Implement navigation to Medications & Vaccines screen
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEventTypeCard(BuildContext context, String title,
+      String imagePath, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  topRight: Radius.circular(15),
+                ),
+                image: DecorationImage(
+                  image: AssetImage(imagePath),
+                  fit: BoxFit.fill,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 13.0, left: 5, right: 5),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -146,153 +288,182 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
           child: SizedBox(),
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Container(
-            color: Theme.of(context).colorScheme.primary,
-            width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PetDetailNameAgeButtonWidget(
-                  buttonColor: const Color(0xffdfd785),
-                  petId: widget.petId,
-                ),
-                const SizedBox(height: 10),
-                Consumer(builder: (context, ref, _) {
-                  final asyncWeights = ref.watch(eventWeightsProvider);
-                  return asyncWeights.when(
-                    loading: () => const Text('Loading...'),
-                    error: (err, stack) => const Text('Error fetching weights'),
-                    data: (weights) {
-                      var weight = weights
-                          .firstWhere(
-                            (element) => element!.petId == widget.petId,
-                            orElse: () => EventWeightModel(
-                              id: '',
-                              weight: 0.0,
-                              eventId: '',
-                              petId: widget.petId,
-                              dateTime: DateTime.now(),
-                            ),
-                          )!
-                          .weight;
-                      return PetDetailIconWidget(
-                        petId: pet.id,
-                        weight: weight.toString(),
-                      );
-                    },
-                  );
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'E V E N T S',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Theme.of(context).primaryColorDark,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Consumer(builder: (context, ref, _) {
-            final asyncEvents = ref.watch(eventsProvider);
-            return asyncEvents.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => const Text('Error fetching events'),
-              data: (events) {
-                final petEvents = events
-                    .where((element) => element.petId == widget.petId)
-                    .toList();
-                List<Event> eventsToShow = [];
-                DateTime today = DateTime.now();
-                DateTime? nextEventDate;
-
-                for (var event in petEvents) {
-                  if (event.eventDate.year == today.year &&
-                      event.eventDate.month == today.month &&
-                      event.eventDate.day == today.day) {
-                    eventsToShow.add(event);
-                  } else if (event.eventDate.isAfter(today)) {
-                    if (nextEventDate == null ||
-                        event.eventDate.isBefore(nextEventDate)) {
-                      nextEventDate = event.eventDate;
-                    }
-                  }
-                }
-
-                if (eventsToShow.isEmpty && nextEventDate != null) {
-                  eventsToShow = petEvents
-                      .where((event) =>
-                          event.eventDate.year == nextEventDate!.year &&
-                          event.eventDate.month == nextEventDate.month &&
-                          event.eventDate.day == nextEventDate.day)
-                      .toList();
-                }
-
-                if (eventsToShow.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+          Positioned.fill(
+            top: 150, // Przestrzeń na statyczny sektor
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(
+                      height: 20), // Przestrzeń na zaokrąglony sektor
+                  HealthEventCard(
+                    onCreatePressed: () => _showEventTypeSelection(context),
+                  ), // Nowa karta dodawania wydarzeń zdrowotnych
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20.0, 10.0, 10.0, 10),
+                    child: Row(
                       children: [
-                        const Text(
-                          'No events yet',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Icon(
-                          Icons.sentiment_dissatisfied,
-                          size: 200,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withOpacity(0.5),
+                        Expanded(
+                          child: Text(
+                            'E V E N T S',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  );
-                }
-
-                return SizedBox(
-                  height: 350,
-                  child: ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    itemCount: eventsToShow.length,
-                    itemBuilder: (context, index) {
-                      final currentEvent = eventsToShow[index];
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            expandedEvents[currentEvent.id] =
-                                !(expandedEvents[currentEvent.id] ?? false);
-                          });
-                        },
-                        child: EventTile(
-                          event: currentEvent,
-                          isExpanded: expandedEvents[currentEvent.id] ?? false,
-                          ref: ref,
-                        ),
-                      );
-                    },
                   ),
-                );
-              },
-            );
-          }),
+                  Consumer(builder: (context, ref, _) {
+                    final asyncEvents = ref.watch(eventsProvider);
+                    return asyncEvents.when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) =>
+                          const Text('Error fetching events'),
+                      data: (events) {
+                        final petEvents = events
+                            .where((element) => element.petId == widget.petId)
+                            .toList();
+                        List<Event> eventsToShow = [];
+                        DateTime today = DateTime.now();
+                        DateTime? nextEventDate;
+
+                        for (var event in petEvents) {
+                          if (event.eventDate.year == today.year &&
+                              event.eventDate.month == today.month &&
+                              event.eventDate.day == today.day) {
+                            eventsToShow.add(event);
+                          } else if (event.eventDate.isAfter(today)) {
+                            if (nextEventDate == null ||
+                                event.eventDate.isBefore(nextEventDate)) {
+                              nextEventDate = event.eventDate;
+                            }
+                          }
+                        }
+
+                        if (eventsToShow.isEmpty && nextEventDate != null) {
+                          eventsToShow = petEvents
+                              .where((event) =>
+                                  event.eventDate.year == nextEventDate!.year &&
+                                  event.eventDate.month ==
+                                      nextEventDate.month &&
+                                  event.eventDate.day == nextEventDate.day)
+                              .toList();
+                        }
+
+                        if (eventsToShow.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'No events yet',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                Icon(
+                                  Icons.sentiment_dissatisfied,
+                                  size: 200,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .secondary
+                                      .withOpacity(0.5),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          scrollDirection: Axis.vertical,
+                          itemCount: eventsToShow.length,
+                          itemBuilder: (context, index) {
+                            final currentEvent = eventsToShow[index];
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  expandedEvents[currentEvent.id] =
+                                      !(expandedEvents[currentEvent.id] ??
+                                          false);
+                                });
+                              },
+                              child: EventTile(
+                                event: currentEvent,
+                                isExpanded:
+                                    expandedEvents[currentEvent.id] ?? false,
+                                ref: ref,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(25),
+                  bottomRight: Radius.circular(25),
+                ),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PetDetailNameAgeButtonWidget(
+                    buttonColor: Theme.of(context).colorScheme.inversePrimary,
+                    petId: widget.petId,
+                  ),
+                  const SizedBox(height: 10),
+                  Consumer(builder: (context, ref, _) {
+                    final asyncWeights = ref.watch(eventWeightsProvider);
+                    return asyncWeights.when(
+                      loading: () => const Text('Loading...'),
+                      error: (err, stack) =>
+                          const Text('Error fetching weights'),
+                      data: (weights) {
+                        var weight = weights
+                            .firstWhere(
+                              (element) => element!.petId == widget.petId,
+                              orElse: () => EventWeightModel(
+                                id: '',
+                                weight: 0.0,
+                                eventId: '',
+                                petId: widget.petId,
+                                dateTime: DateTime.now(),
+                              ),
+                            )!
+                            .weight;
+                        return PetDetailIconWidget(
+                          petId: pet.id,
+                          weight: weight.toString(),
+                        );
+                      },
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

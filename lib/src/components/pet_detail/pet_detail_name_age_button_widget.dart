@@ -51,14 +51,14 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                     Text(
                       pet.name,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 21,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       calculateAge(pet.age),
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: Theme.of(context).primaryColorDark,
                       ),
                     ),
@@ -66,7 +66,7 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(right: 5, top: 10, bottom: 10),
+                padding: const EdgeInsets.only(right: 10, top: 10, bottom: 10),
                 child: SizedBox(
                   height: 40,
                   width: 120,
@@ -85,7 +85,7 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                       style: TextStyle(
                         color: Theme.of(context).primaryColorDark,
                         fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                        fontSize: 11,
                       ),
                     ),
                   ),
