@@ -1,45 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ProductModel {
+class EatenMealModel {
   final String id;
   final String name;
   final String? brand;
-  final String? barcode;
+  final DateTime date;
+  final String mealType;
   final double kcal;
   final double? fat;
   final double? carbs;
   final double? protein;
+  final double grams;
 
-  ProductModel({
+  EatenMealModel({
     required this.id,
     required this.name,
     this.brand,
-    this.barcode,
+    required this.date,
+    required this.mealType,
     required this.kcal,
     this.fat,
     this.carbs,
     this.protein,
+    required this.grams,
   });
 
-  ProductModel.fromDocument(DocumentSnapshot doc)
+  EatenMealModel.fromDocument(DocumentSnapshot doc)
       : id = doc.id,
         name = doc['name'],
         brand = doc['brand'],
-        barcode = doc['barcode'],
+        date = (doc['date'] as Timestamp).toDate(),
+        mealType = doc['mealType'],
         kcal = doc['kcal'],
         fat = doc['fat'],
         carbs = doc['carbs'],
-        protein = doc['protein'];
+        protein = doc['protein'],
+        grams = doc['grams'];
 
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'brand': brand,
-      'barcode': barcode,
+      'date': date,
+      'mealType': mealType,
       'kcal': kcal,
       'fat': fat,
       'carbs': carbs,
       'protein': protein,
+      'grams': grams,
     };
   }
 }

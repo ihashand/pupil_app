@@ -9,3 +9,7 @@ final feedingsProvider = FutureProvider((ref) async {
   final feedingService = ref.watch(eventFeedingServiceProvider);
   return feedingService.getFeedings();
 });
+
+final selectedDateProvider = StateProvider<DateTime>((ref) {
+  return DateTime.now(); // Domyślnie ustawiamy dzisiejszą datę
+});

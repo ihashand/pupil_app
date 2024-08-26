@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PetSettingsModel {
   String id;
   String petId;
-  int dailyKcal;
+  double dailyKcal;
   double proteinPercentage;
   double fatPercentage;
   double carbsPercentage;
@@ -23,7 +23,7 @@ class PetSettingsModel {
     return PetSettingsModel(
       id: doc.id,
       petId: doc.get('petId'),
-      dailyKcal: doc.get('dailyKcal'),
+      dailyKcal: doc.get('dailyKcal') ?? 0.0,
       proteinPercentage: doc.get('proteinPercentage') ?? 0.0,
       fatPercentage: doc.get('fatPercentage') ?? 0.0,
       carbsPercentage: doc.get('carbsPercentage') ?? 0.0,
@@ -46,7 +46,7 @@ class PetSettingsModel {
   PetSettingsModel copyWith({
     String? id,
     String? petId,
-    int? dailyKcal,
+    double? dailyKcal,
     double? proteinPercentage,
     double? fatPercentage,
     double? carbsPercentage,

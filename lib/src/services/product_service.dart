@@ -10,7 +10,6 @@ class ProductService {
   final _userProductsController =
       StreamController<List<ProductModel>>.broadcast();
 
-  // Global products stream
   Stream<List<ProductModel>> getProductsStream() {
     _firestore.collection('products').snapshots().listen((snapshot) {
       _globalProductsController.add(
@@ -20,7 +19,6 @@ class ProductService {
     return _globalProductsController.stream;
   }
 
-  // User-specific products stream
   Stream<List<ProductModel>> getUserProductsStream() {
     _firestore
         .collection('app_users')
@@ -35,9 +33,7 @@ class ProductService {
     return _userProductsController.stream;
   }
 
-  // Placeholder for favorite products stream
   Stream<List<ProductModel>> getFavoriteProductsStream() {
-    // Implement this based on how you manage favorite products
     return const Stream.empty();
   }
 

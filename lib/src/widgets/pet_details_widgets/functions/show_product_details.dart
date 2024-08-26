@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
+import 'package:pet_diary/src/services/eaten_meal_service.dart';
+import 'package:pet_diary/src/models/eaten_meal_model.dart';
 
 void showProductDetails(
     BuildContext context, ProductModel product, String petId) {
@@ -13,6 +15,7 @@ void showProductDetails(
     builder: (context) {
       return Consumer(
         builder: (context, ref, _) {
+          // Fetch pet settings asynchronously
           final petSettingsFuture = ref.watch(petSettingsStreamProvider(petId));
 
           return petSettingsFuture.when(
@@ -29,6 +32,7 @@ void showProductDetails(
                 );
               }
 
+              // Controllers and default values
               TextEditingController gramsController =
                   TextEditingController(text: '100');
               TextEditingController dateController = TextEditingController(
@@ -38,8 +42,9 @@ void showProductDetails(
                   ? settings.mealTypes.first
                   : 'Breakfast';
               double grams = 100.0;
-              String selectedUnit = 'g'; // Domyślnie gramy
+              String selectedUnit = 'g'; // Default unit is grams
 
+              // Update grams based on the selected unit
               void updateValues() {
                 double factor = double.tryParse(gramsController.text) ?? 100.0;
                 if (selectedUnit == 'kg') {
@@ -48,6 +53,7 @@ void showProductDetails(
                 grams = factor;
               }
 
+              // Handle input changes with validation
               void handleInput(String value, StateSetter setState) {
                 value = value.replaceAll(',', '.');
                 if (selectedUnit == 'g' || selectedUnit == 'ml') {
@@ -68,7 +74,8 @@ void showProductDetails(
                 });
               }
 
-              void validateAndSave() {
+              // Save the meal and close the modal
+              void validateAndSave() async {
                 if (grams > 5000) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -81,12 +88,31 @@ void showProductDetails(
                     ),
                   );
                 } else {
-                  // Logika zapisu posiłku
+                  // Create a new eaten meal object
+                  final eatenMeal = EatenMealModel(
+                    id: '', // Firebase generates the ID
+                    date: DateFormat('dd-MM-yyyy').parse(dateController.text),
+                    mealType: mealType,
+                    name: product.name,
+                    kcal: product.kcal * grams / 100,
+                    fat: (product.fat ?? 0) * grams / 100,
+                    carbs: (product.carbs ?? 0) * grams / 100,
+                    protein: (product.protein ?? 0) * grams / 100,
+                    grams: grams,
+                  );
+
+                  // Save the eaten meal using the service
+                  await ref
+                      .read(eatenMealServiceProvider)
+                      .addEatenMeal(petId, eatenMeal);
+
+                  Navigator.of(context).pop(); // Close the modal
                 }
               }
 
-              double calculateFill(double kcal) {
-                double fillPercentage = kcal / settings.dailyKcal;
+              // Calculate percentage fill for the circular progress
+              double calculateFill(double kcal, double dailyKcal) {
+                double fillPercentage = kcal / dailyKcal;
                 return fillPercentage.clamp(0.0, 1.0);
               }
 
@@ -100,6 +126,7 @@ void showProductDetails(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Top bar with close and save buttons
                         Padding(
                           padding: const EdgeInsets.only(
                               top: 8.0, left: 8.0, right: 8.0),
@@ -128,16 +155,18 @@ void showProductDetails(
                           color: Theme.of(context).colorScheme.secondary,
                           height: 32,
                         ),
+                        // Weight input and unit selector
                         Padding(
-                          padding: const EdgeInsets.only(
-                              left: 16.0, right: 16, top: 10, bottom: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
                           child: Row(
                             children: [
                               Expanded(
                                 child: TextField(
                                   controller: gramsController,
-                                  keyboardType: TextInputType.numberWithOptions(
-                                      decimal: true),
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
                                   decoration: InputDecoration(
                                     labelText: 'Weight',
                                     labelStyle: TextStyle(
@@ -179,9 +208,10 @@ void showProductDetails(
                             ],
                           ),
                         ),
+                        // Date picker
                         Padding(
-                          padding: const EdgeInsets.only(
-                              left: 16.0, right: 16, top: 10, bottom: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
                           child: TextField(
                             controller: dateController,
                             decoration: InputDecoration(
@@ -239,9 +269,10 @@ void showProductDetails(
                             },
                           ),
                         ),
+                        // Meal type selector
                         Padding(
-                          padding: const EdgeInsets.only(
-                              left: 16.0, right: 16, top: 10, bottom: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
                           child: DropdownButtonFormField<String>(
                             value: mealType,
                             decoration: InputDecoration(
@@ -276,14 +307,14 @@ void showProductDetails(
                           color: Theme.of(context).colorScheme.primary,
                           height: 32,
                         ),
-                        // Sekcja danych
+                        // Nutritional information display
                         Padding(
                           padding: const EdgeInsets.only(
                               bottom: 35.0, left: 16, right: 16),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              // Kcal w kółku z kreską
+                              // Calorie display
                               Column(
                                 children: [
                                   Stack(
@@ -294,14 +325,17 @@ void showProductDetails(
                                         height: 90,
                                         child: CircularProgressIndicator(
                                           value: calculateFill(
-                                              product.kcal * grams / 100),
+                                              product.kcal * grams / 100,
+                                              settings.dailyKcal),
                                           strokeWidth: 10,
                                           backgroundColor: Colors.grey[300],
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
-                                            calculateFill(product.kcal *
-                                                        grams /
-                                                        100) >=
+                                            calculateFill(
+                                                        product.kcal *
+                                                            grams /
+                                                            100,
+                                                        settings.dailyKcal) >=
                                                     1.0
                                                 ? Colors.purple
                                                 : Colors.blue,
@@ -344,11 +378,11 @@ void showProductDetails(
                                   ),
                                 ],
                               ),
-                              // Węglowodany
+                              // Carbohydrate display
                               Column(
                                 children: [
                                   Text(
-                                    '${((product.carbs ?? 0) / grams * 100).toStringAsFixed(1)}%',
+                                    '${((product.carbs ?? 0) * grams / 100).toStringAsFixed(1)}%',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -371,11 +405,11 @@ void showProductDetails(
                                   ),
                                 ],
                               ),
-                              // Tłuszcz
+                              // Fat display
                               Column(
                                 children: [
                                   Text(
-                                    '${((product.fat ?? 0) / grams * 100).toStringAsFixed(1)}%',
+                                    '${((product.fat ?? 0) * grams / 100).toStringAsFixed(1)}%',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -398,11 +432,11 @@ void showProductDetails(
                                   ),
                                 ],
                               ),
-                              // Białko
+                              // Protein display
                               Column(
                                 children: [
                                   Text(
-                                    '${((product.protein ?? 0) / grams * 100).toStringAsFixed(1)}%',
+                                    '${((product.protein ?? 0) * grams / 100).toStringAsFixed(1)}%',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

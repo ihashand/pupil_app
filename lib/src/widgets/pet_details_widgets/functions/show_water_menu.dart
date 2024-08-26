@@ -88,7 +88,7 @@ void showWaterMenu(BuildContext context, WidgetRef ref) {
                       EventWaterModel newWaterEvent = EventWaterModel(
                         id: eventId,
                         eventId: eventId,
-                        petId: '', // Wstaw właściwy petId
+                        petId: '',
                         water: double.tryParse(amountController.text) ?? 0.0,
                         dateTime: selectedDateTime,
                       );

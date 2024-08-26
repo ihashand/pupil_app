@@ -9,6 +9,7 @@ Widget buildCategorySelector(
       child: Text(
         title,
         style: TextStyle(
+          fontSize: 16,
           color: isSelected
               ? Theme.of(context).primaryColorDark
               : Theme.of(context).colorScheme.inversePrimary,

@@ -24,7 +24,7 @@ class PetSettingsNotifier extends StateNotifier<PetSettingsModel?> {
     state = settings;
   }
 
-  Future<void> updateKcal(int kcal) async {
+  Future<void> updateKcal(double kcal) async {
     if (state != null) {
       final updatedSettings = state!.copyWith(dailyKcal: kcal);
       state = updatedSettings;

@@ -295,7 +295,7 @@ void _submitGoal(WidgetRef ref, double kcal, double protein, double fat,
     double carbs, String petId) {
   final provider = ref.read(petSettingsProvider(petId).notifier);
 
-  provider.updateKcal(kcal.toInt());
+  provider.updateKcal(kcal);
   provider.updateProteinPercentage(protein);
   provider.updateFatPercentage(fat);
   provider.updateCarbsPercentage(carbs);
