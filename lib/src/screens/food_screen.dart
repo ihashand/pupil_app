@@ -306,11 +306,7 @@ class FoodScreen extends ConsumerWidget {
                       context: context,
                       small: true,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const NewProductScreen()),
-                        );
+                        showNewProductBottomSheet(context, ref);
                       },
                     ),
                   ),

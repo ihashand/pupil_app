@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
@@ -218,9 +217,16 @@ void _showSummaryStep(BuildContext context, WidgetRef ref, String weight,
     String activityLevel, String goal, String petId) {
   final double kcalRequirement =
       _calculateKcalRequirement(weight, activityLevel, goal);
-  final double proteinKcal = kcalRequirement * 0.1;
-  final double fatKcal = kcalRequirement * 0.055;
-  final double carbsKcal = kcalRequirement * 0.5;
+
+  // Calculate kcal for each macronutrient based on the percentages
+  final double proteinKcal = kcalRequirement * 0.40; // 40%
+  final double fatKcal = kcalRequirement * 0.53; // 53%
+  final double carbsKcal = kcalRequirement * 0.07; // 7%
+
+  // Convert kcal to grams
+  final double proteinG = proteinKcal / 4; // 4 kcal per gram
+  final double fatG = fatKcal / 9; // 9 kcal per gram
+  final double carbsG = carbsKcal / 4; // 4 kcal per gram
 
   showModalBottomSheet(
     context: context,
@@ -238,16 +244,15 @@ void _showSummaryStep(BuildContext context, WidgetRef ref, String weight,
             _buildNutrientIndicatorTest(
                 context, 'Energy', kcalRequirement, 'kcal', Colors.blue),
             _buildNutrientIndicatorTest(
-                context, 'Protein', proteinKcal, 'g', Colors.orange),
+                context, 'Protein', proteinG, 'g', Colors.orange),
             _buildNutrientIndicatorTest(
-                context, 'Fat', fatKcal, 'g', Colors.purple),
+                context, 'Fat', fatG, 'g', Colors.purple),
             _buildNutrientIndicatorTest(
-                context, 'Carbs', carbsKcal, 'g', Colors.green),
+                context, 'Carbs', carbsG, 'g', Colors.green),
           ],
         ),
         onNextPressed: () {
-          _submitGoal(
-              ref, kcalRequirement, proteinKcal, fatKcal, carbsKcal, petId);
+          _submitGoal(ref, kcalRequirement, proteinG, fatG, carbsG, petId);
           Navigator.pop(context);
         },
         buttonText: 'Finish',

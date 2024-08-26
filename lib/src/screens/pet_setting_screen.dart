@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
@@ -65,7 +63,7 @@ class PetSettingsScreen extends ConsumerWidget {
                           children: [
                             _buildNutrientIndicator(
                                 context,
-                                'Kcal',
+                                'Energy',
                                 petSettingsState.dailyKcal.toDouble(),
                                 'kcal',
                                 Colors.blue,
