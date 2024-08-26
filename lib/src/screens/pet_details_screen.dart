@@ -157,7 +157,8 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                 children: [
                   const SizedBox(height: 20),
                   HealthEventCard(
-                    onCreatePressed: () => showEventTypeSelection(context, ref),
+                    onCreatePressed: () =>
+                        showEventTypeSelection(context, ref, widget.petId),
                   ),
                   const SizedBox(height: 10),
                   Padding(

@@ -4,7 +4,7 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/build_event_type_card.
 import 'package:pet_diary/src/widgets/pet_details_widgets/build_event_type_card_notes.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/functions/show_feeding_or_water_menu.dart';
 
-void showEventTypeSelection(BuildContext context, WidgetRef ref) {
+void showEventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
   var titleController = TextEditingController();
   var contentTextController = TextEditingController();
   showModalBottomSheet(
@@ -67,7 +67,7 @@ void showEventTypeSelection(BuildContext context, WidgetRef ref) {
                       buildEventTypeCard(context, 'Feeding',
                           'assets/images/health_event_card/dog_bowl_02.png',
                           () {
-                        showFeedingOrWaterMenu(context, ref);
+                        showFeedingOrWaterMenu(context, ref, petId);
                       }),
                       buildEventTypeCard(context, 'Mesuring',
                           'assets/images/health_event_card/termometr.png', () {

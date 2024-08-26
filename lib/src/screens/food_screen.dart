@@ -11,7 +11,9 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/functions/show_product
 import 'new_product_screen.dart';
 
 class FoodScreen extends ConsumerWidget {
-  const FoodScreen({super.key});
+  final String petId;
+
+  const FoodScreen({super.key, required this.petId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,8 +55,9 @@ class FoodScreen extends ConsumerWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        const PetSettingsScreen(), // Przejdź do ekranu ustawień
+                    builder: (context) => PetSettingsScreen(
+                      petId: petId,
+                    ),
                   ),
                 );
               },
@@ -186,7 +189,7 @@ class FoodScreen extends ConsumerWidget {
                       final product = filteredProducts[index];
                       return GestureDetector(
                         onTap: () {
-                          showProductDetails(context, product);
+                          showProductDetails(context, product, petId);
                         },
                         child: Container(
                           margin: const EdgeInsets.symmetric(

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/food_screen.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/functions/show_water_menu.dart';
 
-void showFeedingOrWaterMenu(BuildContext context, WidgetRef ref) {
+void showFeedingOrWaterMenu(BuildContext context, WidgetRef ref, String petId) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -21,7 +21,10 @@ void showFeedingOrWaterMenu(BuildContext context, WidgetRef ref) {
               Navigator.of(context).pop();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FoodScreen()),
+                MaterialPageRoute(
+                    builder: (context) => FoodScreen(
+                          petId: petId,
+                        )),
               );
             },
           ),
