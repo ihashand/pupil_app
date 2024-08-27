@@ -13,7 +13,3 @@ final globalProductsProvider = StreamProvider<List<ProductModel>>((ref) {
 final userProductsProvider = StreamProvider<List<ProductModel>>((ref) {
   return ref.read(productServiceProvider).getUserProductsStream();
 });
-
-final favoriteProductsProvider = StreamProvider<List<ProductModel>>((ref) {
-  return ref.read(productServiceProvider).getFavoriteProductsStream();
-});

@@ -37,4 +37,15 @@ class EatenMealService {
         .collection('eaten_meals')
         .add(meal.toMap());
   }
+
+  Future<void> deleteEatenMeal(String petId, String mealId) async {
+    await _firestore
+        .collection('app_users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('pets')
+        .doc(petId)
+        .collection('eaten_meals')
+        .doc(mealId)
+        .delete();
+  }
 }

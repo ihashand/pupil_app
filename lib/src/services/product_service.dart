@@ -33,8 +33,31 @@ class ProductService {
     return _userProductsController.stream;
   }
 
-  Stream<List<ProductModel>> getFavoriteProductsStream() {
-    return const Stream.empty();
+  Stream<List<ProductModel>> getFavoriteProductsStream(String userId) {
+    return _firestore
+        .collection('app_users')
+        .doc(userId)
+        .collection('favorites')
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<String> favoriteProductIds =
+          snapshot.docs.map((doc) => doc['productId'] as String).toList();
+
+      if (favoriteProductIds.isEmpty) {
+        return [];
+      }
+
+      var favoriteProducts =
+          await Future.wait(favoriteProductIds.map((id) async {
+        var productDoc = await _firestore.collection('products').doc(id).get();
+        if (productDoc.exists) {
+          return ProductModel.fromDocument(productDoc);
+        }
+        return null;
+      }));
+
+      return favoriteProducts.whereType<ProductModel>().toList();
+    });
   }
 
   Future<ProductModel?> getProductByBarcode(String barcode) async {

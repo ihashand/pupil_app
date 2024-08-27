@@ -21,7 +21,26 @@ class PetSettingsNotifier extends StateNotifier<PetSettingsModel?> {
 
   Future<void> _loadSettings() async {
     final settings = await _service.getPetSettings(petId);
-    state = settings;
+    if (settings == null) {
+      // If no settings found, set default settings
+      await setDefaultSettings();
+    } else {
+      state = settings;
+    }
+  }
+
+  Future<void> setDefaultSettings() async {
+    final defaultSettings = PetSettingsModel(
+      id: 'default',
+      petId: petId,
+      dailyKcal: 0,
+      proteinPercentage: 0,
+      fatPercentage: 0,
+      carbsPercentage: 0,
+      mealTypes: ['Breakfast', 'Lunch', 'Dinner'],
+    );
+    state = defaultSettings;
+    await _service.savePetSettings(defaultSettings);
   }
 
   Future<void> updateKcal(double kcal) async {

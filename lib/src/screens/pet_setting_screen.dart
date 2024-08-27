@@ -27,231 +27,208 @@ class PetSettingsScreen extends ConsumerWidget {
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: petSettingsState == null
-          ? _buildDefaultSettings(
-              context, ref) // Create default settings if none exist
-          : _buildSettingsView(context, ref, petSettingsState),
-    );
-  }
-
-  Widget _buildDefaultSettings(BuildContext context, WidgetRef ref) {
-    final settingsProvider = ref.read(petSettingsProvider(petId).notifier);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Set default settings: 3 meals (Breakfast, Lunch, Dinner) and kcal/macros to 0
-      settingsProvider.setDefaultSettings(
-        mealTypes: ['Breakfast', 'Lunch', 'Dinner'],
-        dailyKcal: 0,
-        proteinPercentage: 0,
-        fatPercentage: 0,
-        carbsPercentage: 0,
-      );
-    });
-
-    return Center(
-      child: Text(
-        'No settings found for this pet. Default settings have been applied.',
-        style: TextStyle(
-          color: Theme.of(context).primaryColorDark,
-          fontSize: 16,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildSettingsView(
-      BuildContext context, WidgetRef ref, PetSettingsState petSettingsState) {
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Daily Nutritional Goals',
+          ? Center(
+              child: Text(
+                'No settings found for this pet.',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
                   color: Theme.of(context).primaryColorDark,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(2.0, 25, 2.0, 0.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNutrientIndicator(
-                        context,
-                        'Energy',
-                        petSettingsState.dailyKcal.toDouble(),
-                        'kcal',
-                        Colors.blue,
-                        ref),
-                    _buildNutrientIndicator(
-                        context,
-                        'Protein',
-                        petSettingsState.proteinPercentage,
-                        'g',
-                        Colors.orange,
-                        ref),
-                    _buildNutrientIndicator(
-                        context,
-                        'Fat',
-                        petSettingsState.fatPercentage,
-                        'g',
-                        Colors.purple,
-                        ref),
-                    _buildNutrientIndicator(
-                        context,
-                        'Carbs',
-                        petSettingsState.carbsPercentage,
-                        'g',
-                        Colors.green,
-                        ref),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8.0, 20, 8.0, 0.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    showIntroStep(context, ref, petId);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 80.0),
-                  ),
-                  child: Text(
-                    'Smart Goal',
-                    style: TextStyle(color: Theme.of(context).primaryColorDark),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 285,
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          child: Column(
-            children: [
-              Text(
-                'Meals',
-                style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColorDark,
                 ),
               ),
-              const SizedBox(height: 16),
-              ...List.generate(petSettingsState.mealTypes.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Consumer(
-                          builder: (context, ref, _) {
-                            final controller = TextEditingController(
-                              text: petSettingsState.mealTypes[index],
-                            );
-                            return TextField(
-                              decoration: InputDecoration(
-                                labelText: 'Meal ${index + 1}',
-                                labelStyle: TextStyle(
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                              ),
-                              controller: controller,
-                              onChanged: (value) {
-                                final updatedMealTypes = List<String>.from(
-                                    petSettingsState.mealTypes);
-                                updatedMealTypes[index] = value;
-                                _updateMealTypes(ref, updatedMealTypes);
-                              },
-                            );
-                          },
+                      Text(
+                        'Daily Nutritional Goals',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColorDark,
                         ),
                       ),
-                      if (petSettingsState.mealTypes.length > 1)
-                        IconButton(
-                          icon: const Icon(Icons.delete),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(2.0, 25, 2.0, 0.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildNutrientIndicator(
+                                context,
+                                'Energy',
+                                petSettingsState.dailyKcal.toDouble(),
+                                'kcal',
+                                Colors.blue,
+                                ref),
+                            _buildNutrientIndicator(
+                                context,
+                                'Protein',
+                                petSettingsState.proteinPercentage,
+                                'g',
+                                Colors.orange,
+                                ref),
+                            _buildNutrientIndicator(
+                                context,
+                                'Fat',
+                                petSettingsState.fatPercentage,
+                                'g',
+                                Colors.purple,
+                                ref),
+                            _buildNutrientIndicator(
+                                context,
+                                'Carbs',
+                                petSettingsState.carbsPercentage,
+                                'g',
+                                Colors.green,
+                                ref),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(8.0, 20, 8.0, 0.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            showIntroStep(context, ref, petId);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12.0, horizontal: 80.0),
+                          ),
+                          child: Text(
+                            'Smart Goal',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Meals',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                           color: Theme.of(context).primaryColorDark,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: petSettingsState.mealTypes.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Consumer(
+                                    builder: (context, ref, _) {
+                                      final controller = TextEditingController(
+                                        text: petSettingsState.mealTypes[index],
+                                      );
+                                      return TextField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Meal ${index + 1}',
+                                          labelStyle: TextStyle(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
+                                          ),
+                                        ),
+                                        controller: controller,
+                                        onChanged: (value) {
+                                          final updatedMealTypes =
+                                              List<String>.from(
+                                                  petSettingsState.mealTypes);
+                                          updatedMealTypes[index] = value;
+                                          _updateMealTypes(
+                                              ref, updatedMealTypes);
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                                if (petSettingsState.mealTypes.length > 1)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    color: Theme.of(context).primaryColorDark,
+                                    onPressed: () {
+                                      final updatedMealTypes =
+                                          List<String>.from(
+                                              petSettingsState.mealTypes);
+                                      updatedMealTypes.removeAt(index);
+                                      _updateMealTypes(ref, updatedMealTypes);
+                                    },
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      Center(
+                        child: ElevatedButton(
                           onPressed: () {
                             final updatedMealTypes =
                                 List<String>.from(petSettingsState.mealTypes);
-                            updatedMealTypes.removeAt(index);
+                            updatedMealTypes.add('New Meal');
                             _updateMealTypes(ref, updatedMealTypes);
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12.0, horizontal: 60.0),
+                          ),
+                          child: Text(
+                            'Add New Meal',
+                            style: TextStyle(
+                                color: Theme.of(context).primaryColorDark),
+                          ),
                         ),
+                      ),
                     ],
                   ),
-                );
-              }),
-              if (petSettingsState.mealTypes.length < 8)
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        final updatedMealTypes =
-                            List<String>.from(petSettingsState.mealTypes);
-                        updatedMealTypes.add('New Meal');
-                        _updateMealTypes(ref, updatedMealTypes);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12.0, horizontal: 60.0),
-                      ),
-                      child: Text(
-                        'Add Meal Type',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                    ),
-                  ),
                 ),
-              if (petSettingsState.mealTypes.length == 8)
-                Text(
-                  'Maximum number of meal types reached.',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
+              ],
+            ),
     );
   }
 
@@ -356,7 +333,7 @@ class PetSettingsScreen extends ConsumerWidget {
     final settingsProvider = ref.read(petSettingsProvider(petId).notifier);
 
     switch (label.toLowerCase()) {
-      case 'energy':
+      case 'kcal':
         settingsProvider.updateKcal(newValue);
         break;
       case 'protein':

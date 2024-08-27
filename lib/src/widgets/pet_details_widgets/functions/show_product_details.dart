@@ -106,6 +106,7 @@ void showProductDetails(
                       .read(eatenMealServiceProvider)
                       .addEatenMeal(petId, eatenMeal);
 
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop(); // Close the modal
                 }
               }
