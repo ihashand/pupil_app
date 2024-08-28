@@ -1,16 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/smart_goal.dart';
 
-class PetSettingsScreen extends ConsumerWidget {
+class FoodPetSettingsScreen extends ConsumerWidget {
   final String petId;
 
-  const PetSettingsScreen({super.key, required this.petId});
+  const FoodPetSettingsScreen({super.key, required this.petId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final petSettingsState = ref.watch(petSettingsProvider(petId));
+    final foodPetSettingsState = ref.watch(petSettingsProvider(petId));
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +27,7 @@ class PetSettingsScreen extends ConsumerWidget {
         ),
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: petSettingsState == null
+      body: foodPetSettingsState == null
           ? Center(
               child: Text(
                 'No settings found for this pet.',
@@ -64,28 +65,28 @@ class PetSettingsScreen extends ConsumerWidget {
                             _buildNutrientIndicator(
                                 context,
                                 'Energy',
-                                petSettingsState.dailyKcal.toDouble(),
+                                foodPetSettingsState.dailyKcal,
                                 'kcal',
                                 Colors.blue,
                                 ref),
                             _buildNutrientIndicator(
                                 context,
                                 'Protein',
-                                petSettingsState.proteinPercentage,
+                                foodPetSettingsState.proteinPercentage,
                                 'g',
                                 Colors.orange,
                                 ref),
                             _buildNutrientIndicator(
                                 context,
                                 'Fat',
-                                petSettingsState.fatPercentage,
+                                foodPetSettingsState.fatPercentage,
                                 'g',
                                 Colors.purple,
                                 ref),
                             _buildNutrientIndicator(
                                 context,
                                 'Carbs',
-                                petSettingsState.carbsPercentage,
+                                foodPetSettingsState.carbsPercentage,
                                 'g',
                                 Colors.green,
                                 ref),
@@ -138,7 +139,7 @@ class PetSettingsScreen extends ConsumerWidget {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: petSettingsState.mealTypes.length,
+                        itemCount: foodPetSettingsState.mealTypes.length,
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -148,7 +149,8 @@ class PetSettingsScreen extends ConsumerWidget {
                                   child: Consumer(
                                     builder: (context, ref, _) {
                                       final controller = TextEditingController(
-                                        text: petSettingsState.mealTypes[index],
+                                        text: foodPetSettingsState
+                                            .mealTypes[index],
                                       );
                                       return TextField(
                                         decoration: InputDecoration(
@@ -174,7 +176,8 @@ class PetSettingsScreen extends ConsumerWidget {
                                         onChanged: (value) {
                                           final updatedMealTypes =
                                               List<String>.from(
-                                                  petSettingsState.mealTypes);
+                                                  foodPetSettingsState
+                                                      .mealTypes);
                                           updatedMealTypes[index] = value;
                                           _updateMealTypes(
                                               ref, updatedMealTypes);
@@ -183,14 +186,14 @@ class PetSettingsScreen extends ConsumerWidget {
                                     },
                                   ),
                                 ),
-                                if (petSettingsState.mealTypes.length > 1)
+                                if (foodPetSettingsState.mealTypes.length > 1)
                                   IconButton(
                                     icon: const Icon(Icons.delete),
                                     color: Theme.of(context).primaryColorDark,
                                     onPressed: () {
                                       final updatedMealTypes =
                                           List<String>.from(
-                                              petSettingsState.mealTypes);
+                                              foodPetSettingsState.mealTypes);
                                       updatedMealTypes.removeAt(index);
                                       _updateMealTypes(ref, updatedMealTypes);
                                     },
@@ -203,8 +206,8 @@ class PetSettingsScreen extends ConsumerWidget {
                       Center(
                         child: ElevatedButton(
                           onPressed: () {
-                            final updatedMealTypes =
-                                List<String>.from(petSettingsState.mealTypes);
+                            final updatedMealTypes = List<String>.from(
+                                foodPetSettingsState.mealTypes);
                             updatedMealTypes.add('New Meal');
                             _updateMealTypes(ref, updatedMealTypes);
                           },
@@ -315,6 +318,7 @@ class PetSettingsScreen extends ConsumerWidget {
                 final newValue = double.tryParse(controller.text);
                 if (newValue != null) {
                   _updateNutrientValue(ref, label, newValue);
+                  ref.refresh(petSettingsProvider(petId));
                 }
                 Navigator.of(context).pop();
               },
@@ -332,8 +336,12 @@ class PetSettingsScreen extends ConsumerWidget {
   void _updateNutrientValue(WidgetRef ref, String label, double newValue) {
     final settingsProvider = ref.read(petSettingsProvider(petId).notifier);
 
+    if (kDebugMode) {
+      print('Updating $label with value $newValue');
+    } // Debug: logowanie wartości
+
     switch (label.toLowerCase()) {
-      case 'kcal':
+      case 'energy':
         settingsProvider.updateKcal(newValue);
         break;
       case 'protein':
