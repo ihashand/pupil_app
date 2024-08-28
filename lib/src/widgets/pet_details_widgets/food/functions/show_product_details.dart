@@ -409,6 +409,15 @@ void showProductDetails(
                                       ),
                                       Column(
                                         children: [
+                                          const SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text(
+                                            '${(product.kcal * grams / 100 / settings.dailyKcal * 100).toStringAsFixed(0)}%',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
                                           Text(
                                             (product.kcal * grams / 100)
                                                 .toStringAsFixed(0),
@@ -423,12 +432,6 @@ void showProductDetails(
                                               fontSize: 12,
                                             ),
                                           ),
-                                          Text(
-                                            '${(product.kcal * grams / 100 / settings.dailyKcal * 100).toStringAsFixed(1)}%',
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
-                                          ),
                                         ],
                                       ),
                                     ],
@@ -439,7 +442,7 @@ void showProductDetails(
                               Column(
                                 children: [
                                   Text(
-                                    '${((product.carbs ?? 0) * grams / 100).toStringAsFixed(1)}%',
+                                    '${((product.carbs ?? 0) * grams / 100).toStringAsFixed(0)}%',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -448,7 +451,7 @@ void showProductDetails(
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${(product.carbs ?? 0) * grams / 100} g',
+                                    '${((product.carbs ?? 0) * grams / 100).toStringAsFixed(2)} g',
                                     style: const TextStyle(
                                       fontSize: 12,
                                     ),
@@ -466,7 +469,7 @@ void showProductDetails(
                               Column(
                                 children: [
                                   Text(
-                                    '${((product.fat ?? 0) * grams / 100).toStringAsFixed(1)}%',
+                                    '${((product.fat ?? 0) * grams / 100).toStringAsFixed(0)}%',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -475,7 +478,7 @@ void showProductDetails(
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${(product.fat ?? 0) * grams / 100} g',
+                                    '${((product.fat ?? 0) * grams / 100).toStringAsFixed(2)} g',
                                     style: const TextStyle(
                                       fontSize: 12,
                                     ),
@@ -493,7 +496,7 @@ void showProductDetails(
                               Column(
                                 children: [
                                   Text(
-                                    '${((product.protein ?? 0) * grams / 100).toStringAsFixed(1)}%',
+                                    '${((product.protein ?? 0) * grams / 100).toStringAsFixed(0)}%',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -502,7 +505,7 @@ void showProductDetails(
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${(product.protein ?? 0) * grams / 100} g',
+                                    '${((product.protein ?? 0) * grams / 100).toStringAsFixed(2)} g',
                                     style: const TextStyle(
                                       fontSize: 12,
                                     ),
