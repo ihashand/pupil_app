@@ -11,7 +11,7 @@ ThemeData lightMode = ThemeData(
   primaryColor: const Color.fromARGB(255, 255, 255, 255),
   primaryColorLight: const Color.fromARGB(255, 40, 40, 40),
   primaryColorDark: Colors.black,
-  cardColor: const Color.fromARGB(255, 214, 188, 225),
+  cardColor: const Color.fromARGB(255, 149, 207, 225),
   textTheme: ThemeData.light()
       .textTheme
       .apply(bodyColor: Colors.grey[800], displayColor: Colors.black),
