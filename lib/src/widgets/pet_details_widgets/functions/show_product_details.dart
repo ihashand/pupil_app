@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
+import 'package:pet_diary/src/providers/product_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
 import 'package:pet_diary/src/models/eaten_meal_model.dart';
 
@@ -135,14 +136,69 @@ void showProductDetails(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () => Navigator.of(context).pop(),
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text(
+                                          'Confirm Deletion',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
+                                        ),
+                                        content: Text(
+                                          'Are you sure you want to delete ${product.name}?',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            child: Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .primaryColorDark),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .primaryColorDark),
+                                            ),
+                                            onPressed: () {
+                                              ref
+                                                  .read(productServiceProvider)
+                                                  .removeProductFromAll(
+                                                      product.id);
+
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                               ),
-                              Text(
-                                product.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: Text(
+                                  product.name,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                               IconButton(

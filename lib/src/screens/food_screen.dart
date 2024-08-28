@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/eaten_meal_model.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
-import 'package:pet_diary/src/providers/favorites_poduct_provider.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
 import 'package:pet_diary/src/screens/new_product_screen.dart';
@@ -26,17 +24,14 @@ class FoodScreen extends ConsumerWidget {
     var searchController = TextEditingController();
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final selectedDate = ref.watch(selectedDateProvider);
+    final petSettings = ref.watch(petSettingsProvider(petId));
+    final eatenMealsAsyncValue = ref.watch(eatenMealsProvider(petId));
 
     final productsAsyncValue = selectedCategory == 'all'
         ? ref.watch(globalProductsProvider)
         : selectedCategory == 'my_own'
             ? ref.watch(userProductsProvider)
-            : ref.watch(favoriteProductsProvider);
-
-    final petSettings = ref.watch(petSettingsProvider(petId));
-    final eatenMealsAsyncValue = ref.watch(eatenMealsProvider(petId));
-    final favoriteProducts =
-        ref.watch(favoriteProductsProvider).asData?.value ?? [];
+            : ref.watch(userFavoriteProductsProvider);
 
     return GestureDetector(
       onTap: () {
@@ -186,7 +181,7 @@ class FoodScreen extends ConsumerWidget {
                               ref
                                   .read(selectedCategoryProvider.notifier)
                                   .state = 'favorites';
-                              ref.refresh(favoriteProductsProvider);
+                              ref.refresh(userFavoriteProductsProvider);
                             },
                             context,
                           ),
@@ -383,20 +378,10 @@ class FoodScreen extends ConsumerWidget {
                           ),
                         ),
                       );
-                    }
-
-                    final searchTerm = searchController.text.toLowerCase();
-                    final filteredProducts = products.where((product) {
-                      final productName = product.name.toLowerCase();
-                      final productBrand = product.brand?.toLowerCase() ?? '';
-                      return productName.contains(searchTerm) ||
-                          productBrand.contains(searchTerm);
-                    }).toList();
-
-                    if (filteredProducts.isEmpty) {
+                    } else if (products.isEmpty) {
                       return Center(
                         child: Text(
-                          'No products found',
+                          'No products found.',
                           style: TextStyle(
                             color: Theme.of(context).primaryColorDark,
                             fontSize: 16,
@@ -406,11 +391,12 @@ class FoodScreen extends ConsumerWidget {
                     }
 
                     return ListView.builder(
-                      itemCount: filteredProducts.length,
+                      itemCount: products.length,
                       itemBuilder: (context, index) {
-                        final product = filteredProducts[index];
-                        final isFavorite =
-                            favoriteProducts.contains(product.id);
+                        final product = products[index];
+                        final isFavorite = ref
+                            .watch(favoriteProductsNotifierProvider)
+                            .any((p) => p.id == product.id);
 
                         return GestureDetector(
                           onTap: () {
@@ -465,21 +451,10 @@ class FoodScreen extends ConsumerWidget {
                                         : Theme.of(context).primaryColorDark,
                                   ),
                                   onPressed: () {
-                                    if (isFavorite) {
-                                      ref
-                                          .read(favoriteProductServiceProvider)
-                                          .removeFavorite(
-                                              FirebaseAuth
-                                                  .instance.currentUser!.uid,
-                                              product.id);
-                                    } else {
-                                      ref
-                                          .read(favoriteProductServiceProvider)
-                                          .addFavorite(
-                                              FirebaseAuth
-                                                  .instance.currentUser!.uid,
-                                              product.id);
-                                    }
+                                    ref
+                                        .read(favoriteProductsNotifierProvider
+                                            .notifier)
+                                        .toggleFavorite(product);
                                   },
                                 ),
                               ],

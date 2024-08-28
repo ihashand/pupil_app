@@ -4,12 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 
 class ProductService {
-  final _firestore = FirebaseFirestore.instance;
-  final _globalProductsController =
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Stream Controllers
+  final StreamController<List<ProductModel>> _globalProductsController =
       StreamController<List<ProductModel>>.broadcast();
-  final _userProductsController =
+  final StreamController<List<ProductModel>> _userProductsController =
+      StreamController<List<ProductModel>>.broadcast();
+  final StreamController<List<ProductModel>> _userFavoritesController =
       StreamController<List<ProductModel>>.broadcast();
 
+  // Getters for Streams
   Stream<List<ProductModel>> getProductsStream() {
     _firestore.collection('products').snapshots().listen((snapshot) {
       _globalProductsController.add(
@@ -20,9 +25,10 @@ class ProductService {
   }
 
   Stream<List<ProductModel>> getUserProductsStream() {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
     _firestore
         .collection('app_users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .doc(userId)
         .collection('user_products')
         .snapshots()
         .listen((snapshot) {
@@ -33,33 +39,22 @@ class ProductService {
     return _userProductsController.stream;
   }
 
-  Stream<List<ProductModel>> getFavoriteProductsStream(String userId) {
-    return _firestore
+  Stream<List<ProductModel>> getUserFavoriteProductsStream() {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    _firestore
         .collection('app_users')
         .doc(userId)
         .collection('favorites')
         .snapshots()
-        .asyncMap((snapshot) async {
-      List<String> favoriteProductIds =
-          snapshot.docs.map((doc) => doc['productId'] as String).toList();
-
-      if (favoriteProductIds.isEmpty) {
-        return [];
-      }
-
-      var favoriteProducts =
-          await Future.wait(favoriteProductIds.map((id) async {
-        var productDoc = await _firestore.collection('products').doc(id).get();
-        if (productDoc.exists) {
-          return ProductModel.fromDocument(productDoc);
-        }
-        return null;
-      }));
-
-      return favoriteProducts.whereType<ProductModel>().toList();
+        .listen((snapshot) {
+      _userFavoritesController.add(
+          snapshot.docs.map((doc) => ProductModel.fromDocument(doc)).toList());
     });
+
+    return _userFavoritesController.stream;
   }
 
+  // Product Operations
   Future<ProductModel?> getProductByBarcode(String barcode) async {
     final querySnapshot = await _firestore
         .collection('products')
@@ -76,11 +71,11 @@ class ProductService {
     if (isGlobal) {
       await _firestore.collection('products').add(product.toMap());
     } else {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null) {
         await _firestore
             .collection('app_users')
-            .doc(currentUser.uid)
+            .doc(userId)
             .collection('user_products')
             .add(product.toMap());
       }
@@ -98,8 +93,71 @@ class ProductService {
     await _firestore.collection('products').doc(productId).delete();
   }
 
+  // Favorite Operations
+  Future<void> addFavoriteProduct(ProductModel product) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      await _firestore
+          .collection('app_users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(product.id)
+          .set(product.toMap());
+    }
+  }
+
+  Future<void> removeFavoriteProduct(String productId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      await _firestore
+          .collection('app_users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(productId)
+          .delete();
+    }
+  }
+
+  // New method to remove a product from all locations
+  Future<void> removeProductFromAll(String productId) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
+      // Remove from favorites if it exists
+      final favoriteDoc = await _firestore
+          .collection('app_users')
+          .doc(userId)
+          .collection('favorites')
+          .doc(productId)
+          .get();
+      if (favoriteDoc.exists) {
+        await favoriteDoc.reference.delete();
+      }
+
+      // Remove from user products if it exists
+      final userProductDoc = await _firestore
+          .collection('app_users')
+          .doc(userId)
+          .collection('user_products')
+          .doc(productId)
+          .get();
+      if (userProductDoc.exists) {
+        await userProductDoc.reference.delete();
+      }
+
+      // Remove from global products if it exists
+      final globalProductDoc =
+          await _firestore.collection('products').doc(productId).get();
+      if (globalProductDoc.exists) {
+        await globalProductDoc.reference.delete();
+      }
+    }
+  }
+
+  // Dispose Stream Controllers
   void dispose() {
     _globalProductsController.close();
     _userProductsController.close();
+    _userFavoritesController.close();
   }
 }
