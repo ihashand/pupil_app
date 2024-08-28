@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/smart_goal.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/smart_goal.dart';
 
 class PetSettingsScreen extends ConsumerWidget {
   final String petId;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/build_event_type_card.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/build_event_type_card_notes.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/functions/show_feeding_or_water_menu.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_event_type_card.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_event_type_card_notes.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_feeding_or_water_menu.dart';
 
 void showEventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
   var titleController = TextEditingController();

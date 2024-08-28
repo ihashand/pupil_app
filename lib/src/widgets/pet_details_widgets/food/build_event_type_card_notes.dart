@@ -6,7 +6,7 @@ import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/event_note_model.dart';
 import 'package:pet_diary/src/providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/build_event_type_card.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_event_type_card.dart';
 
 Widget buildEventTypeCardNotes(
     BuildContext context,

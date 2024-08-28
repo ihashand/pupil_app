@@ -25,7 +25,7 @@ import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/event_tile.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/event_tile.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {
