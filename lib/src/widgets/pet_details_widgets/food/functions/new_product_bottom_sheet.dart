@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
 
-void showNewProductBottomSheet(BuildContext context, WidgetRef ref) {
+void newProductBottomSheet(BuildContext context, WidgetRef ref) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,

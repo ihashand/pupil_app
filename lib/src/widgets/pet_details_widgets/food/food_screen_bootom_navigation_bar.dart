@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/screens/new_product_screen.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/new_product_bottom_sheet.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/new_recipe_bottom_sheet.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_action_button.dart';
 
 SizedBox foodScreenBootomNavigationBar(BuildContext context, WidgetRef ref) {
@@ -20,7 +21,7 @@ SizedBox foodScreenBootomNavigationBar(BuildContext context, WidgetRef ref) {
                 context: context,
                 small: true,
                 onTap: () {
-                  showNewProductBottomSheet(context, ref);
+                  newProductBottomSheet(context, ref);
                 },
               ),
             ),
@@ -34,7 +35,9 @@ SizedBox foodScreenBootomNavigationBar(BuildContext context, WidgetRef ref) {
                 context: context,
                 small: true,
                 onTap: () {
-                  // Implement navigation to New Recipe Screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NewRecipeScreen()),
+                  );
                 },
               ),
             ),
