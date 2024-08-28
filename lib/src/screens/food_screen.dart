@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/models/eaten_meal_model.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
@@ -10,6 +11,7 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_macro_circl
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/food_screen_app_bar.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/food_screen_bootom_navigation_bar.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/_is_same_day.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_delete_confirmation_dialog.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_meal_details.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_product_details.dart';
 
@@ -233,75 +235,88 @@ class FoodScreen extends ConsumerWidget {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              meal.name,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                meal.name,
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Theme.of(context)
+                                                      .primaryColorDark,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                            ),
-                                            Text(
-                                              '${meal.kcal.toStringAsFixed(1)} kcal, ${meal.grams.toStringAsFixed(1)} g',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: Theme.of(context)
-                                                    .primaryColorDark
-                                                    .withOpacity(0.8),
+                                              Text(
+                                                '${meal.kcal.toStringAsFixed(1)} kcal, ${meal.grams.toStringAsFixed(1)} g',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Theme.of(context)
+                                                      .primaryColorDark
+                                                      .withOpacity(0.8),
+                                                ),
                                               ),
-                                            ),
-                                            if (meal.fat != null ||
-                                                meal.carbs != null ||
-                                                meal.protein != null)
-                                              Row(
-                                                children: [
-                                                  if (meal.fat != null)
-                                                    Text(
-                                                      'Fat: ${meal.fat?.toStringAsFixed(1)}g  ',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark
-                                                            .withOpacity(0.8),
+                                              if (meal.fat != null ||
+                                                  meal.carbs != null ||
+                                                  meal.protein != null)
+                                                Row(
+                                                  children: [
+                                                    if (meal.fat != null)
+                                                      Text(
+                                                        'Fat: ${meal.fat?.toStringAsFixed(1)}g  ',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColorDark
+                                                              .withOpacity(0.8),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  if (meal.carbs != null)
-                                                    Text(
-                                                      'Carbs: ${meal.carbs?.toStringAsFixed(1)}g  ',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark
-                                                            .withOpacity(0.8),
+                                                    if (meal.carbs != null)
+                                                      Text(
+                                                        'Carbs: ${meal.carbs?.toStringAsFixed(1)}g  ',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColorDark
+                                                              .withOpacity(0.8),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  if (meal.protein != null)
-                                                    Text(
-                                                      'Protein: ${meal.protein?.toStringAsFixed(1)}g',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark
-                                                            .withOpacity(0.8),
+                                                    if (meal.protein != null)
+                                                      Text(
+                                                        'Protein: ${meal.protein?.toStringAsFixed(1)}g',
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColorDark
+                                                              .withOpacity(0.8),
+                                                        ),
                                                       ),
-                                                    ),
-                                                ],
-                                              ),
-                                          ],
+                                                  ],
+                                                ),
+                                            ],
+                                          ),
                                         ),
-                                        CircleAvatar(
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .surface,
-                                          child: Icon(
-                                            Icons.delete,
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
+                                        GestureDetector(
+                                          onTap: () {
+                                            showDeleteConfirmationDialog(
+                                                context, ref, meal, petId);
+                                          },
+                                          child: CircleAvatar(
+                                            backgroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .surface,
+                                            child: Icon(
+                                              Icons.delete,
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
                                           ),
                                         ),
                                       ],
