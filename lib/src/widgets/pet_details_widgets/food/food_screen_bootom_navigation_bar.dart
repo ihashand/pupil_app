@@ -4,7 +4,8 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/new_pro
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/new_recipe_bottom_sheet.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_action_button.dart';
 
-SizedBox foodScreenBootomNavigationBar(BuildContext context, WidgetRef ref) {
+SizedBox foodScreenBootomNavigationBar(
+    BuildContext context, WidgetRef ref, String petId) {
   return SizedBox(
     height: kBottomNavigationBarHeight * 2,
     child: BottomAppBar(
@@ -36,7 +37,7 @@ SizedBox foodScreenBootomNavigationBar(BuildContext context, WidgetRef ref) {
                 small: true,
                 onTap: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const NewRecipeScreen()),
+                    MaterialPageRoute(builder: (_) => NewRecipeScreen(petId)),
                   );
                 },
               ),

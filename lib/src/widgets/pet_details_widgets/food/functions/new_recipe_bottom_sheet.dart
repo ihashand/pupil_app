@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/food_recipe_model.dart';
@@ -6,7 +8,9 @@ import 'package:pet_diary/src/providers/food_recipe_service_provider.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
 
 class NewRecipeScreen extends ConsumerStatefulWidget {
-  const NewRecipeScreen({super.key});
+  const NewRecipeScreen(this.petId, {super.key});
+
+  final String petId;
 
   @override
   createState() => _NewRecipeScreenState();
@@ -50,7 +54,8 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
 
       final recipeService = ref.read(foodRecipeServiceProvider);
 
-      await recipeService.addFoodRecipe(newRecipe, isGlobal: isGlobal);
+      await recipeService.addFoodRecipe(newRecipe, widget.petId,
+          isGlobal: isGlobal);
 
       Navigator.of(context).pop();
     }
@@ -145,7 +150,6 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
 
   Widget buildNutrientTable(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: const BorderRadius.only(
@@ -156,18 +160,24 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              buildNutrientColumn(context, 'Kcal',
-                  calculateTotalKcal().roundToDouble(), Colors.red),
-              buildNutrientColumn(
-                  context, 'Protein', calculateTotalProtein(), Colors.orange),
-              buildNutrientColumn(
-                  context, 'Fat', calculateTotalFat(), Colors.purple),
-              buildNutrientColumn(
-                  context, 'Carbs', calculateTotalCarbs(), Colors.green),
-            ],
+          Divider(
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                buildNutrientColumn(context, 'Kcal',
+                    calculateTotalKcal().roundToDouble(), Colors.red),
+                buildNutrientColumn(
+                    context, 'Protein', calculateTotalProtein(), Colors.orange),
+                buildNutrientColumn(
+                    context, 'Fat', calculateTotalFat(), Colors.purple),
+                buildNutrientColumn(
+                    context, 'Carbs', calculateTotalCarbs(), Colors.green),
+              ],
+            ),
           ),
         ],
       ),
@@ -199,7 +209,7 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 11,
           ),
         ),
       ],
@@ -334,45 +344,45 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                         final amount =
                             double.tryParse(ingredient['amount'].text) ?? 0.0;
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 5.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      product.name,
-                                      style: TextStyle(
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    product.name,
+                                    style: TextStyle(
                                         color:
                                             Theme.of(context).primaryColorDark,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    color: Theme.of(context).primaryColorDark,
-                                    onPressed: () => removeIngredient(index),
-                                  ),
-                                ],
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16.0),
-                                child: Text(
-                                  '${(product.kcal * (amount / 100)).round()} kcal, '
-                                  'Protein: ${((product.protein ?? 0) * (amount / 100)).toStringAsFixed(2)}g, '
-                                  'Fat: ${((product.fat ?? 0) * (amount / 100)).toStringAsFixed(2)}g, '
-                                  'Carbs: ${((product.carbs ?? 0) * (amount / 100)).toStringAsFixed(2)}g',
-                                  style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontSize: 14,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
+                                IconButton(
+                                  iconSize: 25,
+                                  icon: const Icon(Icons.delete),
+                                  color: Theme.of(context)
+                                      .primaryColorDark
+                                      .withOpacity(0.7),
+                                  onPressed: () => removeIngredient(index),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${(product.kcal * (amount / 100)).round()} kcal  '
+                              '${((product.protein ?? 0) * (amount / 100)).toStringAsFixed(2)} protein  '
+                              '${((product.fat ?? 0) * (amount / 100)).toStringAsFixed(2)} fat  '
+                              '${((product.carbs ?? 0) * (amount / 100)).toStringAsFixed(2)} carbs',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 13,
                               ),
-                            ],
-                          ),
+                            ),
+                            Divider(
+                              color: Theme.of(context).colorScheme.secondary,
+                            )
+                          ],
                         );
                       }),
                       SizedBox(
@@ -421,7 +431,6 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10),
                       ...preparationStepControllers
                           .asMap()
                           .entries
@@ -481,13 +490,16 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text('Add Step'),
+                          child: const Text('Add Steps'),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(
+                height: 10,
+              )
             ],
           ),
         ),
@@ -542,24 +554,29 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top: 15.0, left: 25.0, right: 10),
                           child: Text(
                             product.name,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
-                            textAlign: TextAlign.center,
+                            textAlign: TextAlign.left,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
                           ),
                         ),
-                        IconButton(
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0, top: 15),
+                        child: IconButton(
+                          iconSize: 27,
                           icon: const Icon(Icons.check),
                           onPressed: () {
                             double? amount =
@@ -570,8 +587,8 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                             }
                           },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   Divider(
                     color: Theme.of(context).colorScheme.secondary,
@@ -623,41 +640,97 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.fromLTRB(16.0, 16, 16, 28),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Text(
-                          'Kcal: ${kcal.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          children: [
+                            Text(
+                              kcal.toStringAsFixed(0),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                'Kcal',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Protein: ${(protein % 1 == 0 ? protein.toStringAsFixed(0) : protein.toStringAsFixed(2))}g',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          children: [
+                            Text(
+                              '${(protein % 1 == 0 ? protein.toStringAsFixed(0) : protein.toStringAsFixed(2))}g',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                'Protein',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Fat: ${(fat % 1 == 0 ? fat.toStringAsFixed(0) : fat.toStringAsFixed(2))}g',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.purple,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          children: [
+                            Text(
+                              '${(fat % 1 == 0 ? fat.toStringAsFixed(0) : fat.toStringAsFixed(2))}g',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.purple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                'Fat',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Carbs: ${(carbs % 1 == 0 ? carbs.toStringAsFixed(0) : carbs.toStringAsFixed(2))}g',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          children: [
+                            Text(
+                              '${(carbs % 1 == 0 ? carbs.toStringAsFixed(0) : carbs.toStringAsFixed(2))}g',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                'Carbs',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

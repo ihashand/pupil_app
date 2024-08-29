@@ -457,7 +457,8 @@ class FoodScreen extends ConsumerWidget {
                 ),
             ],
           ),
-          bottomNavigationBar: foodScreenBootomNavigationBar(context, ref),
+          bottomNavigationBar:
+              foodScreenBootomNavigationBar(context, ref, petId),
         ));
   }
 }

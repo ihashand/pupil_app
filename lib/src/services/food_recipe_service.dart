@@ -6,7 +6,7 @@ class FoodRecipeService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
 
-  Future<void> addFoodRecipe(FoodRecipeModel recipe,
+  Future<void> addFoodRecipe(FoodRecipeModel recipe, String petId,
       {bool isGlobal = true}) async {
     if (isGlobal) {
       await _firestore.collection('global_recipes').add(recipe.toMap());
@@ -14,7 +14,9 @@ class FoodRecipeService {
       if (_currentUser != null) {
         await _firestore
             .collection('app_users')
-            .doc(_currentUser.uid)
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection('pets')
+            .doc(petId)
             .collection('user_recipes')
             .add(recipe.toMap());
       }
