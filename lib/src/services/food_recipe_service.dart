@@ -14,7 +14,7 @@ class FoodRecipeService {
       if (_currentUser != null) {
         await _firestore
             .collection('app_users')
-            .doc(_currentUser!.uid)
+            .doc(_currentUser.uid)
             .collection('user_recipes')
             .add(recipe.toMap());
       }

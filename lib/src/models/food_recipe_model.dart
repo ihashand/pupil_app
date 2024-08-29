@@ -4,6 +4,10 @@ class FoodRecipeModel {
   final List<String> ingredients;
   final List<String> preparationSteps;
   final int? preparationTime;
+  final double totalKcal;
+  final double totalProtein;
+  final double totalFat;
+  final double totalCarbs;
 
   FoodRecipeModel({
     required this.id,
@@ -11,6 +15,10 @@ class FoodRecipeModel {
     required this.ingredients,
     required this.preparationSteps,
     this.preparationTime,
+    required this.totalKcal,
+    required this.totalProtein,
+    required this.totalFat,
+    required this.totalCarbs,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +28,10 @@ class FoodRecipeModel {
       'ingredients': ingredients,
       'preparationSteps': preparationSteps,
       'preparationTime': preparationTime,
+      'totalKcal': totalKcal,
+      'totalProtein': totalProtein,
+      'totalFat': totalFat,
+      'totalCarbs': totalCarbs,
     };
   }
 
@@ -30,6 +42,10 @@ class FoodRecipeModel {
       ingredients: List<String>.from(map['ingredients']),
       preparationSteps: List<String>.from(map['preparationSteps']),
       preparationTime: map['preparationTime'],
+      totalKcal: map['totalKcal'],
+      totalProtein: map['totalProtein'],
+      totalFat: map['totalFat'],
+      totalCarbs: map['totalCarbs'],
     );
   }
 }
