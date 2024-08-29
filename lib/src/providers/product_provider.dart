@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/product_model.dart';
+import 'package:pet_diary/src/providers/food_recipe_provider.dart';
 import 'package:pet_diary/src/services/product_service.dart';
 
 final productServiceProvider = Provider<ProductService>((ref) {
@@ -20,8 +21,9 @@ final userFavoriteProductsProvider = StreamProvider<List<ProductModel>>((ref) {
 
 class FavoriteProductsNotifier extends StateNotifier<List<ProductModel>> {
   final ProductService _productService;
+  final Ref ref;
 
-  FavoriteProductsNotifier(this._productService) : super([]) {
+  FavoriteProductsNotifier(this._productService, this.ref) : super([]) {
     _loadFavoriteProducts();
   }
 
@@ -39,6 +41,9 @@ class FavoriteProductsNotifier extends StateNotifier<List<ProductModel>> {
       await _productService.addFavoriteProduct(product);
       state = [...state, product];
     }
+    ref.refresh(
+        userFavoriteProductsProvider); // Odświeżenie ulubionych produktów
+    ref.refresh(combinedFavoritesProvider); // Odświeżenie łączonych ulubionych
   }
 
   bool isFavorite(ProductModel product) {
@@ -49,5 +54,5 @@ class FavoriteProductsNotifier extends StateNotifier<List<ProductModel>> {
 final favoriteProductsNotifierProvider =
     StateNotifierProvider<FavoriteProductsNotifier, List<ProductModel>>((ref) {
   final productService = ref.read(productServiceProvider);
-  return FavoriteProductsNotifier(productService);
+  return FavoriteProductsNotifier(productService, ref);
 });
