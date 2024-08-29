@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/product_model.dart';
+import 'package:pet_diary/src/providers/food_recipe_provider.dart';
+import 'package:pet_diary/src/providers/product_provider.dart';
 
 class ProductService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -80,6 +83,11 @@ class ProductService {
             .add(product.toMap());
       }
     }
+    // Refresh relevant providers
+    final container = ProviderContainer();
+    container.refresh(globalProductsProvider);
+    container.refresh(userProductsProvider);
+    container.refresh(combinedAllProvider);
   }
 
   Future<void> updateProduct(ProductModel product) async {

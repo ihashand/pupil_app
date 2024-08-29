@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
+import 'package:pet_diary/src/providers/food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
@@ -35,6 +36,12 @@ class FoodScreen extends ConsumerWidget {
             ? ref.watch(userProductsProvider)
             : ref.watch(userFavoriteProductsProvider);
 
+    final recipesAsyncValue = selectedCategory == 'all_recipes'
+        ? ref.watch(globalRecipesProvider)
+        : selectedCategory == 'my_recipes'
+            ? ref.watch(userRecipesProvider)
+            : ref.watch(userFavoriteRecipesProvider);
+
     return GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
@@ -68,7 +75,7 @@ class FoodScreen extends ConsumerWidget {
                         child: TextField(
                           controller: searchController,
                           decoration: InputDecoration(
-                            hintText: 'Search products...',
+                            hintText: 'Search...',
                             prefixIcon: Icon(Icons.search,
                                 color: Theme.of(context).primaryColorDark),
                             suffixIcon: IconButton(
@@ -145,6 +152,48 @@ class FoodScreen extends ConsumerWidget {
                                     .read(selectedCategoryProvider.notifier)
                                     .state = 'favorites';
                                 ref.refresh(userFavoriteProductsProvider);
+                              },
+                              context,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 40.0),
+                            child: buildCategorySelector(
+                              'All Recipes',
+                              selectedCategory == 'all_recipes',
+                              () {
+                                ref
+                                    .read(selectedCategoryProvider.notifier)
+                                    .state = 'all_recipes';
+                                ref.refresh(globalRecipesProvider);
+                              },
+                              context,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 40.0),
+                            child: buildCategorySelector(
+                              'My Recipes',
+                              selectedCategory == 'my_recipes',
+                              () {
+                                ref
+                                    .read(selectedCategoryProvider.notifier)
+                                    .state = 'my_recipes';
+                                ref.refresh(userRecipesProvider);
+                              },
+                              context,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 40.0),
+                            child: buildCategorySelector(
+                              'Favorite Recipes',
+                              selectedCategory == 'favorite_recipes',
+                              () {
+                                ref
+                                    .read(selectedCategoryProvider.notifier)
+                                    .state = 'favorite_recipes';
+                                ref.refresh(userFavoriteRecipesProvider);
                               },
                               context,
                             ),
@@ -333,6 +382,123 @@ class FoodScreen extends ConsumerWidget {
                     error: (error, stack) => Center(
                       child: Text(
                         'Error loading meals',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              else if (selectedCategory == 'all_recipes' ||
+                  selectedCategory == 'my_recipes' ||
+                  selectedCategory == 'favorite_recipes')
+                Expanded(
+                  child: recipesAsyncValue.when(
+                    data: (recipes) {
+                      if (recipes.isEmpty &&
+                          selectedCategory == 'favorite_recipes') {
+                        return Center(
+                          child: Text(
+                            'No favorite recipes yet. Tap the heart icon to add some!',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      } else if (recipes.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'No recipes found.',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        itemCount: recipes.length,
+                        itemBuilder: (context, index) {
+                          final recipe = recipes[index];
+                          final isFavorite = ref
+                              .watch(favoriteRecipesNotifierProvider)
+                              .any((r) => r.id == recipe.id);
+
+                          return GestureDetector(
+                            onTap: () {
+                              // Show recipe details
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 5.0, horizontal: 16.0),
+                              padding: const EdgeInsets.all(14.0),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          recipe.name,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                        Text(
+                                          '${recipe.totalKcal.toStringAsFixed(1)} kcal',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Theme.of(context)
+                                                .primaryColorDark
+                                                .withOpacity(0.8),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: isFavorite
+                                          ? Colors.red
+                                          : Theme.of(context).primaryColorDark,
+                                    ),
+                                    onPressed: () {
+                                      ref
+                                          .read(favoriteRecipesNotifierProvider
+                                              .notifier)
+                                          .toggleFavorite(recipe);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stack) => Center(
+                      child: Text(
+                        'Error loading recipes',
                         style: TextStyle(
                           color: Theme.of(context).primaryColorDark,
                           fontSize: 16,

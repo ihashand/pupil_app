@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/food_recipe_model.dart';
+import 'package:pet_diary/src/providers/food_recipe_provider.dart';
 
 class FoodRecipeService {
   final _firestore = FirebaseFirestore.instance;
@@ -14,12 +17,66 @@ class FoodRecipeService {
       if (_currentUser != null) {
         await _firestore
             .collection('app_users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .collection('pets')
-            .doc(petId)
+            .doc(_currentUser.uid)
             .collection('user_recipes')
             .add(recipe.toMap());
       }
     }
+    final container = ProviderContainer();
+    container.refresh(globalRecipesProvider);
+    container.refresh(userRecipesProvider);
+    container.refresh(combinedAllProvider);
+  }
+
+  Stream<List<FoodRecipeModel>> getGlobalRecipesStream() {
+    return _firestore.collection('global_recipes').snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => FoodRecipeModel.fromMap(doc.data()))
+          .toList();
+    });
+  }
+
+  Stream<List<FoodRecipeModel>> getUserRecipesStream() {
+    return _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('user_recipes')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => FoodRecipeModel.fromMap(doc.data()))
+          .toList();
+    });
+  }
+
+  Stream<List<FoodRecipeModel>> getUserFavoriteRecipesStream() {
+    return _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('favorites_recipes')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => FoodRecipeModel.fromMap(doc.data()))
+          .toList();
+    });
+  }
+
+  Future<void> addFavoriteRecipe(FoodRecipeModel recipe) async {
+    await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('favorites_recipes')
+        .doc(recipe.id)
+        .set(recipe.toMap());
+  }
+
+  Future<void> removeFavoriteRecipe(String recipeId) async {
+    await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('favorites_recipes')
+        .doc(recipeId)
+        .delete();
   }
 }

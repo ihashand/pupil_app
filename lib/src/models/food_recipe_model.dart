@@ -8,6 +8,7 @@ class FoodRecipeModel {
   final double totalProtein;
   final double totalFat;
   final double totalCarbs;
+  bool isFavorite;
 
   FoodRecipeModel({
     required this.id,
@@ -19,6 +20,7 @@ class FoodRecipeModel {
     required this.totalProtein,
     required this.totalFat,
     required this.totalCarbs,
+    this.isFavorite = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +34,7 @@ class FoodRecipeModel {
       'totalProtein': totalProtein,
       'totalFat': totalFat,
       'totalCarbs': totalCarbs,
+      'isFavorite': isFavorite,
     };
   }
 
@@ -46,6 +49,7 @@ class FoodRecipeModel {
       totalProtein: map['totalProtein'],
       totalFat: map['totalFat'],
       totalCarbs: map['totalCarbs'],
+      isFavorite: map['isFavorite'] ?? false,
     );
   }
 }
