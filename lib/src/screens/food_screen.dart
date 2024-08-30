@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/eaten_meal_model.dart';
 import 'package:pet_diary/src/models/food_recipe_model.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
@@ -17,6 +16,7 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/_is_sam
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_delete_confirmation_dialog.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_meal_details.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_product_details.dart';
+import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_recipe_details.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
@@ -32,21 +32,21 @@ class FoodScreen extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final petSettings = ref.watch(petSettingsProvider(petId));
 
-    Stream<List<ProductModel>> productsStream;
-    Stream<List<FoodRecipeModel>> recipesStream;
+    AsyncValue<List<ProductModel>> productsAsyncValue;
+    AsyncValue<List<FoodRecipeModel>> recipesAsyncValue;
 
     if (selectedCategory == 'all') {
-      productsStream = ref.refresh(globalProductsProvider.stream);
-      recipesStream = ref.refresh(globalRecipesProvider.stream);
+      productsAsyncValue = ref.watch(globalProductsProvider);
+      recipesAsyncValue = ref.watch(globalRecipesProvider);
     } else if (selectedCategory == 'my_own') {
-      productsStream = ref.refresh(userProductsProvider.stream);
-      recipesStream = ref.refresh(userRecipesProvider.stream);
+      productsAsyncValue = ref.watch(userProductsProvider);
+      recipesAsyncValue = ref.watch(userRecipesProvider);
     } else if (selectedCategory == 'favorites') {
-      productsStream = ref.refresh(userFavoriteProductsProvider.stream);
-      recipesStream = ref.refresh(userFavoriteRecipesProvider.stream);
+      productsAsyncValue = ref.watch(userFavoriteProductsProvider);
+      recipesAsyncValue = ref.watch(userFavoriteRecipesProvider);
     } else {
-      productsStream = Stream.value([]);
-      recipesStream = Stream.value([]);
+      productsAsyncValue = const AsyncValue.data([]);
+      recipesAsyncValue = const AsyncValue.data([]);
     }
 
     return GestureDetector(
@@ -95,7 +95,8 @@ class FoodScreen extends ConsumerWidget {
                           border: InputBorder.none,
                         ),
                         style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
+                          color: Theme.of(context).primaryColorDark,
+                        ),
                         textAlignVertical: TextAlignVertical.center,
                       ),
                     ),
@@ -175,223 +176,16 @@ class FoodScreen extends ConsumerWidget {
             const SizedBox(height: 5),
             if (selectedCategory == 'menu')
               Expanded(
-                child: StreamBuilder<List<EatenMealModel>>(
-                  stream: ref.watch(eatenMealsProvider(petId).stream),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Error loading meals',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No meals found for the selected date.',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    }
-
-                    final mealsForSelectedDate = snapshot.data!
-                        .where((meal) => isSameDay(meal.date, selectedDate))
-                        .toList();
-
-                    if (mealsForSelectedDate.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No meals found for the selected date.',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    }
-
-                    if (petSettings == null || petSettings.mealTypes.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No meal categories found. Please set up your meal types in settings.',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: 16,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return ListView(
-                      children: petSettings.mealTypes.map((mealType) {
-                        final mealsForType = mealsForSelectedDate
-                            .where((meal) => meal.mealType == mealType)
+                child: ref.watch(eatenMealsProvider(petId)).when(
+                      data: (meals) {
+                        final mealsForSelectedDate = meals
+                            .where((meal) => isSameDay(meal.date, selectedDate))
                             .toList();
 
-                        return Theme(
-                          data: Theme.of(context)
-                              .copyWith(dividerColor: Colors.transparent),
-                          child: ExpansionTile(
-                            initiallyExpanded: true,
-                            title: Text(
-                              mealType,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                            ),
-                            children: mealsForType.map((meal) {
-                              return GestureDetector(
-                                onTap: () {
-                                  showMealDetails(context, meal, ref, petId);
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 5.0, horizontal: 16.0),
-                                  padding: const EdgeInsets.all(14.0),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(12.0),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flexible(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              meal.name,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            Text(
-                                              '${meal.kcal.toStringAsFixed(1)} kcal, ${meal.grams.toStringAsFixed(1)} g',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: Theme.of(context)
-                                                    .primaryColorDark
-                                                    .withOpacity(0.8),
-                                              ),
-                                            ),
-                                            if (meal.fat != null ||
-                                                meal.carbs != null ||
-                                                meal.protein != null)
-                                              Row(
-                                                children: [
-                                                  if (meal.fat != null)
-                                                    Text(
-                                                      'Fat: ${meal.fat?.toStringAsFixed(1)}g  ',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark
-                                                            .withOpacity(0.8),
-                                                      ),
-                                                    ),
-                                                  if (meal.carbs != null)
-                                                    Text(
-                                                      'Carbs: ${meal.carbs?.toStringAsFixed(1)}g  ',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark
-                                                            .withOpacity(0.8),
-                                                      ),
-                                                    ),
-                                                  if (meal.protein != null)
-                                                    Text(
-                                                      'Protein: ${meal.protein?.toStringAsFixed(1)}g',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: Theme.of(context)
-                                                            .primaryColorDark
-                                                            .withOpacity(0.8),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          showDeleteConfirmationDialog(
-                                              context, ref, meal, petId);
-                                        },
-                                        child: CircleAvatar(
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .surface,
-                                          child: Icon(
-                                            Icons.delete,
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-              )
-            else
-              Expanded(
-                child: StreamBuilder<List<ProductModel>>(
-                  stream: productsStream,
-                  builder: (context, productsSnapshot) {
-                    return StreamBuilder<List<FoodRecipeModel>>(
-                      stream: recipesStream,
-                      builder: (context, recipesSnapshot) {
-                        if (productsSnapshot.connectionState ==
-                                ConnectionState.waiting ||
-                            recipesSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        } else if (productsSnapshot.hasError ||
-                            recipesSnapshot.hasError) {
+                        if (mealsForSelectedDate.isEmpty) {
                           return Center(
                             child: Text(
-                              'Error loading items',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16,
-                              ),
-                            ),
-                          );
-                        } else if (!productsSnapshot.hasData &&
-                            !recipesSnapshot.hasData) {
-                          return Center(
-                            child: Text(
-                              selectedCategory == 'favorites'
-                                  ? 'No favorites yet. Tap the heart icon to add some!'
-                                  : 'No items found.',
+                              'No meals found for the selected date.',
                               style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontSize: 16,
@@ -400,10 +194,177 @@ class FoodScreen extends ConsumerWidget {
                           );
                         }
 
-                        final combinedItems = [
-                          ...?productsSnapshot.data,
-                          ...?recipesSnapshot.data,
-                        ];
+                        if (petSettings == null ||
+                            petSettings.mealTypes.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No meal categories found. Please set up your meal types in settings.',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                                fontSize: 16,
+                              ),
+                            ),
+                          );
+                        }
+
+                        return ListView(
+                          children: petSettings.mealTypes.map((mealType) {
+                            final mealsForType = mealsForSelectedDate
+                                .where((meal) => meal.mealType == mealType)
+                                .toList();
+
+                            return Theme(
+                              data: Theme.of(context)
+                                  .copyWith(dividerColor: Colors.transparent),
+                              child: ExpansionTile(
+                                initiallyExpanded: true,
+                                title: Text(
+                                  mealType,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                children: mealsForType.map((meal) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      showMealDetails(
+                                          context, meal, ref, petId);
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 5.0, horizontal: 16.0),
+                                      padding: const EdgeInsets.all(14.0),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Flexible(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  meal.name,
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Theme.of(context)
+                                                        .primaryColorDark,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  '${meal.kcal.toStringAsFixed(1)} kcal, ${meal.grams.toStringAsFixed(1)} g',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: Theme.of(context)
+                                                        .primaryColorDark
+                                                        .withOpacity(0.8),
+                                                  ),
+                                                ),
+                                                if (meal.fat != null ||
+                                                    meal.carbs != null ||
+                                                    meal.protein != null)
+                                                  Row(
+                                                    children: [
+                                                      if (meal.fat != null)
+                                                        Text(
+                                                          'Fat: ${meal.fat?.toStringAsFixed(1)}g  ',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .primaryColorDark
+                                                                .withOpacity(
+                                                                    0.8),
+                                                          ),
+                                                        ),
+                                                      if (meal.carbs != null)
+                                                        Text(
+                                                          'Carbs: ${meal.carbs?.toStringAsFixed(1)}g  ',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .primaryColorDark
+                                                                .withOpacity(
+                                                                    0.8),
+                                                          ),
+                                                        ),
+                                                      if (meal.protein != null)
+                                                        Text(
+                                                          'Protein: ${meal.protein?.toStringAsFixed(1)}g',
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .primaryColorDark
+                                                                .withOpacity(
+                                                                    0.8),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              showDeleteConfirmationDialog(
+                                                  context, ref, meal, petId);
+                                            },
+                                            child: CircleAvatar(
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .surface,
+                                              child: Icon(
+                                                Icons.delete,
+                                                color: Theme.of(context)
+                                                    .primaryColorDark,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(
+                        child: Text(
+                          'Error loading meals',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+              )
+            else
+              Expanded(
+                child: productsAsyncValue.when(
+                  data: (products) {
+                    return recipesAsyncValue.when(
+                      data: (recipes) {
+                        final combinedItems = [...products, ...recipes];
 
                         if (combinedItems.isEmpty) {
                           return Center(
@@ -500,7 +461,7 @@ class FoodScreen extends ConsumerWidget {
 
                               return GestureDetector(
                                 onTap: () {
-                                  // Show recipe details
+                                  showRecipeDetails(context, item, petId);
                                 },
                                 child: Container(
                                   margin: const EdgeInsets.symmetric(
@@ -571,8 +532,30 @@ class FoodScreen extends ConsumerWidget {
                           },
                         );
                       },
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(
+                        child: Text(
+                          'Error loading recipes',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     );
                   },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(
+                    child: Text(
+                      'Error loading products',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
               ),
           ],

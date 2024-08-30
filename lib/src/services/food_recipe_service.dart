@@ -79,4 +79,32 @@ class FoodRecipeService {
         .doc(recipeId)
         .delete();
   }
+
+  Future<void> removeRecipeFromAll(String recipeId) async {
+    final globalRecipeDoc =
+        await _firestore.collection('global_recipes').doc(recipeId).get();
+    if (globalRecipeDoc.exists) {
+      await globalRecipeDoc.reference.delete();
+    }
+
+    final userRecipeDoc = await _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('user_recipes')
+        .doc(recipeId)
+        .get();
+    if (userRecipeDoc.exists) {
+      await userRecipeDoc.reference.delete();
+    }
+
+    final favoriteRecipeDoc = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
+        .collection('favorites_recipes')
+        .doc(recipeId)
+        .get();
+    if (favoriteRecipeDoc.exists) {
+      await favoriteRecipeDoc.reference.delete();
+    }
+  }
 }
