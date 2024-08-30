@@ -256,6 +256,7 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       TextFormField(
+                        cursorColor: Theme.of(context).primaryColorDark,
                         controller: nameController,
                         decoration: InputDecoration(
                           labelText: 'Recipe Name',
@@ -282,6 +283,7 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
+                        cursorColor: Theme.of(context).primaryColorDark,
                         controller: preparationTimeController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -443,6 +445,8 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                             children: [
                               Expanded(
                                 child: TextFormField(
+                                  cursorColor:
+                                      Theme.of(context).primaryColorDark,
                                   controller: controller,
                                   decoration: InputDecoration(
                                     labelText: 'Step ${index + 1}',
@@ -601,6 +605,7 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                       children: [
                         Expanded(
                           child: TextField(
+                            cursorColor: Theme.of(context).primaryColorDark,
                             controller: amountController,
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
