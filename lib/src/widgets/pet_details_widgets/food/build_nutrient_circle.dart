@@ -44,7 +44,6 @@ Widget buildNutrientCircle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
               Text(
                 label,
                 style: const TextStyle(
@@ -52,19 +51,16 @@ Widget buildNutrientCircle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              Text(
+                '${(fillPercentage * 100).toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
             ],
           ),
         ],
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 4.0),
-        child: Text(
-          '${(fillPercentage * 100).toStringAsFixed(1)}%',
-          style: TextStyle(
-            fontSize: 13,
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
       ),
     ],
   );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:pet_diary/src/models/food_recipe_model.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
@@ -19,18 +20,45 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_pr
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_recipe_details.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final searchQueryProvider = StateProvider<String>((ref) => '');
 
-class FoodScreen extends ConsumerWidget {
+class FoodScreen extends ConsumerStatefulWidget {
   final String petId;
 
   const FoodScreen({super.key, required this.petId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    var searchController = TextEditingController();
+  createState() => _FoodScreenState();
+}
+
+class _FoodScreenState extends ConsumerState<FoodScreen> {
+  TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen to search controller changes
+    searchController.addListener(() {
+      ref.read(searchQueryProvider.notifier).state = searchController.text;
+    });
+  }
+
+  Future<void> scanBarcode() async {
+    var result = await BarcodeScanner.scan();
+    if (result.type == ResultType.Barcode) {
+      setState(() {
+        searchController.text = result.rawContent;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final selectedDate = ref.watch(selectedDateProvider);
-    final petSettings = ref.watch(petSettingsProvider(petId));
+    final petSettings = ref.watch(petSettingsProvider(widget.petId));
+    final searchQuery = ref.watch(searchQueryProvider);
 
     AsyncValue<List<ProductModel>> productsAsyncValue;
     AsyncValue<List<FoodRecipeModel>> recipesAsyncValue;
@@ -54,7 +82,7 @@ class FoodScreen extends ConsumerWidget {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        appBar: foodScreenAppBar(context, petId),
+        appBar: foodScreenAppBar(context, widget.petId),
         backgroundColor: Theme.of(context).colorScheme.surface,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +100,7 @@ class FoodScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   if (selectedCategory == 'menu') ...[
-                    buildMacroCircles(context, ref, petId),
+                    buildMacroCircles(context, ref, widget.petId),
                   ] else ...[
                     Container(
                       decoration: BoxDecoration(
@@ -80,6 +108,8 @@ class FoodScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: TextField(
+                        showCursor: true,
+                        cursorColor: Theme.of(context).primaryColorDark,
                         controller: searchController,
                         decoration: InputDecoration(
                           hintText: 'Search...',
@@ -88,9 +118,7 @@ class FoodScreen extends ConsumerWidget {
                           suffixIcon: IconButton(
                             icon: Icon(Icons.qr_code_scanner,
                                 color: Theme.of(context).primaryColorDark),
-                            onPressed: () {
-                              // Akcja skanowania kodu kreskowego
-                            },
+                            onPressed: scanBarcode,
                           ),
                           border: InputBorder.none,
                         ),
@@ -101,7 +129,7 @@ class FoodScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 2),
+                  if (selectedCategory == 'menu') const SizedBox(height: 12),
                   SizedBox(
                     height: 50,
                     child: ListView(
@@ -176,7 +204,7 @@ class FoodScreen extends ConsumerWidget {
             const SizedBox(height: 5),
             if (selectedCategory == 'menu')
               Expanded(
-                child: ref.watch(eatenMealsProvider(petId)).when(
+                child: ref.watch(eatenMealsProvider(widget.petId)).when(
                       data: (meals) {
                         final mealsForSelectedDate = meals
                             .where((meal) => isSameDay(meal.date, selectedDate))
@@ -230,7 +258,7 @@ class FoodScreen extends ConsumerWidget {
                                   return GestureDetector(
                                     onTap: () {
                                       showMealDetails(
-                                          context, meal, ref, petId);
+                                          context, meal, ref, widget.petId);
                                     },
                                     child: Container(
                                       margin: const EdgeInsets.symmetric(
@@ -322,7 +350,10 @@ class FoodScreen extends ConsumerWidget {
                                           GestureDetector(
                                             onTap: () {
                                               showDeleteConfirmationDialog(
-                                                  context, ref, meal, petId);
+                                                  context,
+                                                  ref,
+                                                  meal,
+                                                  widget.petId);
                                             },
                                             child: CircleAvatar(
                                               backgroundColor: Theme.of(context)
@@ -366,7 +397,25 @@ class FoodScreen extends ConsumerWidget {
                       data: (recipes) {
                         final combinedItems = [...products, ...recipes];
 
-                        if (combinedItems.isEmpty) {
+                        final filteredItems = combinedItems.where((item) {
+                          final searchLower = searchQuery.toLowerCase();
+                          if (item is ProductModel) {
+                            return item.name
+                                    .toLowerCase()
+                                    .contains(searchLower) ||
+                                (item.barcode
+                                        ?.toLowerCase()
+                                        .contains(searchLower) ??
+                                    false);
+                          } else if (item is FoodRecipeModel) {
+                            return item.name
+                                .toLowerCase()
+                                .contains(searchLower);
+                          }
+                          return false;
+                        }).toList();
+
+                        if (filteredItems.isEmpty) {
                           return Center(
                             child: Text(
                               'No items found.',
@@ -379,9 +428,9 @@ class FoodScreen extends ConsumerWidget {
                         }
 
                         return ListView.builder(
-                          itemCount: combinedItems.length,
+                          itemCount: filteredItems.length,
                           itemBuilder: (context, index) {
-                            final item = combinedItems[index];
+                            final item = filteredItems[index];
                             if (item is ProductModel) {
                               final isFavorite = ref
                                   .watch(favoriteProductsNotifierProvider)
@@ -389,7 +438,8 @@ class FoodScreen extends ConsumerWidget {
 
                               return GestureDetector(
                                 onTap: () {
-                                  showProductDetails(context, item, petId);
+                                  showProductDetails(
+                                      context, item, widget.petId);
                                 },
                                 child: Container(
                                   margin: const EdgeInsets.symmetric(
@@ -461,7 +511,8 @@ class FoodScreen extends ConsumerWidget {
 
                               return GestureDetector(
                                 onTap: () {
-                                  showRecipeDetails(context, item, petId);
+                                  showRecipeDetails(
+                                      context, item, widget.petId);
                                 },
                                 child: Container(
                                   margin: const EdgeInsets.symmetric(
@@ -527,7 +578,7 @@ class FoodScreen extends ConsumerWidget {
                                 ),
                               );
                             } else {
-                              return SizedBox.shrink();
+                              return const SizedBox.shrink();
                             }
                           },
                         );
@@ -560,7 +611,8 @@ class FoodScreen extends ConsumerWidget {
               ),
           ],
         ),
-        bottomNavigationBar: foodScreenBootomNavigationBar(context, ref, petId),
+        bottomNavigationBar:
+            foodScreenBootomNavigationBar(context, ref, widget.petId),
       ),
     );
   }

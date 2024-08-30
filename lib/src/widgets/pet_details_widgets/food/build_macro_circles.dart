@@ -27,7 +27,7 @@ Widget buildMacroCircles(BuildContext context, WidgetRef ref, String petId) {
           0.0, (sum, meal) => sum + (meal.protein ?? 0.0));
 
       return Padding(
-        padding: const EdgeInsets.only(top: 12.0),
+        padding: const EdgeInsets.only(top: 15.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [

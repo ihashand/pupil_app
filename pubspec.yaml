@@ -62,6 +62,7 @@ dependencies:
   confetti: ^0.7.0
   share: ^2.0.4
   screenshot: ^3.0.0
+  barcode_scan2: ^4.2.0
 
 dev_dependencies:
   flutter_test:
