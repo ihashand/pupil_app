@@ -54,15 +54,6 @@ void showRecipeDetails(
 
               void handleInput(String value, StateSetter setState) {
                 value = value.replaceAll(',', '.');
-                if (selectedUnit == 'g' || selectedUnit == 'ml') {
-                  if (value.length > 6) {
-                    value = value.substring(0, 6);
-                  }
-                } else if (selectedUnit == 'kg') {
-                  if (value.length > 3) {
-                    value = value.substring(0, 3);
-                  }
-                }
                 setState(() {
                   gramsController.text = value;
                   gramsController.selection = TextSelection.fromPosition(
@@ -74,15 +65,34 @@ void showRecipeDetails(
 
               void validateAndSave() async {
                 if (grams > 5000) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Posiłek nie może być większy niż 5 kg.',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                    ),
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(
+                          'Weight Limit Exceeded',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark),
+                        ),
+                        content: Text(
+                          'The meal cannot be heavier than 5 kg.',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark),
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text(
+                              'OK',
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   );
                 } else {
                   final eatenMeal = EatenMealModel(
@@ -91,9 +101,9 @@ void showRecipeDetails(
                     mealType: mealType,
                     name: recipe.name,
                     kcal: recipe.totalKcal * grams / 100,
-                    fat: (recipe.totalFat) * grams / 100,
-                    carbs: (recipe.totalCarbs) * grams / 100,
-                    protein: (recipe.totalProtein) * grams / 100,
+                    fat: recipe.totalFat * grams / 100,
+                    carbs: recipe.totalCarbs * grams / 100,
+                    protein: recipe.totalProtein * grams / 100,
                     grams: grams,
                   );
 
@@ -540,7 +550,7 @@ void showRecipeDetails(
                                               ),
                                             ),
                                             Text(
-                                              '${(recipe.totalKcal * grams / 100 / settings.dailyKcal * 100).toStringAsFixed(1)}%',
+                                              '${(recipe.totalKcal * grams / 100 / settings.dailyKcal * 100).toStringAsFixed(2)}%',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                               ),
@@ -554,7 +564,7 @@ void showRecipeDetails(
                                 Column(
                                   children: [
                                     Text(
-                                      '${((recipe.totalCarbs) * grams / 100).toStringAsFixed(1)}%',
+                                      '${(recipe.totalCarbs * grams / 100).toStringAsFixed(1)}%',
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
@@ -563,7 +573,7 @@ void showRecipeDetails(
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${(recipe.totalCarbs) * grams / 100} g',
+                                      '${(recipe.totalCarbs * grams / 100).toStringAsFixed(1)} g',
                                       style: const TextStyle(
                                         fontSize: 12,
                                       ),
@@ -580,7 +590,7 @@ void showRecipeDetails(
                                 Column(
                                   children: [
                                     Text(
-                                      '${((recipe.totalFat) * grams / 100).toStringAsFixed(1)}%',
+                                      '${(recipe.totalFat * grams / 100).toStringAsFixed(1)}%',
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
@@ -589,7 +599,7 @@ void showRecipeDetails(
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${(recipe.totalFat) * grams / 100} g',
+                                      '${(recipe.totalFat * grams / 100).toStringAsFixed(1)} g',
                                       style: const TextStyle(
                                         fontSize: 12,
                                       ),
@@ -606,7 +616,7 @@ void showRecipeDetails(
                                 Column(
                                   children: [
                                     Text(
-                                      '${((recipe.totalProtein) * grams / 100).toStringAsFixed(1)}%',
+                                      '${(recipe.totalProtein * grams / 100).toStringAsFixed(1)}%',
                                       style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold,
@@ -615,7 +625,7 @@ void showRecipeDetails(
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${(recipe.totalProtein) * grams / 100} g',
+                                      '${(recipe.totalProtein * grams / 100).toStringAsFixed(1)} g',
                                       style: const TextStyle(
                                         fontSize: 12,
                                       ),
