@@ -42,9 +42,8 @@ class FavoriteRecipesNotifier extends StateNotifier<List<FoodRecipeModel>> {
       await _recipeService.addFavoriteRecipe(recipe);
       state = [...state, recipe];
     }
-    ref.refresh(
-        userFavoriteRecipesProvider); // Odświeżenie ulubionych przepisów
-    ref.refresh(combinedFavoritesProvider); // Odświeżenie łączonych ulubionych
+    ref.refresh(userFavoriteRecipesProvider);
+    ref.refresh(combinedFavoritesProvider);
   }
 
   bool isFavorite(FoodRecipeModel recipe) {
