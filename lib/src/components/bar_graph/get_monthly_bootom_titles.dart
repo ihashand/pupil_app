@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/helper/days_in_month_helper.dart';
+import 'package:pet_diary/src/helpers/days_in_month_helper.dart';
 
 Widget getMonthlyBootomTitles(double value, TitleMeta meta) {
   const style =

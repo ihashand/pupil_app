@@ -25,6 +25,7 @@ SizedBox foodScreenBootomNavigationBar(
                 onTap: () {
                   showNewProduct(context, ref);
                 },
+                backgroundColor: Theme.of(context).colorScheme.secondary,
               ),
             ),
             const SizedBox(
@@ -42,6 +43,7 @@ SizedBox foodScreenBootomNavigationBar(
                         builder: (_) => EventFoodNewRecipeScreen(petId)),
                   );
                 },
+                backgroundColor: Theme.of(context).colorScheme.secondary,
               ),
             ),
             const SizedBox(
@@ -63,6 +65,7 @@ SizedBox foodScreenBootomNavigationBar(
                     },
                   );
                 },
+                backgroundColor: Theme.of(context).colorScheme.secondary,
               ),
             ),
           ],

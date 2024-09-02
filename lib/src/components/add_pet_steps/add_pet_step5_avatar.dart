@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_app_bar.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_segment_progress_bar.dart';
 import 'package:pet_diary/src/tests/unit/services/other_services/pet_services.dart';
-import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
+import 'package:pet_diary/src/helpers/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 
 class AddPetStep5Avatar extends StatefulWidget {

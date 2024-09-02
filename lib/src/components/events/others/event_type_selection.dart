@@ -59,8 +59,8 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                       horizontal: 12.0,
                     ),
                     children: [
-                      eventTypeCardNotes(
-                          context, titleController, contentTextController, ref),
+                      eventTypeCardNotes(context, titleController,
+                          contentTextController, ref, petId),
                       eventTypeCard(context, 'Feeding',
                           'assets/images/health_event_card/dog_bowl_02.png',
                           () {
