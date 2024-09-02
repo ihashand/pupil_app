@@ -4,8 +4,7 @@ Widget bottomNavActionButton({
   required IconData icon,
   required String label,
   required BuildContext context,
-  required Color
-      backgroundColor, // Dodanie koloru tła jako wymaganego parametru
+  required Color backgroundColor,
   bool small = false,
   required VoidCallback onTap,
 }) {
@@ -17,7 +16,7 @@ Widget bottomNavActionButton({
         children: [
           Container(
             decoration: BoxDecoration(
-              color: backgroundColor, // Użycie koloru tła
+              color: backgroundColor,
               shape: BoxShape.circle,
             ),
             padding: const EdgeInsets.all(8.0),
