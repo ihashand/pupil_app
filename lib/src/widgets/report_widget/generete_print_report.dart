@@ -5,7 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/event_walk_model.dart';
+import '../../models/events_models/event_walk_model.dart';
 import '../../models/pet_model.dart';
 import '../../providers/event_walk_provider.dart';
 

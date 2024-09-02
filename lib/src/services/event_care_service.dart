@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/event_care_model.dart';
+import 'package:pet_diary/src/models/events_models/event_care_model.dart';
 
 class EventCareService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

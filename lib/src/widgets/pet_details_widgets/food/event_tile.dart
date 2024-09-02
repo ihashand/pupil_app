@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_delete_func.dart';
-import 'package:pet_diary/src/models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/screens/health_activity_screen.dart';
 
 class EventTile extends StatelessWidget {

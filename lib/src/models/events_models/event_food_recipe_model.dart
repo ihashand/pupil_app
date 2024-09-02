@@ -1,4 +1,4 @@
-class FoodRecipeModel {
+class EventFoodRecipeModel {
   final String id;
   final String name;
   final List<String> ingredients;
@@ -10,7 +10,7 @@ class FoodRecipeModel {
   final double totalCarbs;
   bool isFavorite;
 
-  FoodRecipeModel({
+  EventFoodRecipeModel({
     required this.id,
     required this.name,
     required this.ingredients,
@@ -38,8 +38,8 @@ class FoodRecipeModel {
     };
   }
 
-  static FoodRecipeModel fromMap(Map<String, dynamic> map) {
-    return FoodRecipeModel(
+  static EventFoodRecipeModel fromMap(Map<String, dynamic> map) {
+    return EventFoodRecipeModel(
       id: map['id'],
       name: map['name'],
       ingredients: List<String>.from(map['ingredients']),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/eaten_meal_model.dart';
+import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
 
-void showDeleteConfirmationDialog(
-    BuildContext context, WidgetRef ref, EatenMealModel meal, String petId) {
+void showDeleteConfirmationDialog(BuildContext context, WidgetRef ref,
+    EventEatenMealModel meal, String petId) {
   showDialog(
     context: context,
     builder: (BuildContext context) {

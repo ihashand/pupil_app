@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/models/app_user_model.dart';
 import 'package:pet_diary/src/models/friend_model.dart';
-import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';

@@ -6,8 +6,8 @@ import 'package:pet_diary/src/components/events/walk/event_walk_cancel_walk.dart
 import 'package:pet_diary/src/components/events/walk/event_walk_many_hours_alert.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/helper/loading_dialog.dart';
-import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/event_walk_provider.dart';
 

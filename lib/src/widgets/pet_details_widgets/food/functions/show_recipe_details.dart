@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/models/food_recipe_model.dart';
+import 'package:pet_diary/src/models/event_food_recipe_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
-import 'package:pet_diary/src/models/eaten_meal_model.dart';
+import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
 void showRecipeDetails(
-    BuildContext context, FoodRecipeModel recipe, String petId) {
+    BuildContext context, EventFoodRecipeModel recipe, String petId) {
   showModalBottomSheet(
     backgroundColor: Theme.of(context).colorScheme.primary,
     context: context,
@@ -95,7 +95,7 @@ void showRecipeDetails(
                     },
                   );
                 } else {
-                  final eatenMeal = EatenMealModel(
+                  final eatenMeal = EventEatenMealModel(
                     id: '',
                     date: DateFormat('dd-MM-yyyy').parse(dateController.text),
                     mealType: mealType,

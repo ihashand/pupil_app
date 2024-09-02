@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/food_recipe_model.dart';
+import 'package:pet_diary/src/models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
 import 'package:pet_diary/src/services/food_recipe_service.dart';
 
@@ -7,20 +7,21 @@ final foodRecipeServiceProvider = Provider<FoodRecipeService>((ref) {
   return FoodRecipeService();
 });
 
-final globalRecipesProvider = StreamProvider<List<FoodRecipeModel>>((ref) {
+final globalRecipesProvider = StreamProvider<List<EventFoodRecipeModel>>((ref) {
   return ref.read(foodRecipeServiceProvider).getGlobalRecipesStream();
 });
 
-final userRecipesProvider = StreamProvider<List<FoodRecipeModel>>((ref) {
+final userRecipesProvider = StreamProvider<List<EventFoodRecipeModel>>((ref) {
   return ref.read(foodRecipeServiceProvider).getUserRecipesStream();
 });
 
 final userFavoriteRecipesProvider =
-    StreamProvider<List<FoodRecipeModel>>((ref) {
+    StreamProvider<List<EventFoodRecipeModel>>((ref) {
   return ref.read(foodRecipeServiceProvider).getUserFavoriteRecipesStream();
 });
 
-class FavoriteRecipesNotifier extends StateNotifier<List<FoodRecipeModel>> {
+class FavoriteRecipesNotifier
+    extends StateNotifier<List<EventFoodRecipeModel>> {
   final FoodRecipeService _recipeService;
   final Ref ref;
 
@@ -34,7 +35,7 @@ class FavoriteRecipesNotifier extends StateNotifier<List<FoodRecipeModel>> {
     state = favoriteRecipes;
   }
 
-  Future<void> toggleFavorite(FoodRecipeModel recipe) async {
+  Future<void> toggleFavorite(EventFoodRecipeModel recipe) async {
     if (isFavorite(recipe)) {
       await _recipeService.removeFavoriteRecipe(recipe.id);
       state = state.where((r) => r.id != recipe.id).toList();
@@ -46,13 +47,13 @@ class FavoriteRecipesNotifier extends StateNotifier<List<FoodRecipeModel>> {
     ref.refresh(combinedFavoritesProvider);
   }
 
-  bool isFavorite(FoodRecipeModel recipe) {
+  bool isFavorite(EventFoodRecipeModel recipe) {
     return state.any((r) => r.id == recipe.id);
   }
 }
 
 final favoriteRecipesNotifierProvider =
-    StateNotifierProvider<FavoriteRecipesNotifier, List<FoodRecipeModel>>(
+    StateNotifierProvider<FavoriteRecipesNotifier, List<EventFoodRecipeModel>>(
         (ref) {
   final recipeService = ref.read(foodRecipeServiceProvider);
   return FavoriteRecipesNotifier(recipeService, ref);

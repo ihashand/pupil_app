@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/food_recipe_model.dart';
+import 'package:pet_diary/src/models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/providers/food_recipe_provider.dart';
 
 class FoodRecipeService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
 
-  Future<void> addFoodRecipe(FoodRecipeModel recipe, String petId,
+  Future<void> addFoodRecipe(EventFoodRecipeModel recipe, String petId,
       {bool isGlobal = true}) async {
     if (isGlobal) {
       await _firestore.collection('global_recipes').add(recipe.toMap());
@@ -28,15 +28,15 @@ class FoodRecipeService {
     container.refresh(combinedAllProvider);
   }
 
-  Stream<List<FoodRecipeModel>> getGlobalRecipesStream() {
+  Stream<List<EventFoodRecipeModel>> getGlobalRecipesStream() {
     return _firestore.collection('global_recipes').snapshots().map((snapshot) {
       return snapshot.docs
-          .map((doc) => FoodRecipeModel.fromMap(doc.data()))
+          .map((doc) => EventFoodRecipeModel.fromMap(doc.data()))
           .toList();
     });
   }
 
-  Stream<List<FoodRecipeModel>> getUserRecipesStream() {
+  Stream<List<EventFoodRecipeModel>> getUserRecipesStream() {
     return _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
@@ -44,12 +44,12 @@ class FoodRecipeService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
-          .map((doc) => FoodRecipeModel.fromMap(doc.data()))
+          .map((doc) => EventFoodRecipeModel.fromMap(doc.data()))
           .toList();
     });
   }
 
-  Stream<List<FoodRecipeModel>> getUserFavoriteRecipesStream() {
+  Stream<List<EventFoodRecipeModel>> getUserFavoriteRecipesStream() {
     return _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
@@ -57,12 +57,12 @@ class FoodRecipeService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
-          .map((doc) => FoodRecipeModel.fromMap(doc.data()))
+          .map((doc) => EventFoodRecipeModel.fromMap(doc.data()))
           .toList();
     });
   }
 
-  Future<void> addFavoriteRecipe(FoodRecipeModel recipe) async {
+  Future<void> addFavoriteRecipe(EventFoodRecipeModel recipe) async {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)

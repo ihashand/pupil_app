@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/medicine_new_reminder_screen.dart';
-import 'package:pet_diary/src/models/event_medicine_model.dart';
-import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
+import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/event_reminder_provider.dart';
 
 Widget medicineNewReminderButton(

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/user_achievement.dart';
 import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
 import 'package:uuid/uuid.dart';

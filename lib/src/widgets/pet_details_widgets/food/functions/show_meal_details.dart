@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/eaten_meal_model.dart';
+import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/screens/food_screen.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-void showMealDetails(
-    BuildContext context, EatenMealModel meal, WidgetRef ref, String petId) {
+void showMealDetails(BuildContext context, EventEatenMealModel meal,
+    WidgetRef ref, String petId) {
   showModalBottomSheet(
     backgroundColor: Theme.of(context).colorScheme.primary,
     context: context,

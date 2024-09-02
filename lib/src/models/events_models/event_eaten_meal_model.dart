@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EatenMealModel {
+class EventEatenMealModel {
   final String id;
   final String name;
   final String? brand;
@@ -12,7 +12,7 @@ class EatenMealModel {
   final double? protein;
   final double grams;
 
-  EatenMealModel({
+  EventEatenMealModel({
     required this.id,
     required this.name,
     this.brand,
@@ -25,7 +25,7 @@ class EatenMealModel {
     required this.grams,
   });
 
-  EatenMealModel.fromDocument(DocumentSnapshot doc)
+  EventEatenMealModel.fromDocument(DocumentSnapshot doc)
       : id = doc.id,
         name = doc['name'],
         brand = doc['brand'],

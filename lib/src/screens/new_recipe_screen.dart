@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/food_recipe_model.dart';
+import 'package:pet_diary/src/models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:pet_diary/src/providers/food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
@@ -32,7 +32,7 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
     final totalCarbs = calculateTotalCarbs();
 
     if (formKey.currentState?.validate() ?? false) {
-      final newRecipe = FoodRecipeModel(
+      final newRecipe = EventFoodRecipeModel(
         id: UniqueKey().toString(),
         name: nameController.text,
         ingredients: ingredientControllers.map((ingredient) {

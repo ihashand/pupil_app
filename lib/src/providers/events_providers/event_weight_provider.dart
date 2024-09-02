@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_weight_model.dart';
+import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
 import '../services/event_weight_service.dart';
 
 final eventWeightServiceProvider = Provider((ref) {

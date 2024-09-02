@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
-import 'package:pet_diary/src/models/eaten_meal_model.dart';
+import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
 class QuickAddMealScreen extends StatefulWidget {
   final String petId;
@@ -120,7 +120,7 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
         },
       );
     } else {
-      final eatenMeal = EatenMealModel(
+      final eatenMeal = EventEatenMealModel(
         id: '',
         date: DateFormat('dd-MM-yyyy').parse(dateController.text),
         mealType: mealType, // Zapisujemy poprawny mealType

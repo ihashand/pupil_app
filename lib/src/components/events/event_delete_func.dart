@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/loading_dialog.dart';
-import 'package:pet_diary/src/models/event_model.dart';
-import 'package:pet_diary/src/models/event_reminder_model.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/event_care_provider.dart';
 import 'package:pet_diary/src/providers/event_provider.dart';
 import 'package:pet_diary/src/providers/event_medicine_provider.dart';

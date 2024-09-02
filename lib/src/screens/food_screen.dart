@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
-import 'package:pet_diary/src/models/food_recipe_model.dart';
+import 'package:pet_diary/src/models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
 import 'package:pet_diary/src/providers/food_recipe_provider.dart';
@@ -61,7 +61,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     final searchQuery = ref.watch(searchQueryProvider);
 
     AsyncValue<List<ProductModel>> productsAsyncValue;
-    AsyncValue<List<FoodRecipeModel>> recipesAsyncValue;
+    AsyncValue<List<EventFoodRecipeModel>> recipesAsyncValue;
 
     if (selectedCategory == 'all') {
       productsAsyncValue = ref.watch(globalProductsProvider);
@@ -407,7 +407,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                                         ?.toLowerCase()
                                         .contains(searchLower) ??
                                     false);
-                          } else if (item is FoodRecipeModel) {
+                          } else if (item is EventFoodRecipeModel) {
                             return item.name
                                 .toLowerCase()
                                 .contains(searchLower);
@@ -504,7 +504,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                                   ),
                                 ),
                               );
-                            } else if (item is FoodRecipeModel) {
+                            } else if (item is EventFoodRecipeModel) {
                               final isFavorite = ref
                                   .watch(favoriteRecipesNotifierProvider)
                                   .any((r) => r.id == item.id);

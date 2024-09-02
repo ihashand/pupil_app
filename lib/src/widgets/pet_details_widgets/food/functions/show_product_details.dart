@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/product_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
-import 'package:pet_diary/src/models/eaten_meal_model.dart';
+import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
 void showProductDetails(
     BuildContext context, ProductModel product, String petId) {
@@ -90,7 +90,7 @@ void showProductDetails(
                   );
                 } else {
                   // Create a new eaten meal object
-                  final eatenMeal = EatenMealModel(
+                  final eatenMeal = EventEatenMealModel(
                     id: '', // Firebase generates the ID
                     date: DateFormat('dd-MM-yyyy').parse(dateController.text),
                     mealType: mealType,

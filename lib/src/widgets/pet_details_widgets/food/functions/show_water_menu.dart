@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
-import 'package:pet_diary/src/models/event_water_model.dart';
+import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 import 'package:pet_diary/src/providers/event_water_provider.dart';
 
 void showWaterMenu(BuildContext context, WidgetRef ref) {

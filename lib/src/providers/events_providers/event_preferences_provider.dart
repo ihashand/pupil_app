@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_preferences.dart';
+import 'package:pet_diary/src/models/events_models/event_preferences.dart';
 
 class PreferencesNotifier extends StateNotifier<PreferencesModel> {
   PreferencesNotifier() : super(_initialPreferences);
