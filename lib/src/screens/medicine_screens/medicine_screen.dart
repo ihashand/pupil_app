@@ -8,7 +8,7 @@ import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
-import 'package:pet_diary/src/screens/medicine_add_edit_screen.dart';
+import 'package:pet_diary/src/screens/medicine_screens/medicine_add_edit_screen.dart';
 
 class MedicineScreen extends ConsumerStatefulWidget {
   final String petId;

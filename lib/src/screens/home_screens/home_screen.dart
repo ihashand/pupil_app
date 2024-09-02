@@ -8,7 +8,7 @@ import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart'
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/friend_profile_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 import 'package:pet_diary/src/widgets/home_widgets/active_walk_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/animal_card.dart';
 import 'package:pet_diary/src/widgets/home_widgets/appoitment_card.dart';

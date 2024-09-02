@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/screens/login_screen.dart';
-import 'package:pet_diary/src/screens/register_screen.dart';
+import 'package:pet_diary/src/screens/login_register_screens/login_screen.dart';
+import 'package:pet_diary/src/screens/login_register_screens/register_screen.dart';
 
 class LoginOrRegister extends StatefulWidget {
   const LoginOrRegister({super.key});

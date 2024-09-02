@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friends_notifier_provider.dart';
-import 'package:pet_diary/src/screens/friends_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 
 class FriendRequestsCard extends ConsumerWidget {
   const FriendRequestsCard({

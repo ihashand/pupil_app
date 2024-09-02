@@ -6,7 +6,7 @@ import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_search_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friends_notifier_provider.dart';
-import 'package:pet_diary/src/screens/friend_profile_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});

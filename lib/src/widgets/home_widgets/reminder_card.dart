@@ -5,8 +5,8 @@ import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/add_reminder_screen.dart';
-import 'package:pet_diary/src/screens/pet_details_screen.dart';
+import 'package:pet_diary/src/screens/other_screens/add_reminder_screen.dart';
+import 'package:pet_diary/src/screens/pet_details_screens/pet_details_screen.dart';
 import 'dart:async';
 
 class ReminderCard extends ConsumerStatefulWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/screens/event_food_screen.dart';
+import 'package:pet_diary/src/screens/events_screens/event_food_screen.dart';
 import 'package:pet_diary/src/components/events/event_food/functions/get_formatted_date.dart';
 
 Widget dateSelector(BuildContext context, WidgetRef ref) {

@@ -16,14 +16,14 @@ import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_achievement_provider.dart';
-import 'package:pet_diary/src/screens/friend_statistic_screen.dart';
-import 'package:pet_diary/src/screens/friends_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 import 'package:pet_diary/src/widgets/achievement_widgets/initialize_achievements.dart';
 import 'package:pet_diary/src/widgets/report_widget/generate_report_card.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
-import '../models/others/achievement.dart';
+import '../../models/others/achievement.dart';
 import 'package:share/share.dart';
 import 'package:screenshot/screenshot.dart';
 
