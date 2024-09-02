@@ -1,31 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_food_recipe_model.dart';
-import 'package:pet_diary/src/providers/product_provider.dart';
+import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 import 'package:pet_diary/src/services/food_recipe_service.dart';
 
-final foodRecipeServiceProvider = Provider<FoodRecipeService>((ref) {
+final eventFoodRecipeServiceProvider = Provider<FoodRecipeService>((ref) {
   return FoodRecipeService();
 });
 
-final globalRecipesProvider = StreamProvider<List<EventFoodRecipeModel>>((ref) {
-  return ref.read(foodRecipeServiceProvider).getGlobalRecipesStream();
-});
-
-final userRecipesProvider = StreamProvider<List<EventFoodRecipeModel>>((ref) {
-  return ref.read(foodRecipeServiceProvider).getUserRecipesStream();
-});
-
-final userFavoriteRecipesProvider =
+final eventGlobalRecipesProvider =
     StreamProvider<List<EventFoodRecipeModel>>((ref) {
-  return ref.read(foodRecipeServiceProvider).getUserFavoriteRecipesStream();
+  return ref.read(eventFoodRecipeServiceProvider).getGlobalRecipesStream();
 });
 
-class FavoriteRecipesNotifier
+final eventUserRecipesProvider =
+    StreamProvider<List<EventFoodRecipeModel>>((ref) {
+  return ref.read(eventFoodRecipeServiceProvider).getUserRecipesStream();
+});
+
+final eventUserFavoriteRecipesProvider =
+    StreamProvider<List<EventFoodRecipeModel>>((ref) {
+  return ref
+      .read(eventFoodRecipeServiceProvider)
+      .getUserFavoriteRecipesStream();
+});
+
+class EventFavoriteRecipesNotifier
     extends StateNotifier<List<EventFoodRecipeModel>> {
   final FoodRecipeService _recipeService;
   final Ref ref;
 
-  FavoriteRecipesNotifier(this._recipeService, this.ref) : super([]) {
+  EventFavoriteRecipesNotifier(this._recipeService, this.ref) : super([]) {
     _loadFavoriteRecipes();
   }
 
@@ -43,7 +47,7 @@ class FavoriteRecipesNotifier
       await _recipeService.addFavoriteRecipe(recipe);
       state = [...state, recipe];
     }
-    ref.refresh(userFavoriteRecipesProvider);
+    ref.refresh(eventUserFavoriteRecipesProvider);
     ref.refresh(combinedFavoritesProvider);
   }
 
@@ -52,16 +56,15 @@ class FavoriteRecipesNotifier
   }
 }
 
-final favoriteRecipesNotifierProvider =
-    StateNotifierProvider<FavoriteRecipesNotifier, List<EventFoodRecipeModel>>(
-        (ref) {
-  final recipeService = ref.read(foodRecipeServiceProvider);
-  return FavoriteRecipesNotifier(recipeService, ref);
+final favoriteRecipesNotifierProvider = StateNotifierProvider<
+    EventFavoriteRecipesNotifier, List<EventFoodRecipeModel>>((ref) {
+  final recipeService = ref.read(eventFoodRecipeServiceProvider);
+  return EventFavoriteRecipesNotifier(recipeService, ref);
 });
 
 final combinedMyOwnProvider = StreamProvider<List<dynamic>>((ref) async* {
-  final productsStream = ref.watch(userProductsProvider.stream);
-  final recipesStream = ref.watch(userRecipesProvider.stream);
+  final productsStream = ref.watch(eventUserProductsProvider.stream);
+  final recipesStream = ref.watch(eventUserRecipesProvider.stream);
 
   await for (final products in productsStream) {
     final recipes = await recipesStream.first;
@@ -70,8 +73,8 @@ final combinedMyOwnProvider = StreamProvider<List<dynamic>>((ref) async* {
 });
 
 final combinedAllProvider = StreamProvider<List<dynamic>>((ref) async* {
-  final productsStream = ref.watch(globalProductsProvider.stream);
-  final recipesStream = ref.watch(globalRecipesProvider.stream);
+  final productsStream = ref.watch(eventGlobalProductsProvider.stream);
+  final recipesStream = ref.watch(eventGlobalRecipesProvider.stream);
 
   await for (final products in productsStream) {
     final recipes = await recipesStream.first;
@@ -80,8 +83,10 @@ final combinedAllProvider = StreamProvider<List<dynamic>>((ref) async* {
 });
 
 final combinedFavoritesProvider = StreamProvider<List<dynamic>>((ref) async* {
-  final favoriteProductsStream = ref.watch(userFavoriteProductsProvider.stream);
-  final favoriteRecipesStream = ref.watch(userFavoriteRecipesProvider.stream);
+  final favoriteProductsStream =
+      ref.watch(eventUserFavoriteProductsProvider.stream);
+  final favoriteRecipesStream =
+      ref.watch(eventUserFavoriteRecipesProvider.stream);
 
   await for (final favoriteProducts in favoriteProductsStream) {
     final favoriteRecipes = await favoriteRecipesStream.first;

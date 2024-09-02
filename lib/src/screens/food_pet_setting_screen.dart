@@ -11,7 +11,7 @@ class FoodPetSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final foodPetSettingsState = ref.watch(petSettingsProvider(petId));
+    final foodPetSettingsState = ref.watch(eventFoodPetSettingsProvider(petId));
 
     return Scaffold(
       appBar: AppBar(
@@ -318,7 +318,7 @@ class FoodPetSettingsScreen extends ConsumerWidget {
                 final newValue = double.tryParse(controller.text);
                 if (newValue != null) {
                   _updateNutrientValue(ref, label, newValue);
-                  ref.refresh(petSettingsProvider(petId));
+                  ref.refresh(eventFoodPetSettingsProvider(petId));
                 }
                 Navigator.of(context).pop();
               },
@@ -334,7 +334,8 @@ class FoodPetSettingsScreen extends ConsumerWidget {
   }
 
   void _updateNutrientValue(WidgetRef ref, String label, double newValue) {
-    final settingsProvider = ref.read(petSettingsProvider(petId).notifier);
+    final settingsProvider =
+        ref.read(eventFoodPetSettingsProvider(petId).notifier);
 
     if (kDebugMode) {
       print('Updating $label with value $newValue');
@@ -359,7 +360,8 @@ class FoodPetSettingsScreen extends ConsumerWidget {
   }
 
   void _updateMealTypes(WidgetRef ref, List<String> updatedMealTypes) {
-    final settingsProvider = ref.read(petSettingsProvider(petId).notifier);
+    final settingsProvider =
+        ref.read(eventFoodPetSettingsProvider(petId).notifier);
     settingsProvider.updateMealTypes(updatedMealTypes);
   }
 }

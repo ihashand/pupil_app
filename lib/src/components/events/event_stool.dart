@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
-import 'package:pet_diary/src/providers/event_stool_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
-import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 
 class EventStool extends ConsumerWidget {
   final double iconSize;

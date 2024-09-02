@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_food_recipe_model.dart';
-import 'package:pet_diary/src/providers/food_recipe_provider.dart';
+import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 
 class FoodRecipeService {
   final _firestore = FirebaseFirestore.instance;
@@ -23,8 +23,8 @@ class FoodRecipeService {
       }
     }
     final container = ProviderContainer();
-    container.refresh(globalRecipesProvider);
-    container.refresh(userRecipesProvider);
+    container.refresh(eventGlobalRecipesProvider);
+    container.refresh(eventUserRecipesProvider);
     container.refresh(combinedAllProvider);
   }
 

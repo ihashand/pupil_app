@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:pet_diary/src/models/product_model.dart';
-import 'package:pet_diary/src/providers/product_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
 void newProductBottomSheet(BuildContext context, WidgetRef ref) {
   final formKey = GlobalKey<FormState>();
@@ -36,7 +36,7 @@ void newProductBottomSheet(BuildContext context, WidgetRef ref) {
         protein: double.tryParse(proteinController.text) ?? 0,
       );
 
-      final productService = ref.read(productServiceProvider);
+      final productService = ref.read(eventProductServiceProvider);
 
       await productService.addProduct(newProduct, isGlobal: isGlobal);
 

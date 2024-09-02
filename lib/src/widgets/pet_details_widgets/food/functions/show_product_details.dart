@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
-import 'package:pet_diary/src/providers/product_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
@@ -17,7 +17,8 @@ void showProductDetails(
       return Consumer(
         builder: (context, ref, _) {
           // Fetch pet settings asynchronously
-          final petSettingsFuture = ref.watch(petSettingsStreamProvider(petId));
+          final petSettingsFuture =
+              ref.watch(eventFoodPetSettingsStreamProvider(petId));
 
           return petSettingsFuture.when(
             data: (settings) {
@@ -175,7 +176,8 @@ void showProductDetails(
                                             ),
                                             onPressed: () {
                                               ref
-                                                  .read(productServiceProvider)
+                                                  .read(
+                                                      eventProductServiceProvider)
                                                   .removeProductFromAll(
                                                       product.id);
 

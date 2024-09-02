@@ -7,7 +7,7 @@ import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_nutrient_ci
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/_is_same_day.dart';
 
 Widget buildMacroCircles(BuildContext context, WidgetRef ref, String petId) {
-  final petSettings = ref.watch(petSettingsProvider(petId));
+  final petSettings = ref.watch(eventFoodPetSettingsProvider(petId));
   final eatenMealsAsyncValue = ref.watch(eatenMealsProvider(petId));
 
   return eatenMealsAsyncValue.when(

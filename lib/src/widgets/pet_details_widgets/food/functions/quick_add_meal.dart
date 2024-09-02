@@ -151,7 +151,7 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
     return Consumer(
       builder: (context, ref, _) {
         final petSettingsFuture =
-            ref.watch(petSettingsStreamProvider(widget.petId));
+            ref.watch(eventFoodPetSettingsStreamProvider(widget.petId));
 
         return petSettingsFuture.when(
           data: (settings) {

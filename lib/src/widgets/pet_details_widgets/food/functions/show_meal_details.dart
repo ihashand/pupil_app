@@ -16,7 +16,8 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
     builder: (context) {
       return Consumer(
         builder: (context, ref, _) {
-          final petSettingsFuture = ref.watch(petSettingsStreamProvider(petId));
+          final petSettingsFuture =
+              ref.watch(eventFoodPetSettingsStreamProvider(petId));
 
           return petSettingsFuture.when(
             data: (settings) {

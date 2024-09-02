@@ -20,11 +20,11 @@ import 'package:pet_diary/src/components/events/event_water.dart';
 import 'package:pet_diary/src/components/events/event_weight.dart';
 import 'package:pet_diary/src/components/events/event_mood.dart';
 import 'package:pet_diary/src/models/events_models/event_preferences.dart';
-import 'package:pet_diary/src/providers/event_preferences_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_preferences_provider.dart';
 import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/tile_info.dart';
-import 'package:pet_diary/src/providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/event_tile.dart';
 import 'package:table_calendar/table_calendar.dart';
 

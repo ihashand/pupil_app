@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
-import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/event_water_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_water_provider.dart';
 
 class EventWater extends ConsumerStatefulWidget {
   final double iconSize;

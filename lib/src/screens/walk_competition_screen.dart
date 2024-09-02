@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';

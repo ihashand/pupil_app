@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_food_recipe_model.dart';
+import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/models/product_model.dart';
-import 'package:pet_diary/src/providers/food_recipe_provider.dart';
-import 'package:pet_diary/src/providers/product_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
 class NewRecipeScreen extends ConsumerStatefulWidget {
   const NewRecipeScreen(this.petId, {super.key});
@@ -52,7 +52,7 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
         totalCarbs: totalCarbs,
       );
 
-      final recipeService = ref.read(foodRecipeServiceProvider);
+      final recipeService = ref.read(eventFoodRecipeServiceProvider);
 
       await recipeService.addFoodRecipe(newRecipe, widget.petId,
           isGlobal: isGlobal);
@@ -788,7 +788,7 @@ class ProductSearchDelegate extends SearchDelegate<ProductModel> {
   }
 
   Widget _buildProductList(BuildContext context) {
-    final productsAsyncValue = ref.watch(globalProductsProvider);
+    final productsAsyncValue = ref.watch(eventGlobalProductsProvider);
 
     return Container(
       color: Theme.of(context).colorScheme.surface,

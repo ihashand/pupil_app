@@ -14,7 +14,7 @@ import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';

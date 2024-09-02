@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
-import 'package:pet_diary/src/providers/event_reminder_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
 
 Widget reminderItem(
     {required EventReminderModel reminder, required WidgetRef ref}) {

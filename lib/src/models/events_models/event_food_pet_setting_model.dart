@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class PetSettingsModel {
+class EventFoodPetSettingsModel {
   String id;
   String petId;
   double dailyKcal;
@@ -9,7 +9,7 @@ class PetSettingsModel {
   double carbsPercentage;
   List<String> mealTypes;
 
-  PetSettingsModel({
+  EventFoodPetSettingsModel({
     required this.id,
     required this.petId,
     required this.dailyKcal,
@@ -19,8 +19,8 @@ class PetSettingsModel {
     required this.mealTypes,
   });
 
-  factory PetSettingsModel.fromDocument(DocumentSnapshot doc) {
-    return PetSettingsModel(
+  factory EventFoodPetSettingsModel.fromDocument(DocumentSnapshot doc) {
+    return EventFoodPetSettingsModel(
       id: doc.id,
       petId: doc.get('petId'),
       dailyKcal: doc.get('dailyKcal') ?? 0.0,
@@ -43,7 +43,7 @@ class PetSettingsModel {
     };
   }
 
-  PetSettingsModel copyWith({
+  EventFoodPetSettingsModel copyWith({
     String? id,
     String? petId,
     double? dailyKcal,
@@ -52,7 +52,7 @@ class PetSettingsModel {
     double? carbsPercentage,
     List<String>? mealTypes,
   }) {
-    return PetSettingsModel(
+    return EventFoodPetSettingsModel(
       id: id ?? this.id,
       petId: petId ?? this.petId,
       dailyKcal: dailyKcal ?? this.dailyKcal,

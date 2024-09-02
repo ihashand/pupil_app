@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
-import 'package:pet_diary/src/models/event_food_recipe_model.dart';
+import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/models/product_model.dart';
 import 'package:pet_diary/src/providers/category_provider.dart';
-import 'package:pet_diary/src/providers/food_recipe_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/pet_settings_provider.dart';
-import 'package:pet_diary/src/providers/product_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/_build_date_selector.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_category_selector.dart';
@@ -57,21 +57,21 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   Widget build(BuildContext context) {
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final selectedDate = ref.watch(selectedDateProvider);
-    final petSettings = ref.watch(petSettingsProvider(widget.petId));
+    final petSettings = ref.watch(eventFoodPetSettingsProvider(widget.petId));
     final searchQuery = ref.watch(searchQueryProvider);
 
     AsyncValue<List<ProductModel>> productsAsyncValue;
     AsyncValue<List<EventFoodRecipeModel>> recipesAsyncValue;
 
     if (selectedCategory == 'all') {
-      productsAsyncValue = ref.watch(globalProductsProvider);
-      recipesAsyncValue = ref.watch(globalRecipesProvider);
+      productsAsyncValue = ref.watch(eventGlobalProductsProvider);
+      recipesAsyncValue = ref.watch(eventGlobalRecipesProvider);
     } else if (selectedCategory == 'my_own') {
-      productsAsyncValue = ref.watch(userProductsProvider);
-      recipesAsyncValue = ref.watch(userRecipesProvider);
+      productsAsyncValue = ref.watch(eventUserProductsProvider);
+      recipesAsyncValue = ref.watch(eventUserRecipesProvider);
     } else if (selectedCategory == 'favorites') {
-      productsAsyncValue = ref.watch(userFavoriteProductsProvider);
-      recipesAsyncValue = ref.watch(userFavoriteRecipesProvider);
+      productsAsyncValue = ref.watch(eventUserFavoriteProductsProvider);
+      recipesAsyncValue = ref.watch(eventUserFavoriteRecipesProvider);
     } else {
       productsAsyncValue = const AsyncValue.data([]);
       recipesAsyncValue = const AsyncValue.data([]);
@@ -433,7 +433,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                             final item = filteredItems[index];
                             if (item is ProductModel) {
                               final isFavorite = ref
-                                  .watch(favoriteProductsNotifierProvider)
+                                  .watch(eventFavoriteProductsNotifierProvider)
                                   .any((p) => p.id == item.id);
 
                               return GestureDetector(
@@ -495,7 +495,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                                         onPressed: () {
                                           ref
                                               .read(
-                                                  favoriteProductsNotifierProvider
+                                                  eventFavoriteProductsNotifierProvider
                                                       .notifier)
                                               .toggleFavorite(item);
                                         },

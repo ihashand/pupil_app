@@ -1,21 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/pet_setting_model.dart';
+import 'package:pet_diary/src/models/events_models/event_food_pet_setting_model.dart';
 import 'package:pet_diary/src/services/pet_setting_service.dart';
 
-final petSettingsServiceProvider = Provider<PetSettingsService>((ref) {
+final eventFoodPetSettingsServiceProvider = Provider<PetSettingsService>((ref) {
   return PetSettingsService();
 });
 
-final petSettingsStreamProvider =
-    StreamProvider.family<PetSettingsModel?, String>((ref, petId) {
-  return ref.watch(petSettingsServiceProvider).getPetSettingsStream(petId);
+final eventFoodPetSettingsStreamProvider =
+    StreamProvider.family<EventFoodPetSettingsModel?, String>((ref, petId) {
+  return ref
+      .watch(eventFoodPetSettingsServiceProvider)
+      .getPetSettingsStream(petId);
 });
 
-class PetSettingsNotifier extends StateNotifier<PetSettingsModel?> {
+class EventFoodPetSettingsNotifier
+    extends StateNotifier<EventFoodPetSettingsModel?> {
   final PetSettingsService _service;
   final String petId;
 
-  PetSettingsNotifier(this._service, this.petId) : super(null) {
+  EventFoodPetSettingsNotifier(this._service, this.petId) : super(null) {
     _loadSettings();
   }
 
@@ -30,7 +33,7 @@ class PetSettingsNotifier extends StateNotifier<PetSettingsModel?> {
   }
 
   Future<void> setDefaultSettings() async {
-    final defaultSettings = PetSettingsModel(
+    final defaultSettings = EventFoodPetSettingsModel(
       id: 'default',
       petId: petId,
       dailyKcal: 0,
@@ -84,10 +87,10 @@ class PetSettingsNotifier extends StateNotifier<PetSettingsModel?> {
   }
 }
 
-final petSettingsProvider = StateNotifierProvider.family<PetSettingsNotifier,
-    PetSettingsModel?, String>(
+final eventFoodPetSettingsProvider = StateNotifierProvider.family<
+    EventFoodPetSettingsNotifier, EventFoodPetSettingsModel?, String>(
   (ref, petId) {
-    final service = ref.watch(petSettingsServiceProvider);
-    return PetSettingsNotifier(service, petId);
+    final service = ref.watch(eventFoodPetSettingsServiceProvider);
+    return EventFoodPetSettingsNotifier(service, petId);
   },
 );

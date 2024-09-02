@@ -293,7 +293,7 @@ double _calculateKcalRequirement(
 
 void _submitGoal(WidgetRef ref, double kcal, double protein, double fat,
     double carbs, String petId) {
-  final provider = ref.read(petSettingsProvider(petId).notifier);
+  final provider = ref.read(eventFoodPetSettingsProvider(petId).notifier);
 
   provider.updateKcal(kcal);
   provider.updateProteinPercentage(protein);
