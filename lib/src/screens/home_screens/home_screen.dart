@@ -2,19 +2,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
-import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
+import 'package:pet_diary/src/helpers/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
-import 'package:pet_diary/src/widgets/home_widgets/active_walk_card.dart';
-import 'package:pet_diary/src/widgets/home_widgets/animal_card.dart';
-import 'package:pet_diary/src/widgets/home_widgets/appoitment_card.dart';
-import 'package:pet_diary/src/widgets/home_widgets/friend_request_card.dart';
-import 'package:pet_diary/src/widgets/home_widgets/walk_card.dart';
-import 'package:pet_diary/src/widgets/home_widgets/reminder_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/active_walk_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/animal_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/appoitment_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/friend_request_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/walk_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/reminder_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});

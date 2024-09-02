@@ -8,7 +8,7 @@ import 'package:pet_diary/src/components/events/event_medicine/medicine_details_
 import 'package:pet_diary/src/components/events/event_medicine/medicine_details_emoji.dart';
 import 'package:pet_diary/src/components/events/event_medicine/medicine_new_reminder_button.dart';
 import 'package:pet_diary/src/components/events/event_medicine/medicine_details_start_date.dart';
-import 'package:pet_diary/src/helper/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';

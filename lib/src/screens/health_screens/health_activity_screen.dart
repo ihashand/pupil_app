@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/average_section.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/day_view.dart';
-import 'package:pet_diary/src/widgets/report_widget/generate_report_card.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/month_view.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/popup.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/summary_section.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/switch_widget.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/week_view.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/average_section.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/day_view.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/report_widget/generate_report_card.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/month_view.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/popup.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/section_title.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/summary_section.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/switch_widget.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/week_view.dart';
 
 class HealthActivityScreen extends ConsumerStatefulWidget {
   final String petId;

@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
-import 'package:pet_diary/src/helper/helper_show_bacground_selection.dart';
+import 'package:pet_diary/src/helpers/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/tests/unit/services/other_services/pet_services.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/helper/helper_show_avatar_selection.dart';
+import 'package:pet_diary/src/helpers/helper_show_avatar_selection.dart';
 
 class PetEditScreen extends ConsumerStatefulWidget {
   final String petId;

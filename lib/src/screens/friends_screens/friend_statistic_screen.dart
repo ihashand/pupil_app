@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/helper/calculate_age.dart';
+import 'package:pet_diary/src/helpers/calculate_age.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/activity_data_row.dart';
-import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/activity_data_row.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/section_title.dart';
 
 class StatisticsScreen extends ConsumerStatefulWidget {
   final Pet initialPet;

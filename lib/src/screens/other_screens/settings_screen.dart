@@ -2,11 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/helper/helper_functions.dart';
+import 'package:pet_diary/src/helpers/helper_functions.dart';
 import 'package:pet_diary/src/providers/others_providers/settings_providers.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/notification_provider.dart';
-import 'package:pet_diary/src/widgets/reminders_widgets/number_picker_dialog.dart';
+import 'package:pet_diary/src/components/widgets_todo_task_foldery/reminders_widgets/number_picker_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
