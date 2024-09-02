@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_food_pet_setting_model.dart';
-import 'package:pet_diary/src/services/pet_setting_service.dart';
+import 'package:pet_diary/src/services/event_food_pet_setting_service.dart';
 
-final eventFoodPetSettingsServiceProvider = Provider<PetSettingsService>((ref) {
-  return PetSettingsService();
+final eventFoodPetSettingsServiceProvider =
+    Provider<EventFoodPetSettingsService>((ref) {
+  return EventFoodPetSettingsService();
 });
 
 final eventFoodPetSettingsStreamProvider =
@@ -15,7 +16,7 @@ final eventFoodPetSettingsStreamProvider =
 
 class EventFoodPetSettingsNotifier
     extends StateNotifier<EventFoodPetSettingsModel?> {
-  final PetSettingsService _service;
+  final EventFoodPetSettingsService _service;
   final String petId;
 
   EventFoodPetSettingsNotifier(this._service, this.petId) : super(null) {

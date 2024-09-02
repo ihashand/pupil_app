@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/models/others/product_model.dart';
-import 'package:pet_diary/src/providers/others/category_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/category_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
-import 'package:pet_diary/src/services/eaten_meal_service.dart';
+import 'package:pet_diary/src/services/event_food_eaten_meal_service.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/_build_date_selector.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_category_selector.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_macro_circles.dart';
@@ -204,7 +204,9 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
             const SizedBox(height: 5),
             if (selectedCategory == 'menu')
               Expanded(
-                child: ref.watch(eatenMealsProvider(widget.petId)).when(
+                child: ref
+                    .watch(eventFoodEatenMealsProvider(widget.petId))
+                    .when(
                       data: (meals) {
                         final mealsForSelectedDate = meals
                             .where((meal) => isSameDay(meal.date, selectedDate))

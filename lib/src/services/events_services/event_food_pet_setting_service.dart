@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_food_pet_setting_model.dart';
 
-class PetSettingsService {
+class EventFoodPetSettingsService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
 
@@ -16,7 +16,7 @@ class PetSettingsService {
         .doc(_currentUser.uid)
         .collection('pets')
         .doc(petId)
-        .collection('settings')
+        .collection('event_food_settings')
         .doc('settings')
         .snapshots()
         .map((snapshot) {
@@ -34,7 +34,7 @@ class PetSettingsService {
         .doc(_currentUser?.uid)
         .collection('pets')
         .doc(petId)
-        .collection('settings')
+        .collection('event_food_settings')
         .doc('settings')
         .get();
 
@@ -51,7 +51,7 @@ class PetSettingsService {
         .doc(_currentUser?.uid)
         .collection('pets')
         .doc(settings.petId)
-        .collection('settings')
+        .collection('event_food_settings')
         .doc('settings')
         .set(settings.toMap());
   }
@@ -62,7 +62,7 @@ class PetSettingsService {
         .doc(_currentUser?.uid)
         .collection('pets')
         .doc(petId)
-        .collection('settings')
+        .collection('event_food_settings')
         .doc('settings')
         .get();
     if (doc.exists) {

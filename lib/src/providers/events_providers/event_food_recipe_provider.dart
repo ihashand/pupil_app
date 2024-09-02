@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
-import 'package:pet_diary/src/services/food_recipe_service.dart';
+import 'package:pet_diary/src/services/event_food_recipe_service.dart';
 
-final eventFoodRecipeServiceProvider = Provider<FoodRecipeService>((ref) {
-  return FoodRecipeService();
+final eventFoodRecipeServiceProvider = Provider<EventFoodRecipeService>((ref) {
+  return EventFoodRecipeService();
 });
 
 final eventGlobalRecipesProvider =
@@ -26,7 +26,7 @@ final eventUserFavoriteRecipesProvider =
 
 class EventFavoriteRecipesNotifier
     extends StateNotifier<List<EventFoodRecipeModel>> {
-  final FoodRecipeService _recipeService;
+  final EventFoodRecipeService _recipeService;
   final Ref ref;
 
   EventFavoriteRecipesNotifier(this._recipeService, this.ref) : super([]) {

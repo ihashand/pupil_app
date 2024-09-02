@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 
-class FoodRecipeService {
+class EventFoodRecipeService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
 
@@ -18,7 +18,7 @@ class FoodRecipeService {
         await _firestore
             .collection('app_users')
             .doc(_currentUser.uid)
-            .collection('user_recipes')
+            .collection('event_food_user_recipes')
             .add(recipe.toMap());
       }
     }
@@ -40,7 +40,7 @@ class FoodRecipeService {
     return _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
-        .collection('user_recipes')
+        .collection('event_food_user_recipes')
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
@@ -53,7 +53,7 @@ class FoodRecipeService {
     return _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
-        .collection('favorites_recipes')
+        .collection('event_food_favorites_recipes')
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
@@ -66,7 +66,7 @@ class FoodRecipeService {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
-        .collection('favorites_recipes')
+        .collection('event_food_favorites_recipes')
         .doc(recipe.id)
         .set(recipe.toMap());
   }
@@ -75,7 +75,7 @@ class FoodRecipeService {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
-        .collection('favorites_recipes')
+        .collection('event_food_favorites_recipes')
         .doc(recipeId)
         .delete();
   }
@@ -90,7 +90,7 @@ class FoodRecipeService {
     final userRecipeDoc = await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
-        .collection('user_recipes')
+        .collection('event_food_user_recipes')
         .doc(recipeId)
         .get();
     if (userRecipeDoc.exists) {
@@ -100,7 +100,7 @@ class FoodRecipeService {
     final favoriteRecipeDoc = await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
-        .collection('favorites_recipes')
+        .collection('event_food_favorites_recipes')
         .doc(recipeId)
         .get();
     if (favoriteRecipeDoc.exists) {

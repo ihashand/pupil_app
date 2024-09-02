@@ -6,7 +6,7 @@ import 'package:pet_diary/src/models/others/product_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
-class ProductService {
+class EventFoodProductService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Stream Controllers
@@ -32,7 +32,7 @@ class ProductService {
     _firestore
         .collection('app_users')
         .doc(userId)
-        .collection('user_products')
+        .collection('event_food_user_products')
         .snapshots()
         .listen((snapshot) {
       _userProductsController.add(
@@ -47,7 +47,7 @@ class ProductService {
     _firestore
         .collection('app_users')
         .doc(userId)
-        .collection('favorites')
+        .collection('event_food_favorites')
         .snapshots()
         .listen((snapshot) {
       _userFavoritesController.add(
@@ -79,7 +79,7 @@ class ProductService {
         await _firestore
             .collection('app_users')
             .doc(userId)
-            .collection('user_products')
+            .collection('event_food_user_products')
             .add(product.toMap());
       }
     }
@@ -108,7 +108,7 @@ class ProductService {
       await _firestore
           .collection('app_users')
           .doc(userId)
-          .collection('favorites')
+          .collection('event_food_favorites')
           .doc(product.id)
           .set(product.toMap());
     }
@@ -120,7 +120,7 @@ class ProductService {
       await _firestore
           .collection('app_users')
           .doc(userId)
-          .collection('favorites')
+          .collection('event_food_favorites')
           .doc(productId)
           .delete();
     }
@@ -135,7 +135,7 @@ class ProductService {
       final favoriteDoc = await _firestore
           .collection('app_users')
           .doc(userId)
-          .collection('favorites')
+          .collection('event_food_favorites')
           .doc(productId)
           .get();
       if (favoriteDoc.exists) {
@@ -146,7 +146,7 @@ class ProductService {
       final userProductDoc = await _firestore
           .collection('app_users')
           .doc(userId)
-          .collection('user_products')
+          .collection('event_food_user_products')
           .doc(productId)
           .get();
       if (userProductDoc.exists) {

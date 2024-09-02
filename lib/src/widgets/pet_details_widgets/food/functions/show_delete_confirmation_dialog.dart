@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
-import 'package:pet_diary/src/services/eaten_meal_service.dart';
+import 'package:pet_diary/src/services/event_food_eaten_meal_service.dart';
 
 void showDeleteConfirmationDialog(BuildContext context, WidgetRef ref,
     EventEatenMealModel meal, String petId) {
@@ -34,7 +34,7 @@ void showDeleteConfirmationDialog(BuildContext context, WidgetRef ref,
             ),
             onPressed: () {
               ref
-                  .read(eatenMealServiceProvider)
+                  .read(eventFoodEatenMealServiceProvider)
                   .deleteEatenMeal(petId, meal.id);
               Navigator.of(context).pop();
             },

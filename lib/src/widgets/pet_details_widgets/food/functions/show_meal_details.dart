@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/screens/food_screen.dart';
-import 'package:pet_diary/src/services/eaten_meal_service.dart';
+import 'package:pet_diary/src/services/event_food_eaten_meal_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 void showMealDetails(BuildContext context, EventEatenMealModel meal,
@@ -34,7 +34,8 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
               }
 
               final selectedDate = ref.watch(selectedDateProvider);
-              final eatenMealsAsyncValue = ref.watch(eatenMealsProvider(petId));
+              final eatenMealsAsyncValue =
+                  ref.watch(eventFoodEatenMealsProvider(petId));
 
               double totalDailyKcal = 0.0;
               double totalDailyFat = 0.0;
@@ -118,7 +119,7 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
                                             onPressed: () {
                                               ref
                                                   .read(
-                                                      eatenMealServiceProvider)
+                                                      eventFoodEatenMealServiceProvider)
                                                   .deleteEatenMeal(
                                                       petId, meal.id);
                                               Navigator.of(context).pop();

@@ -4,7 +4,7 @@ import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart'
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
-import 'package:pet_diary/src/services/eaten_meal_service.dart';
+import 'package:pet_diary/src/services/event_food_eaten_meal_service.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
 void showRecipeDetails(
@@ -109,7 +109,7 @@ void showRecipeDetails(
                   );
 
                   await ref
-                      .read(eatenMealServiceProvider)
+                      .read(eventFoodEatenMealServiceProvider)
                       .addEatenMeal(petId, eatenMeal);
 
                   Navigator.of(context).pop();
