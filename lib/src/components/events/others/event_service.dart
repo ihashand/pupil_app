@@ -108,31 +108,16 @@ class EventService extends ConsumerWidget {
                             dateWhenEventAdded: DateTime.now(),
                             userId: FirebaseAuth.instance.currentUser!.uid,
                             petId: petId,
-                            weightId: '',
-                            temperatureId: '',
-                            walkId: '',
-                            waterId: '',
-                            noteId: '',
-                            pillId: '',
                             description: description,
-                            proffesionId: 'NONE',
-                            personId: 'NONE',
                             avatarImage: 'assets/images/dog_avatar_014.png',
                             emoticon: emoji,
-                            moodId: '',
-                            stomachId: '',
-                            psychicId: '',
-                            stoolId: '',
-                            urineId: '',
                             serviceId: newService.id,
-                            careId: '',
                           );
 
                           ref.read(eventServiceProvider).addEvent(newEvent);
 
-                          Navigator.of(context)
-                              .pop(); // Close the confirmation dialog
-                          Navigator.of(context).pop(); // Close the bottom sheet
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
                         },
                       ),
                     ],
@@ -151,7 +136,7 @@ class EventService extends ConsumerWidget {
           ),
           Text(
             serviceType,
-            style: const TextStyle(fontSize: 10), // Small font
+            style: const TextStyle(fontSize: 10),
           ),
         ],
       ),

@@ -13,7 +13,7 @@ import 'package:pet_diary/src/components/events/others/event_urine.dart';
 import 'package:pet_diary/src/components/events/others/event_vaccine.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
-import 'package:pet_diary/src/components/events/others/event_note.dart';
+import 'package:pet_diary/src/components/events/event_notes/event_note.dart';
 import 'package:pet_diary/src/components/events/others/event_temperature.dart';
 import 'package:pet_diary/src/components/events/others/event_walk.dart';
 import 'package:pet_diary/src/components/events/others/event_water.dart';
@@ -25,7 +25,7 @@ import 'package:pet_diary/src/screens/medicine_screen.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/others/tile_info.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
-import 'package:pet_diary/src/components/events/event_food/others/event_tile.dart';
+import 'package:pet_diary/src/components/events/others/event_tile.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class HealthScreen extends ConsumerStatefulWidget {

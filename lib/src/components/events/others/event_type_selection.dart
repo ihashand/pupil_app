@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
-import 'package:pet_diary/src/components/events/event_notes/build_event_type_card_notes.dart';
+import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
 import 'package:pet_diary/src/components/events/event_food/functions/food_or_water_alert_dialog.dart';
 
 void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {

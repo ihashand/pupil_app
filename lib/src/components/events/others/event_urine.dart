@@ -119,40 +119,24 @@ class EventUrine extends ConsumerWidget {
                                     .read(eventUrineServiceProvider)
                                     .addUrineEvent(newUrine);
                                 Event newEvent = Event(
-                                    id: eventId,
-                                    title: 'Urine',
-                                    eventDate: eventDateTime,
-                                    dateWhenEventAdded: DateTime.now(),
-                                    userId:
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                    petId: petId,
-                                    weightId: '',
-                                    temperatureId: '',
-                                    walkId: '',
-                                    waterId: '',
-                                    noteId: '',
-                                    pillId: '',
-                                    description: urine['description'],
-                                    proffesionId: 'NONE',
-                                    personId: 'NONE',
-                                    avatarImage:
-                                        'assets/images/dog_avatar_014.png',
-                                    emoticon: '💦',
-                                    moodId: '',
-                                    stomachId: '',
-                                    psychicId: '',
-                                    stoolId: '',
-                                    urineId: newUrine.id,
-                                    serviceId: '',
-                                    careId: '');
+                                  id: eventId,
+                                  title: 'Urine',
+                                  eventDate: eventDateTime,
+                                  dateWhenEventAdded: DateTime.now(),
+                                  userId:
+                                      FirebaseAuth.instance.currentUser!.uid,
+                                  petId: petId,
+                                  description: urine['description'],
+                                  avatarImage:
+                                      'assets/images/dog_avatar_014.png',
+                                  emoticon: '💦',
+                                );
 
                                 ref
                                     .read(eventServiceProvider)
                                     .addEvent(newEvent);
-                                Navigator.of(context)
-                                    .pop(); // Close the confirmation dialog
-                                Navigator.of(context)
-                                    .pop(); // Close the bottom sheet
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -168,7 +152,7 @@ class EventUrine extends ConsumerWidget {
                 ),
                 Text(
                   urine['name'],
-                  style: const TextStyle(fontSize: 10), // Small font
+                  style: const TextStyle(fontSize: 10),
                 ),
               ],
             ),

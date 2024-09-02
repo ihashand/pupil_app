@@ -99,41 +99,26 @@ class EventMood extends ConsumerWidget {
                                     .addMood(newMood);
 
                                 Event newEvent = Event(
-                                    id: eventId,
-                                    title: 'Mood',
-                                    eventDate: eventDateTime,
-                                    dateWhenEventAdded: DateTime.now(),
-                                    userId:
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                    petId: petId,
-                                    weightId: '',
-                                    temperatureId: '',
-                                    walkId: '',
-                                    waterId: '',
-                                    noteId: '',
-                                    pillId: '',
-                                    description: mood['description'],
-                                    proffesionId: 'NONE',
-                                    personId: 'NONE',
-                                    avatarImage:
-                                        'assets/images/dog_avatar_014.png',
-                                    emoticon: mood['icon'],
-                                    moodId: newMood.id,
-                                    stomachId: '',
-                                    psychicId: '',
-                                    stoolId: '',
-                                    urineId: '',
-                                    serviceId: '',
-                                    careId: '');
+                                  id: eventId,
+                                  title: 'Mood',
+                                  eventDate: eventDateTime,
+                                  dateWhenEventAdded: DateTime.now(),
+                                  userId:
+                                      FirebaseAuth.instance.currentUser!.uid,
+                                  petId: petId,
+                                  description: mood['description'],
+                                  avatarImage:
+                                      'assets/images/dog_avatar_014.png',
+                                  emoticon: mood['icon'],
+                                  moodId: newMood.id,
+                                );
 
                                 ref
                                     .read(eventServiceProvider)
                                     .addEvent(newEvent);
 
-                                Navigator.of(context)
-                                    .pop(); // Close the confirmation dialog
-                                Navigator.of(context)
-                                    .pop(); // Close the bottom sheet
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -152,7 +137,7 @@ class EventMood extends ConsumerWidget {
                 ),
                 Text(
                   mood['description'],
-                  style: const TextStyle(fontSize: 10), // Small font
+                  style: const TextStyle(fontSize: 10),
                 ),
               ],
             ),

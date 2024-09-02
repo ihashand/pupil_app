@@ -305,31 +305,18 @@ class _EventWalkState extends ConsumerState<EventWalk> {
     newWalk.dateTime = widget.eventDateTime;
 
     Event newEvent = Event(
-        id: eventId,
-        title: 'Walk',
-        eventDate: widget.eventDateTime,
-        dateWhenEventAdded: DateTime.now(),
-        userId: FirebaseAuth.instance.currentUser!.uid,
-        petId: widget.petId,
-        weightId: '',
-        temperatureId: '',
-        walkId: newWalk.id,
-        waterId: '',
-        noteId: '',
-        pillId: '',
-        moodId: '',
-        stomachId: '',
-        description:
-            '${walkDistance.toStringAsFixed(2)} steps in ${totalDurationInSeconds.toString()} min.',
-        proffesionId: 'BRAK',
-        personId: 'BRAK',
-        avatarImage: 'assets/images/dog_avatar_010.png',
-        emoticon: '🚶‍➡️',
-        psychicId: '',
-        stoolId: '',
-        urineId: '',
-        serviceId: '',
-        careId: '');
+      id: eventId,
+      title: 'Walk',
+      eventDate: widget.eventDateTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: widget.petId,
+      walkId: newWalk.id,
+      description:
+          '${walkDistance.toStringAsFixed(2)} steps in ${totalDurationInSeconds.toString()} min.',
+      avatarImage: 'assets/images/dog_avatar_010.png',
+      emoticon: '🚶‍➡️',
+    );
     ref.read(eventServiceProvider).addEvent(newEvent);
 
     ref.read(eventWalkServiceProvider).addWalk(newWalk);

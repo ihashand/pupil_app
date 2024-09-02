@@ -7,26 +7,27 @@ class Event {
   late DateTime dateWhenEventAdded;
   late String userId;
   late String petId;
-  late String weightId;
-  late String temperatureId;
-  late String walkId;
-  late String waterId;
-  late String noteId;
-  late String pillId;
-  late String moodId;
-  late String stomachId;
-  late String psychicId;
-  late String stoolId;
-  late String urineId;
-  late String serviceId;
   late String description;
-  late String proffesionId;
-  late String personId;
-  late String careId;
-  late String avatarImage;
-  late String emoticon;
-  late String vetVisitId;
-  late String vaccineId;
+
+  String weightId = '';
+  String temperatureId = '';
+  String walkId = '';
+  String waterId = '';
+  String noteId = '';
+  String pillId = '';
+  String moodId = '';
+  String stomachId = '';
+  String stoolId = '';
+  String urineId = '';
+  String serviceId = '';
+  String proffesionId = '';
+  String personId = '';
+  String careId = '';
+  String avatarImage = '';
+  String emoticon = '';
+  String vetVisitId = '';
+  String vaccineId = '';
+  String psychicId = '';
 
   Event({
     required this.id,
@@ -35,24 +36,24 @@ class Event {
     required this.dateWhenEventAdded,
     required this.userId,
     required this.petId,
-    required this.weightId,
-    required this.temperatureId,
-    required this.walkId,
-    required this.waterId,
-    required this.noteId,
-    required this.pillId,
     required this.description,
-    required this.proffesionId,
-    required this.personId,
-    required this.avatarImage,
-    required this.emoticon,
-    required this.moodId,
-    required this.stomachId,
-    required this.stoolId,
-    required this.urineId,
-    required this.serviceId,
-    required this.careId,
-    required this.psychicId,
+    this.weightId = '',
+    this.temperatureId = '',
+    this.walkId = '',
+    this.waterId = '',
+    this.noteId = '',
+    this.pillId = '',
+    this.proffesionId = '',
+    this.personId = '',
+    this.avatarImage = '',
+    this.emoticon = '',
+    this.moodId = '',
+    this.stomachId = '',
+    this.stoolId = '',
+    this.urineId = '',
+    this.serviceId = '',
+    this.careId = '',
+    this.psychicId = '',
     this.vetVisitId = '',
     this.vaccineId = '',
   });

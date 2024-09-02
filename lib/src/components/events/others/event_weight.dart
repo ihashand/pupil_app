@@ -221,32 +221,17 @@ class _EventWeightState extends ConsumerState<EventWeight> {
                                   dateTime: DateTime.now());
 
                               Event newEvent = Event(
-                                  id: eventId,
-                                  eventDate: widget.eventDateTime,
-                                  dateWhenEventAdded: DateTime.now(),
-                                  title: 'Weight',
-                                  userId:
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                  petId: widget.petId,
-                                  weightId: newWeight.id,
-                                  temperatureId: '',
-                                  walkId: '',
-                                  waterId: '',
-                                  noteId: '',
-                                  pillId: '',
-                                  moodId: '',
-                                  stomachId: '',
-                                  description: '$initialWeight',
-                                  proffesionId: 'BRAK',
-                                  personId: 'BRAK',
-                                  avatarImage:
-                                      'assets/images/dog_avatar_012.png',
-                                  emoticon: '⚖️',
-                                  psychicId: '',
-                                  stoolId: '',
-                                  urineId: '',
-                                  serviceId: '',
-                                  careId: '');
+                                id: eventId,
+                                eventDate: widget.eventDateTime,
+                                dateWhenEventAdded: DateTime.now(),
+                                title: 'Weight',
+                                userId: FirebaseAuth.instance.currentUser!.uid,
+                                petId: widget.petId,
+                                weightId: newWeight.id,
+                                description: '$initialWeight',
+                                avatarImage: 'assets/images/dog_avatar_012.png',
+                                emoticon: '⚖️',
+                              );
 
                               ref.read(eventServiceProvider).addEvent(newEvent);
                               ref

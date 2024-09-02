@@ -124,25 +124,10 @@ class EventVaccine extends ConsumerWidget {
                                     userId:
                                         FirebaseAuth.instance.currentUser!.uid,
                                     petId: petId,
-                                    weightId: '',
-                                    temperatureId: '',
-                                    walkId: '',
-                                    waterId: '',
-                                    noteId: '',
-                                    pillId: '',
                                     description: issue['description'],
-                                    proffesionId: 'NONE',
-                                    personId: 'NONE',
                                     avatarImage:
                                         'assets/images/dog_avatar_014.png',
                                     emoticon: issue['icon'],
-                                    moodId: '',
-                                    stomachId: '',
-                                    psychicId: '',
-                                    stoolId: '',
-                                    urineId: '',
-                                    serviceId: '',
-                                    careId: '',
                                     vaccineId: newVaccine.id);
 
                                 ref

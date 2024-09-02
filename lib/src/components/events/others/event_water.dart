@@ -220,32 +220,17 @@ class _EventWaterState extends ConsumerState<EventWater> {
                                   dateTime: widget.eventDateTime);
 
                               Event newEvent = Event(
-                                  id: eventId,
-                                  title: 'Water',
-                                  eventDate: widget.eventDateTime,
-                                  dateWhenEventAdded: DateTime.now(),
-                                  userId:
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                  petId: widget.petId,
-                                  weightId: '',
-                                  temperatureId: '',
-                                  walkId: '',
-                                  waterId: newWater.id,
-                                  noteId: '',
-                                  pillId: '',
-                                  moodId: '',
-                                  stomachId: '',
-                                  description: '$initialWater ',
-                                  proffesionId: 'BRAK',
-                                  personId: 'BRAK',
-                                  avatarImage:
-                                      'assets/images/dog_avatar_014.png',
-                                  emoticon: '💧',
-                                  psychicId: '',
-                                  stoolId: '',
-                                  urineId: '',
-                                  serviceId: '',
-                                  careId: '');
+                                id: eventId,
+                                title: 'Water',
+                                eventDate: widget.eventDateTime,
+                                dateWhenEventAdded: DateTime.now(),
+                                userId: FirebaseAuth.instance.currentUser!.uid,
+                                petId: widget.petId,
+                                waterId: newWater.id,
+                                description: '$initialWater ',
+                                avatarImage: 'assets/images/dog_avatar_014.png',
+                                emoticon: '💧',
+                              );
 
                               ref.read(eventServiceProvider).addEvent(newEvent);
                               ref

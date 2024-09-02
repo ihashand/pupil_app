@@ -119,34 +119,18 @@ class EventCare extends ConsumerWidget {
                                     userId:
                                         FirebaseAuth.instance.currentUser!.uid,
                                     petId: petId,
-                                    weightId: '',
-                                    temperatureId: '',
-                                    walkId: '',
-                                    waterId: '',
-                                    noteId: '',
-                                    pillId: '',
                                     description: option['description'],
-                                    proffesionId: 'NONE',
-                                    personId: 'NONE',
                                     avatarImage:
                                         'assets/images/dog_avatar_014.png',
                                     emoticon: option['icon'],
-                                    moodId: '',
-                                    stomachId: '',
-                                    psychicId: '',
-                                    stoolId: '',
-                                    urineId: '',
-                                    serviceId: '',
                                     careId: newCare.id);
 
                                 ref
                                     .read(eventServiceProvider)
                                     .addEvent(newEvent);
 
-                                Navigator.of(context)
-                                    .pop(); // Close the confirmation dialog
-                                Navigator.of(context)
-                                    .pop(); // Close the bottom sheet
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -165,7 +149,7 @@ class EventCare extends ConsumerWidget {
                 ),
                 Text(
                   option['description'],
-                  style: const TextStyle(fontSize: 10), // Small font
+                  style: const TextStyle(fontSize: 10),
                 ),
               ],
             ),

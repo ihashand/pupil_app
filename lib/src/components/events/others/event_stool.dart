@@ -127,40 +127,25 @@ class EventStool extends ConsumerWidget {
                                     .read(eventStoolServiceProvider)
                                     .addStoolEvent(newStool);
                                 Event newEvent = Event(
-                                    id: eventId,
-                                    title: 'Stool',
-                                    eventDate: eventDateTime,
-                                    dateWhenEventAdded: DateTime.now(),
-                                    userId:
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                    petId: petId,
-                                    weightId: '',
-                                    temperatureId: '',
-                                    walkId: '',
-                                    waterId: '',
-                                    noteId: '',
-                                    pillId: '',
-                                    description: type['description'],
-                                    proffesionId: 'NONE',
-                                    personId: 'NONE',
-                                    avatarImage:
-                                        'assets/images/dog_avatar_014.png',
-                                    emoticon: type['icon'],
-                                    moodId: '',
-                                    stomachId: '',
-                                    psychicId: '',
-                                    stoolId: newStool.id,
-                                    urineId: '',
-                                    serviceId: '',
-                                    careId: '');
+                                  id: eventId,
+                                  title: 'Stool',
+                                  eventDate: eventDateTime,
+                                  dateWhenEventAdded: DateTime.now(),
+                                  userId:
+                                      FirebaseAuth.instance.currentUser!.uid,
+                                  petId: petId,
+                                  description: type['description'],
+                                  avatarImage:
+                                      'assets/images/dog_avatar_014.png',
+                                  emoticon: type['icon'],
+                                  stoolId: newStool.id,
+                                );
 
                                 ref
                                     .read(eventServiceProvider)
                                     .addEvent(newEvent);
-                                Navigator.of(context)
-                                    .pop(); // Close the confirmation dialog
-                                Navigator.of(context)
-                                    .pop(); // Close the bottom sheet
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -179,7 +164,7 @@ class EventStool extends ConsumerWidget {
                 ),
                 Text(
                   type['name'],
-                  style: const TextStyle(fontSize: 10), // Small font
+                  style: const TextStyle(fontSize: 10),
                 ),
               ],
             ),

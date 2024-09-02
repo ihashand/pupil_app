@@ -98,41 +98,26 @@ class EventStomach extends ConsumerWidget {
                                     .addStomach(newStomach);
 
                                 Event newEvent = Event(
-                                    id: eventId,
-                                    title: 'Stomach',
-                                    eventDate: eventDateTime,
-                                    dateWhenEventAdded: DateTime.now(),
-                                    userId:
-                                        FirebaseAuth.instance.currentUser!.uid,
-                                    petId: petId,
-                                    weightId: '',
-                                    temperatureId: '',
-                                    walkId: '',
-                                    waterId: '',
-                                    noteId: '',
-                                    pillId: '',
-                                    description: issue['description'],
-                                    proffesionId: 'NONE',
-                                    personId: 'NONE',
-                                    avatarImage:
-                                        'assets/images/dog_avatar_014.png',
-                                    emoticon: issue['icon'],
-                                    moodId: '',
-                                    stomachId: newStomach.id,
-                                    psychicId: '',
-                                    stoolId: '',
-                                    urineId: '',
-                                    serviceId: '',
-                                    careId: '');
+                                  id: eventId,
+                                  title: 'Stomach',
+                                  eventDate: eventDateTime,
+                                  dateWhenEventAdded: DateTime.now(),
+                                  userId:
+                                      FirebaseAuth.instance.currentUser!.uid,
+                                  petId: petId,
+                                  description: issue['description'],
+                                  avatarImage:
+                                      'assets/images/dog_avatar_014.png',
+                                  emoticon: issue['icon'],
+                                  stomachId: newStomach.id,
+                                );
 
                                 ref
                                     .read(eventServiceProvider)
                                     .addEvent(newEvent);
 
-                                Navigator.of(context)
-                                    .pop(); // Close the confirmation dialog
-                                Navigator.of(context)
-                                    .pop(); // Close the bottom sheet
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               },
                             ),
                           ],
@@ -151,7 +136,7 @@ class EventStomach extends ConsumerWidget {
                 ),
                 Text(
                   issue['description'],
-                  style: const TextStyle(fontSize: 10), // Small font
+                  style: const TextStyle(fontSize: 10),
                 ),
               ],
             ),

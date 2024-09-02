@@ -221,32 +221,17 @@ class _NewTemperatureEventState extends ConsumerState<EventTemperature> {
                                       temperature: initialTemperature);
 
                               Event newEvent = Event(
-                                  id: eventId,
-                                  eventDate: widget.eventDateTime,
-                                  dateWhenEventAdded: DateTime.now(),
-                                  title: 'Temperature',
-                                  userId:
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                  petId: widget.petId,
-                                  weightId: '',
-                                  temperatureId: newTemperature.id,
-                                  walkId: '',
-                                  waterId: '',
-                                  noteId: '',
-                                  pillId: '',
-                                  moodId: '',
-                                  stomachId: '',
-                                  description: '$initialTemperature',
-                                  proffesionId: 'BRAK',
-                                  personId: 'BRAK',
-                                  avatarImage:
-                                      'assets/images/dog_avatar_014.png',
-                                  emoticon: '🌡️',
-                                  psychicId: '',
-                                  stoolId: '',
-                                  urineId: '',
-                                  serviceId: '',
-                                  careId: '');
+                                id: eventId,
+                                eventDate: widget.eventDateTime,
+                                dateWhenEventAdded: DateTime.now(),
+                                title: 'Temperature',
+                                userId: FirebaseAuth.instance.currentUser!.uid,
+                                petId: widget.petId,
+                                temperatureId: newTemperature.id,
+                                description: '$initialTemperature',
+                                avatarImage: 'assets/images/dog_avatar_014.png',
+                                emoticon: '🌡️',
+                              );
 
                               ref
                                   .read(eventTemperatureServiceProvider)
