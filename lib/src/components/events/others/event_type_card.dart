@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget buildEventTypeCard(
+Widget eventTypeCard(
     BuildContext context, String title, String imagePath, VoidCallback onTap) {
   return GestureDetector(
     onTap: onTap,

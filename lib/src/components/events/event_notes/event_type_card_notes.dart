@@ -6,14 +6,14 @@ import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_note_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_event_type_card.dart';
+import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget buildEventTypeCardNotes(
+Widget eventTypeCardNotes(
     BuildContext context,
     TextEditingController titleController,
     TextEditingController contentTextController,
     WidgetRef ref) {
-  return buildEventTypeCard(
+  return eventTypeCard(
     context,
     'Notes',
     'assets/images/health_event_card/notes.png',

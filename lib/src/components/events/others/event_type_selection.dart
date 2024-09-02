@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_event_type_card.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_event_type_card_notes.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_feeding_or_water_menu.dart';
+import 'package:pet_diary/src/components/events/others/event_type_card.dart';
+import 'package:pet_diary/src/components/events/event_notes/build_event_type_card_notes.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/food_or_water_alert_dialog.dart';
 
-void showEventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
+void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
   var titleController = TextEditingController();
   var contentTextController = TextEditingController();
   showModalBottomSheet(
@@ -48,10 +48,7 @@ void showEventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                     ],
                   ),
                 ),
-                Divider(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary), // Divider po nagłówku
+                Divider(color: Theme.of(context).colorScheme.primary),
                 Expanded(
                   child: GridView.count(
                     controller: scrollController,
@@ -62,34 +59,34 @@ void showEventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                       horizontal: 12.0,
                     ),
                     children: [
-                      buildEventTypeCardNotes(
+                      eventTypeCardNotes(
                           context, titleController, contentTextController, ref),
-                      buildEventTypeCard(context, 'Feeding',
+                      eventTypeCard(context, 'Feeding',
                           'assets/images/health_event_card/dog_bowl_02.png',
                           () {
-                        showFeedingOrWaterMenu(context, ref, petId);
+                        foodOrWaterAlertDialog(context, ref, petId);
                       }),
-                      buildEventTypeCard(context, 'Mesuring',
+                      eventTypeCard(context, 'Mesuring',
                           'assets/images/health_event_card/termometr.png', () {
                         // TODO: Implement navigation to Weight & Temperature screen
                       }),
-                      buildEventTypeCard(context, 'Grooming',
+                      eventTypeCard(context, 'Grooming',
                           'assets/images/health_event_card/hair_brush.png', () {
                         // TODO: Implement navigation to Grooming screen
                       }),
-                      buildEventTypeCard(context, 'Mood & Mental',
+                      eventTypeCard(context, 'Mood & Mental',
                           'assets/images/health_event_card/dog_love.png', () {
                         // TODO: Implement navigation to Mood & Mental Health screen
                       }),
-                      buildEventTypeCard(context, 'Physiologic',
+                      eventTypeCard(context, 'Physiologic',
                           'assets/images/health_event_card/poo.png', () {
                         // TODO: Implement navigation to Physiological Needs screen
                       }),
-                      buildEventTypeCard(context, 'Medications',
+                      eventTypeCard(context, 'Medications',
                           'assets/images/health_event_card/pills.png', () {
                         // TODO: Implement navigation to Medications & Vaccines screen
                       }),
-                      buildEventTypeCard(context, 'Others',
+                      eventTypeCard(context, 'Others',
                           'assets/images/health_event_card/others.png', () {
                         // TODO: Implement navigation to Medications & Vaccines screen
                       }),

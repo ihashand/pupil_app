@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/screens/food_screen.dart';
-import 'package:pet_diary/src/components/events/event_food/others/_get_formatted_date.dart';
+import 'package:pet_diary/src/screens/event_food_screen.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/get_formatted_date.dart';
 
-Widget buildDateSelector(BuildContext context, WidgetRef ref) {
+Widget dateSelector(BuildContext context, WidgetRef ref) {
   final selectedDate = ref.watch(selectedDateProvider);
   final today = DateTime.now();
   final formattedDate = getFormattedDate(selectedDate, today);

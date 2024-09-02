@@ -1,13 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/smart_goal.dart';
+import 'package:pet_diary/src/components/events/event_food/others/smart_goal_kcal_macros.dart';
 
-class FoodPetSettingsScreen extends ConsumerWidget {
+class EventFoodPetSettingsScreen extends ConsumerWidget {
   final String petId;
 
-  const FoodPetSettingsScreen({super.key, required this.petId});
+  const EventFoodPetSettingsScreen({super.key, required this.petId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -97,7 +96,7 @@ class FoodPetSettingsScreen extends ConsumerWidget {
                         padding: const EdgeInsets.fromLTRB(8.0, 20, 8.0, 0.0),
                         child: ElevatedButton(
                           onPressed: () {
-                            showIntroStep(context, ref, petId);
+                            smartGoalKcalMacros(context, ref, petId);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
@@ -336,10 +335,6 @@ class FoodPetSettingsScreen extends ConsumerWidget {
   void _updateNutrientValue(WidgetRef ref, String label, double newValue) {
     final settingsProvider =
         ref.read(eventFoodPetSettingsProvider(petId).notifier);
-
-    if (kDebugMode) {
-      print('Updating $label with value $newValue');
-    } // Debug: logowanie wartości
 
     switch (label.toLowerCase()) {
       case 'energy':

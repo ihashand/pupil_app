@@ -1,22 +1,23 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/show_ingredient_details.dart';
+import 'package:pet_diary/src/components/events/event_food/others/nutrient_new_recipe.dart';
+import 'package:pet_diary/src/components/events/event_food/others/product_search_delegate.dart';
 import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/models/others/product_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
-class NewRecipeScreen extends ConsumerStatefulWidget {
-  const NewRecipeScreen(this.petId, {super.key});
-
+class EventFoodNewRecipeScreen extends ConsumerStatefulWidget {
+  const EventFoodNewRecipeScreen(this.petId, {super.key});
   final String petId;
 
   @override
-  createState() => _NewRecipeScreenState();
+  createState() => EventFoodNewRecipeScreenState();
 }
 
-class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
+class EventFoodNewRecipeScreenState
+    extends ConsumerState<EventFoodNewRecipeScreen> {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final ingredientControllers = <Map<String, dynamic>>[];
@@ -168,51 +169,31 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                buildNutrientColumn(context, 'Kcal',
-                    calculateTotalKcal().roundToDouble(), Colors.red),
-                buildNutrientColumn(
-                    context, 'Protein', calculateTotalProtein(), Colors.orange),
-                buildNutrientColumn(
-                    context, 'Fat', calculateTotalFat(), Colors.purple),
-                buildNutrientColumn(
-                    context, 'Carbs', calculateTotalCarbs(), Colors.green),
+                NutrientNewRecipe(
+                    context: context,
+                    label: 'Kcal',
+                    value: calculateTotalKcal().roundToDouble(),
+                    color: Colors.red),
+                NutrientNewRecipe(
+                    context: context,
+                    label: 'Protein',
+                    value: calculateTotalProtein(),
+                    color: Colors.orange),
+                NutrientNewRecipe(
+                    context: context,
+                    label: 'Fat',
+                    value: calculateTotalFat(),
+                    color: Colors.purple),
+                NutrientNewRecipe(
+                    context: context,
+                    label: 'Carbs',
+                    value: calculateTotalCarbs(),
+                    color: Colors.green),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget buildNutrientColumn(
-      BuildContext context, String label, double value, Color color) {
-    String formattedValue;
-    if (label == 'Kcal') {
-      formattedValue = value.toStringAsFixed(0);
-    } else {
-      formattedValue =
-          value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          formattedValue,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-          ),
-        ),
-      ],
     );
   }
 
@@ -397,7 +378,8 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
                               context: context,
                               delegate: ProductSearchDelegate(ref),
                             );
-                            if (selectedProduct != null) {
+                            if (selectedProduct != null &&
+                                selectedProduct.name != '') {
                               showIngredientDetails(
                                   context, selectedProduct, ref,
                                   (product, unit, amount) {
@@ -506,331 +488,6 @@ class _NewRecipeScreenState extends ConsumerState<NewRecipeScreen> {
               )
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  void showIngredientDetails(BuildContext context, ProductModel product,
-      WidgetRef ref, Function(ProductModel, String, double) onSave) {
-    TextEditingController amountController = TextEditingController();
-    String selectedUnit = 'g';
-    double grams = 100.0;
-
-    void updateValues(StateSetter setState) {
-      setState(() {
-        double factor = double.tryParse(amountController.text) ?? 100.0;
-        if (selectedUnit == 'kg') {
-          factor *= 1000;
-        }
-        grams = factor;
-      });
-    }
-
-    void handleInput(String value, StateSetter setState) {
-      value = value.replaceAll(',', '.');
-      setState(() {
-        amountController.text = value;
-        amountController.selection = TextSelection.fromPosition(
-          TextPosition(offset: amountController.text.length),
-        );
-        updateValues(setState);
-      });
-    }
-
-    showModalBottomSheet(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            double kcal = (product.kcal * grams) / 100;
-            double protein = ((product.protein ?? 0) * grams) / 100;
-            double fat = ((product.fat ?? 0) * grams) / 100;
-            double carbs = ((product.carbs ?? 0) * grams) / 100;
-
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              top: 15.0, left: 25.0, right: 10),
-                          child: Text(
-                            product.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.left,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0, top: 15),
-                        child: IconButton(
-                          iconSize: 27,
-                          icon: const Icon(Icons.check),
-                          onPressed: () {
-                            double? amount =
-                                double.tryParse(amountController.text);
-                            if (amount != null) {
-                              onSave(product, selectedUnit, amount);
-                              Navigator.of(context).pop();
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  Divider(
-                    color: Theme.of(context).colorScheme.secondary,
-                    height: 32,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            cursorColor: Theme.of(context).primaryColorDark,
-                            controller: amountController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: InputDecoration(
-                              labelText: 'Weight',
-                              labelStyle: TextStyle(
-                                  color: Theme.of(context).primaryColorDark),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColorDark),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColorDark),
-                              ),
-                            ),
-                            onChanged: (value) => handleInput(value, setState),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        DropdownButton<String>(
-                          value: selectedUnit,
-                          items: ['g', 'kg', 'ml']
-                              .map((unit) => DropdownMenuItem(
-                                    value: unit,
-                                    child: Text(unit),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedUnit = value!;
-                              updateValues(setState);
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 16, 16, 28),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              kcal.toStringAsFixed(0),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Text(
-                                'Kcal',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${(protein % 1 == 0 ? protein.toStringAsFixed(0) : protein.toStringAsFixed(2))}g',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Text(
-                                'Protein',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${(fat % 1 == 0 ? fat.toStringAsFixed(0) : fat.toStringAsFixed(2))}g',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.purple,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Text(
-                                'Fat',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              '${(carbs % 1 == 0 ? carbs.toStringAsFixed(0) : carbs.toStringAsFixed(2))}g',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Text(
-                                'Carbs',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class ProductSearchDelegate extends SearchDelegate<ProductModel> {
-  final WidgetRef ref;
-
-  ProductSearchDelegate(this.ref);
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, ProductModel(id: '', name: '', kcal: 0));
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildProductList(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    return _buildProductList(context);
-  }
-
-  Widget _buildProductList(BuildContext context) {
-    final productsAsyncValue = ref.watch(eventGlobalProductsProvider);
-
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      child: productsAsyncValue.when(
-        data: (products) {
-          final filteredProducts = products.where((product) {
-            return product.name.toLowerCase().contains(query.toLowerCase());
-          }).toList();
-
-          return ListView.builder(
-            itemCount: filteredProducts.length,
-            itemBuilder: (context, index) {
-              final product = filteredProducts[index];
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ListTile(
-                    title: Text(product.name,
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark)),
-                    subtitle: Text(
-                        '${product.kcal.toStringAsFixed(1)} kcal per 100g',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark)),
-                    onTap: () {
-                      close(context, product);
-                    },
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Error loading products: $error'),
         ),
       ),
     );

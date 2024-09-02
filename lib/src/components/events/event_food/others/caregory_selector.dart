@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget buildCategorySelector(
+Widget categorySelector(
     String title, bool isSelected, VoidCallback onTap, BuildContext context) {
   return GestureDetector(
     onTap: onTap,

@@ -8,16 +8,16 @@ import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provi
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 import 'package:pet_diary/src/tests/unit/services/events_services/event_food_eaten_meal_service.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/_build_date_selector.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_category_selector.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_macro_circles.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/food_screen_app_bar.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/food_screen_bootom_navigation_bar.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/_is_same_day.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_delete_confirmation_dialog.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_meal_details.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_product_details.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_recipe_details.dart';
+import 'package:pet_diary/src/components/events/event_food/others/date_selector.dart';
+import 'package:pet_diary/src/components/events/event_food/others/caregory_selector.dart';
+import 'package:pet_diary/src/components/events/event_food/others/food_screen_macro_circles.dart';
+import 'package:pet_diary/src/components/events/event_food/others/food_screen_app_bar.dart';
+import 'package:pet_diary/src/components/events/event_food/others/food_screen_bootom_navigation_bar.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/is_same_day.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/show_delete_confirmation_dialog.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/show_meal_details.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/show_product_details.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/show_recipe_details.dart';
 
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -38,13 +38,12 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   void initState() {
     super.initState();
 
-    // Listen to search controller changes
     searchController.addListener(() {
       ref.read(searchQueryProvider.notifier).state = searchController.text;
     });
   }
 
-  Future<void> scanBarcode() async {
+  Future<void> scanBarcodeOrQrCode() async {
     var result = await BarcodeScanner.scan();
     if (result.type == ResultType.Barcode) {
       setState(() {
@@ -100,7 +99,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
               child: Column(
                 children: [
                   if (selectedCategory == 'menu') ...[
-                    buildMacroCircles(context, ref, widget.petId),
+                    foodScreenMacroCircles(context, ref, widget.petId),
                   ] else ...[
                     Container(
                       decoration: BoxDecoration(
@@ -118,7 +117,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                           suffixIcon: IconButton(
                             icon: Icon(Icons.qr_code_scanner,
                                 color: Theme.of(context).primaryColorDark),
-                            onPressed: scanBarcode,
+                            onPressed: scanBarcodeOrQrCode,
                           ),
                           border: InputBorder.none,
                         ),
@@ -137,7 +136,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 27.0),
-                          child: buildCategorySelector(
+                          child: categorySelector(
                             'Menu',
                             selectedCategory == 'menu',
                             () {
@@ -152,7 +151,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 40.0),
-                          child: buildCategorySelector(
+                          child: categorySelector(
                             'All',
                             selectedCategory == 'all',
                             () {
@@ -165,7 +164,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 40.0),
-                          child: buildCategorySelector(
+                          child: categorySelector(
                             'My Own',
                             selectedCategory == 'my_own',
                             () {
@@ -178,7 +177,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 40.0),
-                          child: buildCategorySelector(
+                          child: categorySelector(
                             'Favorites',
                             selectedCategory == 'favorites',
                             () {
@@ -196,7 +195,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                     Divider(
                       color: Theme.of(context).colorScheme.surface,
                     ),
-                    buildDateSelector(context, ref),
+                    dateSelector(context, ref),
                   ],
                 ],
               ),

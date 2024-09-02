@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/screens/food_pet_setting_screen.dart';
+import 'package:pet_diary/src/screens/event_food_pet_setting_screen.dart';
 
 AppBar foodScreenAppBar(BuildContext context, String petId) {
   return AppBar(
@@ -25,7 +25,7 @@ AppBar foodScreenAppBar(BuildContext context, String petId) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FoodPetSettingsScreen(
+              builder: (context) => EventFoodPetSettingsScreen(
                 petId: petId,
               ),
             ),

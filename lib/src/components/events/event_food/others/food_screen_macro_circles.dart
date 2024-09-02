@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
-import 'package:pet_diary/src/screens/food_screen.dart';
+import 'package:pet_diary/src/screens/event_food_screen.dart';
 import 'package:pet_diary/src/tests/unit/services/events_services/event_food_eaten_meal_service.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_nutrient_circle.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/_is_same_day.dart';
+import 'package:pet_diary/src/components/events/event_food/others/food_screen_macro_circles_nutrient_circle.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/is_same_day.dart';
 
-Widget buildMacroCircles(BuildContext context, WidgetRef ref, String petId) {
+Widget foodScreenMacroCircles(
+    BuildContext context, WidgetRef ref, String petId) {
   final petSettings = ref.watch(eventFoodPetSettingsProvider(petId));
   final eatenMealsAsyncValue = ref.watch(eventFoodEatenMealsProvider(petId));
 
@@ -31,13 +32,13 @@ Widget buildMacroCircles(BuildContext context, WidgetRef ref, String petId) {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            buildNutrientCircle(
+            nutrientCircle(
                 context, 'Kcal', totalKcal, petSettings?.dailyKcal ?? 0.0),
-            buildNutrientCircle(
+            nutrientCircle(
                 context, 'Fat', totalFat, petSettings?.fatPercentage ?? 0.0),
-            buildNutrientCircle(context, 'Carbs', totalCarbs,
+            nutrientCircle(context, 'Carbs', totalCarbs,
                 petSettings?.carbsPercentage ?? 0.0),
-            buildNutrientCircle(context, 'Protein', totalProtein,
+            nutrientCircle(context, 'Protein', totalProtein,
                 petSettings?.proteinPercentage ?? 0.0),
           ],
         ),

@@ -16,7 +16,6 @@ void showProductDetails(
     builder: (context) {
       return Consumer(
         builder: (context, ref, _) {
-          // Fetch pet settings asynchronously
           final petSettingsFuture =
               ref.watch(eventFoodPetSettingsStreamProvider(petId));
 
@@ -34,7 +33,6 @@ void showProductDetails(
                 );
               }
 
-              // Controllers and default values
               TextEditingController gramsController =
                   TextEditingController(text: '100');
               TextEditingController dateController = TextEditingController(
@@ -44,9 +42,8 @@ void showProductDetails(
                   ? settings.mealTypes.first
                   : 'Breakfast';
               double grams = 100.0;
-              String selectedUnit = 'g'; // Default unit is grams
+              String selectedUnit = 'g';
 
-              // Update grams based on the selected unit
               void updateValues() {
                 double factor = double.tryParse(gramsController.text) ?? 100.0;
                 if (selectedUnit == 'kg') {
@@ -55,7 +52,6 @@ void showProductDetails(
                 grams = factor;
               }
 
-              // Handle input changes with validation
               void handleInput(String value, StateSetter setState) {
                 value = value.replaceAll(',', '.');
                 if (selectedUnit == 'g' || selectedUnit == 'ml') {
@@ -76,7 +72,6 @@ void showProductDetails(
                 });
               }
 
-              // Save the meal and close the modal
               void validateAndSave() async {
                 if (grams > 5000) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -90,9 +85,8 @@ void showProductDetails(
                     ),
                   );
                 } else {
-                  // Create a new eaten meal object
                   final eatenMeal = EventEatenMealModel(
-                    id: '', // Firebase generates the ID
+                    id: '',
                     date: DateFormat('dd-MM-yyyy').parse(dateController.text),
                     mealType: mealType,
                     name: product.name,
@@ -103,17 +97,15 @@ void showProductDetails(
                     grams: grams,
                   );
 
-                  // Save the eaten meal using the service
                   await ref
                       .read(eventFoodEatenMealServiceProvider)
                       .addEatenMeal(petId, eatenMeal);
 
                   // ignore: use_build_context_synchronously
-                  Navigator.of(context).pop(); // Close the modal
+                  Navigator.of(context).pop();
                 }
               }
 
-              // Calculate percentage fill for the circular progress
               double calculateFill(double kcal, double dailyKcal) {
                 double fillPercentage = kcal / dailyKcal;
                 return fillPercentage.clamp(0.0, 1.0);
@@ -129,7 +121,6 @@ void showProductDetails(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Top bar with close and save buttons
                         Padding(
                           padding: const EdgeInsets.only(
                               top: 8.0, left: 8.0, right: 8.0),
@@ -214,7 +205,6 @@ void showProductDetails(
                           color: Theme.of(context).colorScheme.secondary,
                           height: 32,
                         ),
-                        // Weight input and unit selector
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
@@ -267,7 +257,6 @@ void showProductDetails(
                             ],
                           ),
                         ),
-                        // Date picker
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
@@ -328,7 +317,6 @@ void showProductDetails(
                             },
                           ),
                         ),
-                        // Meal type selector
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
@@ -366,14 +354,12 @@ void showProductDetails(
                           color: Theme.of(context).colorScheme.primary,
                           height: 32,
                         ),
-                        // Nutritional information display
                         Padding(
                           padding: const EdgeInsets.only(
                               bottom: 35.0, left: 16, right: 16),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              // Calorie display
                               Column(
                                 children: [
                                   Stack(
@@ -437,7 +423,6 @@ void showProductDetails(
                                   ),
                                 ],
                               ),
-                              // Carbohydrate display
                               Column(
                                 children: [
                                   Text(
@@ -464,7 +449,6 @@ void showProductDetails(
                                   ),
                                 ],
                               ),
-                              // Fat display
                               Column(
                                 children: [
                                   Text(
@@ -491,7 +475,6 @@ void showProductDetails(
                                   ),
                                 ],
                               ),
-                              // Protein display
                               Column(
                                 children: [
                                   Text(

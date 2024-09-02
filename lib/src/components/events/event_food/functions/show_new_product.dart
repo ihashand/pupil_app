@@ -4,7 +4,7 @@ import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:pet_diary/src/models/others/product_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
-void newProductBottomSheet(BuildContext context, WidgetRef ref) {
+void showNewProduct(BuildContext context, WidgetRef ref) {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final brandController = TextEditingController();
@@ -40,6 +40,7 @@ void newProductBottomSheet(BuildContext context, WidgetRef ref) {
 
       await productService.addProduct(newProduct, isGlobal: isGlobal);
 
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     }
   }

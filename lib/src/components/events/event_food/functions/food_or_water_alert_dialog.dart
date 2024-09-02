@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/screens/food_screen.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_water_menu.dart';
+import 'package:pet_diary/src/screens/event_food_screen.dart';
+import 'package:pet_diary/src/components/events/event_food/functions/show_water_menu.dart';
 
-void showFeedingOrWaterMenu(BuildContext context, WidgetRef ref, String petId) {
+void foodOrWaterAlertDialog(BuildContext context, WidgetRef ref, String petId) {
   showDialog(
     context: context,
     builder: (BuildContext context) {

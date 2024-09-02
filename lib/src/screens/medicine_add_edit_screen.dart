@@ -1,13 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/medicine/medicinie_details_dosage.dart';
-import 'package:pet_diary/src/components/events/medicine/medicine_details_end_date.dart';
-import 'package:pet_diary/src/components/events/medicine/medicine_details_frequency.dart';
-import 'package:pet_diary/src/components/events/medicine/medicine_details_name.dart';
-import 'package:pet_diary/src/components/events/medicine/medicine_details_emoji.dart';
-import 'package:pet_diary/src/components/events/medicine/medicine_new_reminder_button.dart';
-import 'package:pet_diary/src/components/events/medicine/medicine_details_start_date.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicinie_details_dosage.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicine_details_end_date.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicine_details_frequency.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicine_details_name.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicine_details_emoji.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicine_new_reminder_button.dart';
+import 'package:pet_diary/src/components/events/event_medicine/medicine_details_start_date.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';

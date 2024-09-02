@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget buildActionButton({
+Widget bottomNavActionButton({
   required IconData icon,
   required String label,
   required BuildContext context,

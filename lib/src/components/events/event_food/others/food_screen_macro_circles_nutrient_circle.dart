@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/_calculate_fill.dart';
 
-Widget buildNutrientCircle(
+Widget nutrientCircle(
     BuildContext context, String label, double consumed, double dailyGoal) {
-  double fillPercentage = calculateFill(consumed, dailyGoal);
+  double fillPercentage = dailyGoal == 0 ? 0 : consumed / dailyGoal;
 
   Color circleColor;
   switch (label) {

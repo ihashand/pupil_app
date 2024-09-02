@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';

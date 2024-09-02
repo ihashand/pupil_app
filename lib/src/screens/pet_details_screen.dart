@@ -13,8 +13,8 @@ import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_edit_screen.dart';
 import 'package:pet_diary/src/widgets/health_events_widgets/health_event_card.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/event_tile.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/functions/show_event_type_selection.dart';
+import 'package:pet_diary/src/components/events/event_food/others/event_tile.dart';
+import 'package:pet_diary/src/components/events/event_food/others/eventTypeSelection.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -158,7 +158,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                   const SizedBox(height: 20),
                   HealthEventCard(
                     onCreatePressed: () =>
-                        showEventTypeSelection(context, ref, widget.petId),
+                        eventTypeSelection(context, ref, widget.petId),
                   ),
                   const SizedBox(height: 10),
                   Padding(

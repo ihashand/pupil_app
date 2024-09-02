@@ -5,16 +5,17 @@ import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings
 import 'package:pet_diary/src/tests/unit/services/events_services/event_food_eaten_meal_service.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
-class QuickAddMealScreen extends StatefulWidget {
+class EventFoodQuickAddMealScreen extends StatefulWidget {
   final String petId;
 
-  const QuickAddMealScreen({Key? key, required this.petId}) : super(key: key);
+  const EventFoodQuickAddMealScreen({super.key, required this.petId});
 
   @override
-  _QuickAddMealScreenState createState() => _QuickAddMealScreenState();
+  createState() => _EventFoodQuickAddMealScreenState();
 }
 
-class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
+class _EventFoodQuickAddMealScreenState
+    extends State<EventFoodQuickAddMealScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController gramsController =
       TextEditingController(text: '100');
@@ -27,7 +28,7 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
   );
 
   String selectedUnit = 'g';
-  String mealType = ''; // Zmienne mealType
+  String mealType = '';
 
   double grams = 100.0;
 
@@ -123,7 +124,7 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
       final eatenMeal = EventEatenMealModel(
         id: '',
         date: DateFormat('dd-MM-yyyy').parse(dateController.text),
-        mealType: mealType, // Zapisujemy poprawny mealType
+        mealType: mealType,
         name: nameController.text,
         kcal: double.parse(kcalController.text),
         fat: fatController.text.isNotEmpty
@@ -142,6 +143,7 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
           .read(eventFoodEatenMealServiceProvider)
           .addEatenMeal(widget.petId, eatenMeal);
 
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     }
   }
@@ -167,10 +169,8 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
               );
             }
 
-            mealType = mealType.isNotEmpty
-                ? mealType
-                : settings
-                    .mealTypes.first; // Ustawienie domyślnej wartości mealType
+            mealType =
+                mealType.isNotEmpty ? mealType : settings.mealTypes.first;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -512,15 +512,4 @@ class _QuickAddMealScreenState extends State<QuickAddMealScreen> {
       },
     );
   }
-}
-
-void quickAddMeal(BuildContext context, String petId) {
-  showModalBottomSheet(
-    backgroundColor: Theme.of(context).colorScheme.primary,
-    context: context,
-    isScrollControlled: true,
-    builder: (context) {
-      return QuickAddMealScreen(petId: petId);
-    },
-  );
 }

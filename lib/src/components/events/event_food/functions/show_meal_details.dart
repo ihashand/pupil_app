@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
-import 'package:pet_diary/src/screens/food_screen.dart';
+import 'package:pet_diary/src/screens/event_food_screen.dart';
 import 'package:pet_diary/src/tests/unit/services/events_services/event_food_eaten_meal_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -71,7 +71,6 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Top bar with delete button
                         Padding(
                           padding: const EdgeInsets.only(
                               top: 8.0, left: 8.0, right: 8.0),
@@ -147,8 +146,7 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                  width: 48), // Placeholder for alignment
+                              const SizedBox(width: 48),
                             ],
                           ),
                         ),
@@ -156,7 +154,6 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
                           color: Theme.of(context).colorScheme.secondary,
                           height: 32,
                         ),
-                        // Weight input (read-only)
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
@@ -181,7 +178,6 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
                             readOnly: true,
                           ),
                         ),
-                        // Date input (read-only)
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),
@@ -207,7 +203,6 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
                             readOnly: true,
                           ),
                         ),
-                        // Meal type input (read-only)
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 10),

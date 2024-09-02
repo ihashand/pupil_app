@@ -112,6 +112,7 @@ void showRecipeDetails(
                       .read(eventFoodEatenMealServiceProvider)
                       .addEatenMeal(petId, eatenMeal);
 
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop();
                 }
               }
