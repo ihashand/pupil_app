@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/product_model.dart';
+import 'package:pet_diary/src/models/others/product_model.dart';
 
 class FavoritesProductsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

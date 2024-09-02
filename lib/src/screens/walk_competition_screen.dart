@@ -3,10 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/walk_state_provider.dart';
+import 'package:pet_diary/src/providers/others/pet_provider.dart';
+import 'package:pet_diary/src/providers/others/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
 

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/app_user_model.dart';
+import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/services/app_user_service.dart';
 
 final appUserServiceProvider = Provider((ref) {

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/helper/calculate_age.dart';
 import 'package:pet_diary/src/screens/pet_details_screen.dart';

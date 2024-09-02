@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/local_user_model.dart';
+import 'package:pet_diary/src/models/others/local_user_model.dart';
 
 class LocalUserService {
   final _firestore = FirebaseFirestore.instance;

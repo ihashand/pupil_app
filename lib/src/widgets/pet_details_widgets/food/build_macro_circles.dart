@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/pet_settings_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/screens/food_screen.dart';
 import 'package:pet_diary/src/services/eaten_meal_service.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/build_nutrient_circle.dart';

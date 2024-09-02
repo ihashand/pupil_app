@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helper/helper_functions.dart';
-import 'package:pet_diary/src/providers/settings_providers.dart';
-import 'package:pet_diary/src/providers/theme_provider.dart';
-import 'package:pet_diary/src/providers/notification_provider.dart';
+import 'package:pet_diary/src/providers/others/settings_providers.dart';
+import 'package:pet_diary/src/providers/others/theme_provider.dart';
+import 'package:pet_diary/src/providers/others/notification_provider.dart';
 import 'package:pet_diary/src/widgets/reminders_widgets/number_picker_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {

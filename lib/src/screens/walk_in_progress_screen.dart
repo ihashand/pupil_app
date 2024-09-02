@@ -11,8 +11,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/providers/walk_state_provider.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/others/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/widgets/health_activity_widgets/section_title.dart';
 

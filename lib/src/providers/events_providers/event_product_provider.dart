@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/product_model.dart';
+import 'package:pet_diary/src/models/others/product_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/services/product_service.dart';
 

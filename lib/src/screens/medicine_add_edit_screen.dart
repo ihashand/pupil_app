@@ -10,11 +10,11 @@ import 'package:pet_diary/src/components/events/medicine/medicine_new_reminder_b
 import 'package:pet_diary/src/components/events/medicine/medicine_details_start_date.dart';
 import 'package:pet_diary/src/helper/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/providers/others/pet_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
 import '../providers/events_providers/event_medicine_provider.dart';
 

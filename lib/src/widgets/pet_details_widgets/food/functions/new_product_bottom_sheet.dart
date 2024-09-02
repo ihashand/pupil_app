@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
-import 'package:pet_diary/src/models/product_model.dart';
+import 'package:pet_diary/src/models/others/product_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
 void newProductBottomSheet(BuildContext context, WidgetRef ref) {

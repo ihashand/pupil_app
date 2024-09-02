@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/user_achievement.dart';
+import 'package:pet_diary/src/models/others/user_achievement.dart';
 
 class UserAchievementService {
   final _firestore = FirebaseFirestore.instance;

@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/bottom_app_bar.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
-import 'package:pet_diary/src/providers/theme_provider.dart';
+import 'package:pet_diary/src/providers/others/theme_provider.dart';
 import 'package:pet_diary/src/screens/login_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
 import 'package:pet_diary/src/services/notification_services.dart';

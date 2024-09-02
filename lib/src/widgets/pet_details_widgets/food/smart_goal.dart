@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/pet_settings_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 
 void showIntroStep(BuildContext context, WidgetRef ref, String petId) {
   showModalBottomSheet(

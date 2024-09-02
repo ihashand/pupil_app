@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/friend_model.dart';
-import 'package:pet_diary/src/models/friend_request_model.dart';
+import 'package:pet_diary/src/models/others/friend_model.dart';
+import 'package:pet_diary/src/models/others/friend_request_model.dart';
 
 class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

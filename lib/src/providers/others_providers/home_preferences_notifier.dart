@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pet_diary/src/models/home_preferences_model.dart';
+import 'package:pet_diary/src/models/others/home_preferences_model.dart';
 
 class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
   HomePreferencesNotifier() : super(_initialPreferences);

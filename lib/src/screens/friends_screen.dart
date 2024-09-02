@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/app_user_model.dart';
-import 'package:pet_diary/src/providers/friend_provider.dart';
-import 'package:pet_diary/src/providers/app_user_provider.dart';
-import 'package:pet_diary/src/providers/friend_search_provider.dart';
-import 'package:pet_diary/src/providers/friends_notifier_provider.dart';
+import 'package:pet_diary/src/models/others/app_user_model.dart';
+import 'package:pet_diary/src/providers/others/friend_provider.dart';
+import 'package:pet_diary/src/providers/others/app_user_provider.dart';
+import 'package:pet_diary/src/providers/others/friend_search_provider.dart';
+import 'package:pet_diary/src/providers/others/friends_notifier_provider.dart';
 import 'package:pet_diary/src/screens/friend_profile_screen.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {

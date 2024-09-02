@@ -1,4 +1,4 @@
-import 'package:pet_diary/src/models/dog_breed_model.dart';
+import 'package:pet_diary/src/models/others/dog_breed_model.dart';
 
 List<DogBreedGroup> dogBreedGroups = [
   DogBreedGroup(

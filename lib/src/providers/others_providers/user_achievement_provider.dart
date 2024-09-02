@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/user_achievement.dart';
+import 'package:pet_diary/src/models/others/user_achievement.dart';
 import 'package:pet_diary/src/services/user_achievement_service.dart';
 
 final userAchievementServiceProvider =

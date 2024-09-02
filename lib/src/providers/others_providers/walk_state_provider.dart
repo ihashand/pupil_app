@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:pedometer/pedometer.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 
 // Provider for active walk state
 final walkProvider = StateNotifierProvider<WalkNotifier, WalkState>((ref) {

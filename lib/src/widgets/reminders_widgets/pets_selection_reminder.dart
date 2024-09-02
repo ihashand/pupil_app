@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 
 class PetsSelection extends StatelessWidget {
   final AsyncValue<List<Pet>> asyncPets;

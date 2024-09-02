@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/settings_model.dart';
+import 'package:pet_diary/src/models/others/settings_model.dart';
 
 class SettingsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

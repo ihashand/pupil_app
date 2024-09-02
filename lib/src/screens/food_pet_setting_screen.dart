@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/providers/pet_settings_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/widgets/pet_details_widgets/food/smart_goal.dart';
 
 class FoodPetSettingsScreen extends ConsumerWidget {

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/card_preferences_model.dart';
+import 'package:pet_diary/src/models/others/card_preferences_model.dart';
 
 class CardPreferencesNotifier extends StateNotifier<CardPreferencesModel> {
   CardPreferencesNotifier() : super(_initialPreferences);

@@ -1,32 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/friend_model.dart';
-import 'package:pet_diary/src/models/friend_request_model.dart';
+import 'package:pet_diary/src/models/others/friend_model.dart';
+import 'package:pet_diary/src/models/others/friend_request_model.dart';
 import 'package:pet_diary/src/services/friend_service.dart';
 
 final friendServiceProvider = Provider((ref) {
   return FriendService();
 });
 
-final friendsProvider =
-    StateNotifierProvider<FriendsNotifier, List<Friend>>((ref) {
-  return FriendsNotifier(ref);
+final friendsStreamProvider = StreamProvider<List<Friend>>((ref) {
+  return ref.watch(friendServiceProvider).getFriendsStream();
 });
 
-final friendRequestsProvider = StreamProvider<List<FriendRequest>>((ref) {
-  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  if (currentUserId == null) {
-    return Stream.value([]);
-  }
-
-  return FirebaseFirestore.instance
-      .collection('app_users')
-      .doc(currentUserId)
-      .collection('friend_requests')
-      .snapshots()
-      .map((snapshot) =>
-          snapshot.docs.map((doc) => FriendRequest.fromDocument(doc)).toList());
+final friendRequestsStreamProvider = StreamProvider<List<FriendRequest>>((ref) {
+  return ref.watch(friendServiceProvider).getFriendRequestsStream();
 });
 
 class FriendsNotifier extends StateNotifier<List<Friend>> {

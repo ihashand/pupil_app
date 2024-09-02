@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/my_textfield.dart';
 import 'package:pet_diary/src/components/signin_button.dart';
-import 'package:pet_diary/src/models/app_user_model.dart';
-import 'package:pet_diary/src/providers/app_user_provider.dart';
+import 'package:pet_diary/src/models/others/app_user_model.dart';
+import 'package:pet_diary/src/providers/others/app_user_provider.dart';
 import '../helper/helper_functions.dart';
 import 'login_screen.dart';
 

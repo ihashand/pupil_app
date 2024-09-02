@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
+import 'package:pet_diary/src/providers/others/pet_provider.dart';
 import 'package:pet_diary/src/widgets/report_widget/show_date_range_dialog.dart';
 
 class GenerateReportCard extends ConsumerWidget {
