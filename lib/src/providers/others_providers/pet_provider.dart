@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/services/pet_services.dart';
+import 'package:pet_diary/src/tests/unit/services/other_services/pet_services.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 
 final petServiceProvider = Provider((ref) {

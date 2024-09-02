@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care.dart';
-import 'package:pet_diary/src/providers/others/home_preferences_notifier.dart';
+import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/screens/health_preferences_screen.dart';
 import 'package:pet_diary/src/components/events/event_psychic.dart';
 import 'package:pet_diary/src/components/events/event_service.dart';

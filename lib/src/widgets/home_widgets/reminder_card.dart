@@ -4,7 +4,7 @@ import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
-import 'package:pet_diary/src/providers/others/pet_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/add_reminder_screen.dart';
 import 'package:pet_diary/src/screens/pet_details_screen.dart';
 import 'dart:async';

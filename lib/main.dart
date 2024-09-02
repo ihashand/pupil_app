@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/bottom_app_bar.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
-import 'package:pet_diary/src/providers/others/theme_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/login_screen.dart';
 import 'package:pet_diary/src/screens/settings_screen.dart';
-import 'package:pet_diary/src/services/notification_services.dart';
+import 'package:pet_diary/src/tests/unit/services/other_services/notification_services.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
 

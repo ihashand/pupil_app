@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/food_screen.dart';
-import 'package:pet_diary/src/widgets/pet_details_widgets/food/_get_formatted_date.dart';
+import 'package:pet_diary/src/components/events/event_food/others/_get_formatted_date.dart';
 
 Widget buildDateSelector(BuildContext context, WidgetRef ref) {
   final selectedDate = ref.watch(selectedDateProvider);
