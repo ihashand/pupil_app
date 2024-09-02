@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/event_reminder_model.dart';
-import 'package:pet_diary/src/services/event_reminder_service.dart';
+import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
+import 'package:pet_diary/src/tests/unit/services/events_services/event_reminder_service.dart';
 
 class FakeFirebaseAuth extends Fake implements FirebaseAuth {
   final User? user;

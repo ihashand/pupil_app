@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/screens/walk_competition_screen.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_competition_screen.dart';
 
 class WalkCard extends ConsumerStatefulWidget {
   const WalkCard({

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/providers/walk_state_provider.dart';
-import 'package:pet_diary/src/screens/walk_in_progress_screen.dart';
+import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_in_progress_screen.dart';
 
 class ActiveWalkCard extends ConsumerWidget {
   const ActiveWalkCard({

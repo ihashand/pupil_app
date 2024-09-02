@@ -1,0 +1,239 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/helper/helper_functions.dart';
+import 'package:pet_diary/src/providers/others_providers/settings_providers.dart';
+import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/notification_provider.dart';
+import 'package:pet_diary/src/widgets/reminders_widgets/number_picker_dialog.dart';
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+    final notificationTime = ref.watch(notificationTimeProvider);
+    final isNotificationEnabled = ref.watch(notificationEnabledProvider);
+    final autoRemoveEnabled = ref.watch(autoRemoveEnabledProvider);
+    final autoRemoveHours = ref.watch(autoRemoveHoursProvider);
+    final autoRemoveMinutes = ref.watch(autoRemoveMinutesProvider);
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Dark Mode",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      CupertinoSwitch(
+                        value: theme.isDarkMode,
+                        onChanged: ((value) => theme.toggleTheme()),
+                      ),
+                    ]),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Mood Notifications",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      CupertinoSwitch(
+                        value: isNotificationEnabled,
+                        onChanged: (value) {
+                          ref.read(notificationEnabledProvider.notifier).state =
+                              value;
+                        },
+                      ),
+                    ]),
+              ),
+              if (isNotificationEnabled)
+                Container(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Notification Time",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: notificationTime,
+                          );
+                          if (picked != null && picked != notificationTime) {
+                            ref.read(notificationTimeProvider.notifier).state =
+                                picked;
+                          }
+                        },
+                        child: Text(
+                          notificationTime.format(context),
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).primaryColorDark),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Container(
+                decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Auto Remove Past Reminders",
+                      style:
+                          TextStyle(color: Theme.of(context).primaryColorDark),
+                    ),
+                    CupertinoSwitch(
+                      value: autoRemoveEnabled,
+                      onChanged: (value) {
+                        ref
+                            .read(autoRemoveEnabledProvider.notifier)
+                            .toggle(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (autoRemoveEnabled)
+                Container(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Remove after:",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TextButton(
+                            onPressed: () async {
+                              final hours = await showDialog<int>(
+                                context: context,
+                                builder: (context) {
+                                  return NumberPickerDialog(
+                                    initialValue: autoRemoveHours,
+                                    minValue: 0,
+                                    maxValue: 24,
+                                  );
+                                },
+                              );
+                              if (hours != null) {
+                                await ref
+                                    .read(autoRemoveHoursProvider.notifier)
+                                    .setHours(hours);
+                              }
+                            },
+                            child: Text(
+                              "$autoRemoveHours hrs",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final minutes = await showDialog<int>(
+                                context: context,
+                                builder: (context) {
+                                  return NumberPickerDialog(
+                                    initialValue: autoRemoveMinutes,
+                                    minValue: 0,
+                                    maxValue: 59,
+                                  );
+                                },
+                              );
+                              if (minutes != null) {
+                                await ref
+                                    .read(autoRemoveMinutesProvider.notifier)
+                                    .setMinutes(minutes);
+                              }
+                            },
+                            child: Text(
+                              "$autoRemoveMinutes mins",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 25.0, bottom: 25),
+            child: ListTile(
+              title: Text(
+                "LOGOUT",
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+              onTap: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                  }
+                } catch (e) {
+                  displayMessageToUser(
+                      // ignore: use_build_context_synchronously
+                      "Error signing out: ${e.toString()}",
+                      // ignore: use_build_context_synchronously
+                      context);
+                }
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}

@@ -1,4 +1,4 @@
-import 'package:pet_diary/src/models/event_mood_model.dart';
+import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
 
 List<double> calculateDailyMoods(List<EventMoodModel?> moods) {
   // Pobierz dzisiejszą datę

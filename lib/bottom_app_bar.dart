@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:pet_diary/src/screens/home_screen.dart';
-import 'src/screens/settings_screen.dart';
+import 'package:pet_diary/src/screens/home_screens/home_screen.dart';
+import 'src/screens/other_screens/settings_screen.dart';
 
 class BotomAppBar extends StatefulWidget {
   const BotomAppBar({super.key});

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/event_reminder_model.dart';
-import 'package:pet_diary/src/models/pet_model.dart';
-import 'package:pet_diary/src/providers/event_provider.dart';
-import 'package:pet_diary/src/providers/event_reminder_provider.dart';
-import 'package:pet_diary/src/providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/add_reminder_screen.dart';
-import 'package:pet_diary/src/screens/pet_details_screen.dart';
+import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
+import 'package:pet_diary/src/screens/other_screens/add_reminder_screen.dart';
+import 'package:pet_diary/src/screens/pet_details_screens/pet_details_screen.dart';
 import 'dart:async';
 
 class ReminderCard extends ConsumerStatefulWidget {

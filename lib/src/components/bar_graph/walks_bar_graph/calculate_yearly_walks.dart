@@ -1,4 +1,4 @@
-import 'package:pet_diary/src/models/event_walk_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 
 List<double> calculateYearlyWalks(List<EventWalkModel?> walks) {
   // Pobierz dzisiejszą datę
