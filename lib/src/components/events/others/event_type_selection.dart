@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/event_care/event_type_card_care.dart';
 import 'package:pet_diary/src/components/events/event_mood_and_mental/event_mood_and_mental.dart';
+import 'package:pet_diary/src/components/events/event_stool_and_urine/event_type_card_stool_and_urine.dart';
 import 'package:pet_diary/src/components/events/event_temperature/event_type_card_temperature.dart';
 import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
 import 'package:pet_diary/src/components/events/event_food/functions/food_or_water_alert_dialog.dart';
@@ -11,8 +12,7 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
   var titleController = TextEditingController();
   var contentTextController = TextEditingController();
   var temperatureController = TextEditingController();
-  var dateController =
-      TextEditingController(); // Kontroler daty dla Mood & Mental
+  var dateController = TextEditingController();
 
   showModalBottomSheet(
     context: context,
@@ -76,12 +76,13 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                       eventTypeCardTemperature(
                           context, temperatureController, ref, petId),
                       eventTypeCardCare(context, ref, petId, dateController),
-                      eventTypeCardMoodAndMental(context, ref, petId,
-                          dateController), // Dodano kartę Mood & Mental
-                      eventTypeCard(context, 'Physiologic',
-                          'assets/images/health_event_card/poo.png', () {
-                        // TODO: Implement navigation to Physiological Needs screen
-                      }),
+                      eventTypeCardMoodAndMental(
+                          context, ref, petId, dateController),
+                      eventTypeCardStoolAndUrine(
+                        context,
+                        ref,
+                        petId,
+                      ),
                       eventTypeCard(context, 'Medications',
                           'assets/images/health_event_card/pills.png', () {
                         // TODO: Implement navigation to Medications & Vaccines screen
