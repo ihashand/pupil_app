@@ -358,7 +358,7 @@ Widget eventTypeCardMoodAndMental(BuildContext context, WidgetRef ref,
                           ),
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 15,
                       )
                     ],
@@ -379,12 +379,12 @@ Widget eventTypeCardMoodAndMental(BuildContext context, WidgetRef ref,
         children: [
           Container(
             height: 120,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
               ),
-              image: const DecorationImage(
+              image: DecorationImage(
                 image:
                     AssetImage('assets/images/health_event_card/dog_love.png'),
                 fit: BoxFit.fill,
