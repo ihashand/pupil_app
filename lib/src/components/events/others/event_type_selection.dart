@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/event_care/event_type_card_care.dart';
-import 'package:pet_diary/src/components/events/event_mood_and_mental/event_mood_and_mental.dart';
+import 'package:pet_diary/src/components/events/event_medications/event_type_card_medicine.dart';
+import 'package:pet_diary/src/components/events/event_mood_and_mental/event_type_card_mood_and_mental.dart';
 import 'package:pet_diary/src/components/events/event_stool_and_urine/event_type_card_stool_and_urine.dart';
 import 'package:pet_diary/src/components/events/event_temperature/event_type_card_temperature.dart';
 import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
@@ -83,10 +84,11 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                         ref,
                         petId,
                       ),
-                      eventTypeCard(context, 'Medications',
-                          'assets/images/health_event_card/pills.png', () {
-                        // TODO: Implement navigation to Medications & Vaccines screen
-                      }),
+                      eventTypeCardMedicine(
+                        context,
+                        ref,
+                        petId,
+                      ),
                       eventTypeCard(context, 'Others',
                           'assets/images/health_event_card/others.png', () {
                         // TODO: Implement navigation to Others screen
