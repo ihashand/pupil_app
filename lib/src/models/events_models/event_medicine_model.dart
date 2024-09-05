@@ -16,6 +16,7 @@ class EventMedicineModel {
   String emoji = '';
 
   EventMedicineModel({
+    required this.id,
     required this.name,
     required this.eventId,
     required this.petId,
@@ -29,6 +30,13 @@ class EventMedicineModel {
     this.remindersEnabled = false,
     this.emoji = '',
   });
+  bool get isCurrent {
+    final now = DateTime.now();
+    return startDate != null &&
+        endDate != null &&
+        now.isAfter(startDate!) &&
+        now.isBefore(endDate!);
+  }
 
   EventMedicineModel.fromDocument(DocumentSnapshot doc) {
     id = doc.id;
@@ -49,6 +57,7 @@ class EventMedicineModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'eventId': eventId,
       'petId': petId,
