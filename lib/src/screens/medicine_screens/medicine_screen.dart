@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:pet_diary/src/components/events/event_medicine/show_add_medicine.dart';
+import 'package:pet_diary/src/components/events/event_medicine/show_add_medicine_name.dart';
 import 'package:pet_diary/src/helpers/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
@@ -21,6 +23,8 @@ class MedicineScreen extends ConsumerStatefulWidget {
 
 class _MedicineScreenState extends ConsumerState<MedicineScreen> {
   late Future<List<Event>> _eventsFuture;
+
+  bool isCurrentSelected = true;
 
   @override
   void didChangeDependencies() {
@@ -54,8 +58,8 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
               color: Theme.of(context).primaryColorDark,
               size: 24,
             ),
-            onPressed: () =>
-                addOrEditMedicine(context, ref, widget.petId, newPillId),
+            // Poprawienie wywołania showAddMedicine
+            onPressed: () => showAddMedicineName(context, ref, widget.petId),
           ),
         ],
         bottom: PreferredSize(
@@ -65,9 +69,87 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
       ),
       body: Column(
         children: [
-          const SizedBox(
-            height: 7,
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(25),
+                bottomRight: Radius.circular(25),
+              ),
+            ),
+            child: Column(
+              children: [
+                Divider(
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isCurrentSelected = true;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 20.0),
+                          decoration: BoxDecoration(
+                            color: isCurrentSelected
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Current Medicine',
+                            style: TextStyle(
+                              color: isCurrentSelected
+                                  ? Theme.of(context).primaryColorDark
+                                  : Theme.of(context)
+                                      .primaryColorDark
+                                      .withOpacity(0.4),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isCurrentSelected = false;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 20.0),
+                          decoration: BoxDecoration(
+                            color: !isCurrentSelected
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Medicine History',
+                            style: TextStyle(
+                              color: !isCurrentSelected
+                                  ? Theme.of(context).primaryColorDark
+                                  : Theme.of(context)
+                                      .primaryColorDark
+                                      .withOpacity(0.4),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(height: 7),
           Expanded(
             child: Consumer(builder: (context, ref, _) {
               final asyncMedicines = ref.watch(eventMedicinesProvider);
@@ -76,7 +158,11 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                 error: (err, stack) => Center(child: Text('Error: $err')),
                 data: (allMedicines) {
                   final petMedicines = allMedicines
-                      .where((element) => element.petId == widget.petId)
+                      .where((element) =>
+                          element.petId == widget.petId &&
+                          (isCurrentSelected
+                              ? element.isCurrent
+                              : !element.isCurrent))
                       .toList();
                   if (petMedicines.isEmpty) {
                     return const Center(
@@ -161,15 +247,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     await Future.delayed(const Duration(seconds: 1));
     await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
     await ref.read(eventServiceProvider).deleteEvent(medicine.eventId);
-
-    final asyncEvents = await _eventsFuture;
-
-    final relatedEvents =
-        asyncEvents.where((event) => event.id == medicine.eventId).toList();
-
-    for (var event in relatedEvents) {
-      await ref.read(eventServiceProvider).deleteEvent(event.id);
-    }
   }
 }
 
@@ -244,22 +321,25 @@ class MedicineTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildInfoRow(context, '💊',
+                    '${medicine.dosage ?? 'Not provided'}', 'Dosage'),
+                _buildInfoRow(context, '🔁',
+                    '${medicine.frequency ?? 'Not provided'}', "Frequency"),
                 _buildInfoRow(
                     context,
-                    '💊',
-                    '${medicine.dosage != 'null' ? medicine.dosage : 'Not provided'}',
-                    'dosage'),
+                    '📅',
+                    dateFormat.format(medicine.addDate ?? DateTime.now()),
+                    "Add date"),
                 _buildInfoRow(
                     context,
-                    '🔁',
-                    '${medicine.dosage != 'null' ? medicine.frequency : 'Not provided'}',
-                    "frequency"),
-                _buildInfoRow(context, '📅',
-                    dateFormat.format(medicine.addDate!), "add date"),
-                _buildInfoRow(context, '🛫',
-                    dateFormat.format(medicine.startDate!), "start date"),
-                _buildInfoRow(context, '🏁',
-                    dateFormat.format(medicine.endDate!), "end date"),
+                    '🛫',
+                    dateFormat.format(medicine.startDate ?? DateTime.now()),
+                    "Start date"),
+                _buildInfoRow(
+                    context,
+                    '🏁',
+                    dateFormat.format(medicine.endDate ?? DateTime.now()),
+                    "End date"),
               ],
             ),
           ),

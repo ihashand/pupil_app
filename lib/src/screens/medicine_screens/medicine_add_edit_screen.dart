@@ -366,8 +366,9 @@ Future<void> savePill(
 
   if (formKey.currentState!.validate()) {
     final bool isNewPill = pill == null;
-    final EventMedicineModel newPill =
-        isNewPill ? EventMedicineModel(name: '', eventId: '', petId: '') : pill;
+    final EventMedicineModel newPill = isNewPill
+        ? EventMedicineModel(id: '', name: '', eventId: '', petId: '')
+        : pill;
     final TextEditingController nameController =
         ref.read(eventMedicineNameControllerProvider);
 
