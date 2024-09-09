@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:pet_diary/src/components/events/event_medicine/show_add_medicine.dart';
-import 'package:pet_diary/src/components/events/event_medicine/show_add_medicine_name.dart';
+import 'package:pet_diary/src/components/events/event_medicine/add_medicine/show_add_medicine_name.dart';
 import 'package:pet_diary/src/helpers/generate_unique_id.dart';
-import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
@@ -22,14 +20,11 @@ class MedicineScreen extends ConsumerStatefulWidget {
 }
 
 class _MedicineScreenState extends ConsumerState<MedicineScreen> {
-  late Future<List<Event>> _eventsFuture;
-
   bool isCurrentSelected = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _eventsFuture = ref.read(eventsProvider.future);
   }
 
   @override
@@ -58,7 +53,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
               color: Theme.of(context).primaryColorDark,
               size: 24,
             ),
-            // Poprawienie wywołania showAddMedicine
             onPressed: () => showAddMedicineName(context, ref, widget.petId),
           ),
         ],
@@ -321,10 +315,10 @@ class MedicineTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow(context, '💊',
-                    '${medicine.dosage ?? 'Not provided'}', 'Dosage'),
+                _buildInfoRow(
+                    context, '💊', medicine.dosage ?? 'Not provided', 'Dosage'),
                 _buildInfoRow(context, '🔁',
-                    '${medicine.frequency ?? 'Not provided'}', "Frequency"),
+                    medicine.frequency ?? 'Not provided', "Frequency"),
                 _buildInfoRow(
                     context,
                     '📅',
