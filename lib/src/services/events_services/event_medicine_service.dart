@@ -15,18 +15,16 @@ class EventMedicineService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('users')
+    return _firestore
+        .collection('app_users')
         .doc(_currentUser.uid)
         .collection('event_medicines')
         .snapshots()
-        .listen((snapshot) {
-      _medicineController.add(snapshot.docs
+        .map((snapshot) {
+      return snapshot.docs
           .map((doc) => EventMedicineModel.fromDocument(doc))
-          .toList());
+          .toList();
     });
-
-    return _medicineController.stream;
   }
 
   Stream<EventMedicineModel?> getMedicineByIdStream(String medicineId) {
