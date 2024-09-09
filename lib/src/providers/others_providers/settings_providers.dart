@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/tests/unit/services/other_services/settings_service.dart';
+import 'package:pet_diary/services/other_services/settings_service.dart';
 import 'package:pet_diary/src/models/others/settings_model.dart';
 
 final settingsServiceProvider = Provider<SettingsService>((ref) {

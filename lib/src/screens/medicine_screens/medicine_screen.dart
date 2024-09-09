@@ -151,12 +151,16 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (err, stack) => Center(child: Text('Error: $err')),
                 data: (allMedicines) {
+                  final now = DateTime.now();
                   final petMedicines = allMedicines
                       .where((element) =>
                           element.petId == widget.petId &&
                           (isCurrentSelected
-                              ? element.isCurrent
-                              : !element.isCurrent))
+                              ? (element.endDate != null &&
+                                  (element.endDate!.isAfter(now) ||
+                                      element.endDate!.isAtSameMomentAs(now)))
+                              : (element.endDate != null &&
+                                  element.endDate!.isBefore(now))))
                       .toList();
                   if (petMedicines.isEmpty) {
                     return const Center(
@@ -241,6 +245,77 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     await Future.delayed(const Duration(seconds: 1));
     await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
     await ref.read(eventServiceProvider).deleteEvent(medicine.eventId);
+  }
+
+  void _showMedicineDetails(
+      BuildContext context, WidgetRef ref, EventMedicineModel medicine) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Medicine Details',
+                style: TextStyle(
+                    fontSize: 16, color: Theme.of(context).primaryColorDark),
+              ),
+              const SizedBox(height: 10),
+              _buildDetailRow(context, 'Name:', medicine.name),
+              _buildDetailRow(context, 'Dosage:', medicine.dosage ?? 'N/A'),
+              _buildDetailRow(
+                  context, 'Frequency:', medicine.frequency ?? 'N/A'),
+              _buildDetailRow(
+                  context,
+                  'Start Date:',
+                  DateFormat('dd-MM-yyyy')
+                      .format(medicine.startDate ?? DateTime.now())),
+              _buildDetailRow(
+                  context,
+                  'End Date:',
+                  DateFormat('dd-MM-yyyy')
+                      .format(medicine.endDate ?? DateTime.now())),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.delete),
+                label: const Text('Delete'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  deletePill(context, ref, widget.petId, medicine: medicine);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).primaryColorDark,
+            )),
+        Text(value,
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).primaryColorDark,
+            )),
+      ],
+    );
   }
 }
 

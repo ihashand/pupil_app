@@ -3,7 +3,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_food_recipe_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
-import 'package:pet_diary/src/tests/unit/services/events_services/event_food_recipe_service.dart';
+import 'package:pet_diary/services/events_services/event_food_recipe_service.dart';
 
 final eventFoodRecipeServiceProvider = Provider<EventFoodRecipeService>((ref) {
   return EventFoodRecipeService();

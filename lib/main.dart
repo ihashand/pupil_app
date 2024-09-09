@@ -8,7 +8,7 @@ import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/login_register_screens/login_screen.dart';
 import 'package:pet_diary/src/screens/other_screens/settings_screen.dart';
-import 'package:pet_diary/src/tests/unit/services/other_services/notification_services.dart';
+import 'package:pet_diary/services/other_services/notification_services.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
 

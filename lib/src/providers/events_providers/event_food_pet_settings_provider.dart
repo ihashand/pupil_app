@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_food_pet_setting_model.dart';
-import 'package:pet_diary/src/tests/unit/services/events_services/event_food_pet_setting_service.dart';
+import 'package:pet_diary/services/events_services/event_food_pet_setting_service.dart';
 
 final eventFoodPetSettingsServiceProvider =
     Provider<EventFoodPetSettingsService>((ref) {

@@ -101,7 +101,7 @@ void showAddMedicineType(BuildContext context, WidgetRef ref, String petId,
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
-                    padding: EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(15),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(10),

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/others/friend_model.dart';
 import 'package:pet_diary/src/models/others/friend_request_model.dart';
-import 'package:pet_diary/src/tests/unit/services/other_services/friend_service.dart';
+import 'package:pet_diary/services/other_services/friend_service.dart';
 
 final friendServiceProvider = Provider((ref) {
   return FriendService();

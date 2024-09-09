@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
@@ -56,7 +58,6 @@ void showAddMedicine(BuildContext context, WidgetRef ref,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Nagłówek z ikonami zamknięcia i zatwierdzenia
                     Padding(
                       padding: const EdgeInsets.only(
                           top: 8.0, left: 8.0, right: 8.0),
