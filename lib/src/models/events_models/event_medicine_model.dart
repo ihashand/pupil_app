@@ -14,7 +14,8 @@ class EventMedicineModel {
   DateTime? startDate;
   bool remindersEnabled = false;
   String emoji = '';
-String scheduleDetails = '';
+  String scheduleDetails = '';
+  String medicineType = '';
 
   EventMedicineModel({
     required this.id,
@@ -31,6 +32,7 @@ String scheduleDetails = '';
     this.remindersEnabled = false,
     this.emoji = '',
     this.scheduleDetails = '',
+    this.medicineType = '',
   });
   bool get isCurrent {
     final now = DateTime.now();
@@ -56,6 +58,7 @@ String scheduleDetails = '';
     remindersEnabled = doc.get('remindersEnabled') ?? false;
     emoji = doc.get('emoji') ?? '';
     scheduleDetails = doc.get('scheduleDetails') ?? '';
+    medicineType = doc.get('medicineType') ?? '';
   }
 
   Map<String, dynamic> toMap() {
@@ -73,7 +76,8 @@ String scheduleDetails = '';
       'startDate': startDate,
       'remindersEnabled': remindersEnabled,
       'emoji': emoji,
-      'scheduleDetails': scheduleDetails
+      'scheduleDetails': scheduleDetails,
+      'medicineType': medicineType,
     };
   }
 }

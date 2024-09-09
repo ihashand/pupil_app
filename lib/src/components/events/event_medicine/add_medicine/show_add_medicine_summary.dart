@@ -45,24 +45,24 @@ void showAddMedicineSummary(
       String eventId = generateUniqueId();
 
       final newMedicine = EventMedicineModel(
-        id: generateUniqueId(),
-        name: medicineName,
-        petId: petId,
-        eventId: eventId,
-        frequency: frequency,
-        dosage: '$strength $unit',
-        emoji: emoji,
-        startDate: startDate,
-        endDate: endDate,
-        remindersEnabled: false,
-        scheduleDetails: scheduleDetails,
-      );
+          id: generateUniqueId(),
+          name: medicineName,
+          petId: petId,
+          eventId: eventId,
+          frequency: frequency,
+          dosage: '$strength $unit',
+          emoji: emoji,
+          startDate: startDate,
+          endDate: endDate,
+          remindersEnabled: false,
+          scheduleDetails: scheduleDetails,
+          medicineType: medicineType);
 
       await ref.read(eventMedicineServiceProvider).addMedicine(newMedicine);
 
       Event newEvent = Event(
         id: eventId,
-        title: 'Medicine Administration',
+        title: medicineName,
         eventDate: startDate,
         dateWhenEventAdded: DateTime.now(),
         userId: FirebaseAuth.instance.currentUser!.uid,
@@ -129,14 +129,14 @@ void showAddMedicineSummary(
                                   context,
                                   ref,
                                   petId,
-                                  '',
-                                  DateTime.now(),
-                                  DateTime.now(),
-                                  '',
-                                  '',
-                                  '',
-                                  '',
-                                  '');
+                                  medicineName,
+                                  startDate,
+                                  endDate,
+                                  medicineType,
+                                  strength,
+                                  unit,
+                                  frequency,
+                                  scheduleDetails);
                             },
                           ),
                           Text(
@@ -155,18 +155,19 @@ void showAddMedicineSummary(
                             ),
                             onPressed: () {
                               saveMedicineAndEvent(
-                                  context,
-                                  ref,
-                                  petId,
-                                  medicineName,
-                                  startDate,
-                                  endDate,
-                                  medicineType,
-                                  strength,
-                                  unit,
-                                  frequency,
-                                  emoji,
-                                  scheduleDetails);
+                                context,
+                                ref,
+                                petId,
+                                medicineName,
+                                startDate,
+                                endDate,
+                                medicineType,
+                                strength,
+                                unit,
+                                frequency,
+                                emoji,
+                                scheduleDetails,
+                              );
                             },
                           )
                         ],
@@ -183,8 +184,37 @@ void showAddMedicineSummary(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSummaryRow(
-                              context, 'Medicine Name', medicineName),
+                          // Larger name on the left and emoji on the right
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 15, right: 15, top: 5, bottom: 5),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    medicineName,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.surface,
+                                  child: Text(
+                                    emoji,
+                                    style: const TextStyle(fontSize: 36),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Other details
                           _buildSummaryRow(context, 'Start Date',
                               DateFormat('dd-MM-yyyy').format(startDate)),
                           _buildSummaryRow(context, 'End Date',
@@ -193,9 +223,8 @@ void showAddMedicineSummary(
                           _buildSummaryRow(
                               context, 'Strength', '$strength $unit'),
                           _buildSummaryRow(context, 'Frequency', frequency),
-                          _buildSummaryRow(
+                          _buildScheduleSummaryRow(
                               context, 'Schedule', scheduleDetails),
-                          _buildSummaryRow(context, 'Emoji', emoji),
                         ],
                       ),
                     ),
@@ -213,9 +242,38 @@ void showAddMedicineSummary(
 
 Widget _buildSummaryRow(BuildContext context, String label, String value) {
   return Padding(
-    padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+    padding: const EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 5),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildScheduleSummaryRow(
+    BuildContext context, String label, String scheduleDetails) {
+  final List<String> daysOfWeek = scheduleDetails.split(', ');
+
+  return Padding(
+    padding: const EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 5),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
@@ -225,12 +283,20 @@ Widget _buildSummaryRow(BuildContext context, String label, String value) {
             color: Theme.of(context).primaryColorDark,
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            color: Theme.of(context).primaryColorDark,
-          ),
+        const SizedBox(height: 5),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children: daysOfWeek.map((day) {
+            return Chip(
+              label: Text(
+                day,
+                style: TextStyle(
+                    color: Theme.of(context).primaryColorDark, fontSize: 11),
+              ),
+              backgroundColor: Theme.of(context).colorScheme.surface,
+            );
+          }).toList(),
         ),
       ],
     ),
