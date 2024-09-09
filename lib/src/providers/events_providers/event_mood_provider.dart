@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
-import 'package:pet_diary/services/events_services/event_mood_service.dart';
+import 'package:pet_diary/src/services/events_services/event_mood_service.dart';
 
 final eventMoodServiceProvider = Provider((ref) {
   return EventMoodService();

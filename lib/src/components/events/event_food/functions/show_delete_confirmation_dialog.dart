@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
-import 'package:pet_diary/services/events_services/event_food_eaten_meal_service.dart';
+import 'package:pet_diary/src/services/events_services/event_food_eaten_meal_service.dart';
 
 void showDeleteConfirmationDialog(BuildContext context, WidgetRef ref,
     EventEatenMealModel meal, String petId) {

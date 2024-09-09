@@ -7,7 +7,7 @@ import 'package:pet_diary/src/providers/others_providers/category_provider.dart'
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
-import 'package:pet_diary/services/events_services/event_food_eaten_meal_service.dart';
+import 'package:pet_diary/src/services/events_services/event_food_eaten_meal_service.dart';
 import 'package:pet_diary/src/components/events/event_food/others/date_selector.dart';
 import 'package:pet_diary/src/components/events/event_food/others/caregory_selector.dart';
 import 'package:pet_diary/src/components/events/event_food/others/food_screen_macro_circles.dart';

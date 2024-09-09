@@ -8,7 +8,7 @@ import 'package:pet_diary/src/providers/events_providers/event_reminder_provider
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/services/other_services/notification_services.dart';
+import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   final String petId;

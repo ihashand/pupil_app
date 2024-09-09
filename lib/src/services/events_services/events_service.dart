@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../src/models/events_models/event_model.dart';
+import '../../models/events_models/event_model.dart';
 
 class EventService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

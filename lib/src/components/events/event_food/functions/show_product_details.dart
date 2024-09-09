@@ -4,7 +4,7 @@ import 'package:pet_diary/src/models/others/product_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_pet_settings_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
-import 'package:pet_diary/services/events_services/event_food_eaten_meal_service.dart';
+import 'package:pet_diary/src/services/events_services/event_food_eaten_meal_service.dart';
 import 'package:pet_diary/src/models/events_models/event_eaten_meal_model.dart';
 
 void showProductDetails(
