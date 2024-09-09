@@ -243,7 +243,7 @@ class MedicineTile extends StatefulWidget {
   });
 
   @override
-  _MedicineTileState createState() => _MedicineTileState();
+  createState() => _MedicineTileState();
 }
 
 class _MedicineTileState extends State<MedicineTile>
@@ -294,6 +294,7 @@ class _MedicineTileState extends State<MedicineTile>
         child: Column(
           children: [
             ListTile(
+              visualDensity: const VisualDensity(vertical: 4),
               leading: CircleAvatar(
                 radius: 24,
                 backgroundColor: Theme.of(context).colorScheme.surface,
