@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/components/events/event_medicine/add_medicine/show_add_medicine_name.dart';
-import 'package:pet_diary/src/helpers/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/screens/medicine_screens/medicine_add_edit_screen.dart';
 
 class MedicineScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -22,7 +20,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var newPillId = generateUniqueId();
     final now = DateTime.now();
 
     return Scaffold(
@@ -173,13 +170,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                     final medicine = filteredMedicines[index];
                     return MedicineTile(
                       medicine: medicine,
-                      onEdit: () => addOrEditMedicine(
-                        context,
-                        ref,
-                        widget.petId,
-                        newPillId,
-                        medicine: medicine,
-                      ),
                       onDelete: () => deletePill(context, ref, widget.petId,
                           medicine: medicine),
                     );
@@ -191,33 +181,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
         ],
       ),
     );
-  }
-
-  void addOrEditMedicine(
-    BuildContext context,
-    WidgetRef ref,
-    String petId,
-    String newMedicineId, {
-    EventMedicineModel? medicine,
-  }) async {
-    final bool isEditing = medicine != null;
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MedicineAddEditScreen(
-          petId,
-          newMedicineId,
-          medicine: medicine,
-        ),
-      ),
-    );
-    if (result != null) {
-      if (isEditing) {
-        await ref.read(eventMedicineServiceProvider).updateMedicine(result);
-      } else {
-        await ref.read(eventMedicineServiceProvider).addMedicine(result);
-      }
-    }
   }
 
   void deletePill(
@@ -232,13 +195,11 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 
 class MedicineTile extends StatefulWidget {
   final EventMedicineModel medicine;
-  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const MedicineTile({
     super.key,
     required this.medicine,
-    required this.onEdit,
     required this.onDelete,
   });
 
