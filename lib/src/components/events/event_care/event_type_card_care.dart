@@ -19,10 +19,18 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
     {'icon': '🧼', 'description': 'Brushing'},
     {'icon': '👀', 'description': 'Eye Cleaning'},
     {'icon': '👂', 'description': 'Ear Cleaning'},
-    {'icon': '🧴', 'description': 'Cream'},
-    {'icon': '🪲', 'description': 'Tick'},
-    {'icon': '🐜', 'description': 'Fleas'},
+    {'icon': '🧴', 'description': 'Cream Application'},
+    {'icon': '🪲', 'description': 'Tick Check'},
+    {'icon': '🐜', 'description': 'Flea Check'},
     {'icon': '🪥', 'description': 'Teeth Brushing'},
+    {'icon': '👣', 'description': 'Paw Care'},
+    {'icon': '🦷', 'description': 'Dental Check'},
+    {'icon': '✂️', 'description': 'Trimming Hair Around Eyes'},
+    {'icon': '🔍', 'description': 'Skin Check'},
+    {'icon': '💆‍♂️', 'description': 'Relaxation Massage'},
+    {'icon': '👃', 'description': 'Nose Health Check'},
+    {'icon': '👁️', 'description': 'Eye Drops'},
+    {'icon': '🧴', 'description': 'Moisturizing Paw Pads'},
   ];
 
   return GestureDetector(
@@ -72,7 +80,7 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
                               Text(
                                 'C A R E',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).primaryColorDark,
                                 ),
@@ -364,9 +372,9 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
           Padding(
             padding: const EdgeInsets.only(top: 13.0, left: 5, right: 5),
             child: Text(
-              'Care',
+              'C A R E',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColorDark,
               ),

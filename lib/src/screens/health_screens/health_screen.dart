@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_care/event_care.dart';
 import 'package:pet_diary/src/components/events/event_medications/event_vaccine.dart';
+import 'package:pet_diary/src/components/events/others/event_type_selection.dart';
 import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/screens/health_screens/health_preferences_screen.dart';
-import 'package:pet_diary/src/components/events/event_mood_and_mental/event_psychic.dart';
+import 'package:pet_diary/src/components/events/event_mood_and_issues/event_psychic.dart';
 import 'package:pet_diary/src/components/events/others/event_service.dart';
 import 'package:pet_diary/src/components/events/others/event_stomach.dart';
 import 'package:pet_diary/src/components/events/event_stool_and_urine/event_stool.dart';
@@ -18,7 +19,7 @@ import 'package:pet_diary/src/components/events/event_temperature/event_temperat
 import 'package:pet_diary/src/components/events/others/event_walk.dart';
 import 'package:pet_diary/src/components/events/event_food/event_water.dart';
 import 'package:pet_diary/src/components/events/others/event_weight.dart';
-import 'package:pet_diary/src/components/events/event_mood_and_mental/event_mood.dart';
+import 'package:pet_diary/src/components/events/event_mood_and_issues/event_mood.dart';
 import 'package:pet_diary/src/models/events_models/event_preferences.dart';
 import 'package:pet_diary/src/providers/events_providers/event_preferences_provider.dart';
 import 'package:pet_diary/src/screens/medicine_screens/medicine_screen.dart';
@@ -155,7 +156,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: const Color(0xff68a2b6),
             onPressed: () {
-              _showDetailedAddMenu(context);
+              eventTypeSelection(context, ref, widget.petId);
             },
             child: Icon(
               Icons.add,

@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/helpers/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
 import 'package:pet_diary/src/models/events_models/event_psychic_model.dart';
@@ -10,35 +10,38 @@ import 'package:pet_diary/src/providers/events_providers/event_mood_provider.dar
 import 'package:pet_diary/src/providers/events_providers/event_psychic_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 
-Widget eventTypeCardMoodAndMental(BuildContext context, WidgetRef ref,
+Widget eventTypeCardMoodAndIssues(BuildContext context, WidgetRef ref,
     String petId, TextEditingController dateController) {
   DateTime selectedDate = DateTime.now();
   dateController.text = DateFormat('dd-MM-yyyy').format(selectedDate);
 
+  String? selectedMood;
+  String? selectedPsychicIssue;
+
   final List<Map<String, dynamic>> moods = [
-    {'icon': '😄', 'description': 'Happy'},
-    {'icon': '😃', 'description': 'Excited'},
-    {'icon': '😊', 'description': 'Content'},
-    {'icon': '😐', 'description': 'Neutral'},
-    {'icon': '😴', 'description': 'Tired'},
-    {'icon': '😢', 'description': 'Sad'},
-    {'icon': '😠', 'description': 'Angry'},
-    {'icon': '😡', 'description': 'Furious'},
-    {'icon': '😭', 'description': 'Crying'},
-    {'icon': '😞', 'description': 'Disappointed'},
+    {'emoji': '😊', 'description': 'Calm'},
+    {'emoji': '😃', 'description': 'Energetic'},
+    {'emoji': '🤪', 'description': 'Goofy'},
+    {'emoji': '😁', 'description': 'Confident'},
+    {'emoji': '😌', 'description': 'Satisfied'},
+    {'emoji': '😍', 'description': 'Loving'},
+    {'emoji': '😇', 'description': 'Safe'},
+    {'emoji': '🥳', 'description': 'Excited'},
+    {'emoji': '😋', 'description': 'Satisfied'},
+    {'emoji': '😴', 'description': 'Tired'},
   ];
 
   final List<Map<String, dynamic>> psychicIssues = [
-    {'icon': '😰', 'description': 'Anxiety'},
-    {'icon': '😴', 'description': 'Insomnia'},
-    {'icon': '😟', 'description': 'Stress'},
-    {'icon': '😨', 'description': 'Fear'},
-    {'icon': '😡', 'description': 'Irritability'},
-    {'icon': '😩', 'description': 'Fatigue'},
-    {'icon': '🤔', 'description': 'Lack of Concentration'},
-    {'icon': '😕', 'description': 'Confusion'},
-    {'icon': '😴', 'description': 'Laziness'},
-    {'icon': '🤪', 'description': 'Hyperactivity'},
+    {'emoji': '🤒', 'description': 'Stomach Pain'},
+    {'emoji': '🥶', 'description': 'Cold'},
+    {'emoji': '🥵', 'description': 'Hot'},
+    {'emoji': '🤕', 'description': 'Leg Pain'},
+    {'emoji': '🤧', 'description': 'Fever'},
+    {'emoji': '🤢', 'description': 'Nausea'},
+    {'emoji': '🤮', 'description': 'Vomiting'},
+    {'emoji': '😰', 'description': 'Anxiety'},
+    {'emoji': '😱', 'description': 'Panic'},
+    {'emoji': '😖', 'description': 'General Pain'},
   ];
 
   return GestureDetector(
@@ -86,19 +89,103 @@ Widget eventTypeCardMoodAndMental(BuildContext context, WidgetRef ref,
                                 },
                               ),
                               Text(
-                                'M O O D & M E N T A L',
+                                'M O O D  &  I S S U E S',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).primaryColorDark,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               IconButton(
-                                icon: Icon(Icons.check,
-                                    color: Theme.of(context).primaryColorDark),
-                                onPressed: () {},
-                              ),
+                                  icon: Icon(Icons.check,
+                                      color:
+                                          Theme.of(context).primaryColorDark),
+                                  onPressed: () {
+                                    if (selectedMood != null) {
+                                      String eventId = generateUniqueId();
+                                      int moodRating =
+                                          EventMoodModel.determineMoodRating(
+                                              selectedMood!);
+                                      String selectedEmoji = moods.firstWhere(
+                                          (mood) =>
+                                              mood['description'] ==
+                                              selectedMood)['emoji'];
+
+                                      EventMoodModel newMood = EventMoodModel(
+                                        id: generateUniqueId(),
+                                        eventId: eventId,
+                                        petId: petId,
+                                        emoji: selectedEmoji,
+                                        description: selectedMood!,
+                                        dateTime: selectedDate,
+                                        moodRating: moodRating,
+                                      );
+
+                                      ref
+                                          .read(eventMoodServiceProvider)
+                                          .addMood(newMood);
+
+                                      Event newEvent = Event(
+                                        id: eventId,
+                                        title: 'Mood',
+                                        eventDate: selectedDate,
+                                        dateWhenEventAdded: DateTime.now(),
+                                        userId: FirebaseAuth
+                                            .instance.currentUser!.uid,
+                                        petId: petId,
+                                        description: selectedMood!,
+                                        avatarImage:
+                                            'assets/images/dog_avatar_014.png',
+                                        emoticon: selectedEmoji,
+                                        moodId: newMood.id,
+                                      );
+
+                                      ref
+                                          .read(eventServiceProvider)
+                                          .addEvent(newEvent);
+                                    } else if (selectedPsychicIssue != null) {
+                                      String eventId = generateUniqueId();
+                                      String selectedEmoji =
+                                          psychicIssues.firstWhere((issue) =>
+                                              issue['description'] ==
+                                              selectedPsychicIssue)['emoji'];
+
+                                      EventPsychicModel newPsychic =
+                                          EventPsychicModel(
+                                        id: generateUniqueId(),
+                                        eventId: eventId,
+                                        petId: petId,
+                                        emoji: selectedEmoji,
+                                        description: selectedPsychicIssue!,
+                                        dateTime: selectedDate,
+                                      );
+
+                                      ref
+                                          .read(eventPsychicServiceProvider)
+                                          .addPsychicEvent(newPsychic);
+
+                                      Event newEvent = Event(
+                                        id: eventId,
+                                        title: 'Psychic',
+                                        eventDate: selectedDate,
+                                        dateWhenEventAdded: DateTime.now(),
+                                        userId: FirebaseAuth
+                                            .instance.currentUser!.uid,
+                                        petId: petId,
+                                        description: selectedPsychicIssue!,
+                                        avatarImage:
+                                            'assets/images/dog_avatar_014.png',
+                                        emoticon: selectedEmoji,
+                                        psychicId: newPsychic.id,
+                                      );
+
+                                      ref
+                                          .read(eventServiceProvider)
+                                          .addEvent(newEvent);
+                                    }
+                                    Navigator.of(context).pop();
+                                  }),
                             ],
                           ),
                         ),
@@ -197,162 +284,113 @@ Widget eventTypeCardMoodAndMental(BuildContext context, WidgetRef ref,
                                 ),
                               ),
                               const SizedBox(height: 15),
-                              const Text('Mood',
+                              const Text('M O O D',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 10),
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
                                   children: moods.map((mood) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10.0),
-                                      child: Column(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              // Logika zapisu wydarzenia Mood
-                                              String eventId =
-                                                  generateUniqueId();
-                                              int moodRating = EventMoodModel
-                                                  .determineMoodRating(
-                                                      mood['icon']);
-                                              EventMoodModel newMood =
-                                                  EventMoodModel(
-                                                id: generateUniqueId(),
-                                                eventId: eventId,
-                                                petId: petId,
-                                                emoji: mood['icon'],
-                                                description:
-                                                    mood['description'],
-                                                dateTime: selectedDate,
-                                                moodRating: moodRating,
-                                              );
-                                              ref
-                                                  .read(
-                                                      eventMoodServiceProvider)
-                                                  .addMood(newMood);
-
-                                              Event newEvent = Event(
-                                                id: eventId,
-                                                title: 'Mood',
-                                                eventDate: selectedDate,
-                                                dateWhenEventAdded:
-                                                    DateTime.now(),
-                                                userId: FirebaseAuth
-                                                    .instance.currentUser!.uid,
-                                                petId: petId,
-                                                description:
-                                                    mood['description'],
-                                                avatarImage:
-                                                    'assets/images/dog_avatar_014.png',
-                                                emoticon: mood['icon'],
-                                                moodId: newMood.id,
-                                              );
-                                              ref
-                                                  .read(eventServiceProvider)
-                                                  .addEvent(newEvent);
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: CircleAvatar(
+                                    bool isSelected =
+                                        selectedMood == mood['description'];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedMood = mood['description'];
+                                          selectedPsychicIssue = null;
+                                        });
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
+                                        child: Column(
+                                          children: [
+                                            CircleAvatar(
                                               radius: 30,
+                                              backgroundColor: isSelected
+                                                  ? Colors.blueGrey
+                                                  : Colors.transparent,
                                               child: Text(
-                                                mood['icon'],
+                                                mood['emoji'],
                                                 style: const TextStyle(
                                                     fontSize: 30),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            mood['description'],
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              mood['description'],
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   }).toList(),
                                 ),
                               ),
-                              const SizedBox(height: 15),
-                              const Text('Psychic Issues',
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Divider(
+                                color: Theme.of(context).colorScheme.surface,
+                              ),
+                              const SizedBox(height: 18),
+                              const Text('I S S U E S',
                                   style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 10),
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
                                   children: psychicIssues.map((issue) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10.0),
-                                      child: Column(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              // Logika zapisu wydarzenia Psychic
-                                              String eventId =
-                                                  generateUniqueId();
-                                              EventPsychicModel newPsychic =
-                                                  EventPsychicModel(
-                                                id: generateUniqueId(),
-                                                eventId: eventId,
-                                                petId: petId,
-                                                emoji: issue['icon'],
-                                                description:
-                                                    issue['description'],
-                                                dateTime: selectedDate,
-                                              );
-                                              ref
-                                                  .read(
-                                                      eventPsychicServiceProvider)
-                                                  .addPsychicEvent(newPsychic);
-
-                                              Event newEvent = Event(
-                                                id: eventId,
-                                                title: 'Psychic',
-                                                eventDate: selectedDate,
-                                                dateWhenEventAdded:
-                                                    DateTime.now(),
-                                                userId: FirebaseAuth
-                                                    .instance.currentUser!.uid,
-                                                petId: petId,
-                                                description:
-                                                    issue['description'],
-                                                avatarImage:
-                                                    'assets/images/dog_avatar_014.png',
-                                                emoticon: issue['icon'],
-                                                psychicId: newPsychic.id,
-                                              );
-                                              ref
-                                                  .read(eventServiceProvider)
-                                                  .addEvent(newEvent);
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: CircleAvatar(
+                                    bool isSelected = selectedPsychicIssue ==
+                                        issue['description'];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedPsychicIssue =
+                                              issue['description'];
+                                          selectedMood = null;
+                                        });
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0),
+                                        child: Column(
+                                          children: [
+                                            CircleAvatar(
                                               radius: 30,
+                                              backgroundColor: isSelected
+                                                  ? Colors.blueGrey
+                                                  : Colors.transparent,
                                               child: Text(
-                                                issue['icon'],
+                                                issue['emoji'],
                                                 style: const TextStyle(
                                                     fontSize: 30),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            issue['description'],
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              issue['description'],
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   }).toList(),
                                 ),
+                              ),
+                              const SizedBox(
+                                height: 5,
+                              ),
+                              Divider(
+                                color: Theme.of(context).colorScheme.surface,
                               ),
                             ],
                           ),
@@ -392,11 +430,11 @@ Widget eventTypeCardMoodAndMental(BuildContext context, WidgetRef ref,
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 13.0, left: 5, right: 5),
+            padding: const EdgeInsets.only(top: 18.0, left: 5, right: 5),
             child: Text(
-              'Mood & Mental',
+              'M O O D  &  I S S U E S',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColorDark,
               ),

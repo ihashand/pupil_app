@@ -14,11 +14,8 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 Widget eventTypeCardStoolAndUrine(
     BuildContext context, WidgetRef ref, String petId) {
   DateTime selectedDate = DateTime.now();
-  TextEditingController dateController = TextEditingController(
-    text: DateFormat('dd-MM-yyyy').format(selectedDate),
-  );
-
-  // todo create new icons, with propert colors for urine, and new for stool
+  String? selectedStoolType;
+  String? selectedUrineType;
 
   final List<Map<String, dynamic>> stoolTypes = [
     {'emoji': '💩', 'description': 'Hard lumps'},
@@ -39,187 +36,14 @@ Widget eventTypeCardStoolAndUrine(
     {'emoji': '🟫', 'color': Colors.brown, 'description': 'Bleeding'},
   ];
 
-  String? selectedStoolType;
-  String? selectedUrineType;
-  bool showDetails = false;
-
-  void showConfirmationDialog(
-      BuildContext context, String eventType, VoidCallback onConfirm) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text('Confirm $eventType Event'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Are you sure you want to add $eventType? You can optionally add more details by pressing the button below.',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).primaryColorDark),
-                  ),
-                  const SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        showDetails = !showDetails;
-                      });
-                    },
-                    child: Text(
-                      showDetails ? 'Hide Details' : 'Show Details',
-                      style: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 14),
-                    ),
-                  ),
-                  if (showDetails)
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: eventType == 'Stool'
-                            ? stoolTypes.map((type) {
-                                bool isSelected =
-                                    type['description'] == selectedStoolType;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      selectedStoolType = type['description'];
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 100,
-                                    height: 110,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primaryFixedDim
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        const SizedBox(height: 10),
-                                        Text(type['emoji'],
-                                            style:
-                                                const TextStyle(fontSize: 40)),
-                                        const SizedBox(height: 5),
-                                        Padding(
-                                          padding: const EdgeInsets.all(2.0),
-                                          child: Text(
-                                            type['description'],
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isSelected
-                                                  ? Theme.of(context)
-                                                      .primaryColor
-                                                  : Theme.of(context)
-                                                      .primaryColorDark,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList()
-                            : urineTypes.map((type) {
-                                bool isSelected =
-                                    type['description'] == selectedUrineType;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      selectedUrineType = type['description'];
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 100,
-                                    height: 110,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? type['color']
-                                          : Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        const SizedBox(height: 10),
-                                        Text(type['emoji'],
-                                            style:
-                                                const TextStyle(fontSize: 40)),
-                                        const SizedBox(height: 5),
-                                        Padding(
-                                          padding: const EdgeInsets.all(2.0),
-                                          child: Text(
-                                            type['description'],
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: isSelected
-                                                  ? Theme.of(context)
-                                                      .primaryColor
-                                                  : Theme.of(context)
-                                                      .primaryColorDark,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                      ),
-                    ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: Theme.of(context).primaryColorDark),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text(
-                    'Confirm',
-                    style: TextStyle(color: Theme.of(context).primaryColorDark),
-                  ),
-                  onPressed: () {
-                    onConfirm();
-                    Navigator.of(context).pop(); // Zamknięcie dialogu
-                    Navigator.of(context).pop(); // Zamknięcie modalu
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
+  // Function to record Stool event
   void recordStoolEvent() {
     String eventId = generateUniqueId();
     EventStoolModel newStool = EventStoolModel(
       id: generateUniqueId(),
       eventId: eventId,
       petId: petId,
-      emoji: '💩',
+      emoji: selectedStoolType ?? '💩',
       description: selectedStoolType ?? 'Stool event',
       dateTime: selectedDate,
     );
@@ -240,6 +64,7 @@ Widget eventTypeCardStoolAndUrine(
     ref.read(eventServiceProvider).addEvent(newEvent);
   }
 
+  // Function to record Urine event
   void recordUrineEvent() {
     String eventId = generateUniqueId();
     EventUrineModel newUrine = EventUrineModel(
@@ -267,9 +92,373 @@ Widget eventTypeCardStoolAndUrine(
     ref.read(eventServiceProvider).addEvent(newEvent);
   }
 
+  void showStoolModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.close,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Text(
+                            'Confirm Stool Event',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.check,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              recordStoolEvent();
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Column(
+                        children: [
+                          // Date selection
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'Date',
+                              labelStyle: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            readOnly: true,
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2101),
+                              );
+                              if (picked != null) {
+                                setState(() {
+                                  selectedDate = picked;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: stoolTypes.map((type) {
+                                bool isSelected =
+                                    selectedStoolType == type['description'];
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedStoolType = type['description'];
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 80,
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 5),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Text(
+                                            type['emoji'],
+                                            style:
+                                                const TextStyle(fontSize: 35),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Text(
+                                            type['description'],
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void showUrineModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.close,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Text(
+                            'Confirm Urine Event',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.check,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              recordUrineEvent();
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Column(
+                        children: [
+                          // Date selection
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'Date',
+                              labelStyle: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            readOnly: true,
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2101),
+                              );
+                              if (picked != null) {
+                                setState(() {
+                                  selectedDate = picked;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: urineTypes.map((type) {
+                                bool isSelected =
+                                    selectedUrineType == type['description'];
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedUrineType = type['description'];
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    height: 80,
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 5),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .surface
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Text(
+                                            type['emoji'],
+                                            style:
+                                                const TextStyle(fontSize: 35),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Text(
+                                            type['description'],
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   return eventTypeCard(
     context,
-    'Stool & Urine',
+    'S T O O L  &  U R I N E',
     'assets/images/health_event_card/poo.png',
     () {
       showModalBottomSheet(
@@ -314,21 +503,14 @@ Widget eventTypeCardStoolAndUrine(
                               },
                             ),
                             Text(
-                              'S T O O L  &  U R I N E',
+                              'Stool & Urine',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).primaryColorDark,
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                            IconButton(
-                              icon: Icon(Icons.check,
-                                  color: Theme.of(context).primaryColorDark),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
+                            const SizedBox(width: 48),
                           ],
                         ),
                       ),
@@ -345,144 +527,57 @@ Widget eventTypeCardStoolAndUrine(
                         child: Column(
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: dateController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Date',
-                                      labelStyle: TextStyle(
-                                        color:
-                                            Theme.of(context).primaryColorDark,
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.surface,
+                                    foregroundColor:
+                                        Theme.of(context).primaryColorDark,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16.0, horizontal: 30.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    readOnly: true,
-                                    onTap: () async {
-                                      final DateTime? picked =
-                                          await showDatePicker(
-                                        context: context,
-                                        initialDate: selectedDate,
-                                        firstDate: DateTime(2000),
-                                        lastDate: DateTime(2101),
-                                        builder: (BuildContext context,
-                                            Widget? child) {
-                                          return Theme(
-                                            data: Theme.of(context).copyWith(
-                                              colorScheme: ColorScheme.light(
-                                                primary: Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary,
-                                                onPrimary: Theme.of(context)
-                                                    .primaryColorDark,
-                                                onSurface: Theme.of(context)
-                                                    .primaryColorDark,
-                                              ),
-                                              textButtonTheme:
-                                                  TextButtonThemeData(
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor:
-                                                      Theme.of(context)
-                                                          .primaryColorDark,
-                                                ),
-                                              ),
-                                            ),
-                                            child: child!,
-                                          );
-                                        },
-                                      );
-                                      if (picked != null &&
-                                          picked != selectedDate) {
-                                        setState(() {
-                                          selectedDate = picked;
-                                          dateController.text =
-                                              DateFormat('dd-MM-yyyy')
-                                                  .format(selectedDate);
-                                        });
-                                      }
-                                    },
+                                  ),
+                                  onPressed: () {
+                                    showStoolModal(context);
+                                  },
+                                  child: Row(
+                                    children: const [
+                                      Text('💩',
+                                          style: TextStyle(fontSize: 24)),
+                                      SizedBox(width: 8),
+                                      Text('Stool'),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.surface,
+                                    foregroundColor:
+                                        Theme.of(context).primaryColorDark,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16.0, horizontal: 30.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    showUrineModal(context);
+                                  },
+                                  child: Row(
+                                    children: const [
+                                      Text('💦',
+                                          style: TextStyle(fontSize: 24)),
+                                      SizedBox(width: 8),
+                                      Text('Urine'),
+                                    ],
                                   ),
                                 ),
                               ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 15.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => showConfirmationDialog(
-                                        context, 'Stool', recordStoolEvent),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      margin: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surface,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      width: 150,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Text('💩',
-                                              style: TextStyle(fontSize: 40)),
-                                          const SizedBox(height: 8),
-                                          Text('Stool',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => showConfirmationDialog(
-                                        context, 'Urine', recordUrineEvent),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16),
-                                      margin: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surface,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      width: 150,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Text('💦',
-                                              style: TextStyle(fontSize: 40)),
-                                          const SizedBox(height: 8),
-                                          Text('Urine',
-                                              style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
                           ],
                         ),

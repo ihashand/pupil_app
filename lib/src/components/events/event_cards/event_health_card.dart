@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class HealthEventCard extends StatelessWidget {
+class EventHealthCard extends StatelessWidget {
   final VoidCallback onCreatePressed;
 
-  const HealthEventCard({super.key, required this.onCreatePressed});
+  const EventHealthCard({super.key, required this.onCreatePressed});
 
   @override
   Widget build(BuildContext context) {

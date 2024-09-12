@@ -18,7 +18,7 @@ Widget eventTypeCardTemperature(BuildContext context,
 
   return eventTypeCard(
     context,
-    'Temperature',
+    'T E M P E R A T U R E',
     'assets/images/health_event_card/termometr.png',
     () {
       showModalBottomSheet(
@@ -70,7 +70,7 @@ Widget eventTypeCardTemperature(BuildContext context,
                                   Text(
                                     'T E M P E R A T U R E',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).primaryColorDark,
                                     ),

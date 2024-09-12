@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:pet_diary/src/components/events/event_medicine/add_medicine/show_add_medicine_name.dart';
+import 'package:pet_diary/src/components/events/event_medications/add_medicine/show_add_medicine_name.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
