@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/events/event_medicine/add_medicine/show_add_medicine_schedule.dart';
-import 'package:pet_diary/src/components/events/event_medicine/add_medicine/show_add_medicine_summary.dart';
+import 'package:pet_diary/src/components/events/event_medications/add_medicine/show_add_medicine_schedule.dart';
+import 'package:pet_diary/src/components/events/event_medications/add_medicine/show_add_medicine_summary.dart';
 
 void showAddMedicineEmoji(
     BuildContext context,

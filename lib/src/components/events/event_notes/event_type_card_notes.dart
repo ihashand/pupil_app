@@ -22,8 +22,8 @@ Widget eventTypeCardNotes(
 
   return eventTypeCard(
     context,
-    'Notes',
-    'assets/images/health_event_card/notes.png',
+    'N O T E S',
+    'assets/images/health_event_card/dog_notes.png',
     () {
       showModalBottomSheet(
         context: context,
@@ -74,7 +74,7 @@ Widget eventTypeCardNotes(
                                   Text(
                                     'N O T E S',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).primaryColorDark,
                                     ),

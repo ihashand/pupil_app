@@ -1,70 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 import 'package:pet_diary/src/helpers/generate_unique_id.dart';
+import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
-import 'package:pet_diary/src/models/events_models/event_vacine_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_vacine_provider.dart';
-import 'package:pet_diary/src/screens/medicine_screens/medicine_screen.dart';
-import 'package:intl/intl.dart';
 
-Widget eventTypeCardMedicine(
-    BuildContext context, WidgetRef ref, String petId) {
-  String? selectedVaccineType;
+Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
   );
+  String? selectedUrineType;
 
-  final List<Map<String, dynamic>> vaccineTypes = [
-    {'icon': Icons.vaccines, 'description': 'Rabies', 'color': Colors.red},
-    {'icon': Icons.science, 'description': 'Distemper', 'color': Colors.green},
-    {'icon': Icons.biotech, 'description': 'Hepatitis', 'color': Colors.blue},
-    {
-      'icon': Icons.coronavirus,
-      'description': 'Bordatella',
-      'color': Colors.orange
-    },
-    {
-      'icon': Icons.bug_report,
-      'description': 'Leptospirosis',
-      'color': Colors.purple
-    },
+  final List<Map<String, dynamic>> urineTypes = [
+    {'emoji': '🟦', 'color': Colors.blue, 'description': 'Over-hydrated'},
+    {'emoji': '🟨', 'color': Colors.yellow[100], 'description': 'Normal'},
+    {'emoji': '🟧', 'color': Colors.yellow, 'description': 'Dehydrated'},
+    {'emoji': '🟥', 'color': Colors.red, 'description': 'UTI'},
+    {'emoji': '🟩', 'color': Colors.green, 'description': 'Kidneys'},
+    {'emoji': '🟫', 'color': Colors.brown, 'description': 'Bleeding'},
   ];
 
-  // Funkcja do rejestrowania wydarzenia szczepionki
-  void recordVaccineEvent() {
+  void recordUrineEvent() {
     String eventId = generateUniqueId();
-    EventVaccineModel newVaccine = EventVaccineModel(
+    EventUrineModel newUrine = EventUrineModel(
       id: generateUniqueId(),
       eventId: eventId,
       petId: petId,
-      emoticon: selectedVaccineType ?? 'Default',
-      description: selectedVaccineType ?? 'Vaccine event',
+      color: selectedUrineType ?? 'Default',
+      description: selectedUrineType ?? 'Urine event',
       dateTime: selectedDate,
     );
-    ref.read(eventVaccineServiceProvider).addVaccine(newVaccine);
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
 
     Event newEvent = Event(
       id: eventId,
-      title: 'Vaccine',
+      title: 'Urine',
       eventDate: selectedDate,
       dateWhenEventAdded: DateTime.now(),
       userId: FirebaseAuth.instance.currentUser!.uid,
       petId: petId,
-      description: selectedVaccineType ?? 'Vaccine event',
+      description: selectedUrineType ?? 'Urine event',
       avatarImage: 'assets/images/dog_avatar_014.png',
-      emoticon: '💉',
-      vaccineId: newVaccine.id,
+      emoticon: '💦',
+      urineId: newUrine.id,
     );
     ref.read(eventServiceProvider).addEvent(newEvent);
   }
 
-  // Przerobiona funkcja wyświetlająca potwierdzenie jako showModalBottomSheet
-  void showConfirmationBottomSheet(
-      BuildContext context, VoidCallback onConfirm) {
+  void showUrineModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -107,7 +95,7 @@ Widget eventTypeCardMedicine(
                             },
                           ),
                           Text(
-                            'Confirm Vaccine Event',
+                            'Confirm Urine Event',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -118,8 +106,7 @@ Widget eventTypeCardMedicine(
                             icon: Icon(Icons.check,
                                 color: Theme.of(context).primaryColorDark),
                             onPressed: () {
-                              onConfirm();
-                              Navigator.of(context).pop();
+                              recordUrineEvent();
                               Navigator.of(context).pop();
                             },
                           ),
@@ -138,7 +125,7 @@ Widget eventTypeCardMedicine(
                       ),
                       child: Column(
                         children: [
-                          // Sekcja wyboru daty
+                          // Date selection
                           TextFormField(
                             controller: dateController,
                             decoration: InputDecoration(
@@ -189,7 +176,7 @@ Widget eventTypeCardMedicine(
                                   );
                                 },
                               );
-                              if (picked != null && picked != selectedDate) {
+                              if (picked != null) {
                                 setState(() {
                                   selectedDate = picked;
                                   dateController.text = DateFormat('dd-MM-yyyy')
@@ -202,18 +189,18 @@ Widget eventTypeCardMedicine(
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
-                              children: vaccineTypes.map((type) {
+                              children: urineTypes.map((type) {
                                 bool isSelected =
-                                    type['description'] == selectedVaccineType;
+                                    selectedUrineType == type['description'];
                                 return GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      selectedVaccineType = type['description'];
+                                      selectedUrineType = type['description'];
                                     });
                                   },
                                   child: Container(
-                                    width: 80,
-                                    height: 80,
+                                    width: 90,
+                                    height: 90,
                                     margin: const EdgeInsets.symmetric(
                                         horizontal: 5),
                                     decoration: BoxDecoration(
@@ -231,8 +218,11 @@ Widget eventTypeCardMedicine(
                                         Padding(
                                           padding:
                                               const EdgeInsets.only(top: 8.0),
-                                          child: Icon(type['icon'],
-                                              size: 35, color: type['color']),
+                                          child: Text(
+                                            type['emoji'],
+                                            style:
+                                                const TextStyle(fontSize: 35),
+                                          ),
                                         ),
                                         Padding(
                                           padding:
@@ -271,143 +261,10 @@ Widget eventTypeCardMedicine(
 
   return eventTypeCard(
     context,
-    'M E D I C I N E',
-    'assets/images/health_event_card/dog_pills.png',
+    'U R I N E',
+    'assets/images/health_event_card/dog_piee.png',
     () {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return Container(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    topRight: Radius.circular(25),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.close,
-                                  color: Theme.of(context).primaryColorDark),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            Text(
-                              'M E D I C I N E',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                            ),
-                            const SizedBox(width: 48),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 20),
-                      child: Container(
-                        padding: const EdgeInsets.all(20.0),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    foregroundColor:
-                                        Theme.of(context).primaryColorDark,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16.0, horizontal: 30.0),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            MedicineScreen(petId),
-                                      ),
-                                    );
-                                  },
-                                  child: const Row(
-                                    children: [
-                                      Icon(Icons.medical_services, size: 24),
-                                      SizedBox(width: 8),
-                                      Text('Medicine'),
-                                    ],
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.surface,
-                                    foregroundColor:
-                                        Theme.of(context).primaryColorDark,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16.0, horizontal: 30.0),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    showConfirmationBottomSheet(
-                                        context, recordVaccineEvent);
-                                  },
-                                  child: const Row(
-                                    children: [
-                                      Icon(Icons.vaccines, size: 24),
-                                      SizedBox(width: 8),
-                                      Text('Vaccines'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      );
+      showUrineModal(context);
     },
   );
 }

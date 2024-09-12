@@ -5,6 +5,7 @@ Widget eventTypeCard(
   return GestureDetector(
     onTap: onTap,
     child: Card(
+      color: Theme.of(context).colorScheme.primary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
@@ -20,16 +21,16 @@ Widget eventTypeCard(
               ),
               image: DecorationImage(
                 image: AssetImage(imagePath),
-                fit: BoxFit.fill,
+                fit: BoxFit.cover,
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 13.0, left: 5, right: 5),
+            padding: const EdgeInsets.only(top: 18.0, left: 5, right: 5),
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColorDark,
               ),
