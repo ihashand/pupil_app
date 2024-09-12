@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/event_care/event_type_card_care.dart';
 import 'package:pet_diary/src/components/events/event_medications/event_type_card_medicine.dart';
 import 'package:pet_diary/src/components/events/event_mood_and_issues/event_type_card_mood_and_issues.dart';
+import 'package:pet_diary/src/components/events/event_stool/event_type_card_stool.dart';
 import 'package:pet_diary/src/components/events/event_stool_and_urine/event_type_card_stool_and_urine.dart';
 import 'package:pet_diary/src/components/events/event_temperature/event_type_card_temperature.dart';
 import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
 import 'package:pet_diary/src/components/events/event_food/functions/food_or_water.dart';
+import 'package:pet_diary/src/components/events/event_urine/event_type_card_urine.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
 void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
@@ -65,7 +67,7 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                     mainAxisSpacing: 10,
                     children: [
                       eventTypeCard(context, 'D I E T',
-                          'assets/images/health_event_card/dog_bowl_02.png',
+                          'assets/images/health_event_card/dog_bowl_food.png',
                           () {
                         foodOrWater(context, ref, petId);
                       }),
@@ -77,7 +79,12 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                       eventTypeCardCare(context, ref, petId, dateController),
                       eventTypeCardMoodAndIssues(
                           context, ref, petId, dateController),
-                      eventTypeCardStoolAndUrine(
+                      eventTypeCardStool(
+                        context,
+                        ref,
+                        petId,
+                      ),
+                      eventTypeCardUrine(
                         context,
                         ref,
                         petId,

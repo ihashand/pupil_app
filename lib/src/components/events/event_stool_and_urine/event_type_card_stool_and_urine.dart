@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 import 'package:pet_diary/src/helpers/generate_unique_id.dart';
@@ -214,8 +213,8 @@ Widget eventTypeCardStoolAndUrine(
                                     });
                                   },
                                   child: Container(
-                                    width: 80,
-                                    height: 80,
+                                    width: 90,
+                                    height: 90,
                                     margin: const EdgeInsets.symmetric(
                                         horizontal: 5),
                                     decoration: BoxDecoration(
@@ -396,8 +395,8 @@ Widget eventTypeCardStoolAndUrine(
                                     });
                                   },
                                   child: Container(
-                                    width: 80,
-                                    height: 80,
+                                    width: 90,
+                                    height: 90,
                                     margin: const EdgeInsets.symmetric(
                                         horizontal: 5),
                                     decoration: BoxDecoration(
@@ -459,7 +458,7 @@ Widget eventTypeCardStoolAndUrine(
   return eventTypeCard(
     context,
     'S T O O L  &  U R I N E',
-    'assets/images/health_event_card/poo.png',
+    'assets/images/health_event_card/urine.jpg',
     () {
       showModalBottomSheet(
         context: context,
@@ -544,8 +543,8 @@ Widget eventTypeCardStoolAndUrine(
                                   onPressed: () {
                                     showStoolModal(context);
                                   },
-                                  child: Row(
-                                    children: const [
+                                  child: const Row(
+                                    children: [
                                       Text('💩',
                                           style: TextStyle(fontSize: 24)),
                                       SizedBox(width: 8),
@@ -568,8 +567,8 @@ Widget eventTypeCardStoolAndUrine(
                                   onPressed: () {
                                     showUrineModal(context);
                                   },
-                                  child: Row(
-                                    children: const [
+                                  child: const Row(
+                                    children: [
                                       Text('💦',
                                           style: TextStyle(fontSize: 24)),
                                       SizedBox(width: 8),

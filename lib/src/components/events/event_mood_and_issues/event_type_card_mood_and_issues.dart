@@ -424,8 +424,8 @@ Widget eventTypeCardMoodAndIssues(BuildContext context, WidgetRef ref,
               ),
               image: DecorationImage(
                 image:
-                    AssetImage('assets/images/health_event_card/dog_love.png'),
-                fit: BoxFit.fill,
+                    AssetImage('assets/images/health_event_card/dog_heart.png'),
+                fit: BoxFit.cover,
               ),
             ),
           ),

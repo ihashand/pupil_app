@@ -363,9 +363,9 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
                 topRight: Radius.circular(15),
               ),
               image: DecorationImage(
-                image: AssetImage(
-                    'assets/images/health_event_card/hair_brush.png'),
-                fit: BoxFit.fill,
+                image:
+                    AssetImage('assets/images/health_event_card/dog_bath.png'),
+                fit: BoxFit.cover,
               ),
             ),
           ),

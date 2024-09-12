@@ -5,6 +5,7 @@ Widget eventTypeCard(
   return GestureDetector(
     onTap: onTap,
     child: Card(
+      color: Theme.of(context).colorScheme.primary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
@@ -20,7 +21,7 @@ Widget eventTypeCard(
               ),
               image: DecorationImage(
                 image: AssetImage(imagePath),
-                fit: BoxFit.fill,
+                fit: BoxFit.cover,
               ),
             ),
           ),
