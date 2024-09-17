@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/events/event_care/event_type_card_care.dart';
+import 'package:pet_diary/src/components/events/event_issue/event_type_card_issue.dart';
+import 'package:pet_diary/src/components/events/event_mood/event_type_card_mood.dart';
+import 'package:pet_diary/src/components/events/event_vaccines/event_type_card_vaccine.dart';
+import 'package:pet_diary/src/components/events/event_water/event_type_card_water.dart';
 import 'package:pet_diary/src/components/events/event_medications/event_type_card_medicine.dart';
-import 'package:pet_diary/src/components/events/event_mood_and_issues/event_type_card_mood_and_issues.dart';
 import 'package:pet_diary/src/components/events/event_stool/event_type_card_stool.dart';
-import 'package:pet_diary/src/components/events/event_stool_and_urine/event_type_card_stool_and_urine.dart';
 import 'package:pet_diary/src/components/events/event_temperature/event_type_card_temperature.dart';
 import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
-import 'package:pet_diary/src/components/events/event_food/functions/food_or_water.dart';
+import 'package:pet_diary/src/components/events/event_food/others/event_type_card_food.dart';
 import 'package:pet_diary/src/components/events/event_urine/event_type_card_urine.dart';
-import 'package:pet_diary/src/components/events/others/event_type_card.dart';
+import 'package:pet_diary/src/components/events/event_weight/event_type_card_weight.dart';
 
 void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
   var titleController = TextEditingController();
@@ -66,25 +68,40 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                     crossAxisSpacing: 2,
                     mainAxisSpacing: 10,
                     children: [
-                      eventTypeCard(context, 'D I E T',
-                          'assets/images/health_event_card/dog_bowl_food.png',
-                          () {
-                        foodOrWater(context, ref, petId);
-                      }),
+                      eventTypeCardWater(
+                        context,
+                        ref,
+                        petId,
+                      ),
+                      eventTypeCardFood(
+                        context,
+                        ref,
+                        petId,
+                      ),
                       eventTypeCardMedicine(
                         context,
                         ref,
                         petId,
                       ),
+                      eventTypeCardVaccines(
+                        context,
+                        ref,
+                        petId,
+                      ),
+                      eventTypeCardMood(context, ref, petId, dateController),
+                      eventTypeCardIssues(context, ref, petId, dateController),
                       eventTypeCardCare(context, ref, petId, dateController),
-                      eventTypeCardMoodAndIssues(
-                          context, ref, petId, dateController),
                       eventTypeCardStool(
                         context,
                         ref,
                         petId,
                       ),
                       eventTypeCardUrine(
+                        context,
+                        ref,
+                        petId,
+                      ),
+                      eventTypeCardWeight(
                         context,
                         ref,
                         petId,

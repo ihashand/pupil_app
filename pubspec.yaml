@@ -82,8 +82,11 @@ flutter:
     - assets/images/achievements/natural/
     - assets/images/achievements/steps/
     - assets/images/achievements/fantasy/
-    - assets/images/health_event_card/
-    - assets/images/dogs_avatars/
+    - assets/images/events_type_cards/
+    - assets/images/dog_avatars/
+    - assets/images/dog_backgrounds/
+    - assets/images/events_type_cards_no_background/
+    - assets/images/others/
 
 flutter_icons:
   android: true
