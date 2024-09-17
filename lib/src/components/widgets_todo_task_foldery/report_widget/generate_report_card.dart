@@ -39,8 +39,8 @@ class GenerateReportCard extends ConsumerWidget {
                 topRight: Radius.circular(12),
               ),
               child: Image.asset(
-                'assets/images/others/raport.jpeg', // Użyj swojego obrazka
-                height: 150, // Tutaj możesz ustawić wysokość obrazka
+                'assets/images/others/raport.jpeg',
+                height: 150,
                 fit: BoxFit.cover,
               ),
             ),
@@ -66,10 +66,10 @@ class GenerateReportCard extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  "G e n e r a t e  R e p o r t", // Użyj swojego napisu
+                  "G e n e r a t e  R e p o r t",
                   style: TextStyle(
                     color: Theme.of(context).primaryColorDark,
-                    fontSize: 12, // Użyj swojego rozmiaru czcionki
+                    fontSize: 12,
                   ),
                 ),
               ),
