@@ -39,7 +39,7 @@ class GenerateReportCard extends ConsumerWidget {
                 topRight: Radius.circular(12),
               ),
               child: Image.asset(
-                'assets/images/raport.jpeg', // Użyj swojego obrazka
+                'assets/images/others/raport.jpeg', // Użyj swojego obrazka
                 height: 150, // Tutaj możesz ustawić wysokość obrazka
                 fit: BoxFit.cover,
               ),

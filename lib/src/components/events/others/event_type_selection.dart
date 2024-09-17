@@ -34,7 +34,6 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
         ),
         child: Column(
           children: [
-            // Padding od góry
             const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
