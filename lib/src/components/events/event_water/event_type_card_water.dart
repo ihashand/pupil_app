@@ -7,7 +7,7 @@ Widget eventTypeCardWater(BuildContext context, WidgetRef ref, String petId) {
   return eventTypeCard(
     context,
     'W A T E R',
-    'assets/images/events_type_cards/dog_bowl_water.png',
+    'assets/images/events_type_cards_no_background/water_bowl.png',
     () {
       showWaterMenu(context, ref, petId);
     },

@@ -26,7 +26,7 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
       return Container(
         height: MediaQuery.of(context).size.height * 0.935,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).colorScheme.secondary,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(25),
             topRight: Radius.circular(25),
@@ -34,27 +34,26 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
         ),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.close,
-                        color: Theme.of(context).primaryColorDark),
-                    onPressed: () => Navigator.of(context).pop(),
+            // Padding od góry
+            const SizedBox(height: 15),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.close,
+                      color: Theme.of(context).primaryColorDark),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                Text(
+                  'Choose Event Type',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColorDark,
                   ),
-                  Text(
-                    'Choose Event Type',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColorDark,
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
+                ),
+                const SizedBox(width: 48),
+              ],
             ),
             Divider(color: Theme.of(context).colorScheme.primary),
             Expanded(
@@ -65,8 +64,9 @@ void eventTypeSelection(BuildContext context, WidgetRef ref, String petId) {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
-                    crossAxisSpacing: 2,
-                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.89,
                     children: [
                       eventTypeCardWater(
                         context,

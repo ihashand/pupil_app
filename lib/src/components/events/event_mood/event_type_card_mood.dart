@@ -291,7 +291,7 @@ Widget eventTypeCardMood(BuildContext context, WidgetRef ref, String petId,
   return eventTypeCard(
     context,
     'M O O D',
-    'assets/images/events_type_cards/dog_heart.png',
+    'assets/images/events_type_cards_no_background/heart.png',
     () {
       showMoodOptions(context);
     },

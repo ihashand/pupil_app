@@ -326,7 +326,7 @@ Widget eventTypeCardWeight(BuildContext context, WidgetRef ref, String petId) {
   return eventTypeCard(
     context,
     'W E I G H T',
-    'assets/images/events_type_cards/dog_weight.png',
+    'assets/images/events_type_cards_no_background/weight.png',
     () {
       showWeightModal(context);
     },
