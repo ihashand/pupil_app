@@ -13,8 +13,9 @@ Widget eventTypeCard(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            height: 120,
+            height: 155,
             decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
@@ -25,8 +26,8 @@ Widget eventTypeCard(
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 18.0, left: 5, right: 5),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
             child: Text(
               title,
               style: TextStyle(

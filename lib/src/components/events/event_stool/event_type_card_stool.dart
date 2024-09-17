@@ -263,7 +263,7 @@ Widget eventTypeCardStool(BuildContext context, WidgetRef ref, String petId) {
   return eventTypeCard(
     context,
     'S T O O L',
-    'assets/images/health_event_card/poo.png',
+    'assets/images/events_type_cards_no_background/poo.png',
     () {
       showStoolModal(context);
     },
