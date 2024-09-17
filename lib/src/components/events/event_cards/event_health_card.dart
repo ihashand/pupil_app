@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 class EventHealthCard extends StatefulWidget {
   final VoidCallback onCreatePressed;
 
-  const EventHealthCard({Key? key, required this.onCreatePressed})
-      : super(key: key);
+  const EventHealthCard({super.key, required this.onCreatePressed});
 
   @override
-  _EventHealthCardState createState() => _EventHealthCardState();
+  createState() => _EventHealthCardState();
 }
 
 class _EventHealthCardState extends State<EventHealthCard>
@@ -38,7 +37,7 @@ class _EventHealthCardState extends State<EventHealthCard>
 
   double containerWidth = 0.0;
   double containerHeight = 150.0;
-  double assetSize = 45.0; // Rozmiar ikon
+  double assetSize = 45.0;
 
   @override
   void initState() {
@@ -48,8 +47,7 @@ class _EventHealthCardState extends State<EventHealthCard>
     directions = [];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      containerWidth =
-          MediaQuery.of(context).size.width - 30; // Padding 15 po obu stronach
+      containerWidth = MediaQuery.of(context).size.width - 30;
       containerHeight = 150.0;
 
       _initializePositionsAndMovements();
@@ -68,12 +66,10 @@ class _EventHealthCardState extends State<EventHealthCard>
   }
 
   void _initializePositionsAndMovements() {
-    // Zwiększamy obszar ruchu do 1.5x rozmiaru kontenera
     movementAreaWidth = containerWidth * 1.5;
     movementAreaHeight = containerHeight * 1.5;
 
     positions = List.generate(assetImages.length, (index) {
-      // Losowe pozycje w obszarze ruchu, unikając nachodzenia na siebie
       Offset position;
       bool hasCollision;
       int attempts = 0;
@@ -84,7 +80,6 @@ class _EventHealthCardState extends State<EventHealthCard>
           _random.nextDouble() * (movementAreaHeight - assetSize),
         );
 
-        // Sprawdzamy, czy nowa pozycja nie koliduje z już istniejącymi asetami
         hasCollision = positions.any((otherPosition) {
           double dx = position.dx - otherPosition.dx;
           double dy = position.dy - otherPosition.dy;
@@ -100,7 +95,7 @@ class _EventHealthCardState extends State<EventHealthCard>
 
     directions = List.generate(assetImages.length, (index) {
       double angle = _random.nextDouble() * 2 * pi;
-      double speed = 0.8; // Dostosowanie prędkości
+      double speed = 0.8;
       return Offset(cos(angle) * speed, sin(angle) * speed);
     });
   }
@@ -171,7 +166,6 @@ class _EventHealthCardState extends State<EventHealthCard>
 
   @override
   Widget build(BuildContext context) {
-    // Obliczenie przesunięcia, aby wycentrować obszar ruchu względem kontenera
     double offsetX = (movementAreaWidth - containerWidth) / 2;
     double offsetY = (movementAreaHeight - containerHeight) / 2;
 
@@ -198,7 +192,6 @@ class _EventHealthCardState extends State<EventHealthCard>
             borderRadius: BorderRadius.circular(20.0),
             child: Stack(
               children: [
-                // Animowane asety
                 for (int i = 0; i < positions.length; i++)
                   Positioned(
                     left: positions[i].dx - offsetX,
@@ -209,7 +202,6 @@ class _EventHealthCardState extends State<EventHealthCard>
                       child: Image.asset(assetImages[i]),
                     ),
                   ),
-                // Tekst na środku
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
