@@ -23,7 +23,7 @@ Widget eventTypeCardNotes(
   return eventTypeCard(
     context,
     'N O T E S',
-    'assets/images/health_event_card/dog_notes.png',
+    'assets/images/events_type_cards/dog_notes.png',
     () {
       showModalBottomSheet(
         context: context,

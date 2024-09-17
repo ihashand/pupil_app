@@ -52,7 +52,7 @@ class _WalkCardState extends ConsumerState<WalkCard> {
                   topRight: Radius.circular(10),
                 ),
                 image: DecorationImage(
-                  image: AssetImage('assets/images/walk_background.jpg'),
+                  image: AssetImage('assets/images/others/walk_background.jpg'),
                   fit: BoxFit.cover,
                 ),
               ),

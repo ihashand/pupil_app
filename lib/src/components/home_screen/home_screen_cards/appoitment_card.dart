@@ -31,7 +31,8 @@ class AppointmentCard extends StatelessWidget {
                   topRight: Radius.circular(10),
                 ),
                 image: DecorationImage(
-                  image: AssetImage('assets/images/callendar_background.jpeg'),
+                  image: AssetImage(
+                      'assets/images/others/callendar_background.jpeg'),
                   fit: BoxFit.cover,
                 ),
               ),

@@ -7,7 +7,7 @@ Widget eventTypeCardFood(BuildContext context, WidgetRef ref, String petId) {
   return eventTypeCard(
     context,
     'F O O D',
-    'assets/images/health_event_card/dog_bowl_food.png',
+    'assets/images/events_type_cards/dog_bowl_food.png',
     () {
       Navigator.push(
         context,

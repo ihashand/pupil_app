@@ -323,32 +323,10 @@ Widget eventTypeCardWeight(BuildContext context, WidgetRef ref, String petId) {
     );
   }
 
-  Widget _buildWeightButton(BuildContext context, String label,
-      Function onPressed, String selectedValue) {
-    final isSelected = selectedValue == label;
-    return GestureDetector(
-      onTap: () {
-        onPressed();
-      },
-      child: CircleAvatar(
-        radius: 20,
-        backgroundColor: Theme.of(context)
-            .colorScheme
-            .primary
-            .withOpacity(isSelected ? 0.3 : 0.7),
-        child: Text(
-          label,
-          style: TextStyle(
-              color: Theme.of(context).primaryColorDark, fontSize: 13),
-        ),
-      ),
-    );
-  }
-
   return eventTypeCard(
     context,
     'W E I G H T',
-    'assets/images/health_event_card/dog_weight.png',
+    'assets/images/events_type_cards/dog_weight.png',
     () {
       showWeightModal(context);
     },

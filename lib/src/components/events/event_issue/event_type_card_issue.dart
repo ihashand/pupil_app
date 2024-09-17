@@ -289,7 +289,7 @@ Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
   return eventTypeCard(
     context,
     'I S S U E S',
-    'assets/images/health_event_card/dog_head.png',
+    'assets/images/events_type_cards/dog_head.png',
     () {
       showIssuesOptions(context);
     },

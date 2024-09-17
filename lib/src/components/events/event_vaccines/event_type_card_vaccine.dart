@@ -264,7 +264,7 @@ Widget eventTypeCardVaccines(
   return eventTypeCard(
     context,
     'V A C C I N E S',
-    'assets/images/health_event_card/dog_vaccine.png',
+    'assets/images/events_type_cards/dog_vaccine.png',
     () {
       showConfirmationBottomSheet(context, recordVaccineEvent);
     },

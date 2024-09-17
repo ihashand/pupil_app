@@ -8,7 +8,7 @@ Widget eventTypeCardMedicine(
   return eventTypeCard(
     context,
     'M E D I C I N E',
-    'assets/images/health_event_card/dog_pills.png',
+    'assets/images/events_type_cards/dog_pills.png',
     () {
       Navigator.of(context).push(
         MaterialPageRoute(
