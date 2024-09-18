@@ -210,7 +210,7 @@ class _EventHealthCardState extends State<EventHealthCard>
                       color: Theme.of(context)
                           .colorScheme
                           .secondary
-                          .withOpacity(0.9),
+                          .withOpacity(0.97),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
