@@ -107,8 +107,10 @@ void showWalkEventModal(BuildContext context, WidgetRef ref, String petId) {
                                 if (!confirm) return;
                               }
 
+                              // ignore: use_build_context_synchronously
                               saveWalkEvent(context, ref, walkDistance,
                                   totalDurationInSeconds, petId);
+                              // ignore: use_build_context_synchronously
                               Navigator.of(context).pop();
                             },
                           ),

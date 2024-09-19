@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
+import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/models/others/user_achievement.dart';
 import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:uuid/uuid.dart';
@@ -71,7 +72,6 @@ class EventWalkService {
   Future<void> addWalk(EventWalkModel walk) async {
     if (_currentUser == null) return;
 
-    // Dodaj spacer do bazy danych
     await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
@@ -79,27 +79,30 @@ class EventWalkService {
         .doc(walk.id)
         .set(walk.toMap());
 
-    // Sprawdź osiągnięcia
     await _checkAndAwardAchievements(walk);
   }
 
   Future<void> _checkAndAwardAchievements(EventWalkModel walk) async {
-    // Pobierz wszystkie spacery psa
+    final DateTime now = DateTime.now();
+    final int currentMonth = now.month;
+
+    // Zmodyfikuj zapytanie, aby uwzględnić tylko spacery z bieżącego miesiąca
     final petWalksSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
         .collection('event_walks')
         .where('petId', isEqualTo: walk.petId)
+        .where('dateTime',
+            isGreaterThanOrEqualTo: DateTime(now.year, currentMonth, 1))
         .get();
 
-    double totalSteps = 0;
+    double totalStepsThisMonth = 0;
 
-    // Zsumuj kroki ze wszystkich spacerów
     for (var doc in petWalksSnapshot.docs) {
-      totalSteps += EventWalkModel.fromDocument(doc).steps;
+      totalStepsThisMonth += EventWalkModel.fromDocument(doc).steps;
     }
 
-    // Pobierz osiągnięcia, które pies już zdobył
+    // Pobierz aktualne osiągnięcia użytkownika
     final userAchievementsSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
@@ -108,16 +111,42 @@ class EventWalkService {
         .where('petId', isEqualTo: walk.petId)
         .get();
 
-    // Zbierz ID osiągnięć, które już zostały przyznane
     final achievedIds = userAchievementsSnapshot.docs
         .map((doc) => doc.get('achievementId') as String)
         .toSet();
 
-    // Sprawdź i przyznaj nowe osiągnięcia z predefiniowanej listy
+    // Sprawdź, czy użytkownik osiągnął sezonowy achievement
+    // Tworzymy nową listę osiągnięć sezonowych
+    List<Achievement> seasonalAchievements = achievements.where((achievement) {
+      return achievement.category == 'seasonal' &&
+          !achievedIds.contains(achievement.id) &&
+          totalStepsThisMonth >= achievement.stepsRequired;
+    }).toList();
+
+    for (var achievement in seasonalAchievements) {
+      // Logika przyznania osiągnięcia
+      final userAchievement = UserAchievement(
+        id: const Uuid().v4(),
+        userId: _currentUser.uid,
+        petId: walk.petId,
+        achievementId: achievement.id,
+        achievedAt: DateTime.now(),
+      );
+
+      await _firestore
+          .collection('app_users')
+          .doc(_currentUser.uid)
+          .collection('user_achievements')
+          .doc(userAchievement.id)
+          .set(userAchievement.toMap());
+
+      achievedIds.add(achievement.id);
+    }
+
+    // Standardowa logika przyznawania innych osiągnięć
     for (var achievement in achievements) {
-      // Sprawdź, czy pies nie zdobył jeszcze tego osiągnięcia
       if (!achievedIds.contains(achievement.id) &&
-          totalSteps >= achievement.stepsRequired) {
+          totalStepsThisMonth >= achievement.stepsRequired) {
         final userAchievement = UserAchievement(
           id: const Uuid().v4(),
           userId: _currentUser.uid,
@@ -126,7 +155,6 @@ class EventWalkService {
           achievedAt: DateTime.now(),
         );
 
-        // Przyznaj nowe osiągnięcie
         await _firestore
             .collection('app_users')
             .doc(_currentUser.uid)
@@ -134,7 +162,6 @@ class EventWalkService {
             .doc(userAchievement.id)
             .set(userAchievement.toMap());
 
-        // Dodaj osiągnięcie do listy przyznanych, aby nie przyznawać go ponownie
         achievedIds.add(achievement.id);
       }
     }

@@ -1,14 +1,17 @@
-import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_in_progress_screen.dart';
+import 'dart:async';
+import 'dart:math';
+
+enum Season { spring, summer, autumn, winter }
 
 class WalkCompetitionScreen extends ConsumerStatefulWidget {
   const WalkCompetitionScreen({super.key});
@@ -21,9 +24,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
     with SingleTickerProviderStateMixin {
   late TextEditingController searchController;
   String searchQuery = '';
-  Map<String, bool> expandedEvents = {};
   late AnimationController _animationController;
-  late Animation<Color?> _colorAnimation;
   List<int> selectedPetIndexes = [];
 
   @override
@@ -34,11 +35,6 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-
-    _colorAnimation = ColorTween(
-      begin: const Color.fromARGB(255, 146, 195, 211),
-      end: const Color(0xff68a2b6),
-    ).animate(_animationController);
   }
 
   @override
@@ -75,7 +71,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'S e l e c t  D o g',
+                                  'Select Dog',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -89,10 +85,6 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
                                               selectedPetIndexes
                                                   .map((index) => pets[index])
                                                   .toList();
-                                          if (kDebugMode) {
-                                            print(
-                                                'Selected Pets: $selectedPets');
-                                          }
                                           ref
                                               .read(activeWalkPetsProvider
                                                   .notifier)
@@ -214,6 +206,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
   @override
   Widget build(BuildContext context) {
     final walkState = ref.watch(walkProvider);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -246,436 +239,287 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen>
             iconSize: 20,
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Divider(
+            color: Theme.of(context).colorScheme.surface,
+            height: 1.0,
+            thickness: 1.0,
+          ),
+        ),
       ),
       body: Column(
         children: [
-          const Expanded(
-            child: MapWidget(),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 15, top: 5),
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return ElevatedButton(
-                  onPressed: walkState.isWalking
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => WalkInProgressScreen(
-                                pets: ref.read(activeWalkPetsProvider),
-                              ),
-                            ),
-                          );
-                        }
-                      : () => _selectDog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _colorAnimation.value,
-                    minimumSize: const Size(350, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(13),
-                    ),
+          // Przycisk start walk
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Center(
+              child: ElevatedButton(
+                onPressed: walkState.isWalking
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WalkInProgressScreen(
+                                pets: ref.read(activeWalkPetsProvider)),
+                          ),
+                        );
+                      }
+                    : () => _selectDog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  minimumSize: const Size(250, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(13),
                   ),
-                  child: Text(
-                    walkState.isWalking ? 'Go to your walk' : 'Start Walk',
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 16),
-                  ),
-                );
-              },
+                ),
+                child: Text(
+                  walkState.isWalking ? 'Go to your walk' : 'Start Walk',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14),
+                ),
+              ),
             ),
           ),
-          const FriendsLeaderboard(),
+          const SizedBox(height: 20),
+
+          // Sekcja osiągnięć z sezonowym efektem
+          Stack(
+            children: [
+              Center(
+                  child:
+                      AchievementSection()), // Wyśrodkowanie sekcji osiągnięć
+              SeasonalEffect(
+                season: Season.autumn, // Zmień na odpowiedni sezon
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // Leaderboard
+          Expanded(
+            child: FriendsLeaderboard(isExpanded: true, onExpandToggle: () {}),
+          ),
         ],
       ),
     );
   }
 }
 
-class MapWidget extends ConsumerWidget {
-  const MapWidget({super.key});
-
+class AchievementSection extends StatelessWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncPets = ref.watch(petsProvider);
+  Widget build(BuildContext context) {
+    return FutureBuilder<Achievement>(
+      future: _getSeasonalAchievement(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData) {
+          return const Text('No Achievement Data');
+        }
 
-    return Stack(
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/others/walk_background.jpg'),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
-          child: Container(
-            color: Colors.black.withOpacity(0),
-          ),
-        ),
-        asyncPets.when(
-          loading: () => const CircularProgressIndicator(),
-          error: (err, stack) => const Text('Error loading map'),
-          data: (pets) {
-            final petsWithSteps = pets
-                .map((pet) {
-                  final asyncWalks = ref.watch(eventWalksProvider);
-                  return asyncWalks.when(
-                    loading: () => null,
-                    error: (err, stack) => null,
-                    data: (walks) {
-                      final totalSteps = walks
-                          .where((walk) => walk!.petId == pet.id)
-                          .fold(0.0, (sum, walk) => sum + walk!.steps);
-                      return {'pet': pet, 'steps': totalSteps};
-                    },
-                  );
-                })
-                .whereType<Map<String, dynamic>>()
-                .where((petWithSteps) => petWithSteps['steps'] >= 100)
-                .toList();
-
-            if (petsWithSteps.isEmpty) {
-              return const SizedBox();
-            }
-
-            final maxStepsPet = petsWithSteps
-                .reduce((a, b) => a['steps'] > b['steps'] ? a : b)['pet'];
-
-            return CustomPaint(
-              painter: PathPainter(),
-              size: Size.infinite,
-              child: Stack(
-                children: [
-                  ..._buildUserAvatarOnPath(
-                      maxStepsPet, petsWithSteps, context),
-                  const PositionedMarker(
-                    position: Offset(120, 70),
-                    steps: 10000,
-                    icon: Icons.directions_walk,
-                    backgroundColor: Colors.yellow,
-                    iconColor: Colors.white,
-                    iconSize: 30,
-                    circleSize: 40,
-                  ),
-                  const PositionedMarker(
-                    position: Offset(60, 195),
-                    steps: 20000,
-                    icon: Icons.directions_walk,
-                    backgroundColor: Colors.pink,
-                    iconColor: Colors.white,
-                    iconSize: 30,
-                    circleSize: 40,
-                  ),
-                  const PositionedMarker(
-                    position: Offset(165, 270),
-                    steps: 50000,
-                    icon: Icons.directions_walk,
-                    backgroundColor: Colors.blue,
-                    iconColor: Colors.white,
-                    iconSize: 30,
-                    circleSize: 40,
-                  ),
-                  const PositionedMarker(
-                    position: Offset(265, 170),
-                    steps: 70000,
-                    icon: Icons.directions_walk,
-                    backgroundColor: Colors.green,
-                    iconColor: Colors.white,
-                    iconSize: 30,
-                    circleSize: 40,
-                  ),
-                  const PositionedMarker(
-                    position: Offset(355, 50),
-                    steps: 100000,
-                    icon: Icons.flag,
-                    backgroundColor: Colors.red,
-                    iconColor: Colors.white,
-                    iconSize: 30,
-                    circleSize: 40,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
+        return AchievementWidget(
+          achievementName: snapshot.data!.name,
+          currentSteps: 45000,
+          totalSteps: snapshot.data!.stepsRequired,
+          assetPath: snapshot.data!.avatarUrl,
+        );
+      },
     );
   }
 
-  List<Widget> _buildUserAvatarOnPath(Pet maxStepsPet,
-      List<Map<String, dynamic>> petsWithSteps, BuildContext context) {
-    final userPosition = _getPositionForSteps(
-        petsWithSteps.firstWhere((p) => p['pet'] == maxStepsPet)['steps']);
+  Future<Achievement> _getSeasonalAchievement() async {
+    final currentMonth = DateTime.now().month;
+    final currentYear = DateTime.now().year;
+    final seasonAchievementId =
+        'seasonal_$currentYear _${currentMonth.toString().padLeft(2, '0')}';
 
-    return [
-      Positioned(
-        left: userPosition.dx,
-        top: userPosition.dy,
-        child: GestureDetector(
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                final user = FirebaseAuth.instance.currentUser?.displayName;
-                final steps = petsWithSteps
-                    .firstWhere((p) => p['pet'] == maxStepsPet)['steps'];
-                return AlertDialog(
-                  title: Text('$user'),
-                  content: Text('Current steps: $steps'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Close'),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-          child: CircleAvatar(
-            backgroundImage: AssetImage(maxStepsPet.avatarImage),
-          ),
-        ),
-      ),
-    ];
-  }
+    final seasonAchievement = await FirebaseFirestore.instance
+        .collection('achievements')
+        .doc(seasonAchievementId)
+        .get();
 
-  Offset _getPositionForSteps(double steps) {
-    final List<Map<String, dynamic>> stepPositions = [
-      {'steps': 0, 'position': const Offset(0, 20)},
-      {'steps': 2500, 'position': const Offset(10, 20)},
-      {'steps': 5000, 'position': const Offset(65, 20)},
-      {'steps': 7500, 'position': const Offset(120, 20)},
-      {'steps': 10000, 'position': const Offset(75, 70)},
-      {'steps': 12500, 'position': const Offset(120, 110)},
-      {'steps': 15000, 'position': const Offset(200, 120)},
-      {'steps': 17500, 'position': const Offset(200, 190)},
-      {'steps': 20000, 'position': const Offset(130, 190)},
-      {'steps': 22500, 'position': const Offset(15, 195)},
-      {'steps': 25000, 'position': const Offset(15, 233)},
-      {'steps': 27500, 'position': const Offset(15, 270)},
-      {'steps': 30000, 'position': const Offset(25, 270)},
-      {'steps': 32500, 'position': const Offset(45, 270)},
-      {'steps': 35000, 'position': const Offset(70, 270)},
-      {'steps': 37500, 'position': const Offset(85, 270)},
-      {'steps': 40000, 'position': const Offset(100, 270)},
-      {'steps': 42500, 'position': const Offset(110, 270)},
-      {'steps': 45000, 'position': const Offset(125, 270)},
-      {'steps': 47500, 'position': const Offset(130, 270)},
-      {'steps': 50000, 'position': const Offset(165, 230)},
-      {'steps': 52500, 'position': const Offset(190, 270)},
-      {'steps': 55000, 'position': const Offset(210, 270)},
-      {'steps': 57500, 'position': const Offset(230, 270)},
-      {'steps': 60000, 'position': const Offset(250, 270)},
-      {'steps': 62500, 'position': const Offset(265, 255)},
-      {'steps': 65000, 'position': const Offset(265, 230)},
-      {'steps': 67500, 'position': const Offset(265, 200)},
-      {'steps': 70000, 'position': const Offset(305, 170)},
-      {'steps': 72500, 'position': const Offset(265, 135)},
-      {'steps': 75000, 'position': const Offset(265, 125)},
-      {'steps': 77500, 'position': const Offset(265, 115)},
-      {'steps': 80000, 'position': const Offset(265, 105)},
-      {'steps': 82500, 'position': const Offset(265, 95)},
-      {'steps': 85000, 'position': const Offset(265, 85)},
-      {'steps': 87500, 'position': const Offset(265, 75)},
-      {'steps': 90000, 'position': const Offset(265, 50)},
-      {'steps': 92500, 'position': const Offset(295, 50)},
-      {'steps': 95000, 'position': const Offset(315, 50)},
-      {'steps': 97500, 'position': const Offset(330, 50)},
-      {'steps': 100000, 'position': const Offset(355, 10)},
-    ];
-
-    for (int i = 0; i < stepPositions.length - 1; i++) {
-      if (steps >= stepPositions[i]['steps'] &&
-          steps < stepPositions[i + 1]['steps']) {
-        double ratio = (steps - stepPositions[i]['steps']) /
-            (stepPositions[i + 1]['steps'] - stepPositions[i]['steps']);
-        return Offset(
-          stepPositions[i]['position'].dx +
-              ratio *
-                  (stepPositions[i + 1]['position'].dx -
-                      stepPositions[i]['position'].dx),
-          stepPositions[i]['position'].dy +
-              ratio *
-                  (stepPositions[i + 1]['position'].dy -
-                      stepPositions[i]['position'].dy),
-        );
-      }
+    if (seasonAchievement.exists) {
+      return Achievement.fromDocument(seasonAchievement);
+    } else {
+      return Future.error('No seasonal achievement found for this month.');
     }
-    return stepPositions.last['position'];
   }
 }
 
-class PathPainter extends CustomPainter {
+// SeasonalEffect class
+class SeasonalEffect extends StatefulWidget {
+  final Season season;
+
+  const SeasonalEffect({super.key, required this.season});
+
   @override
-  void paint(Canvas canvas, Size size) {
-    Paint paintFill = Paint()
-      ..color = const Color.fromARGB(0, 255, 255, 255)
-      ..style = PaintingStyle.fill;
+  createState() => _SeasonalEffectState();
+}
 
-    Paint paintStroke = Paint()
-      ..color = const Color.fromARGB(255, 255, 255, 255)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.04
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.bevel;
+class _SeasonalEffectState extends State<SeasonalEffect> {
+  final Random random = Random();
+  List<SeasonalItem> seasonalItems = [];
+  Timer? _seasonalTimer;
+  final int maxItems = 20; // Maksymalna liczba ikon
 
-    Path path = Path();
-    path.moveTo(size.width * -0.0176500, size.height * 0.1242500);
-    path.quadraticBezierTo(size.width * 0.2174000, size.height * 0.1237500,
-        size.width * 0.2957500, size.height * 0.1238500);
-    path.quadraticBezierTo(size.width * 0.3502750, size.height * 0.1326250,
-        size.width * 0.3582000, size.height * 0.1748500);
-    path.quadraticBezierTo(size.width * 0.3570750, size.height * 0.3152500,
-        size.width * 0.3570000, size.height * 0.3604750);
-    path.quadraticBezierTo(size.width * 0.3559000, size.height * 0.4024750,
-        size.width * 0.3933750, size.height * 0.4077250);
-    path.quadraticBezierTo(size.width * 0.4842000, size.height * 0.4079312,
-        size.width * 0.5144750, size.height * 0.4080000);
-    path.quadraticBezierTo(size.width * 0.5587750, size.height * 0.4124000,
-        size.width * 0.5683750, size.height * 0.4474500);
-    path.quadraticBezierTo(size.width * 0.5682750, size.height * 0.5581000,
-        size.width * 0.5686500, size.height * 0.5951500);
-    path.quadraticBezierTo(size.width * 0.5660000, size.height * 0.6406250,
-        size.width * 0.5182500, size.height * 0.6421750);
-    path.quadraticBezierTo(size.width * 0.2295000, size.height * 0.6411000,
-        size.width * 0.1346250, size.height * 0.6411250);
-    path.quadraticBezierTo(size.width * 0.0960250, size.height * 0.6473750,
-        size.width * 0.0926750, size.height * 0.6867500);
-    path.quadraticBezierTo(size.width * 0.0936000, size.height * 0.7824000,
-        size.width * 0.0929250, size.height * 0.8142750);
-    path.quadraticBezierTo(size.width * 0.0980250, size.height * 0.8526500,
-        size.width * 0.1442000, size.height * 0.8592500);
-    path.quadraticBezierTo(size.width * 0.5416250, size.height * 0.8596063,
-        size.width * 0.6741000, size.height * 0.8597250);
-    path.quadraticBezierTo(size.width * 0.7201750, size.height * 0.8521500,
-        size.width * 0.7247000, size.height * 0.8168750);
-    path.quadraticBezierTo(size.width * 0.7249250, size.height * 0.3954687,
-        size.width * 0.7250000, size.height * 0.2550000);
-    path.quadraticBezierTo(size.width * 0.7251250, size.height * 0.2105000,
-        size.width * 0.7682000, size.height * 0.2079500);
-    path.lineTo(size.width * 1.0145250, size.height * 0.2079750);
+  @override
+  void initState() {
+    super.initState();
+    _startSeasonalAnimation();
+  }
 
-    canvas.drawPath(path, paintFill);
-    canvas.drawPath(path, paintStroke);
+  void _startSeasonalAnimation() {
+    _seasonalTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (seasonalItems.length >= maxItems) {
+        _seasonalTimer?.cancel();
+        return;
+      }
+
+      setState(() {
+        seasonalItems.add(SeasonalItem(
+          key: UniqueKey(),
+          size: random.nextDouble() * 15 + 10,
+          fallSpeed: random.nextDouble() * 2 + 1,
+          xPosition: random.nextDouble(),
+          season: widget.season,
+        ));
+      });
+    });
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+  void dispose() {
+    _seasonalTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 200, // Tylko w kontenerze z sekcją osiągnięć
+      child: Stack(
+        children: seasonalItems,
+      ),
+    );
   }
 }
 
-class PositionedMarker extends StatelessWidget {
-  final Offset position;
-  final int steps;
-  final IconData icon;
-  final Color backgroundColor;
-  final Color iconColor;
-  final double iconSize;
-  final double circleSize;
+class SeasonalItem extends StatefulWidget {
+  final double size;
+  double fallSpeed;
+  double xPosition;
+  final Season season;
 
-  const PositionedMarker({
-    super.key,
-    required this.position,
-    required this.steps,
-    required this.icon,
-    required this.backgroundColor,
-    required this.iconColor,
-    required this.iconSize,
-    required this.circleSize,
-  });
+  SeasonalItem({
+    Key? key,
+    required this.size,
+    required this.fallSpeed,
+    required this.xPosition,
+    required this.season,
+  }) : super(key: key);
+
+  @override
+  _SeasonalItemState createState() => _SeasonalItemState();
+
+  void reset() {
+    final Random random = Random();
+    xPosition = random.nextDouble();
+    fallSpeed = random.nextDouble() * 2 + 1;
+  }
+}
+
+class _SeasonalItemState extends State<SeasonalItem> {
+  double yPosition = 0;
+  Timer? _fallingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startFalling();
+  }
+
+  void _startFalling() {
+    _fallingTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (!mounted) return;
+      setState(() {
+        yPosition += widget.fallSpeed;
+        if (yPosition > 200) {
+          // Ograniczenie do kontenera
+          yPosition = 0;
+          widget.reset();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _fallingTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: position.dx,
-      top: position.dy,
-      child: GestureDetector(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text(
-                  'Milestone',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-                content: Text(
-                  'Steps to go: $steps',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Close',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        child: CircleAvatar(
-          backgroundColor: backgroundColor,
-          radius: circleSize / 2,
-          child: Icon(icon, color: iconColor, size: iconSize),
-        ),
+      top: yPosition,
+      left: widget.xPosition * MediaQuery.of(context).size.width,
+      child: Opacity(
+        opacity: 0.7,
+        child: _getSeasonalIcon(),
       ),
     );
   }
+
+  Widget _getSeasonalIcon() {
+    switch (widget.season) {
+      case Season.spring:
+        return Icon(Icons.local_florist,
+            size: widget.size, color: Colors.green);
+      case Season.summer:
+        return Icon(Icons.wb_sunny, size: widget.size, color: Colors.yellow);
+      case Season.autumn:
+        return Icon(Icons.park, size: widget.size, color: Colors.brown);
+      case Season.winter:
+        return Icon(Icons.ac_unit, size: widget.size, color: Colors.white);
+      default:
+        return Container();
+    }
+  }
 }
 
+// Leaderboard widget
 class FriendsLeaderboard extends ConsumerWidget {
-  const FriendsLeaderboard({super.key});
+  final bool isExpanded;
+  final VoidCallback onExpandToggle;
+
+  const FriendsLeaderboard({
+    super.key,
+    required this.isExpanded,
+    required this.onExpandToggle,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPets = ref.watch(petsProvider);
 
-    return asyncPets.when(
-      loading: () => const CircularProgressIndicator(),
-      error: (err, stack) => const Text('Error fetching pets'),
-      data: (pets) {
-        final petsWithSteps = pets
-            .map((pet) {
-              final asyncWalks = ref.watch(eventWalksProvider);
-              return asyncWalks.when(
-                loading: () => null,
-                error: (err, stack) => null,
-                data: (walks) {
-                  final totalSteps = walks
-                      .where((walk) => walk!.petId == pet.id)
-                      .fold(0.0, (sum, walk) => sum + walk!.steps);
-                  return {'pet': pet, 'steps': totalSteps};
-                },
-              );
-            })
-            .whereType<Map<String, dynamic>>()
-            .where((petWithSteps) => petWithSteps['steps'] >= 100)
-            .toList();
-
-        petsWithSteps.sort((a, b) => b['steps'].compareTo(a['steps']));
-
-        return Container(
-          height: 335,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 1200),
+      curve: Curves.easeInOut,
+      child: GestureDetector(
+        onTap: onExpandToggle,
+        child: Container(
+          height: isExpanded ? MediaQuery.of(context).size.height * 0.6 : 60,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary,
             borderRadius: const BorderRadius.only(
@@ -684,101 +528,292 @@ class FriendsLeaderboard extends ConsumerWidget {
             ),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
               const Padding(
                 padding: EdgeInsets.only(top: 10, bottom: 2),
                 child: Text(
-                  'L e a d e r b o a r d',
+                  'Leaderboard',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ),
               Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
-              Flexible(
-                fit: FlexFit.loose,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: petsWithSteps.length,
-                  itemBuilder: (context, index) {
-                    final user =
-                        FirebaseAuth.instance.currentUser?.displayName ??
-                            'User';
-                    final steps = petsWithSteps[index]['steps'];
-                    final petName = petsWithSteps[index]['pet'].name;
-                    return Column(
-                      children: [
-                        ListTile(
-                          leading: Text(
-                            '#${index + 1}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          title: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundImage: AssetImage(
-                                    petsWithSteps[index]['pet'].avatarImage),
-                                radius: 25,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 20.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isExpanded
+                    ? asyncPets.when(
+                        loading: () => const CircularProgressIndicator(),
+                        error: (err, stack) =>
+                            const Text('Error fetching pets'),
+                        data: (pets) {
+                          final petsWithSteps = pets
+                              .map((pet) {
+                                final asyncWalks =
+                                    ref.watch(eventWalksProvider);
+                                return asyncWalks.when(
+                                  loading: () => null,
+                                  error: (err, stack) => null,
+                                  data: (walks) {
+                                    final totalSteps = walks
+                                        .where((walk) => walk!.petId == pet.id)
+                                        .fold(0.0,
+                                            (sum, walk) => sum + walk!.steps);
+                                    return {'pet': pet, 'steps': totalSteps};
+                                  },
+                                );
+                              })
+                              .whereType<Map<String, dynamic>>()
+                              .where((petWithSteps) =>
+                                  petWithSteps['steps'] >= 100)
+                              .toList();
+
+                          petsWithSteps
+                              .sort((a, b) => b['steps'].compareTo(a['steps']));
+
+                          return Expanded(
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: petsWithSteps.length,
+                              itemBuilder: (context, index) {
+                                final user = FirebaseAuth
+                                        .instance.currentUser?.displayName ??
+                                    'User';
+                                final steps = petsWithSteps[index]['steps'];
+                                final petName =
+                                    petsWithSteps[index]['pet'].name;
+                                return Column(
+                                  children: [
+                                    ListTile(
+                                      leading: Text(
+                                        '#${index + 1}',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      title: Row(
                                         children: [
-                                          const Text('Owner: ',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                              )),
-                                          Text(user,
-                                              style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold)),
+                                          CircleAvatar(
+                                            backgroundImage: AssetImage(
+                                                petsWithSteps[index]['pet']
+                                                    .avatarImage),
+                                            radius: 25,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 20.0),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      const Text('Owner: ',
+                                                          style: TextStyle(
+                                                              fontSize: 11)),
+                                                      Text(user,
+                                                          style: const TextStyle(
+                                                              fontSize: 13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                    ],
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      const Text('Pupil: ',
+                                                          style: TextStyle(
+                                                              fontSize: 11)),
+                                                      Text('$petName',
+                                                          style: const TextStyle(
+                                                              fontSize: 13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              const Text('Steps: ',
+                                                  style:
+                                                      TextStyle(fontSize: 11)),
+                                              Text('$steps',
+                                                  style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ],
+                                          ),
                                         ],
                                       ),
-                                      Row(
-                                        children: [
-                                          const Text('Pupil: ',
-                                              style: TextStyle(fontSize: 11)),
-                                          Text('$petName',
-                                              style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const Text('Steps: ',
-                                      style: TextStyle(fontSize: 11)),
-                                  Text('$steps',
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                            ],
-                          ),
-                          onTap: () {},
-                        ),
-                        Divider(
-                            color: const Color(0xff68a2b6).withOpacity(0.2)),
-                      ],
-                    );
-                  },
-                ),
+                                      onTap: () {},
+                                    ),
+                                    Divider(
+                                        color: const Color(0xff68a2b6)
+                                            .withOpacity(0.2)),
+                                  ],
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      )
+                    : const SizedBox.shrink(),
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+// Achievement Widget
+class AchievementWidget extends StatefulWidget {
+  final String achievementName;
+  final int currentSteps;
+  final int totalSteps;
+  final String assetPath;
+
+  const AchievementWidget({
+    super.key,
+    required this.achievementName,
+    required this.currentSteps,
+    required this.totalSteps,
+    required this.assetPath,
+  });
+
+  @override
+  createState() => _AchievementWidgetState();
+}
+
+class _AchievementWidgetState extends State<AchievementWidget>
+    with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleExpansion() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggleExpansion,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 1200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            // Animated achievement image
+            AnimatedBuilder(
+              animation: _animation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: 1.2 + (_animation.value * 0.2),
+                  child: child,
+                );
+              },
+              child: Image.asset(
+                widget.assetPath,
+                height: 175,
+                width: 175,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Animated opacity for the achievement name
+            AnimatedOpacity(
+              opacity: _isExpanded ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 600),
+              child: Text(
+                widget.achievementName,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 1200),
+              curve: Curves.easeInOut,
+              child: _isExpanded
+                  ? Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      padding: const EdgeInsets.all(15),
+                      margin: const EdgeInsets.only(top: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            '🏆 ${widget.achievementName}',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '🚶 Steps: ${widget.currentSteps} / ${widget.totalSteps}',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '⏳ Remaining: ${widget.totalSteps - widget.currentSteps}',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
