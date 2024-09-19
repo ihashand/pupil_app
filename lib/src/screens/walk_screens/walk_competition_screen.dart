@@ -306,7 +306,7 @@ class MapWidget extends ConsumerWidget {
         Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images/walk_background.jpg'),
+              image: AssetImage('assets/images/others/walk_background.jpg'),
               fit: BoxFit.cover,
             ),
           ),
