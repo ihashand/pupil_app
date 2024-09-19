@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/report_widget/generete_print_report.dart';
+import 'package:pet_diary/src/components/report_widget/generete_print_report.dart';
 
 Future<void> showDateRangeDialog(
     BuildContext context, WidgetRef ref, Pet pet) async {

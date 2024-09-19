@@ -14,7 +14,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/section_title.dart';
+import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;

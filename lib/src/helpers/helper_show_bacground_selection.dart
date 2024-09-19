@@ -5,18 +5,18 @@ Future<void> showBackgroundSelectionDialog({
   required Function(String) onBackgroundSelected,
 }) async {
   final List<String> backgroundPaths = [
-    'assets/images/dog_details_background_01.png',
-    'assets/images/dog_details_background_02.png',
-    'assets/images/dog_details_background_03.png',
-    'assets/images/dog_details_background_04.png',
-    'assets/images/dog_details_background_05.png',
-    'assets/images/dog_details_background_06.png',
-    'assets/images/dog_details_background_07.png',
-    'assets/images/dog_details_background_08.png',
-    'assets/images/dog_details_background_09.png',
-    'assets/images/dog_details_background_010.png',
-    'assets/images/dog_details_background_011.png',
-    'assets/images/dog_details_background_012.png',
+    'assets/images/dog_backgrounds/dog_details_background_01.png',
+    'assets/images/dog_backgrounds/dog_details_background_02.png',
+    'assets/images/dog_backgrounds/dog_details_background_03.png',
+    'assets/images/dog_backgrounds/dog_details_background_04.png',
+    'assets/images/dog_backgrounds/dog_details_background_05.png',
+    'assets/images/dog_backgrounds/dog_details_background_06.png',
+    'assets/images/dog_backgrounds/dog_details_background_07.png',
+    'assets/images/dog_backgrounds/dog_details_background_08.png',
+    'assets/images/dog_backgrounds/dog_details_background_09.png',
+    'assets/images/dog_backgrounds/dog_details_background_010.png',
+    'assets/images/dog_backgrounds/dog_details_background_011.png',
+    'assets/images/dog_backgrounds/dog_details_background_012.png',
   ];
 
   await showModalBottomSheet(

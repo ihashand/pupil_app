@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/activity_data_row.dart';
+import 'package:pet_diary/src/components/health_activity_widgets/activity_data_row.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class SummarySection extends StatelessWidget {

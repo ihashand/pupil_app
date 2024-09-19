@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/arrow_button.dart';
+import 'package:pet_diary/src/components/health_activity_widgets/arrow_button.dart';
 
 class DayView extends StatelessWidget {
   final DateTime selectedDate;

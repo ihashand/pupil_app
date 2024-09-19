@@ -18,9 +18,9 @@ import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dar
 import 'package:pet_diary/src/providers/others_providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/achievement_widgets/initialize_achievements.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/report_widget/generate_report_card.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_activity_widgets/section_title.dart';
+import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
+import 'package:pet_diary/src/components/report_widget/generate_report_card.dart';
+import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
 import '../../models/others/achievement.dart';
