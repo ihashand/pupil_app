@@ -380,7 +380,8 @@ class _SeasonalEffectState extends State<SeasonalEffect> {
   }
 
   void _startSeasonalAnimation() {
-    _seasonalTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+    _seasonalTimer =
+        Timer.periodic(const Duration(milliseconds: 1100), (timer) {
       if (seasonalItems.length >= maxItems) {
         _seasonalTimer?.cancel();
         return;
@@ -406,8 +407,8 @@ class _SeasonalEffectState extends State<SeasonalEffect> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 200, // Tylko w kontenerze z sekcją osiągnięć
+    return SizedBox(
+      height: 200,
       child: Stack(
         children: seasonalItems,
       ),
@@ -435,7 +436,7 @@ class SeasonalItem extends StatefulWidget {
   void reset() {
     final Random random = Random();
     xPosition = random.nextDouble();
-    fallSpeed = random.nextDouble() * 2 + 1;
+    fallSpeed = random.nextDouble() * 2;
   }
 }
 
@@ -455,7 +456,6 @@ class _SeasonalItemState extends State<SeasonalItem> {
       setState(() {
         yPosition += widget.fallSpeed;
         if (yPosition > 200) {
-          // Ograniczenie do kontenera
           yPosition = 0;
           widget.reset();
         }
@@ -485,20 +485,22 @@ class _SeasonalItemState extends State<SeasonalItem> {
     switch (widget.season) {
       case Season.spring:
         return Icon(Icons.local_florist,
-            size: widget.size, color: Colors.green);
+            size: widget.size, color: Colors.green.withOpacity(0.2));
       case Season.summer:
-        return Icon(Icons.wb_sunny, size: widget.size, color: Colors.yellow);
+        return Icon(Icons.wb_sunny,
+            size: widget.size, color: Colors.yellow.withOpacity(0.2));
       case Season.autumn:
-        return Icon(Icons.park, size: widget.size, color: Colors.brown);
+        return Icon(Icons.park,
+            size: widget.size, color: Colors.brown.withOpacity(0.2));
       case Season.winter:
-        return Icon(Icons.ac_unit, size: widget.size, color: Colors.white);
+        return Icon(Icons.ac_unit,
+            size: widget.size, color: Colors.white.withOpacity(0.2));
       default:
         return Container();
     }
   }
 }
 
-// Leaderboard widget
 class FriendsLeaderboard extends ConsumerWidget {
   final bool isExpanded;
   final VoidCallback onExpandToggle;
