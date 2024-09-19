@@ -14,6 +14,7 @@ import 'package:pet_diary/src/components/events/event_notes/event_type_card_note
 import 'package:pet_diary/src/components/events/event_food/others/event_type_card_food.dart';
 import 'package:pet_diary/src/components/events/event_urine/event_type_card_urine.dart';
 import 'package:pet_diary/src/components/events/event_weight/event_type_card_weight.dart';
+import 'package:pet_diary/src/components/events/walk/event_type_card_walk.dart';
 import 'package:reorderables/reorderables.dart';
 import 'dart:math';
 
@@ -110,7 +111,6 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
     if (doc.exists) {
       setState(() {
         eventTypeCards = List<Map<String, dynamic>>.from(doc['eventTypeCards']);
-        // Reassign 'keywords' field
         for (var card in eventTypeCards) {
           if (!card.containsKey('keywords')) {
             card['keywords'] = getDefaultKeywords(card['widget']);
@@ -118,7 +118,6 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
         }
       });
     } else {
-      // Add your keywords here for search functionality
       eventTypeCards = [
         {
           'widget': 'eventTypeCardWater',
@@ -264,6 +263,13 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
           ]
         },
         {
+          'widget': 'eventTypeCardWalk',
+          'isActive': true,
+          'keywords': [
+            'walk',
+          ]
+        },
+        {
           'widget': 'eventTypeCardNotes',
           'isActive': true,
           'keywords': [
@@ -359,6 +365,8 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
       case 'eventTypeCardNotes':
         return eventTypeCardNotes(
             context, titleController, contentTextController, ref, widget.petId);
+      case 'eventTypeCardWalk':
+        return eventTypeCardWalk(context, ref, widget.petId);
       default:
         return const SizedBox.shrink();
     }
