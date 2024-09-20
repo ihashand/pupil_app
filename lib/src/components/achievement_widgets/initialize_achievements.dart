@@ -1,10 +1,5 @@
-// ignore_for_file: unused_element
-
 import 'package:pet_diary/src/models/others/achievement.dart';
 
-const String _avatarUrl = 'assets/images/achievement_step9.jpeg';
-
-// ids
 const String _id10kSteps = '1a2b3c4d-0000-0000-0000-000000000001';
 const String _id25kSteps = '1a2b3c4d-0000-0000-0000-000000000002';
 const String _id50kSteps = '1a2b3c4d-0000-0000-0000-000000000003';
@@ -31,29 +26,8 @@ const String _idHimalayas = '1a2b3c4d-0000-0000-0000-000000000027';
 const String _idGrandCanyon = '1a2b3c4d-0000-0000-0000-000000000028';
 const String _idPacificCrestTrail = '1a2b3c4d-0000-0000-0000-000000000029';
 const String _idAppalachianTrail = '1a2b3c4d-0000-0000-0000-000000000030';
-const String _idKilimanjaro = '1a2b3c4d-0000-0000-0000-000000000031';
-const String _idSaharaDesert = '1a2b3c4d-0000-0000-0000-000000000032';
-const String _idAntarctica = '1a2b3c4d-0000-0000-0000-000000000033';
-const String _idMountEverest = '1a2b3c4d-0000-0000-0000-000000000034';
 const String _idRockyMountains = '1a2b3c4d-0000-0000-0000-000000000035';
-const String _idSerengeti = '1a2b3c4d-0000-0000-0000-000000000036';
-const String _idPatagonia = '1a2b3c4d-0000-0000-0000-000000000037';
 const String _idAndesMountains = '1a2b3c4d-0000-0000-0000-000000000038';
-const String _idJourneyToMordor = '1a2b3c4d-0000-0000-0000-000000000039';
-const String _idHogwartsExpress = '1a2b3c4d-0000-0000-0000-000000000040';
-const String _idWesteros = '1a2b3c4d-0000-0000-0000-000000000041';
-const String _idMiddleEarth = '1a2b3c4d-0000-0000-0000-000000000042';
-const String _idNarnia = '1a2b3c4d-0000-0000-0000-000000000043';
-const String _idWonderland = '1a2b3c4d-0000-0000-0000-000000000044';
-const String _idOz = '1a2b3c4d-0000-0000-0000-000000000045';
-const String _idCamelot = '1a2b3c4d-0000-0000-0000-000000000046';
-const String _idAtlantis = '1a2b3c4d-0000-0000-0000-000000000047';
-const String _idNeverland = '1a2b3c4d-0000-0000-0000-000000000048';
-const String _idValhalla = '1a2b3c4d-0000-0000-0000-000000000049';
-const String _idEmeraldCity = '1a2b3c4d-0000-0000-0000-000000000050';
-const String _idShangriLa = '1a2b3c4d-0000-0000-0000-000000000051';
-const String _idPandora = '1a2b3c4d-0000-0000-0000-000000000052';
-const String _idRivendell = '1a2b3c4d-0000-0000-0000-000000000053';
 
 List<Achievement> achievements = [
   Achievement(
@@ -280,7 +254,7 @@ List<Achievement> achievements = [
   // sesonal
   for (int year = 2024; year <= 2025; year++) ...[
     Achievement(
-      id: 'seasonal_$year _01',
+      id: 'seasonal_${year}_01',
       name: 'January $year',
       description: 'Achieve 100,000 steps in January $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -288,7 +262,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _02',
+      id: 'seasonal_${year}_02',
       name: 'February $year',
       description: 'Achieve 100,000 steps in February $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -296,7 +270,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _03',
+      id: 'seasonal_${year}_03',
       name: 'March $year',
       description: 'Achieve 100,000 steps in March $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -304,7 +278,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _04',
+      id: 'seasonal_${year}_04',
       name: 'April $year',
       description: 'Achieve 100,000 steps in April $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -312,7 +286,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _05',
+      id: 'seasonal_${year}_05',
       name: 'May $year',
       description: 'Achieve 100,000 steps in May $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -320,7 +294,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _06',
+      id: 'seasonal_${year}_06',
       name: 'June $year',
       description: 'Achieve 100,000 steps in June $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -328,7 +302,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _07',
+      id: 'seasonal_${year}_07',
       name: 'July $year',
       description: 'Achieve 100,000 steps in July $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -336,7 +310,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _08',
+      id: 'seasonal_${year}_08',
       name: 'August $year',
       description: 'Achieve 100,000 steps in August $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -344,7 +318,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _09',
+      id: 'seasonal_${year}_09',
       name: 'September $year',
       description: 'Achieve 100,000 steps in September $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -352,7 +326,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _10',
+      id: 'seasonal_${year}_10',
       name: 'October $year',
       description: 'Achieve 100,000 steps in October $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -360,7 +334,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _11',
+      id: 'seasonal_${year}_11',
       name: 'November $year',
       description: 'Achieve 100,000 steps in November $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
@@ -368,7 +342,7 @@ List<Achievement> achievements = [
       stepsRequired: 100000,
     ),
     Achievement(
-      id: 'seasonal_$year _12',
+      id: 'seasonal_${year}_12',
       name: 'December $year',
       description: 'Achieve 100,000 steps in December $year',
       avatarUrl: 'assets/images/achievements/seasonal/leaf.png',

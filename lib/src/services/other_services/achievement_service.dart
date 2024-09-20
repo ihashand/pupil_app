@@ -1,26 +1,50 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
+import 'package:pet_diary/src/models/others/achievement.dart';
 
 class AchievementService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Initialize achievements in Firestore
+  Future<Achievement> getSeasonalAchievement() async {
+    try {
+      final DateTime now = DateTime.now();
+      final String seasonalId =
+          'seasonal_${now.year}_${now.month.toString().padLeft(2, '0')}';
+
+      // Debugging log
+      if (kDebugMode) {
+        print('Fetching achievement with ID: $seasonalId');
+      }
+
+      final doc =
+          await _firestore.collection('achievements').doc(seasonalId).get();
+      if (doc.exists) {
+        return Achievement.fromDocument(doc);
+      } else {
+        throw Exception('No seasonal achievement found for ID: $seasonalId');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching seasonal achievement: $e');
+      }
+      throw Exception('Failed to load seasonal achievement. Error: $e');
+    }
+  }
+
+  // Inicjalizacja achievementów, jeśli nie istnieją w Firestore
   Future<void> initializeAchievements() async {
     try {
       final collectionRef = _firestore.collection('achievements');
       final querySnapshot = await collectionRef.get();
 
-      // Collect existing achievement IDs from Firestore
       final existingAchievementIds =
           querySnapshot.docs.map((doc) => doc.id).toSet();
 
-      // Filter out achievements that do not exist in Firestore
       final achievementsToAdd = achievements.where((achievement) {
         return !existingAchievementIds.contains(achievement.id);
       }).toList();
 
-      // Add missing achievements to Firestore
       for (final achievement in achievementsToAdd) {
         await collectionRef.doc(achievement.id).set(achievement.toMap());
       }
