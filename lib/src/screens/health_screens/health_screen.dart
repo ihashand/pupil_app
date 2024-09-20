@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/others/event_type_selection.dart';
+import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
@@ -139,7 +139,13 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: const Color(0xff68a2b6),
             onPressed: () {
-              eventTypeSelection(context, ref, widget.petId);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      EventTypeSelectionScreen(petId: widget.petId),
+                ),
+              );
             },
             child: Icon(
               Icons.add,

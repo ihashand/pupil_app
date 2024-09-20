@@ -1,20 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/helpers/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
-import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/active_walk_card.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/animal_card.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/appoitment_card.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/friend_request_card.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/walk_card.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/reminder_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/active_walk_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/appoitment_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/friend_request_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/walk_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/reminder_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_others/home_screen_animal_section.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_others/home_screen_shake_animation.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -151,7 +150,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: homePreferences.sectionOrder.map((section) {
                 switch (section) {
                   case 'AnimalCard':
-                    return const AnimalSection(key: ValueKey('AnimalCard'));
+                    return const HomeScreenAnimalSection(
+                        key: ValueKey('AnimalCard'));
                   case 'WalkCard':
                     return const Padding(
                       key: ValueKey('WalkCard'),
@@ -197,7 +197,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       child: friendRequestsAsyncValue.when(
                         data: (friendRequests) => friendRequests.isNotEmpty
-                            ? const ShakeAnimation(
+                            ? const HomeScreenShakeAnimation(
                                 child: FriendRequestsCard(),
                               )
                             : Container(),
@@ -215,105 +215,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class AnimalSection extends ConsumerWidget {
-  const AnimalSection({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncPets = ref.watch(petsProvider);
-    return asyncPets.when(
-      loading: () => const CircularProgressIndicator(),
-      error: (err, stack) => const Text('Error fetching pets'),
-      data: (pets) {
-        return SizedBox(
-          height: 230,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: pets.length + 1,
-            itemBuilder: (context, index) {
-              if (index < pets.length) {
-                final currentPet = pets[index];
-                return AnimalCard(
-                    pet: currentPet, key: ValueKey(currentPet.id));
-              } else {
-                return InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => AddPetStep1Name(ref: ref),
-                    ));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.add,
-                        size: 70, color: Color(0xff68a2b6)),
-                  ),
-                );
-              }
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class ShakeAnimation extends StatefulWidget {
-  final Widget child;
-
-  const ShakeAnimation({super.key, required this.child});
-
-  @override
-  createState() => _ShakeAnimationState();
-}
-
-class _ShakeAnimationState extends State<ShakeAnimation>
-    with SingleTickerProviderStateMixin {
-  AnimationController? _animationController;
-  Animation<Offset>? _offsetAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _offsetAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0.027, 0),
-    ).animate(CurvedAnimation(
-      parent: _animationController!,
-      curve: Curves.elasticIn,
-    ));
-
-    // Stop the animation after 7 seconds
-    Future.delayed(const Duration(seconds: 7), () {
-      if (mounted) {
-        _animationController?.stop();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _animationController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _offsetAnimation!,
-      child: widget.child,
     );
   }
 }

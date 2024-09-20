@@ -5,21 +5,21 @@ Future<void> showAvatarSelectionDialog({
   required Function(String) onAvatarSelected,
 }) async {
   final avatars = [
-    'assets/images/dogs_avatars/beagle.png',
-    'assets/images/dogs_avatars/border_collie.png',
-    'assets/images/dogs_avatars/buldog_francski.png',
-    'assets/images/dogs_avatars/chiuaua.png',
-    'assets/images/dogs_avatars/doberman.png',
-    'assets/images/dogs_avatars/husky.png',
-    'assets/images/dogs_avatars/jamnik.png',
-    'assets/images/dogs_avatars/kundelek.png',
-    'assets/images/dogs_avatars/labradrod.png',
-    'assets/images/dogs_avatars/owczarek.png',
-    'assets/images/dogs_avatars/rottwailer.png',
-    'assets/images/dogs_avatars/shitzu.png',
-    'assets/images/dogs_avatars/sznaucer.png',
-    'assets/images/dogs_avatars/west_highland_white_terier.png',
-    'assets/images/dogs_avatars/york.png',
+    'assets/images/dog_avatars/beagle.png',
+    'assets/images/dog_avatars/border_collie.png',
+    'assets/images/dog_avatars/buldog_francski.png',
+    'assets/images/dog_avatars/chiuaua.png',
+    'assets/images/dog_avatars/doberman.png',
+    'assets/images/dog_avatars/husky.png',
+    'assets/images/dog_avatars/jamnik.png',
+    'assets/images/dog_avatars/kundelek.png',
+    'assets/images/dog_avatars/labradrod.png',
+    'assets/images/dog_avatars/owczarek.png',
+    'assets/images/dog_avatars/rottwailer.png',
+    'assets/images/dog_avatars/shitzu.png',
+    'assets/images/dog_avatars/sznaucer.png',
+    'assets/images/dog_avatars/west_highland_white_terier.png',
+    'assets/images/dog_avatars/york.png',
   ];
 
   await showModalBottomSheet(
@@ -37,7 +37,7 @@ Future<void> showAvatarSelectionDialog({
                   'Pick an avatar',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18, // Zwiększenie rozmiaru tekstu
+                    fontSize: 18,
                   ),
                 ),
               ),

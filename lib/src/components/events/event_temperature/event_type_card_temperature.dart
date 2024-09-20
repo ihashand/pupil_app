@@ -19,7 +19,7 @@ Widget eventTypeCardTemperature(BuildContext context,
   return eventTypeCard(
     context,
     'T E M P E R A T U R E',
-    'assets/images/health_event_card/thermometr.png',
+    'assets/images/events_type_cards_no_background/thermometr.png',
     () {
       showModalBottomSheet(
         context: context,

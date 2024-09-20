@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/user_achievement.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/achievement_widgets/initialize_achievements.dart';
+import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:uuid/uuid.dart';
 
 class EventWalkService {

@@ -262,7 +262,7 @@ Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
   return eventTypeCard(
     context,
     'U R I N E',
-    'assets/images/health_event_card/dog_piee.png',
+    'assets/images/events_type_cards_no_background/piee.png',
     () {
       showUrineModal(context);
     },
