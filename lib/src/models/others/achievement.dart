@@ -5,10 +5,10 @@ class Achievement {
   final String name;
   final String description;
   final String avatarUrl;
-  final String category; // 'steps', 'nature', 'fantasy'
+  final String category;
   final int stepsRequired;
-  final int? totalSteps; // Optional field
-  final int? month; // Optional field
+  final int? totalSteps;
+  final int? month;
 
   Achievement({
     required this.id,
@@ -17,8 +17,8 @@ class Achievement {
     required this.avatarUrl,
     required this.category,
     required this.stepsRequired,
-    this.totalSteps, // Optional
-    this.month, // Optional
+    this.totalSteps,
+    this.month,
   });
 
   Achievement.fromDocument(DocumentSnapshot doc)
@@ -30,10 +30,9 @@ class Achievement {
         stepsRequired = doc.get('stepsRequired') ?? 0,
         totalSteps = doc.data().toString().contains('totalSteps')
             ? doc.get('totalSteps')
-            : null, // Optional
-        month = doc.data().toString().contains('month')
-            ? doc.get('month')
-            : null; // Optional
+            : null,
+        month =
+            doc.data().toString().contains('month') ? doc.get('month') : null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -42,8 +41,8 @@ class Achievement {
       'avatarUrl': avatarUrl,
       'category': category,
       'stepsRequired': stepsRequired,
-      if (totalSteps != null) 'totalSteps': totalSteps, // Include if not null
-      if (month != null) 'month': month, // Include if not null
+      if (totalSteps != null) 'totalSteps': totalSteps,
+      if (month != null) 'month': month,
     };
   }
 }

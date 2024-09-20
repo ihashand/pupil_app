@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
+import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 
 class FriendsLeaderboard extends ConsumerWidget {
   final bool isExpanded;
@@ -18,11 +19,9 @@ class FriendsLeaderboard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPets = ref.watch(petsProvider);
 
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 1200),
-      curve: Curves.easeInOut,
+    return Flexible(
       child: Container(
-        height: 410,
+        width: double.infinity,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: const BorderRadius.only(
@@ -40,114 +39,209 @@ class FriendsLeaderboard extends ConsumerWidget {
               ),
             ),
             Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
-            asyncPets.when(
-              loading: () => const CircularProgressIndicator(),
-              error: (err, stack) => const Text('Error fetching pets'),
-              data: (pets) {
-                final petsWithSteps = pets
-                    .map((pet) {
-                      final asyncWalks = ref.watch(eventWalksProvider);
-                      return asyncWalks.when(
-                        loading: () => null,
-                        error: (err, stack) => null,
-                        data: (walks) {
-                          final totalSteps = walks
-                              .where((walk) => walk!.petId == pet.id)
-                              .fold(0.0, (sum, walk) => sum + walk!.steps);
-                          return {'pet': pet, 'steps': totalSteps};
-                        },
-                      );
-                    })
-                    .whereType<Map<String, dynamic>>()
-                    .toList();
+            Expanded(
+              child: asyncPets.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (err, stack) => const Text('Error fetching pets'),
+                data: (pets) {
+                  final petsWithSteps = pets
+                      .map((pet) {
+                        final asyncWalks = ref.watch(eventWalksProvider);
+                        return asyncWalks.when(
+                          loading: () => null,
+                          error: (err, stack) => null,
+                          data: (walks) {
+                            final totalSteps = walks
+                                .where((walk) => walk!.petId == pet.id)
+                                .fold(0.0, (sum, walk) => sum + walk!.steps)
+                                .round(); // Usunięcie miejsc po przecinku
+                            return {'pet': pet, 'steps': totalSteps};
+                          },
+                        );
+                      })
+                      .whereType<Map<String, dynamic>>()
+                      .toList();
 
-                petsWithSteps.sort((a, b) => b['steps'].compareTo(a['steps']));
+                  petsWithSteps
+                      .sort((a, b) => b['steps'].compareTo(a['steps']));
 
-                return Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: petsWithSteps.length,
-                    itemBuilder: (context, index) {
-                      final user =
-                          FirebaseAuth.instance.currentUser?.displayName ??
-                              'User';
-                      final steps = petsWithSteps[index]['steps'];
-                      final petName = petsWithSteps[index]['pet'].name;
-
-                      return Column(
-                        children: [
-                          ListTile(
-                            leading: Text(
-                              '#${index + 1}',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            title: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundImage: AssetImage(
-                                      petsWithSteps[index]['pet'].avatarImage),
-                                  radius: 25,
+                  if (petsWithSteps.length < 3) {
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: _buildPetList(petsWithSteps, context),
+                        ),
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'You don\'t have enough friends!',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 20.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Text('Owner: ',
-                                                style: TextStyle(fontSize: 11)),
-                                            Text(user,
-                                                style: const TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            const Text('Pupil: ',
-                                                style: TextStyle(fontSize: 11)),
-                                            Text('$petName',
-                                                style: const TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                          ],
-                                        ),
-                                      ],
+                              ),
+                              const SizedBox(height: 5),
+                              const Text(
+                                'Add more friends to compete with them in steps.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              const SizedBox(height: 15),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const FriendsScreen(),
                                     ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.surface,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                                const Spacer(),
-                                Text(
-                                  '$steps',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                child: Text(
+                                  'Add Friends',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                    fontSize: 12,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                const Text('Steps',
-                                    style: TextStyle(fontSize: 11)),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              )
+                            ],
                           ),
-                          Divider(
-                              color: const Color(0xff68a2b6).withOpacity(0.2)),
-                        ],
-                      );
-                    },
-                  ),
-                );
-              },
+                        ),
+                      ],
+                    );
+                  }
+
+                  // Zwykły widok, gdy liczba zwierzaków wynosi 3 lub więcej
+                  return _buildPetList(petsWithSteps, context);
+                },
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // Funkcja do budowania listy zwierzaków
+  Widget _buildPetList(
+      List<Map<String, dynamic>> petsWithSteps, BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: petsWithSteps.length,
+      itemBuilder: (context, index) {
+        final user = FirebaseAuth.instance.currentUser?.displayName ?? 'User';
+        final steps = petsWithSteps[index]['steps'];
+        final petName = petsWithSteps[index]['pet'].name;
+
+        return Column(
+          children: [
+            ListTile(
+              leading: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '#${index + 1}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(width: 4), // Zmniejszony odstęp
+                  CircleAvatar(
+                    backgroundImage:
+                        AssetImage(petsWithSteps[index]['pet'].avatarImage),
+                    radius: 25,
+                  ),
+                ],
+              ),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Owner: ',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  user,
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Text(
+                                'Pupil: ',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  petName,
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              trailing: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$steps',
+                    style: TextStyle(
+                      fontSize: steps > 9999
+                          ? 14
+                          : 16, // Zmniejszony rozmiar dla > 9999 kroków
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'STEPS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              color: const Color(0xff68a2b6).withOpacity(0.2),
+            ),
+          ],
+        );
+      },
     );
   }
 }
