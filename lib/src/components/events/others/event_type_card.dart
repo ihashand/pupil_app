@@ -5,6 +5,7 @@ Widget eventTypeCard(
   return GestureDetector(
     onTap: onTap,
     child: Card(
+      color: Theme.of(context).colorScheme.primary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
@@ -12,28 +13,39 @@ Widget eventTypeCard(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            height: 120,
+            height: 155,
             decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
               ),
-              image: DecorationImage(
-                image: AssetImage(imagePath),
-                fit: BoxFit.fill,
+            ),
+            child: Align(
+              alignment: Alignment.center,
+              child: Transform.scale(
+                scale: 0.8,
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 13.0, left: 5, right: 5),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColorDark,
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+              child: Center(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
           ),
         ],

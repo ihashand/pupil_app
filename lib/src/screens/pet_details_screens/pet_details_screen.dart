@@ -12,9 +12,9 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/pet_details_screens/pet_edit_screen.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/health_events_widgets/health_event_card.dart';
+import 'package:pet_diary/src/components/events/event_cards/event_health_card.dart';
 import 'package:pet_diary/src/components/events/others/event_tile.dart';
-import 'package:pet_diary/src/components/events/others/event_type_selection.dart';
+import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 
 class PetDetailsScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -156,9 +156,14 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  HealthEventCard(
-                    onCreatePressed: () =>
-                        eventTypeSelection(context, ref, widget.petId),
+                  EventHealthCard(
+                    onCreatePressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EventTypeSelectionScreen(petId: widget.petId),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Padding(

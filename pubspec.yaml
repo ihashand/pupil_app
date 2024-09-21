@@ -64,6 +64,7 @@ dependencies:
   screenshot: ^3.0.0
   barcode_scan2: ^4.2.0
   flutter_svg: ^2.0.10+1
+  reorderables: ^ 0.6.0
 
 dev_dependencies:
   flutter_test:
@@ -85,7 +86,10 @@ flutter:
     - assets/images/achievements/fantasy/
     - assets/images/health_event_card/
     - assets/images/dogs_avatars/
-    - assets/images/svg/
+    - assets/images/dog_backgrounds/
+    - assets/images/events_type_cards_no_background/
+    - assets/images/others/
+        - assets/images/svg/
 
 flutter_icons:
   android: true
