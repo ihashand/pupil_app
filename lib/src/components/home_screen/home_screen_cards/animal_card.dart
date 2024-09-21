@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/widgets_todo_task_foldery/home_widgets/animated_paw_print.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/animated_paw_print.dart';
 import 'package:pet_diary/src/helpers/walk_strike.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
