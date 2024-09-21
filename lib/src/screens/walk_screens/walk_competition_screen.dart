@@ -329,8 +329,8 @@ class MapWidget extends ConsumerWidget {
                     error: (err, stack) => null,
                     data: (walks) {
                       final totalSteps = walks
-                          .where((walk) => walk!.petId == pet.id)
-                          .fold(0.0, (sum, walk) => sum + walk!.steps);
+                          .where((walk) => walk.petId == pet.id)
+                          .fold(0.0, (sum, walk) => sum + walk.steps);
                       return {'pet': pet, 'steps': totalSteps};
                     },
                   );
@@ -662,8 +662,8 @@ class FriendsLeaderboard extends ConsumerWidget {
                 error: (err, stack) => null,
                 data: (walks) {
                   final totalSteps = walks
-                      .where((walk) => walk!.petId == pet.id)
-                      .fold(0.0, (sum, walk) => sum + walk!.steps);
+                      .where((walk) => walk.petId == pet.id)
+                      .fold(0.0, (sum, walk) => sum + walk.steps);
                   return {'pet': pet, 'steps': totalSteps};
                 },
               );

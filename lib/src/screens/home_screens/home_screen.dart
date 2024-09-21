@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/helpers/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
@@ -225,40 +226,55 @@ class AnimalSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPets = ref.watch(petsProvider);
+    final asyncWalks = ref.watch(eventWalksProvider);
+
     return asyncPets.when(
       loading: () => const CircularProgressIndicator(),
       error: (err, stack) => const Text('Error fetching pets'),
       data: (pets) {
-        return SizedBox(
-          height: 230,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: pets.length + 1,
-            itemBuilder: (context, index) {
-              if (index < pets.length) {
-                final currentPet = pets[index];
-                return AnimalCard(
-                    pet: currentPet, key: ValueKey(currentPet.id));
-              } else {
-                return InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => AddPetStep1Name(ref: ref),
-                    ));
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.add,
-                        size: 70, color: Color(0xff68a2b6)),
-                  ),
-                );
-              }
-            },
-          ),
+        return asyncWalks.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (err, stack) => const Text('Error fetching walks'),
+          data: (walks) {
+            return SizedBox(
+              height: 230,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: pets.length + 1,
+                itemBuilder: (context, index) {
+                  if (index < pets.length) {
+                    final currentPet = pets[index];
+                    final petWalks = walks
+                        .where((walk) => walk.petId == currentPet.id)
+                        .toList();
+
+                    return AnimalCard(
+                      pet: currentPet,
+                      walks: petWalks,
+                      key: ValueKey(currentPet.id),
+                    );
+                  } else {
+                    return InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => AddPetStep1Name(ref: ref),
+                        ));
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.add,
+                            size: 70, color: Color(0xff68a2b6)),
+                      ),
+                    );
+                  }
+                },
+              ),
+            );
+          },
         );
       },
     );

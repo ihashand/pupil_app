@@ -19,7 +19,7 @@ final eventWalkDateControllerProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
 });
 
-final eventWalksProvider = StreamProvider<List<EventWalkModel?>>((ref) {
+final eventWalksProvider = StreamProvider<List<EventWalkModel>>((ref) {
   return EventWalkService().getWalksStream();
 });
 
