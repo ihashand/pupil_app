@@ -1,37 +1,8 @@
 import 'package:pet_diary/src/models/others/achievement.dart';
 
-const String _id10kSteps = '1a2b3c4d-0000-0000-0000-000000000001';
-const String _id25kSteps = '1a2b3c4d-0000-0000-0000-000000000002';
-const String _id50kSteps = '1a2b3c4d-0000-0000-0000-000000000003';
-const String _id100kSteps = '1a2b3c4d-0000-0000-0000-000000000004';
-const String _idMarathon = '1a2b3c4d-0000-0000-0000-000000000005';
-const String _idSuezCanal = '1a2b3c4d-0000-0000-0000-000000000006';
-const String _idRoute66 = '1a2b3c4d-0000-0000-0000-000000000007';
-const String _idFellowshipOfTheRing = '1a2b3c4d-0000-0000-0000-000000000008';
-const String _id250kSteps = '1a2b3c4d-0000-0000-0000-000000000009';
-const String _id500kSteps = '1a2b3c4d-0000-0000-0000-000000000010';
-const String _id750kSteps = '1a2b3c4d-0000-0000-0000-000000000011';
-const String _id1MSteps = '1a2b3c4d-0000-0000-0000-000000000012';
-const String _id2MSteps = '1a2b3c4d-0000-0000-0000-000000000013';
-const String _id5MSteps = '1a2b3c4d-0000-0000-0000-000000000014';
-const String _id10MSteps = '1a2b3c4d-0000-0000-0000-000000000015';
-const String _id20MSteps = '1a2b3c4d-0000-0000-0000-000000000016';
-const String _id30MSteps = '1a2b3c4d-0000-0000-0000-000000000017';
-const String _id50MSteps = '1a2b3c4d-0000-0000-0000-000000000018';
-
-const String _idAmazonRiver = '1a2b3c4d-0000-0000-0000-000000000024';
-const String _idGreatWallOfChina = '1a2b3c4d-0000-0000-0000-000000000025';
-const String _idNileRiver = '1a2b3c4d-0000-0000-0000-000000000026';
-const String _idHimalayas = '1a2b3c4d-0000-0000-0000-000000000027';
-const String _idGrandCanyon = '1a2b3c4d-0000-0000-0000-000000000028';
-const String _idPacificCrestTrail = '1a2b3c4d-0000-0000-0000-000000000029';
-const String _idAppalachianTrail = '1a2b3c4d-0000-0000-0000-000000000030';
-const String _idRockyMountains = '1a2b3c4d-0000-0000-0000-000000000035';
-const String _idAndesMountains = '1a2b3c4d-0000-0000-0000-000000000038';
-
 List<Achievement> achievements = [
   Achievement(
-    id: _id10kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000101',
     name: '10,000 Steps',
     description: 'Walk 6.75 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step1.jpeg',
@@ -39,7 +10,7 @@ List<Achievement> achievements = [
     stepsRequired: 10000,
   ),
   Achievement(
-    id: _id25kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000102',
     name: '25,000 Steps',
     description: 'Walk 16.88 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step2.jpeg',
@@ -47,7 +18,7 @@ List<Achievement> achievements = [
     stepsRequired: 25000,
   ),
   Achievement(
-    id: _id50kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000103',
     name: '50,000 Steps',
     description: 'Walk 33.75 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step3.jpeg',
@@ -55,7 +26,7 @@ List<Achievement> achievements = [
     stepsRequired: 50000,
   ),
   Achievement(
-    id: _id100kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000104',
     name: '100,000 Steps',
     description: 'Walk 67.5 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step4.jpeg',
@@ -63,7 +34,7 @@ List<Achievement> achievements = [
     stepsRequired: 100000,
   ),
   Achievement(
-    id: _id250kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000105',
     name: '250,000 Steps',
     description: 'Walk 168.75 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step5.jpeg',
@@ -71,7 +42,7 @@ List<Achievement> achievements = [
     stepsRequired: 250000,
   ),
   Achievement(
-    id: _id500kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000106',
     name: '500,000 Steps',
     description: 'Walk 337.5 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step6.jpeg',
@@ -79,7 +50,7 @@ List<Achievement> achievements = [
     stepsRequired: 500000,
   ),
   Achievement(
-    id: _id750kSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000107',
     name: '750,000 Steps',
     description: 'Walk 506.25 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step7.jpeg',
@@ -87,7 +58,7 @@ List<Achievement> achievements = [
     stepsRequired: 750000,
   ),
   Achievement(
-    id: _id1MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000108',
     name: '1 Million Steps',
     description: 'Walk 675 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step8.jpeg',
@@ -95,7 +66,7 @@ List<Achievement> achievements = [
     stepsRequired: 1000000,
   ),
   Achievement(
-    id: _id2MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000109',
     name: '2 Million Steps',
     description: 'Walk 1350 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step9.jpeg',
@@ -103,7 +74,7 @@ List<Achievement> achievements = [
     stepsRequired: 2000000,
   ),
   Achievement(
-    id: _id5MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000110',
     name: '5 Million Steps',
     description: 'Walk 3375 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step10.jpeg',
@@ -111,7 +82,7 @@ List<Achievement> achievements = [
     stepsRequired: 5000000,
   ),
   Achievement(
-    id: _id10MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000111',
     name: '10 Million Steps',
     description: 'Walk 6750 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step11.jpeg',
@@ -119,7 +90,7 @@ List<Achievement> achievements = [
     stepsRequired: 10000000,
   ),
   Achievement(
-    id: _id20MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000112',
     name: '20 Million Steps',
     description: 'Walk 13500 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step12.jpeg',
@@ -127,7 +98,7 @@ List<Achievement> achievements = [
     stepsRequired: 20000000,
   ),
   Achievement(
-    id: _id30MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000113',
     name: '30 Million Steps',
     description: 'Walk 20250 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step13.jpeg',
@@ -135,7 +106,7 @@ List<Achievement> achievements = [
     stepsRequired: 30000000,
   ),
   Achievement(
-    id: _id50MSteps,
+    id: '1a2b3c4d-0000-0000-0000-000000000114',
     name: '50 Million Steps',
     description: 'Walk 33750 km.',
     avatarUrl: 'assets/images/achievements/steps/achievement_step14.jpeg',
@@ -143,211 +114,211 @@ List<Achievement> achievements = [
     stepsRequired: 50000000,
   ),
 
-// nature
+  // Nature achievements
   Achievement(
-    id: _idMarathon,
+    id: '1a2b3c4d-0000-0000-0000-000000000201',
     name: 'Marathon',
     description: 'Walk 42 km.',
     avatarUrl: 'assets/images/achievements/natural/marathon.jpeg',
     category: 'nature',
-    stepsRequired: 52500, // 42 km * 1250 steps/km
+    stepsRequired: 52500,
   ),
   Achievement(
-    id: _idSuezCanal,
+    id: '1a2b3c4d-0000-0000-0000-000000000202',
     name: 'Suez Canal',
     description: 'Walk 193 km.',
     avatarUrl: 'assets/images/achievements/natural/SuezCana.jpeg',
     category: 'nature',
-    stepsRequired: 241250, // 193 km * 1250 steps/km
+    stepsRequired: 241250,
   ),
   Achievement(
-    id: _idRoute66,
+    id: '1a2b3c4d-0000-0000-0000-000000000203',
     name: 'Route 66',
     description: 'Walk 3960 km.',
     avatarUrl: 'assets/images/achievements/natural/Route66.jpeg',
     category: 'nature',
-    stepsRequired: 4950000, // 3960 km * 1250 steps/km
+    stepsRequired: 4950000,
   ),
   Achievement(
-    id: _idAmazonRiver,
+    id: '1a2b3c4d-0000-0000-0000-000000000204',
     name: 'Amazon River',
     description: 'Walk 6992 km.',
     avatarUrl: 'assets/images/achievements/natural/amazonka.jpeg',
     category: 'nature',
-    stepsRequired: 8730000, // 6992 km * 1250 steps/km
+    stepsRequired: 8730000,
   ),
   Achievement(
-    id: _idGreatWallOfChina,
+    id: '1a2b3c4d-0000-0000-0000-000000000205',
     name: 'Great Wall of China',
     description: 'Walk 21196 km.',
     avatarUrl: 'assets/images/achievements/natural/GreatWallSketch.jpeg',
     category: 'nature',
-    stepsRequired: 26495000, // 21196 km * 1250 steps/km
+    stepsRequired: 26495000,
   ),
   Achievement(
-    id: _idNileRiver,
+    id: '1a2b3c4d-0000-0000-0000-000000000206',
     name: 'Nile River',
     description: 'Walk 6650 km.',
     avatarUrl: 'assets/images/achievements/natural/nileriver.jpeg',
     category: 'nature',
-    stepsRequired: 8312500, // 6650 km * 1250 steps/km
+    stepsRequired: 8312500,
   ),
   Achievement(
-    id: _idHimalayas,
+    id: '1a2b3c4d-0000-0000-0000-000000000207',
     name: 'Himalayas',
     description: 'Walk 1500 km.',
     avatarUrl: 'assets/images/achievements/natural/Himalayas.jpeg',
     category: 'nature',
-    stepsRequired: 1875000, // 1500 km * 1250 steps/km
+    stepsRequired: 1875000,
   ),
   Achievement(
-    id: _idGrandCanyon,
+    id: '1a2b3c4d-0000-0000-0000-000000000208',
     name: 'Grand Canyon',
     description: 'Walk 446 km.',
     avatarUrl: 'assets/images/achievements/natural/GrandCanyon.jpeg',
     category: 'nature',
-    stepsRequired: 557500, // 446 km * 1250 steps/km
+    stepsRequired: 557500,
   ),
   Achievement(
-    id: _idPacificCrestTrail,
+    id: '1a2b3c4d-0000-0000-0000-000000000209',
     name: 'Pacific Crest Trail',
     description: 'Walk 4265 km.',
     avatarUrl: 'assets/images/achievements/natural/PacificCrestTrail.jpeg',
     category: 'nature',
-    stepsRequired: 5331250, // 4265 km * 1250 steps/km
+    stepsRequired: 5331250,
   ),
   Achievement(
-    id: _idAppalachianTrail,
+    id: '1a2b3c4d-0000-0000-0000-000000000210',
     name: 'Appalachian Trail',
     description: 'Walk 3500 km.',
     avatarUrl: 'assets/images/achievements/natural/AppalachianTrail.jpeg',
     category: 'nature',
-    stepsRequired: 4375000, // 3500 km * 1250 steps/km
+    stepsRequired: 4375000,
   ),
   Achievement(
-    id: _idRockyMountains,
+    id: '1a2b3c4d-0000-0000-0000-000000000211',
     name: 'Rocky Mountains',
     description: 'Walk 4800 km.',
     avatarUrl: 'assets/images/achievements/natural/rockymountains.jpeg',
     category: 'nature',
-    stepsRequired: 6000000, // 4800 km * 1250 steps/km
+    stepsRequired: 6000000,
   ),
   Achievement(
-    id: _idAndesMountains,
+    id: '1a2b3c4d-0000-0000-0000-000000000212',
     name: 'Andes Mountains',
     description: 'Walk 7000 km.',
     avatarUrl: 'assets/images/achievements/natural/andes.jpeg',
     category: 'nature',
-    stepsRequired: 8750000, // 7000 km * 1250 steps/km
+    stepsRequired: 8750000,
   ),
 
-  // fantasy
+  // Seasonal
   Achievement(
-    id: _idFellowshipOfTheRing,
-    name: 'Fellowship of the Ring',
-    description: 'Walk 1282.5 km.',
-    avatarUrl: 'assets/images/achievements/fantasy/folowshipofring.jpeg',
-    category: 'fantasy',
-    stepsRequired: 1900000,
+    id: 'seasonal_2024_01',
+    name: 'January 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '01_2024',
   ),
-
-  // sesonal
-  for (int year = 2024; year <= 2025; year++) ...[
-    Achievement(
-      id: 'seasonal_${year}_01',
-      name: 'January $year',
-      description: 'Achieve 100,000 steps in January $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_02',
-      name: 'February $year',
-      description: 'Achieve 100,000 steps in February $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_03',
-      name: 'March $year',
-      description: 'Achieve 100,000 steps in March $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_04',
-      name: 'April $year',
-      description: 'Achieve 100,000 steps in April $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_05',
-      name: 'May $year',
-      description: 'Achieve 100,000 steps in May $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_06',
-      name: 'June $year',
-      description: 'Achieve 100,000 steps in June $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_07',
-      name: 'July $year',
-      description: 'Achieve 100,000 steps in July $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_08',
-      name: 'August $year',
-      description: 'Achieve 100,000 steps in August $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_09',
-      name: 'September $year',
-      description: 'Achieve 100,000 steps in September $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_10',
-      name: 'October $year',
-      description: 'Achieve 100,000 steps in October $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_11',
-      name: 'November $year',
-      description: 'Achieve 100,000 steps in November $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-    Achievement(
-      id: 'seasonal_${year}_12',
-      name: 'December $year',
-      description: 'Achieve 100,000 steps in December $year',
-      avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
-      category: 'seasonal',
-      stepsRequired: 100000,
-    ),
-  ],
+  Achievement(
+    id: 'seasonal_2024_02',
+    name: 'February 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '02_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_03',
+    name: 'March 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '03_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_04',
+    name: 'April 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '04_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_05',
+    name: 'May 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '05_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_06',
+    name: 'June 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '06_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_07',
+    name: 'July 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '07_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_08',
+    name: 'August 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '08_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_09',
+    name: 'September 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '09_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_10',
+    name: 'October 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '10_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_11',
+    name: 'November 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '11_2024',
+  ),
+  Achievement(
+    id: 'seasonal_2024_12',
+    name: 'December 2024',
+    description: 'Achieve 100,000 steps.',
+    avatarUrl: 'assets/images/achievements/seasonal/leaf.png',
+    category: 'seasonal',
+    stepsRequired: 100000,
+    monthYear: '12_2024',
+  ),
 ];

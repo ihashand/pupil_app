@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flame/palette.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -301,7 +301,8 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  void _showAchievementsMenu(BuildContext context, String userId) {
+  void _showAchievementsMenu(
+      BuildContext context, String userId, List<Pet> pets) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -356,7 +357,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                         _buildCategoryButton(context, setState, 'all'),
                         _buildCategoryButton(context, setState, 'steps'),
                         _buildCategoryButton(context, setState, 'nature'),
-                        _buildCategoryButton(context, setState, 'fantasy'),
+                        _buildCategoryButton(context, setState, 'seasonal'),
                       ],
                     ),
                   ),
@@ -365,7 +366,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                   ),
                   Expanded(
                     child: FutureBuilder<Set<String>>(
-                      future: _getUserAchievementIds(userId),
+                      future: _getUserAchievementIdsForAllPets(userId, pets),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -402,6 +403,30 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
+  Future<Set<String>> _getUserAchievementIdsForAllPets(
+      String userId, List<Pet> pets) async {
+    Set<String> allAchievementIds = {};
+
+    for (var pet in pets) {
+      final petAchievementsSnapshot = await FirebaseFirestore.instance
+          .collection('app_users')
+          .doc(userId)
+          .collection('pets')
+          .doc(pet.id)
+          .collection('pet_achievements')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final petAchievementIds = petAchievementsSnapshot.docs
+          .map((doc) => doc.get('achievementId') as String)
+          .toSet();
+
+      allAchievementIds.addAll(petAchievementIds);
+    }
+
+    return allAchievementIds;
+  }
+
   Widget _buildCategoryButton(
       BuildContext context, StateSetter setState, String category) {
     bool isSelected = selectedCategory == category;
@@ -433,10 +458,13 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
 
   Widget _buildAchievementsCategory(BuildContext context, String userId,
       String category, Set<String> achievedIds) {
-    final categoryAchievements = achievements
-        .where((achievement) =>
-            category == 'all' || achievement.category == category)
-        .toList();
+    final categoryAchievements = achievements.where((achievement) {
+      bool match = category == 'all' || achievement.category == category;
+      if (kDebugMode) {
+        print('Achievement ${achievement.name}, Match: $match');
+      }
+      return match;
+    }).toList();
 
     if (category == 'all') {
       categoryAchievements.sort((a, b) {
@@ -444,7 +472,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         final bAchieved = achievedIds.contains(b.id);
         if (aAchieved && !bAchieved) return -1;
         if (!aAchieved && bAchieved) return 1;
-        return 0; // Here we can replace with a custom sort if needed
+        return 0;
       });
     }
 
@@ -541,19 +569,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Future<Set<String>> _getUserAchievementIds(String userId) async {
-    final userAchievementsSnapshot = await FirebaseFirestore.instance
-        .collection('app_users')
-        .doc(userId)
-        .collection('user_achievements')
-        .where('userId', isEqualTo: userId)
-        .get();
-
-    return userAchievementsSnapshot.docs
-        .map((doc) => doc.get('achievementId') as String)
-        .toSet();
-  }
-
   void _showAchievementDetail(
       BuildContext context, Achievement achievement, bool hasAchieved) {
     if (hasAchieved) {
@@ -570,7 +585,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Ikona zamykająca przeniesiona poza obszar Screenshot
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -766,7 +780,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
           }
         });
 
-        // Czekaj na wszystkie przyszłe zadania
         return FutureBuilder<void>(
           future: Future.wait(futures),
           builder: (context, snapshot) {
@@ -785,7 +798,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                     const SectionTitle(title: "Achievements"),
                     TextButton(
                       onPressed: () {
-                        _showAchievementsMenu(context, userId);
+                        _showAchievementsMenu(context, userId, pets);
                       },
                       child: Text(
                         'See All',

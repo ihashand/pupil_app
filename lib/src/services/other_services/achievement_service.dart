@@ -32,7 +32,6 @@ class AchievementService {
     }
   }
 
-  // Inicjalizacja achievementów, jeśli nie istnieją w Firestore
   Future<void> initializeAchievements() async {
     try {
       final collectionRef = _firestore.collection('achievements');

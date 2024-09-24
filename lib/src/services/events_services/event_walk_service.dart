@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/models/others/pet_achievement.dart';
@@ -101,15 +102,15 @@ class EventWalkService {
 
   Future<void> _checkAndAwardAchievements(
       String petId, EventWalkModel walk) async {
-    // Sprawdzenie achievementów ogólnych
+    // Check general achievements
     await _checkGeneralAchievements(petId);
 
-    // Sprawdzenie achievementów sezonowych
+    // Check seasonal achievements
     await _checkSeasonalAchievements(petId, walk);
   }
 
   Future<void> _checkGeneralAchievements(String petId) async {
-    // Pobierz wszystkie spacery zwierzaka
+    // Fetch all pet walks
     final petWalksSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
@@ -124,7 +125,7 @@ class EventWalkService {
       totalSteps += EventWalkModel.fromDocument(doc).steps;
     }
 
-    // Pobierz osiągnięcia zwierzaka
+    // Fetch pet achievements
     final petAchievementsSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
@@ -137,9 +138,10 @@ class EventWalkService {
         .map((doc) => doc.get('achievementId') as String)
         .toSet();
 
-    // Przyznaj nowe osiągnięcia
+    // Award new achievements, ignoring seasonal achievements
     for (var achievement in achievements) {
-      if (!achievedIds.contains(achievement.id) &&
+      if (achievement.category != 'seasonal' && // Skip seasonal achievements
+          !achievedIds.contains(achievement.id) &&
           totalSteps >= achievement.stepsRequired) {
         final petAchievement = PetAchievement(
           id: const Uuid().v4(),
@@ -164,9 +166,10 @@ class EventWalkService {
   Future<void> _checkSeasonalAchievements(
       String petId, EventWalkModel walk) async {
     final DateTime now = DateTime.now();
-    final int currentMonth = now.month;
+    final String currentMonthYear =
+        '${now.month.toString().padLeft(2, '0')}_${now.year}';
 
-    // Pobierz spacery zwierzaka z bieżącego miesiąca
+    // Pobieramy spacery tylko z bieżącego miesiąca
     final petWalksSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
@@ -174,16 +177,21 @@ class EventWalkService {
         .doc(petId)
         .collection('event_walks')
         .where('dateTime',
-            isGreaterThanOrEqualTo: DateTime(now.year, currentMonth, 1))
+            isGreaterThanOrEqualTo: DateTime(now.year, now.month, 1))
+        .where('dateTime',
+            isLessThanOrEqualTo: DateTime(now.year, now.month + 1, 0))
         .get();
 
     double totalStepsThisMonth = 0;
-
     for (var doc in petWalksSnapshot.docs) {
       totalStepsThisMonth += EventWalkModel.fromDocument(doc).steps;
     }
 
-    // Pobierz osiągnięcia zwierzaka
+    if (kDebugMode) {
+      print("Total steps this month: $totalStepsThisMonth");
+    }
+
+    // Pobieramy osiągnięcia, które już są przyznane zwierzakowi
     final petAchievementsSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
@@ -196,31 +204,36 @@ class EventWalkService {
         .map((doc) => doc.get('achievementId') as String)
         .toSet();
 
-    // Sprawdź, które achievementy sezonowe mogą być przyznane
-    List<Achievement> seasonalAchievements = achievements.where((achievement) {
-      return achievement.category == 'seasonal' &&
-          !achievedIds.contains(achievement.id) &&
-          totalStepsThisMonth >= achievement.stepsRequired;
-    }).toList();
+    // Filtrowanie osiągnięcia dla bieżącego miesiąca
+    final seasonalAchievements = achievements
+        .where((achievement) =>
+            achievement.category == 'seasonal' &&
+            achievement.monthYear == currentMonthYear)
+        .toList();
 
-    // Przyznaj nowe osiągnięcia
-    for (var achievement in seasonalAchievements) {
-      final petAchievement = PetAchievement(
-        id: const Uuid().v4(),
-        userId: _currentUser.uid,
-        petId: petId,
-        achievementId: achievement.id,
-        achievedAt: DateTime.now(),
-      );
+    if (seasonalAchievements.isNotEmpty) {
+      // Sprawdzamy, czy osiągnięcie zostało już przyznane
+      for (var achievement in seasonalAchievements) {
+        if (!achievedIds.contains(achievement.id) &&
+            totalStepsThisMonth >= achievement.stepsRequired) {
+          final petAchievement = PetAchievement(
+            id: const Uuid().v4(),
+            userId: _currentUser.uid,
+            petId: petId,
+            achievementId: achievement.id,
+            achievedAt: DateTime.now(),
+          );
 
-      await _firestore
-          .collection('app_users')
-          .doc(_currentUser.uid)
-          .collection('pets')
-          .doc(petId)
-          .collection('pet_achievements')
-          .doc(petAchievement.id)
-          .set(petAchievement.toMap());
+          await _firestore
+              .collection('app_users')
+              .doc(_currentUser.uid)
+              .collection('pets')
+              .doc(petId)
+              .collection('pet_achievements')
+              .doc(petAchievement.id)
+              .set(petAchievement.toMap());
+        }
+      }
     }
   }
 
