@@ -13,7 +13,7 @@ Future<void> generateAndPrintReport(
     WidgetRef ref, Pet pet, DateTimeRange dateRange) async {
   final pdf = pw.Document();
 
-  List<EventWalkModel> petWalks = ref.read(eventWalksProvider).when(
+  List<EventWalkModel> petWalks = ref.read(eventWalksProvider(pet.id)).when(
         data: (data) => data
             .where((walk) => walk!.petId == pet.id)
             .map((walk) => walk!)

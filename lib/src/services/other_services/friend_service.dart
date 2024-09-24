@@ -14,6 +14,8 @@ class FriendService {
     }
 
     return _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
@@ -36,14 +38,20 @@ class FriendService {
             .toList());
   }
 
-  Future<void> addFriend(Friend friend) async {
-    await _firestore.collection('friends').add(friend.toMap());
+  Future<void> addFriend(Friend friend, String correctId) async {
+    await _firestore
+        .collection('app_users')
+        .doc(correctId)
+        .collection('friends')
+        .add(friend.toMap());
   }
 
   Future<void> removeFriend(String friendId) async {
     final currentUserId = _currentUser!.uid;
 
     final currentUserFriendDocs = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: currentUserId)
         .where('friendId', isEqualTo: friendId)
@@ -54,6 +62,8 @@ class FriendService {
     }
 
     final friendDocs = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: friendId)
         .where('friendId', isEqualTo: currentUserId)
@@ -94,8 +104,15 @@ class FriendService {
   }
 
   Future<void> acceptFriendRequest(String fromUserId, String toUserId) async {
-    await addFriend(Friend(id: '', friendId: fromUserId, userId: toUserId));
-    await addFriend(Friend(id: '', friendId: toUserId, userId: fromUserId));
+    await addFriend(
+        Friend(
+          id: '',
+          friendId: fromUserId,
+          userId: toUserId,
+        ),
+        toUserId);
+    await addFriend(
+        Friend(id: '', friendId: toUserId, userId: fromUserId), fromUserId);
 
     final friendRequestDoc = await _firestore
         .collection('app_users')

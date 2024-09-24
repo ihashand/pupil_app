@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/helpers/helper_functions.dart';
+import 'package:pet_diary/src/helpers/others/helper_functions.dart';
 import 'package:pet_diary/src/providers/others_providers/settings_providers.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/notification_provider.dart';

@@ -13,7 +13,7 @@ class EventReminderModel {
   late int? repeatInterval;
   late DateTime dateTime;
   late DateTime endDate;
-  late List<String> selectedPets; // Nowe pole
+  late List<String> selectedPets;
 
   EventReminderModel({
     required this.id,
@@ -27,7 +27,7 @@ class EventReminderModel {
     this.repeatInterval,
     required this.dateTime,
     required this.endDate,
-    required this.selectedPets, // Nowe pole
+    required this.selectedPets,
   });
 
   EventReminderModel.fromDocument(DocumentSnapshot doc) {

@@ -25,7 +25,7 @@ dependencies:
   flutter_local_notifications: ^17.0.0
   fl_chart: ^0.68.0
   image_picker: ^1.0.7
-  path_provider: ^2.1.2 
+  path_provider: ^2.1.2
   flutter_datetime_picker: ^1.5.1 #unused?
   flutter_colorpicker: ^1.0.3 #unused?
   flutter_typeahead: ^5.2.0 #unused?
@@ -61,6 +61,7 @@ dependencies:
   screenshot: ^3.0.0
   barcode_scan2: ^4.2.0
   reorderables: ^0.6.0
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -85,6 +86,8 @@ flutter:
     - assets/images/dog_backgrounds/
     - assets/images/events_type_cards_no_background/
     - assets/images/others/
+    - assets/effects/
+    - assets/images/achievements/seasonal/
 
 flutter_icons:
   android: true

@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/models/others/user_achievement.dart';
-import 'package:pet_diary/src/services/other_services/user_achievement_service.dart';
+import 'package:pet_diary/src/models/others/pet_achievement.dart';
+import 'package:pet_diary/src/services/other_services/pet_achievement_service.dart';
 
-final userAchievementServiceProvider =
-    Provider((ref) => UserAchievementService());
+final petAchievementServiceProvider =
+    Provider((ref) => PetAchievementService());
 
-final userAchievementsProvider =
-    FutureProvider<List<UserAchievement>>((ref) async {
-  final service = ref.read(userAchievementServiceProvider);
-  return await service.getUserAchievements();
+final petAchievementsProvider =
+    FutureProvider.family<List<PetAchievement>, String>((ref, petId) async {
+  final service = ref.read(petAchievementServiceProvider);
+  return await service.getPetAchievements(petId);
 });

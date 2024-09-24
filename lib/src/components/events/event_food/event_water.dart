@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/helpers/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
@@ -232,7 +232,9 @@ class _EventWaterState extends ConsumerState<EventWater> {
                                 emoticon: '💧',
                               );
 
-                              ref.read(eventServiceProvider).addEvent(newEvent);
+                              ref
+                                  .read(eventServiceProvider)
+                                  .addEvent(newEvent, widget.petId);
                               ref
                                   .read(eventWaterServiceProvider)
                                   .addWater(newWater);
