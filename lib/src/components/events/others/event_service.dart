@@ -114,7 +114,9 @@ class EventService extends ConsumerWidget {
                             serviceId: newService.id,
                           );
 
-                          ref.read(eventServiceProvider).addEvent(newEvent);
+                          ref
+                              .read(eventServiceProvider)
+                              .addEvent(newEvent, petId);
 
                           Navigator.of(context).pop();
                           Navigator.of(context).pop();

@@ -184,7 +184,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     ),
                   ),
                   Consumer(builder: (context, ref, _) {
-                    final asyncEvents = ref.watch(eventsProvider);
+                    final asyncEvents = ref.watch(eventsProvider(pet.id));
                     return asyncEvents.when(
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),

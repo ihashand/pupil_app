@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/other_screens/add_reminder_screen.dart';
@@ -339,7 +338,9 @@ class _ReminderCardState extends ConsumerState<ReminderCard> {
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () async {
-                await _deleteReminder(reminder);
+                await _deleteReminder(
+                  reminder,
+                );
               },
             ),
           ],
@@ -348,9 +349,10 @@ class _ReminderCardState extends ConsumerState<ReminderCard> {
     );
   }
 
-  Future<void> _deleteReminder(EventReminderModel reminder) async {
+  Future<void> _deleteReminder(
+    EventReminderModel reminder,
+  ) async {
     await ref.read(eventReminderServiceProvider).deleteReminder(reminder.id);
-    await ref.read(eventServiceProvider).deleteEvent(reminder.id);
 
     if (reminder.repeatOption != 'Once') {
       final reminders =
@@ -364,7 +366,6 @@ class _ReminderCardState extends ConsumerState<ReminderCard> {
         await ref
             .read(eventReminderServiceProvider)
             .deleteReminder(relatedReminder.id);
-        await ref.read(eventServiceProvider).deleteEvent(relatedReminder.id);
       }
     }
   }

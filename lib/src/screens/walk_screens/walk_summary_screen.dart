@@ -188,7 +188,7 @@ class _WalkSummaryScreenState extends ConsumerState<WalkSummaryScreen> {
 
       // Dodaj spacer do bazy danych
       eventWalkService.addWalk(petId, walk);
-      eventService.addEvent(event);
+      eventService.addEvent(event, petId);
     }
 
     if (newAchievements.isNotEmpty) {

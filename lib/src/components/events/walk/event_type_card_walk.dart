@@ -254,7 +254,7 @@ void saveWalkEvent(BuildContext context, WidgetRef ref, double walkDistance,
     emoticon: '🚶‍➡️',
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent);
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
   ref.read(eventWalkServiceProvider).addWalk(petId, newWalk);
   Navigator.of(context).pop();
   Navigator.of(context).pop();

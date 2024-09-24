@@ -49,7 +49,7 @@ Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
       emoticon: '💦',
       urineId: newUrine.id,
     );
-    ref.read(eventServiceProvider).addEvent(newEvent);
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   void showUrineModal(BuildContext context) {

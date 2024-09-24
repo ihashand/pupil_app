@@ -157,7 +157,7 @@ Widget eventTypeCardNotes(
 
                                       ref
                                           .read(eventServiceProvider)
-                                          .addEvent(newEvent);
+                                          .addEvent(newEvent, petId);
                                       ref
                                           .read(eventNoteServiceProvider)
                                           .addNote(newNote);

@@ -10,6 +10,6 @@ final eventDateControllerProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
 });
 
-final eventsProvider = StreamProvider<List<Event>>((ref) {
-  return ref.watch(eventServiceProvider).getEventsStream();
+final eventsProvider = StreamProvider.family<List<Event>, String>((ref, petId) {
+  return ref.watch(eventServiceProvider).getEventsStream(petId);
 });

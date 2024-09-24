@@ -57,7 +57,7 @@ Widget eventTypeCardVaccines(
       emoticon: '💉',
       vaccineId: newVaccine.id,
     );
-    ref.read(eventServiceProvider).addEvent(newEvent);
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   void showConfirmationBottomSheet(

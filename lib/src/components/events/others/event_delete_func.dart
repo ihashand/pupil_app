@@ -43,7 +43,7 @@ void eventDeleteFunc(
   final String serviceId = event.serviceId;
   final String careId = event.careId;
 
-  ref.read(eventServiceProvider).deleteEvent(eventId);
+  ref.read(eventServiceProvider).deleteEvent(eventId, petId);
 
   showDialog(
     context: context,

@@ -178,7 +178,7 @@ Widget eventTypeCardWeight(BuildContext context, WidgetRef ref, String petId) {
 
                                 ref
                                     .read(eventServiceProvider)
-                                    .addEvent(newEvent);
+                                    .addEvent(newEvent, petId);
                                 ref
                                     .read(eventWeightServiceProvider)
                                     .addWeight(newWeight);

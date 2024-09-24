@@ -535,7 +535,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         careId: '',
       );
 
-      await ref.read(eventServiceProvider).addEvent(newEvent);
+      await ref.read(eventServiceProvider).addEvent(newEvent, petId);
     }
 
     final EventReminderModel newReminder = EventReminderModel(

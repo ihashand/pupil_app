@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
-import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/models/others/pet_achievement.dart';
 import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:uuid/uuid.dart';

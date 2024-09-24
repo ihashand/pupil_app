@@ -48,7 +48,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
   @override
   Widget build(BuildContext context) {
     final eventDateTime = ref.watch(eventDateControllerProvider);
-    final asyncEvents = ref.watch(eventsProvider);
+    final asyncEvents = ref.watch(eventsProvider(widget.petId));
 
     return asyncEvents.when(
       loading: () => const Center(child: CircularProgressIndicator()),

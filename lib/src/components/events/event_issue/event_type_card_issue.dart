@@ -123,7 +123,7 @@ Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
 
                                     ref
                                         .read(eventServiceProvider)
-                                        .addEvent(newEvent);
+                                        .addEvent(newEvent, petId);
                                   }
                                   Navigator.of(context).pop();
                                 }),

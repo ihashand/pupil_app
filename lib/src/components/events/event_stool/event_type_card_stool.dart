@@ -50,7 +50,7 @@ Widget eventTypeCardStool(BuildContext context, WidgetRef ref, String petId) {
       emoticon: '💩',
       stoolId: newStool.id,
     );
-    ref.read(eventServiceProvider).addEvent(newEvent);
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   void showStoolModal(BuildContext context) {

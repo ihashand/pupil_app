@@ -194,7 +194,7 @@ Widget eventTypeCardTemperature(BuildContext context,
                                           .addTemperature(newTemperature);
                                       ref
                                           .read(eventServiceProvider)
-                                          .addEvent(newEvent);
+                                          .addEvent(newEvent, petId);
 
                                       Navigator.of(context).pop();
                                     },

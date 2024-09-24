@@ -60,7 +60,7 @@ Widget eventTypeCardStoolAndUrine(
       emoticon: '💩',
       stoolId: newStool.id,
     );
-    ref.read(eventServiceProvider).addEvent(newEvent);
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   // Function to record Urine event
@@ -88,7 +88,7 @@ Widget eventTypeCardStoolAndUrine(
       emoticon: '💦',
       urineId: newUrine.id,
     );
-    ref.read(eventServiceProvider).addEvent(newEvent);
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   void showStoolModal(BuildContext context) {

@@ -73,7 +73,7 @@ void showAddMedicineSummary(
         emoticon: emoji,
       );
 
-      await ref.read(eventServiceProvider).addEvent(newEvent);
+      await ref.read(eventServiceProvider).addEvent(newEvent, petId);
 
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
