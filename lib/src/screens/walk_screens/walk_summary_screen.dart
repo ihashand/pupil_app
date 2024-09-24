@@ -16,7 +16,7 @@ import 'package:confetti/confetti.dart';
 class WalkSummaryScreen extends ConsumerStatefulWidget {
   final List<File> images;
   final WalkState walkState;
-  final List<String> petIds; // Lista ID wybranych psów
+  final List<String> petIds;
 
   const WalkSummaryScreen({
     super.key,
@@ -165,28 +165,13 @@ class _WalkSummaryScreenState extends ConsumerState<WalkSummaryScreen> {
         dateWhenEventAdded: DateTime.now(),
         userId: userId,
         petId: petId,
-        weightId: '',
-        temperatureId: '',
         walkId: walkId,
-        waterId: '',
-        noteId: '',
-        pillId: '',
-        moodId: '',
-        stomachId: '',
         description:
             '${widget.walkState.currentSteps} steps in ${_formatTime(widget.walkState.seconds)}.',
-        proffesionId: 'BRAK',
-        personId: 'BRAK',
         avatarImage: 'assets/images/dog_avatar_010.png',
         emoticon: '🚶‍➡️',
-        psychicId: '',
-        stoolId: '',
-        urineId: '',
-        serviceId: '',
-        careId: '',
       );
 
-      // Dodaj spacer do bazy danych
       eventWalkService.addWalk(petId, walk);
       eventService.addEvent(event, petId);
     }
