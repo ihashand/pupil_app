@@ -266,6 +266,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                                 isExpanded:
                                     expandedEvents[currentEvent.id] ?? false,
                                 ref: ref,
+                                petId: pet.id,
                               ),
                             );
                           },

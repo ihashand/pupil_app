@@ -31,7 +31,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncPets = ref.watch(petFriendServiceProvider(widget.userId));
-    final asyncWalks = ref.watch(eventWalksFriendProvider(widget.userId));
+    final asyncWalks = ref.watch(eventWalksProvider(widget.initialPet.id));
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -82,7 +82,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               child: asyncWalks.when(
                 data: (walks) {
                   final petWalks = walks
-                      .where((walk) => walk.petId == selectedPet.id)
+                      .where((walk) => walk!.petId == selectedPet.id)
                       .toList();
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

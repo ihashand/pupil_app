@@ -10,12 +10,14 @@ class EventListItemBuilder extends StatelessWidget {
     required this.context,
     required this.event,
     required this.petEvents,
+    required this.petId,
   });
 
   final WidgetRef ref;
   final BuildContext context;
   final Event event;
   final List<Event> petEvents;
+  final String petId;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,8 @@ class EventListItemBuilder extends StatelessWidget {
           title: Text(event.title),
           trailing: IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => eventDeleteFunc(ref, context, petEvents, event.id),
+            onPressed: () =>
+                eventDeleteFunc(ref, context, petEvents, event.id, petId),
           ),
         ),
       ),

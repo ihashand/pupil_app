@@ -29,7 +29,7 @@ class Popup extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Consumer(builder: (context, ref, _) {
-            final asyncWalks = ref.watch(eventWalksProvider);
+            final asyncWalks = ref.watch(eventWalksProvider(petId));
 
             return asyncWalks.when(
               loading: () => const CircularProgressIndicator(),

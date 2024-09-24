@@ -245,8 +245,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 FriendProfileScreen(
-                                              userId: user.id,
-                                            ),
+                                                    userId: user.id),
                                           ),
                                         ),
                                         child: CircleAvatar(

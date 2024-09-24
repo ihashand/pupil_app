@@ -54,9 +54,10 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                     data: (friends) {
                       final allPetsWithSteps = [];
 
-                      // Adding pets owned by the user
+                      // Dodawanie zwierząt użytkownika
                       for (var pet in pets) {
-                        final asyncWalks = ref.watch(eventWalksProvider);
+                        final asyncWalks =
+                            ref.watch(eventWalksProvider(pet.id));
                         final walksData = asyncWalks.whenData((walks) {
                           final totalSteps = walks
                               .where((walk) => walk!.petId == pet.id)
@@ -74,7 +75,7 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                         }
                       }
 
-                      // Adding pets owned by friends using FutureBuilder
+                      // Dodawanie zwierząt znajomych
                       for (var friend in friends) {
                         final friendPetsFuture = ref
                             .read(petServiceProvider)
@@ -91,15 +92,15 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                             } else if (snapshot.hasData) {
                               var friendPets = snapshot.data ?? [];
 
-                              // Adding friend's pets to the list
+                              // Dodawanie zwierząt znajomych do listy
                               for (var pet in friendPets) {
-                                final asyncWalks = ref.watch(
-                                    eventWalksFriendProvider(friend.friendId));
+                                final asyncWalks =
+                                    ref.watch(eventWalksProvider(pet.id));
                                 final walksData = asyncWalks.whenData((walks) {
                                   final totalSteps = walks
-                                      .where((walk) => walk.petId == pet.id)
+                                      .where((walk) => walk!.petId == pet.id)
                                       .fold(
-                                          0.0, (sum, walk) => sum + walk.steps)
+                                          0.0, (sum, walk) => sum + walk!.steps)
                                       .round();
 
                                   if (totalSteps >= 1000) {
@@ -113,7 +114,7 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                                 }
                               }
 
-                              // Sorting pets by steps
+                              // Sortowanie zwierząt po krokach
                               allPetsWithSteps.sort(
                                   (a, b) => b['steps'].compareTo(a['steps']));
 

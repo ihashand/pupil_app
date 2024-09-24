@@ -25,6 +25,7 @@ void eventDeleteFunc(
   BuildContext context,
   List<Event>? allEvents,
   String eventId,
+  String petId,
 ) async {
   Event? event = allEvents?.where((element) => element.id == eventId).first;
 
@@ -67,7 +68,7 @@ void eventDeleteFunc(
   }
 
   if (walkId.isNotEmpty) {
-    await ref.read(eventWalkServiceProvider).deleteWalk(walkId);
+    await ref.read(eventWalkServiceProvider).deleteWalk(walkId, petId);
   }
 
   if (noteId.isNotEmpty) {

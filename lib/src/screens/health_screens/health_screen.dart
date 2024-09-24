@@ -95,7 +95,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             ),
           ),
           body: isCalendarView
-              ? _buildCalendarView(context, eventDateTime, petEvents)
+              ? _buildCalendarView(
+                  context, eventDateTime, petEvents, widget.petId)
               : Column(
                   children: [
                     Padding(
@@ -201,8 +202,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget _buildCalendarView(
-      BuildContext context, DateTime eventDateTime, List<Event> petEvents) {
+  Widget _buildCalendarView(BuildContext context, DateTime eventDateTime,
+      List<Event> petEvents, String petId) {
     if (!isUserInteracted) {
       eventDateTime = defaultDateTime;
     }
@@ -316,6 +317,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     ref: ref,
                     event: event,
                     isExpanded: expandedEvents[event.id] ?? false,
+                    petId: petId,
                   ),
                 );
               },

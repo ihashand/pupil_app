@@ -187,7 +187,7 @@ class _WalkSummaryScreenState extends ConsumerState<WalkSummaryScreen> {
       );
 
       // Dodaj spacer do bazy danych
-      eventWalkService.addWalk(walk);
+      eventWalkService.addWalk(petId, walk);
       eventService.addEvent(event);
     }
 

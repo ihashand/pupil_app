@@ -255,7 +255,7 @@ void saveWalkEvent(BuildContext context, WidgetRef ref, double walkDistance,
   );
 
   ref.read(eventServiceProvider).addEvent(newEvent);
-  ref.read(eventWalkServiceProvider).addWalk(newWalk);
+  ref.read(eventWalkServiceProvider).addWalk(petId, newWalk);
   Navigator.of(context).pop();
   Navigator.of(context).pop();
 }

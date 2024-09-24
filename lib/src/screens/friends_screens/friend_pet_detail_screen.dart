@@ -14,7 +14,7 @@ class FriendPetDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final petAsyncValue = ref.watch(petFriendServiceProvider(petId));
-    final walksAsyncValue = ref.watch(eventWalksProvider);
+    final walksAsyncValue = ref.watch(eventWalksProvider(petId));
 
     return Scaffold(
       appBar: AppBar(

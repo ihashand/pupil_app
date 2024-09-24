@@ -10,11 +10,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/models/others/friend_model.dart';
-import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
@@ -103,7 +102,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   Widget build(BuildContext context) {
     final userAsyncValue = ref.watch(appUserDetailsProvider(widget.userId));
     final friendsAsyncValue = ref.watch(friendsStreamProvider);
-    final asyncWalks = ref.watch(eventWalksProvider);
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
@@ -125,12 +123,11 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
             children: [
               _buildUserInfoAndFriends(context, user, friendsAsyncValue),
               _buildAchievementsSection(context, user.id),
-              _buildActionButtons(context, asyncWalks),
+              _buildActionButtons(context),
               if (user.id == currentUserId) ...[
                 const SectionTitle(title: "Generate Report"),
                 GenerateReportCard(petId: user.id),
               ],
-              // sizedbox is here to get better user experience in friend profile. Like this we get better look.
               const SizedBox(
                 height: 50,
               )
@@ -298,123 +295,9 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Widget _buildAchievementsSection(BuildContext context, String userId) {
-    final asyncAchievements = ref.watch(userAchievementsProvider);
-
-    return asyncAchievements.when(
-      data: (userAchievements) {
-        if (userAchievements.isEmpty) {
-          return Center(
-            child: ElevatedButton(
-              onPressed: () {
-                _showAchievementsMenu(context, userId);
-              },
-              child: Text(
-                'View Achievements',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-          );
-        }
-        return Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SectionTitle(title: "Achievements"),
-                TextButton(
-                  onPressed: () {
-                    _showAchievementsMenu(context, userId);
-                  },
-                  child: Text(
-                    'See All',
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: userAchievements.map((userAchievement) {
-                  return FutureBuilder<Achievement>(
-                    future: _getAchievementById(userAchievement.achievementId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      } else if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      } else if (!snapshot.hasData || snapshot.data == null) {
-                        return const Text('Achievement not found');
-                      }
-
-                      final achievementData = snapshot.data!;
-                      return GestureDetector(
-                        onTap: () => _showAchievementDetail(
-                            context, achievementData, true),
-                        child: _buildAchievementCard(achievementData),
-                      );
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        );
-      },
-      loading: () => const CircularProgressIndicator(),
-      error: (error, stack) => Text('Error: $error'),
-    );
-  }
-
   Future<Achievement> _getAchievementById(String achievementId) async {
     return achievements.firstWhere(
       (achievement) => achievement.id == achievementId,
-    );
-  }
-
-  Widget _buildAchievementCard(Achievement achievement) {
-    return Card(
-      color: Theme.of(context).colorScheme.primary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(12.0),
-        width: 120,
-        height: 180,
-        child: Column(
-          children: [
-            CircleAvatar(
-              backgroundImage: AssetImage(achievement.avatarUrl),
-              radius: 45,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              achievement.name,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              achievement.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -453,7 +336,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                             child: IconButton(
                               icon: Icon(
                                 Icons.close,
-                                size: 22, // Ustawienie rozmiaru ikony
+                                size: 22,
                                 color: Theme.of(context).primaryColorDark,
                               ),
                               onPressed: () {
@@ -793,8 +676,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
-  Widget _buildActionButtons(
-      BuildContext context, AsyncValue<List<EventWalkModel?>> asyncWalks) {
+  Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 0),
       child: Container(
@@ -853,6 +735,161 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                   style: TextStyle(
                       color: Theme.of(context).primaryColorDark, fontSize: 14)),
               onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAchievementsSection(BuildContext context, String userId) {
+    final asyncPets = ref.watch(petFriendServiceProvider(userId));
+
+    return asyncPets.when(
+      data: (pets) {
+        if (pets.isEmpty) {
+          return const Center(child: Text('No pets found.'));
+        }
+
+        // Lista do przechowywania wszystkich zdobytych achievementów
+        Map<String, List<Pet>> uniqueAchievements = {};
+
+        // Pobierz zdobyte achievementy dla każdego zwierzaka
+        final futures = pets.map((pet) async {
+          final petAchievements =
+              await ref.read(petAchievementsProvider(pet.id).future);
+          for (var achievement in petAchievements) {
+            if (!uniqueAchievements.containsKey(achievement.achievementId)) {
+              uniqueAchievements[achievement.achievementId] = [];
+            }
+            uniqueAchievements[achievement.achievementId]!.add(pet);
+          }
+        });
+
+        // Czekaj na wszystkie przyszłe zadania
+        return FutureBuilder<void>(
+          future: Future.wait(futures),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return const Center(child: Text('Error loading achievements.'));
+            }
+
+            // Wyświetlamy zdobyte achievementy nad przyciskami
+            return Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SectionTitle(title: "Achievements"),
+                    TextButton(
+                      onPressed: () {
+                        _showAchievementsMenu(context, userId);
+                      },
+                      child: Text(
+                        'See All',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColorDark,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: uniqueAchievements.entries.map((entry) {
+                      final achievementId = entry.key;
+                      final petsWithAchievement = entry.value;
+
+                      return FutureBuilder<Achievement>(
+                        future: _getAchievementById(achievementId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return const Text('Error loading achievement.');
+                          } else if (!snapshot.hasData) {
+                            return const Text('Achievement not found.');
+                          }
+
+                          final achievementData = snapshot.data!;
+                          return GestureDetector(
+                            onTap: () => _showAchievementDetail(
+                                context, achievementData, true),
+                            child: _buildAchievementCardWithAvatars(
+                                achievementData, petsWithAchievement),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => const Center(child: Text('Error loading pets.')),
+    );
+  }
+
+  Widget _buildAchievementCardWithAvatars(
+      Achievement achievement, List<Pet> petsWithAchievement) {
+    return Card(
+      color: Theme.of(context).colorScheme.primary,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        width: 180,
+        height: 220,
+        child: Column(
+          children: [
+            CircleAvatar(
+              backgroundImage: AssetImage(achievement.avatarUrl),
+              radius: 45,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              achievement.name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              achievement.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: petsWithAchievement.map((pet) {
+                return Tooltip(
+                  message: pet.name,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                    child: CircleAvatar(
+                      backgroundImage: AssetImage(pet.avatarImage),
+                      radius: 20,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
