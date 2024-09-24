@@ -6,13 +6,13 @@ class AnimatedPawPrint extends StatefulWidget {
   final int strike;
 
   const AnimatedPawPrint({
-    Key? key,
+    super.key,
     required this.isTodayExtended,
     required this.strike,
-  }) : super(key: key);
+  });
 
   @override
-  _AnimatedPawPrintState createState() => _AnimatedPawPrintState();
+  createState() => _AnimatedPawPrintState();
 }
 
 class _AnimatedPawPrintState extends State<AnimatedPawPrint>
@@ -46,7 +46,6 @@ class _AnimatedPawPrintState extends State<AnimatedPawPrint>
   Widget build(BuildContext context) {
     final backgroundColor = Theme.of(context).colorScheme.primary;
     final pawColor = Theme.of(context).primaryColorDark;
-    ;
 
     return Container(
       width: 50,
