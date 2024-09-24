@@ -12,7 +12,6 @@ class AchievementService {
       final String seasonalId =
           'seasonal_${now.year}_${now.month.toString().padLeft(2, '0')}';
 
-      // Debugging log
       if (kDebugMode) {
         print('Fetching achievement with ID: $seasonalId');
       }

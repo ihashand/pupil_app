@@ -1,9 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pet_diary/src/models/others/home_preferences_model.dart';
 
-class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
-  HomePreferencesNotifier() : super(_initialPreferences);
+class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
+  HomePreferencesService() : super(_initialPreferences);
 
   static final HomePreferencesModel _initialPreferences = HomePreferencesModel(
     sectionOrder: [
@@ -25,29 +26,12 @@ class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
   );
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late String userId;
-
-  void setUserId(String uid) {
-    userId = uid;
-    _loadPreferences();
-  }
-
-  Future<void> _loadPreferences() async {
-    final doc = await _firestore
-        .collection('app_users')
-        .doc(userId)
-        .collection('preferences')
-        .doc('home_preferences')
-        .get();
-    if (doc.exists) {
-      state = HomePreferencesModel.fromMap(doc.data()!);
-    }
-  }
+  final _currentUser = FirebaseAuth.instance.currentUser;
 
   Future<void> _savePreferences() async {
     await _firestore
         .collection('app_users')
-        .doc(userId)
+        .doc(_currentUser!.uid)
         .collection('preferences')
         .doc('home_preferences')
         .set(state.toMap());
@@ -74,7 +58,3 @@ class HomePreferencesNotifier extends StateNotifier<HomePreferencesModel> {
     await _savePreferences();
   }
 }
-
-final homePreferencesProvider =
-    StateNotifierProvider<HomePreferencesNotifier, HomePreferencesModel>(
-        (ref) => HomePreferencesNotifier());

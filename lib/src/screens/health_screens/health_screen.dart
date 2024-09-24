@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
-import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
@@ -39,10 +37,6 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     searchController = TextEditingController();
     eventDateTime = DateTime.now();
     selectedDateTime = DateTime.now();
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      ref.read(homePreferencesProvider.notifier).setUserId(user.uid);
-    }
   }
 
   @override

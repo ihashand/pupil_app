@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
+import 'package:pet_diary/src/providers/home_providers/home_preferences_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
-import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/active_walk_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/appoitment_card.dart';
@@ -37,7 +37,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           });
         }
       });
-      ref.read(homePreferencesProvider.notifier).setUserId(userId);
     }
   }
 
