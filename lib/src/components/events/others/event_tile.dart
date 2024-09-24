@@ -9,13 +9,14 @@ class EventTile extends StatelessWidget {
   final Event event;
   final bool isExpanded;
   final WidgetRef ref;
+  final String petId;
 
-  const EventTile({
-    super.key,
-    required this.event,
-    required this.isExpanded,
-    required this.ref,
-  });
+  const EventTile(
+      {super.key,
+      required this.event,
+      required this.isExpanded,
+      required this.ref,
+      required this.petId});
 
   void navigateToScreen(BuildContext context) {
     if (event.weightId.isNotEmpty) {
@@ -115,7 +116,10 @@ class EventTile extends StatelessWidget {
     return parsedDescription;
   }
 
-  Widget _buildDescriptionRow(String title, String value) {
+  Widget _buildDescriptionRow(
+    String title,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
@@ -213,7 +217,7 @@ class EventTile extends StatelessWidget {
                           icon: const Icon(Icons.delete),
                           color: Theme.of(context).primaryColorDark,
                           onPressed: () =>
-                              _showDeleteConfirmation(context, event),
+                              _showDeleteConfirmation(context, event, petId),
                         ),
                       ],
                     ),
@@ -227,7 +231,8 @@ class EventTile extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, Event event) {
+  void _showDeleteConfirmation(
+      BuildContext context, Event event, String petId) {
     showDialog(
       context: context,
       builder: (context) {
@@ -245,7 +250,7 @@ class EventTile extends StatelessWidget {
             TextButton(
               onPressed: () {
                 // Assuming `ref` and `eventDeleteFunc` are accessible in this context.
-                eventDeleteFunc(ref, context, [event], event.id);
+                eventDeleteFunc(ref, context, [event], event.id, petId);
                 Navigator.of(context).pop();
               },
               child: Text(

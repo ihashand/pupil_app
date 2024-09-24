@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_icon_widget.dart';
 import 'package:pet_diary/src/components/pet_detail/pet_detail_name_age_button_widget.dart';
-import 'package:pet_diary/src/helpers/helper_show_bacground_selection.dart';
+import 'package:pet_diary/src/helpers/others/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
-import 'package:pet_diary/src/helpers/helper_show_avatar_selection.dart';
+import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
@@ -184,7 +184,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                     ),
                   ),
                   Consumer(builder: (context, ref, _) {
-                    final asyncEvents = ref.watch(eventsProvider);
+                    final asyncEvents = ref.watch(eventsProvider(pet.id));
                     return asyncEvents.when(
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
@@ -266,6 +266,7 @@ class _PetDetailsScreenState extends ConsumerState<PetDetailsScreen> {
                                 isExpanded:
                                     expandedEvents[currentEvent.id] ?? false,
                                 ref: ref,
+                                petId: pet.id,
                               ),
                             );
                           },

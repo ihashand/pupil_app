@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/helpers/loading_dialog.dart';
+import 'package:pet_diary/src/helpers/others/loading_dialog.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_care_provider.dart';
@@ -25,6 +25,7 @@ void eventDeleteFunc(
   BuildContext context,
   List<Event>? allEvents,
   String eventId,
+  String petId,
 ) async {
   Event? event = allEvents?.where((element) => element.id == eventId).first;
 
@@ -42,7 +43,7 @@ void eventDeleteFunc(
   final String serviceId = event.serviceId;
   final String careId = event.careId;
 
-  ref.read(eventServiceProvider).deleteEvent(eventId);
+  ref.read(eventServiceProvider).deleteEvent(eventId, petId);
 
   showDialog(
     context: context,
@@ -67,7 +68,7 @@ void eventDeleteFunc(
   }
 
   if (walkId.isNotEmpty) {
-    await ref.read(eventWalkServiceProvider).deleteWalk(walkId);
+    await ref.read(eventWalkServiceProvider).deleteWalk(walkId, petId);
   }
 
   if (noteId.isNotEmpty) {

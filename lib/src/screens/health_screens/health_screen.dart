@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
-import 'package:pet_diary/src/providers/others_providers/home_preferences_notifier.dart';
 import 'package:pet_diary/src/components/health/get_all_tiles.dart';
 import 'package:pet_diary/src/components/health/health_tile.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
@@ -39,16 +37,12 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     searchController = TextEditingController();
     eventDateTime = DateTime.now();
     selectedDateTime = DateTime.now();
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      ref.read(homePreferencesProvider.notifier).setUserId(user.uid);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final eventDateTime = ref.watch(eventDateControllerProvider);
-    final asyncEvents = ref.watch(eventsProvider);
+    final asyncEvents = ref.watch(eventsProvider(widget.petId));
 
     return asyncEvents.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -95,7 +89,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
             ),
           ),
           body: isCalendarView
-              ? _buildCalendarView(context, eventDateTime, petEvents)
+              ? _buildCalendarView(
+                  context, eventDateTime, petEvents, widget.petId)
               : Column(
                   children: [
                     Padding(
@@ -201,8 +196,8 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
     );
   }
 
-  Widget _buildCalendarView(
-      BuildContext context, DateTime eventDateTime, List<Event> petEvents) {
+  Widget _buildCalendarView(BuildContext context, DateTime eventDateTime,
+      List<Event> petEvents, String petId) {
     if (!isUserInteracted) {
       eventDateTime = defaultDateTime;
     }
@@ -316,6 +311,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
                     ref: ref,
                     event: event,
                     isExpanded: expandedEvents[event.id] ?? false,
+                    petId: petId,
                   ),
                 );
               },

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/event_medications/add_medicine/show_add_medicine_emoji.dart';
-import 'package:pet_diary/src/helpers/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
@@ -73,7 +73,7 @@ void showAddMedicineSummary(
         emoticon: emoji,
       );
 
-      await ref.read(eventServiceProvider).addEvent(newEvent);
+      await ref.read(eventServiceProvider).addEvent(newEvent, petId);
 
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
