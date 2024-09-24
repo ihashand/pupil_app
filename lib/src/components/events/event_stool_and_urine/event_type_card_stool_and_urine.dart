@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
-import 'package:pet_diary/src/helpers/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';

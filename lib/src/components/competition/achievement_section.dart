@@ -43,6 +43,7 @@ class AchievementSection extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
+          backgroundColor: Theme.of(context).colorScheme.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

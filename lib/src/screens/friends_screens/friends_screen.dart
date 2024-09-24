@@ -122,10 +122,10 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.only(
                         bottomLeft: _searchResult == null
-                            ? const Radius.circular(12)
+                            ? const Radius.circular(22)
                             : const Radius.circular(0),
                         bottomRight: _searchResult == null
-                            ? const Radius.circular(12)
+                            ? const Radius.circular(22)
                             : const Radius.circular(0),
                       ),
                     ),

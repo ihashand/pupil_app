@@ -91,6 +91,14 @@ class PetService {
         .delete();
   }
 
+  Future<List<Pet>> getPetsByUserId(String userId) async {
+    final snapshot = await _firestore
+        .collection('pets')
+        .where('userId', isEqualTo: userId)
+        .get();
+    return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
+  }
+
   void dispose() {
     _petsController.close();
   }
