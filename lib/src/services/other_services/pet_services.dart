@@ -27,24 +27,6 @@ class PetService {
     return _petsController.stream;
   }
 
-  Stream<List<Pet>> getPetsFriend(String uid) {
-    if (_currentUser == null) {
-      return Stream.value([]);
-    }
-
-    _firestore
-        .collection('app_users')
-        .doc(uid)
-        .collection('pets')
-        .snapshots()
-        .listen((snapshot) {
-      _petsController
-          .add(snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
-    });
-
-    return _petsController.stream;
-  }
-
   Stream<Pet?> getPetByIdStream(String petId) {
     return Stream.fromFuture(getPetById(petId));
   }
@@ -97,6 +79,29 @@ class PetService {
         .where('userId', isEqualTo: userId)
         .get();
     return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
+  }
+
+  Stream<List<Pet>> getPetsFriendStream(String uid) {
+    final petsStream = _firestore
+        .collection('app_users')
+        .doc(uid)
+        .collection('pets')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
+
+    return petsStream;
+  }
+
+  Future<List<Pet>> getPetsFriendFuture(String uid) async {
+    final querySnapshot = await _firestore
+        .collection('app_users')
+        .doc(uid)
+        .collection('pets')
+        .get();
+
+    // Zwracamy listę zwierząt z dokumentów
+    return querySnapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
   }
 
   void dispose() {

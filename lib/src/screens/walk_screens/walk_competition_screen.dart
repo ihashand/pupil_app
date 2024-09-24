@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/competition/achievement_details_dialog.dart';
 import 'package:pet_diary/src/components/competition/achievement_section.dart';
-import 'package:pet_diary/src/components/competition/friends_leaderboard.dart';
+import 'package:pet_diary/src/components/competition/competition_friends_leaderboard.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
@@ -205,7 +205,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              FriendsLeaderboard(
+              CompetitionFriendsLeaderboard(
                 isExpanded: true,
                 onExpandToggle: () {},
               ),
