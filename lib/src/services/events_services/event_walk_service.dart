@@ -137,31 +137,27 @@ class EventWalkService {
         .map((doc) => doc.get('achievementId') as String)
         .toSet();
 
-    // Sprawdź, które achievementy ogólne mogą być przyznane
-    List<Achievement> generalAchievements = achievements.where((achievement) {
-      return achievement.category == 'general' &&
-          !achievedIds.contains(achievement.id) &&
-          totalSteps >= achievement.stepsRequired;
-    }).toList();
-
     // Przyznaj nowe osiągnięcia
-    for (var achievement in generalAchievements) {
-      final petAchievement = PetAchievement(
-        id: const Uuid().v4(),
-        userId: _currentUser.uid,
-        petId: petId,
-        achievementId: achievement.id,
-        achievedAt: DateTime.now(),
-      );
+    for (var achievement in achievements) {
+      if (!achievedIds.contains(achievement.id) &&
+          totalSteps >= achievement.stepsRequired) {
+        final petAchievement = PetAchievement(
+          id: const Uuid().v4(),
+          userId: _currentUser.uid,
+          petId: petId,
+          achievementId: achievement.id,
+          achievedAt: DateTime.now(),
+        );
 
-      await _firestore
-          .collection('app_users')
-          .doc(_currentUser.uid)
-          .collection('pets')
-          .doc(petId)
-          .collection('pet_achievements')
-          .doc(petAchievement.id)
-          .set(petAchievement.toMap());
+        await _firestore
+            .collection('app_users')
+            .doc(_currentUser.uid)
+            .collection('pets')
+            .doc(petId)
+            .collection('pet_achievements')
+            .doc(petAchievement.id)
+            .set(petAchievement.toMap());
+      }
     }
   }
 
