@@ -14,6 +14,7 @@ class Paw extends StatefulWidget {
 class _PawState extends State<Paw> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
+  bool isFirstIteration = true; // Flag to track the first iteration
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _PawState extends State<Paw> with SingleTickerProviderStateMixin {
       ),
     );
 
+    // Start the animation after a delay based on index for the first iteration
     Future.delayed(Duration(seconds: widget.index), () {
       _startAnimation();
     });
@@ -38,9 +40,21 @@ class _PawState extends State<Paw> with SingleTickerProviderStateMixin {
 
   void _startAnimation() {
     _controller.forward().then((_) {
-      _controller.reverse().then((_) {
-        _startAnimation();
-      });
+      // Check if it's the first iteration to apply the delay
+      if (isFirstIteration) {
+        Future.delayed(const Duration(seconds: 2), () {
+          _controller.reverse().then((_) {
+            isFirstIteration =
+                false; // Set the flag to false after first iteration
+            _startAnimation();
+          });
+        });
+      } else {
+        // No delay for subsequent iterations
+        _controller.reverse().then((_) {
+          _startAnimation();
+        });
+      }
     });
   }
 

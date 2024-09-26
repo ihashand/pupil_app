@@ -30,22 +30,22 @@ class AnimatedPawPrint extends StatelessWidget {
             : Stack(
                 children: [
                   Positioned(
-                    top: 5,
+                    top: 0,
                     left: 15,
                     child: Paw(color: pawColor, index: 3),
                   ),
                   Positioned(
-                    top: 15,
+                    top: 10,
                     left: 5,
                     child: Paw(color: pawColor, index: 2),
                   ),
                   Positioned(
-                    top: 30,
+                    top: 25,
                     left: 15,
                     child: Paw(color: pawColor, index: 1),
                   ),
                   Positioned(
-                    top: 45,
+                    top: 40,
                     left: 5,
                     child: Paw(color: pawColor, index: 0),
                   ),
