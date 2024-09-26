@@ -1,20 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/components/events/event_care/event_type_card_care.dart';
+import 'package:pet_diary/src/components/events/event_food/others/event_type_card_food.dart';
 import 'package:pet_diary/src/components/events/event_issue/event_type_card_issue.dart';
-import 'package:pet_diary/src/components/events/event_mood/event_type_card_mood.dart';
-import 'package:pet_diary/src/components/events/event_vaccines/event_type_card_vaccine.dart';
-import 'package:pet_diary/src/components/events/event_water/event_type_card_water.dart';
 import 'package:pet_diary/src/components/events/event_medications/event_type_card_medicine.dart';
+import 'package:pet_diary/src/components/events/event_mood/event_type_card_mood.dart';
+import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
 import 'package:pet_diary/src/components/events/event_stool/event_type_card_stool.dart';
 import 'package:pet_diary/src/components/events/event_temperature/event_type_card_temperature.dart';
-import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
-import 'package:pet_diary/src/components/events/event_food/others/event_type_card_food.dart';
 import 'package:pet_diary/src/components/events/event_urine/event_type_card_urine.dart';
+import 'package:pet_diary/src/components/events/event_vaccines/event_type_card_vaccine.dart';
+import 'package:pet_diary/src/components/events/event_water/event_type_card_water.dart';
 import 'package:pet_diary/src/components/events/event_weight/event_type_card_weight.dart';
 import 'package:pet_diary/src/components/events/walk/event_type_card_walk.dart';
+import 'package:pet_diary/src/services/events_services/event_type_service.dart';
 import 'package:reorderables/reorderables.dart';
 import 'dart:math';
 
@@ -39,6 +39,7 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
   late TextEditingController contentTextController;
   late TextEditingController temperatureController;
   late TextEditingController dateController;
+  final EventTypeService _eventTypeService = EventTypeService();
 
   @override
   void initState() {
@@ -73,40 +74,127 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
   List<String> getDefaultKeywords(String widgetName) {
     switch (widgetName) {
       case 'eventTypeCardWater':
-        return ['water', 'hydration'];
+        return [
+          'water',
+          'hydration',
+          'fluid intake',
+          'thirst',
+          'wellness',
+          'health',
+          'refreshment'
+        ];
       case 'eventTypeCardFood':
-        return ['food', 'nutrition'];
+        return [
+          'food',
+          'nutrition',
+          'diet',
+          'meals',
+          'feeding',
+          'health',
+          'wellbeing'
+        ];
       case 'eventTypeCardMedicine':
-        return ['medicine', 'medication'];
+        return [
+          'medicine',
+          'medication',
+          'treatment',
+          'prescription',
+          'healthcare',
+          'wellness',
+          'therapy'
+        ];
       case 'eventTypeCardVaccines':
-        return ['vaccines', 'health'];
+        return [
+          'vaccines',
+          'health',
+          'immunization',
+          'protection',
+          'prevention',
+          'wellness',
+          'safety'
+        ];
       case 'eventTypeCardMood':
-        return ['mood', 'heart', 'love', 'sad', 'cry'];
+        return ['mood', 'heart', 'love', 'sad', 'cry', 'emotions', 'feelings'];
       case 'eventTypeCardIssues':
-        return ['issues', 'problems'];
+        return [
+          'issues',
+          'problems',
+          'concerns',
+          'health',
+          'behavior',
+          'symptoms',
+          'troubles'
+        ];
       case 'eventTypeCardCare':
-        return ['care', 'grooming'];
+        return [
+          'care',
+          'grooming',
+          'maintenance',
+          'hygiene',
+          'wellness',
+          'support',
+          'attention'
+        ];
       case 'eventTypeCardStool':
-        return ['stool', 'bowel'];
+        return [
+          'stool',
+          'bowel',
+          'digestion',
+          'health',
+          'wellness',
+          'monitoring',
+          'excretion'
+        ];
       case 'eventTypeCardUrine':
-        return ['urine', 'pee', 'water'];
+        return [
+          'urine',
+          'pee',
+          'water',
+          'hydration',
+          'health',
+          'monitoring',
+          'excretion'
+        ];
       case 'eventTypeCardWeight':
-        return ['weight', 'mass'];
+        return [
+          'weight',
+          'mass',
+          'measurement',
+          'health',
+          'wellness',
+          'tracking',
+          'fitness'
+        ];
       case 'eventTypeCardTemperature':
-        return ['temperature', 'heat'];
+        return [
+          'temperature',
+          'heat',
+          'body temperature',
+          'health',
+          'monitoring',
+          'wellness',
+          'fever'
+        ];
+      case 'eventTypeCardWalk':
+        return ['walk'];
       case 'eventTypeCardNotes':
-        return ['notes', 'journal'];
+        return [
+          'notes',
+          'journal',
+          'records',
+          'observations',
+          'tracking',
+          'information',
+          'documentation'
+        ];
       default:
         return [];
     }
   }
 
   Future<void> _loadUserPreferences() async {
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-    DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection('userPreferences')
-        .doc(userId)
-        .get();
+    DocumentSnapshot doc =
+        await _eventTypeService.getUserEventTypePreferences();
 
     if (doc.exists) {
       setState(() {
@@ -300,20 +388,13 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
   }
 
   Future<void> _saveUserPreferences() async {
-    String userId = FirebaseAuth.instance.currentUser!.uid;
-
     List<Map<String, dynamic>> activeCards =
         eventTypeCards.where((card) => card['isActive']).toList();
     List<Map<String, dynamic>> inactiveCards =
         eventTypeCards.where((card) => !card['isActive']).toList();
     eventTypeCards = [...activeCards, ...inactiveCards];
 
-    await FirebaseFirestore.instance
-        .collection('userPreferences')
-        .doc(userId)
-        .set({
-      'eventTypeCards': eventTypeCards,
-    });
+    await _eventTypeService.saveUserEventTypePreferences(eventTypeCards);
   }
 
   void _toggleEditMode() {
@@ -368,7 +449,7 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
       case 'eventTypeCardWalk':
         return eventTypeCardWalk(context, ref, widget.petId);
       default:
-        return const SizedBox.shrink();
+        return const SizedBox.shrink(); // Sprawdzamy, czy są zwracane widgety
     }
   }
 
