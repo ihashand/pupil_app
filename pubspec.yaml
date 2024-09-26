@@ -63,7 +63,6 @@ dependencies:
   share: ^2.0.4
   screenshot: ^3.0.0
   barcode_scan2: ^4.2.0
-  flutter_svg: ^2.0.10+1
   reorderables: ^ 0.6.0
 
 dev_dependencies:
@@ -86,7 +85,6 @@ flutter:
     - assets/images/achievements/fantasy/
     - assets/images/dog_backgrounds/
     - assets/images/events_type_cards_no_background/
-    - assets/images/svg/
     - assets/images/dog_avatars/
     - assets/images/events_type_cards/
     - assets/images/others/
