@@ -23,22 +23,36 @@ class _AnimatedPawPrintState extends State<AnimatedPawPrint>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 4), // Total duration for all animations
+      duration: const Duration(seconds: 4),
       vsync: this,
-    )..repeat(); // Continuous repeat without reverse
+    )..repeat();
 
     _fadeAnimations = List.generate(4, (index) {
-      return Tween<double>(begin: 0.0, end: 1.0).animate(
+      return Tween<double>(begin: 0.0).animate(
         CurvedAnimation(
           parent: _controller,
           curve: Interval(
-            index / 4, // Start fading in
-            (index + 0.5) / 4, // Halfway through fade out
-            curve: Curves.easeInOut, // Smooth transition
+            index / 4,
+            (index + 0.25) / 4,
+            curve: Curves.easeInOut,
           ),
         ),
       );
     });
+
+    // For fading out, we need to define the timing similarly but adjusted for fading out
+    _fadeAnimations.addAll(List.generate(4, (index) {
+      return Tween<double>(begin: 1.0, end: 0.0).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: Interval(
+            (index + 0.25) / 4,
+            (index + 0.5) / 4,
+            curve: Curves.easeInOut,
+          ),
+        ),
+      );
+    }));
   }
 
   @override
@@ -52,7 +66,7 @@ class _AnimatedPawPrintState extends State<AnimatedPawPrint>
     final pawColor = Theme.of(context).primaryColorDark;
 
     return Container(
-      width: 50,
+      width: 35,
       height: 50,
       child: Opacity(
         opacity: widget.isTodayExtended ? 1.0 : 0.3,
