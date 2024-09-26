@@ -16,6 +16,7 @@ import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:pet_diary/src/components/report_widget/generate_report_card.dart';
@@ -834,8 +835,10 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                           return GestureDetector(
                             onTap: () => _showAchievementDetail(
                                 context, achievementData, true),
-                            child: _buildAchievementCardWithAvatars(
-                                achievementData, petsWithAchievement),
+                            child: FriendsAchievementCard(
+                                context: context,
+                                achievement: achievementData,
+                                petsWithAchievement: petsWithAchievement),
                           );
                         },
                       );
@@ -849,64 +852,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => const Center(child: Text('Error loading pets.')),
-    );
-  }
-
-  Widget _buildAchievementCardWithAvatars(
-      Achievement achievement, List<Pet> petsWithAchievement) {
-    return Card(
-      color: Theme.of(context).colorScheme.primary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(12.0),
-        width: 180,
-        height: 220,
-        child: Column(
-          children: [
-            CircleAvatar(
-              backgroundImage: AssetImage(achievement.avatarUrl),
-              radius: 45,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              achievement.name,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              achievement.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-            const SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: petsWithAchievement.map((pet) {
-                return Tooltip(
-                  message: pet.name,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: CircleAvatar(
-                      backgroundImage: AssetImage(pet.avatarImage),
-                      radius: 20,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
