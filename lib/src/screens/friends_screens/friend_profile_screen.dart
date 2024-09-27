@@ -37,7 +37,6 @@ class FriendProfileScreen extends ConsumerStatefulWidget {
   createState() => _FriendProfileScreenState();
 }
 
-//test
 class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   int touchedIndex = -1;
   int selectedMonthIndex = DateTime.now().month - 1;
