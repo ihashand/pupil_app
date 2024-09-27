@@ -156,12 +156,11 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                         const SizedBox(width: 4),
                         GestureDetector(
                           onTap: () {
-                            // Nawigacja do ekranu profilu psa po kliknięciu na avatar
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PetProfileScreen(
-                                    pet: pet), // Przejście na ekran profilu psa
+                                builder: (context) =>
+                                    PetProfileScreen(pet: pet),
                               ),
                             );
                           },
