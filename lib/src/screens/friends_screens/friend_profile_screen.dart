@@ -23,7 +23,7 @@ import 'package:pet_diary/src/components/health_activity_widgets/section_title.d
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
 import '../../models/others/achievement.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {
@@ -655,8 +655,8 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                             await File('${tempDir.path}/achievement.png')
                                 .create();
                         await file.writeAsBytes(imageBytes);
-
-                        Share.shareFiles([file.path],
+                        final XFile xFile = XFile(file.path);
+                        Share.shareXFiles([xFile],
                             text:
                                 'I unlocked the achievement ${achievement.name}!\n\n${achievement.description}');
                       }
