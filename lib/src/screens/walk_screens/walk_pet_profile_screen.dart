@@ -6,48 +6,49 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
 
-class PetProfileScreen extends StatelessWidget {
+class PetProfileScreen extends StatefulWidget {
   final Pet pet;
 
   const PetProfileScreen({required this.pet, super.key});
+
+  @override
+  createState() => _PetProfileScreenState();
+}
+
+class _PetProfileScreenState extends State<PetProfileScreen> {
+  String selectedCategory = 'all';
+  bool showCategories = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _formatPetName(pet.name),
+          _formatPetName(widget.pet.name),
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            letterSpacing: 3, // Odstępy między literami
+            letterSpacing: 3,
           ),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Column(
         children: [
-          // Nieruchomy nagłówek
           _buildHeaderSection(context),
-          // Przewijana reszta
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
-                  // Dodajemy tutaj sekcję osiągnięć
+                  if (showCategories) _buildAchievementsCategoryFilter(context),
+                  const SizedBox(height: 10),
+                  // _buildDetailsButton(context), //todo: musze cos pomyslec jak to przerobic, ale brak weny dzisiaj :(
                   _buildAchievementsSection(context),
                   const SizedBox(height: 20),
                   _buildDataSection(
                     context,
                     title: 'Statistics',
                     content: _buildPetStatistics(context),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildDataSection(
-                    context,
-                    title: 'Achievements',
-                    content: _buildPetAchievements(context),
                   ),
                   const SizedBox(height: 20),
                   _buildDataSection(
@@ -65,7 +66,7 @@ class PetProfileScreen extends StatelessWidget {
   }
 
   String _formatPetName(String name) {
-    return name.toUpperCase().split('').join(' '); // Formatowanie każdej litery
+    return name.toUpperCase().split('').join(' ');
   }
 
   Widget _buildHeaderSection(BuildContext context) {
@@ -83,8 +84,8 @@ class PetProfileScreen extends StatelessWidget {
           Divider(color: Theme.of(context).colorScheme.surface),
           const SizedBox(height: 10),
           CircleAvatar(
-            backgroundImage: AssetImage(pet.avatarImage),
-            radius: 70, // Zwiększony rozmiar awatara
+            backgroundImage: AssetImage(widget.pet.avatarImage),
+            radius: 70,
           ),
           const SizedBox(height: 20),
           _buildPetDetailsRow(context),
@@ -93,39 +94,60 @@ class PetProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildDetailsButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          showCategories = !showCategories;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+      ),
+      child: Text(
+        showCategories ? 'Hide Details' : 'Show Details',
+        style: TextStyle(
+          color: Theme.of(context).primaryColorDark,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
   Widget _buildPetDetailsRow(BuildContext context) {
     return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceAround, // Równe rozmieszczenie danych
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildDetailItem(
           context,
           emoji: '🐶',
           label: 'Breed',
-          value: pet.breed,
+          value: widget.pet.breed,
         ),
         GestureDetector(
           onTap: () {
-            _showBirthdayToast(pet.age);
+            _showBirthdayToast(widget.pet.age);
           },
           child: _buildDetailItem(
             context,
             emoji: '🎂',
             label: 'Age',
-            value: _calculateAge(pet.age), // Obliczanie wieku
+            value: _calculateAge(widget.pet.age),
           ),
         ),
         _buildDetailItem(
           context,
-          emoji: pet.gender == 'Male' ? '♂️' : '♀️',
+          emoji: widget.pet.gender == 'Male' ? '♂️' : '♀️',
           label: 'Gender',
-          value: pet.gender,
+          value: widget.pet.gender,
         ),
       ],
     );
   }
 
-  // Funkcja obliczająca wiek na podstawie daty urodzenia
   String _calculateAge(String birthday) {
     DateTime birthDate = DateFormat('dd/MM/yyyy').parse(birthday);
     DateTime today = DateTime.now();
@@ -154,7 +176,7 @@ class PetProfileScreen extends StatelessWidget {
       children: [
         Text(
           emoji,
-          style: const TextStyle(fontSize: 28), // Większa emotikonka
+          style: const TextStyle(fontSize: 28),
         ),
         const SizedBox(height: 5),
         Text(
@@ -165,46 +187,63 @@ class PetProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDataSection(
-    BuildContext context, {
-    required String title,
-    required Widget content,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(15),
+  Widget _buildAchievementsCategoryFilter(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildCategoryButton(context, 'all'),
+        const SizedBox(width: 10),
+        _buildCategoryButton(context, 'steps'),
+        const SizedBox(width: 10),
+        _buildCategoryButton(context, 'nature'),
+        const SizedBox(width: 10),
+        _buildCategoryButton(context, 'seasonal'),
+      ],
+    );
+  }
+
+  Widget _buildCategoryButton(BuildContext context, String category) {
+    bool isSelected = selectedCategory == category;
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          selectedCategory = category;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected
+            ? Theme.of(context).colorScheme.secondary
+            : Theme.of(context).colorScheme.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
       ),
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      height: 150, // Stała wysokość dla wszystkich kontenerów z danymi
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: _sectionTitleStyle(context),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: content,
-          ),
-        ],
+      child: Text(
+        category.toUpperCase(),
+        style: TextStyle(
+          color: Theme.of(context).primaryColorDark,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  // Sekcja osiągnięć
   Widget _buildAchievementsSection(BuildContext context) {
     return FutureBuilder<List<Achievement>>(
-      future: _fetchAchievements(pet.achievementIds ?? []),
+      future: _fetchAchievements(widget.pet.achievementIds ?? []),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const CircularProgressIndicator();
         } else if (snapshot.hasError) {
           return const Text('Error fetching achievements');
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          return _buildAchievementsGrid(context, snapshot.data!);
+          final filteredAchievements = snapshot.data!
+              .where((achievement) =>
+                  selectedCategory == 'all' ||
+                  achievement.category == selectedCategory)
+              .toList();
+
+          return _buildAchievementsRow(context, filteredAchievements);
         } else {
           return const Text('No achievements found');
         }
@@ -227,25 +266,55 @@ class PetProfileScreen extends StatelessWidget {
     return achievements;
   }
 
-  Widget _buildAchievementsGrid(
+  Widget _buildAchievementsRow(
       BuildContext context, List<Achievement> achievements) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(), // Brak przewijania
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.68,
+    return SizedBox(
+      height: 280,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: achievements.length,
+        itemBuilder: (context, index) {
+          final achievement = achievements[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+            child: FriendsAchievementCard(
+              context: context,
+              achievement: achievement,
+              petsWithAchievement: [widget.pet],
+              isAchieved: true,
+            ),
+          );
+        },
       ),
-      itemCount: achievements.length,
-      itemBuilder: (context, index) {
-        final achievement = achievements[index];
-        return FriendsAchievementCard(
-          context: context,
-          achievement: achievement,
-          petsWithAchievement: [pet], // Przypisujemy osiągnięcie do psa
-          isAchieved: true,
-        );
-      },
+    );
+  }
+
+  Widget _buildDataSection(
+    BuildContext context, {
+    required String title,
+    required Widget content,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      height: 150,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: _sectionTitleStyle(context),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: content,
+          ),
+        ],
+      ),
     );
   }
 
@@ -255,16 +324,6 @@ class PetProfileScreen extends StatelessWidget {
       children: [
         Text('Steps: 5000', style: _infoTextStyle(context)),
         Text('Distance: 10 km', style: _infoTextStyle(context)),
-      ],
-    );
-  }
-
-  Widget _buildPetAchievements(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Achievement 1: First Walk', style: _infoTextStyle(context)),
-        Text('Achievement 2: 1000 Steps', style: _infoTextStyle(context)),
       ],
     );
   }
@@ -280,7 +339,7 @@ class PetProfileScreen extends StatelessWidget {
 
   TextStyle _infoTextStyle(BuildContext context, {bool isLarge = false}) {
     return TextStyle(
-      fontSize: isLarge ? 16 : 14, // Zmniejszona czcionka dla danych o psie
+      fontSize: isLarge ? 16 : 14,
       color: Theme.of(context).primaryColorDark,
     );
   }
