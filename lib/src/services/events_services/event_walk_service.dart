@@ -120,11 +120,12 @@ class EventWalkService {
 
     double totalSteps = 0;
 
+    // Zliczamy wszystkie kroki ze spacerów zwierzaka
     for (var doc in petWalksSnapshot.docs) {
       totalSteps += EventWalkModel.fromDocument(doc).steps;
     }
 
-    // Fetch pet achievements
+    // Fetch pet achievements to check which achievements are already awarded
     final petAchievementsSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
@@ -137,9 +138,9 @@ class EventWalkService {
         .map((doc) => doc.get('achievementId') as String)
         .toSet();
 
-    // Award new achievements, ignoring seasonal achievements
+    // Award new achievements based on total steps, excluding seasonal achievements
     for (var achievement in achievements) {
-      if (achievement.category != 'seasonal' && // Skip seasonal achievements
+      if (achievement.category != 'seasonal' && // Ignore seasonal achievements
           !achievedIds.contains(achievement.id) &&
           totalSteps >= achievement.stepsRequired) {
         final petAchievement = PetAchievement(
@@ -150,6 +151,7 @@ class EventWalkService {
           achievedAt: DateTime.now(),
         );
 
+        // Add the achievement to pet_achievements
         await _firestore
             .collection('app_users')
             .doc(_currentUser.uid)
@@ -158,6 +160,9 @@ class EventWalkService {
             .collection('pet_achievements')
             .doc(petAchievement.id)
             .set(petAchievement.toMap());
+
+        // Add the achievementId to the pet's achievementIds field
+        await _addAchievementToPet(petId, achievement.id);
       }
     }
   }
@@ -182,6 +187,8 @@ class EventWalkService {
         .get();
 
     double totalStepsThisMonth = 0;
+
+    // Zliczamy kroki tylko z bieżącego miesiąca
     for (var doc in petWalksSnapshot.docs) {
       totalStepsThisMonth += EventWalkModel.fromDocument(doc).steps;
     }
@@ -203,37 +210,63 @@ class EventWalkService {
         .map((doc) => doc.get('achievementId') as String)
         .toSet();
 
-    // Filtrowanie osiągnięcia dla bieżącego miesiąca
+    // Filtrowanie sezonowych osiągnięć dla bieżącego miesiąca
     final seasonalAchievements = achievements
         .where((achievement) =>
             achievement.category == 'seasonal' &&
             achievement.monthYear == currentMonthYear)
         .toList();
 
-    if (seasonalAchievements.isNotEmpty) {
-      // Sprawdzamy, czy osiągnięcie zostało już przyznane
-      for (var achievement in seasonalAchievements) {
-        if (!achievedIds.contains(achievement.id) &&
-            totalStepsThisMonth >= achievement.stepsRequired) {
-          final petAchievement = PetAchievement(
-            id: const Uuid().v4(),
-            userId: _currentUser.uid,
-            petId: petId,
-            achievementId: achievement.id,
-            achievedAt: DateTime.now(),
-          );
+    // Sprawdzamy, czy osiągnięcie zostało już przyznane
+    for (var achievement in seasonalAchievements) {
+      if (!achievedIds.contains(achievement.id) &&
+          totalStepsThisMonth >= achievement.stepsRequired) {
+        final petAchievement = PetAchievement(
+          id: const Uuid().v4(),
+          userId: _currentUser.uid,
+          petId: petId,
+          achievementId: achievement.id,
+          achievedAt: DateTime.now(),
+        );
 
-          await _firestore
-              .collection('app_users')
-              .doc(_currentUser.uid)
-              .collection('pets')
-              .doc(petId)
-              .collection('pet_achievements')
-              .doc(petAchievement.id)
-              .set(petAchievement.toMap());
-        }
+        // Add the seasonal achievement to pet_achievements
+        await _firestore
+            .collection('app_users')
+            .doc(_currentUser.uid)
+            .collection('pets')
+            .doc(petId)
+            .collection('pet_achievements')
+            .doc(petAchievement.id)
+            .set(petAchievement.toMap());
+
+        // Add the achievementId to the pet's achievementIds field
+        await _addAchievementToPet(petId, achievement.id);
       }
     }
+  }
+
+  Future<void> _addAchievementToPet(String petId, String achievementId) async {
+    final petDocRef = _firestore
+        .collection('app_users')
+        .doc(_currentUser!.uid)
+        .collection('pets')
+        .doc(petId);
+
+    await _firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(petDocRef);
+
+      if (!snapshot.exists) {
+        throw Exception("Pet not found");
+      }
+
+      List<String> achievementIds =
+          List<String>.from(snapshot.data()?['achievementIds'] ?? []);
+
+      if (!achievementIds.contains(achievementId)) {
+        achievementIds.add(achievementId);
+        transaction.update(petDocRef, {'achievementIds': achievementIds});
+      }
+    });
   }
 
   Future<void> updateWalk(String petId, EventWalkModel walk) async {
