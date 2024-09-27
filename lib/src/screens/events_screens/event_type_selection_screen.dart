@@ -449,7 +449,7 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
       case 'eventTypeCardWalk':
         return eventTypeCardWalk(context, ref, widget.petId);
       default:
-        return const SizedBox.shrink(); // Sprawdzamy, czy są zwracane widgety
+        return const SizedBox.shrink();
     }
   }
 
