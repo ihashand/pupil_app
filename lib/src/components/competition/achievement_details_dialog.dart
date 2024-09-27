@@ -43,10 +43,10 @@ class AchievementDetailsDialog extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 5.0, top: 20),
           child: Text(
             achievementName,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).primaryColorDark,
             ),
           ),
         ),

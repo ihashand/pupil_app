@@ -21,17 +21,28 @@ class AchievementWidget extends StatelessWidget {
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 5),
+          child: Text(
+            achievementName,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+        ),
         Image.asset(
           assetPath,
           height: imageSize,
           width: imageSize,
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 8.0),
+          padding: const EdgeInsets.only(top: 5.0),
           child: Text(
             totalSteps.toString(),
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColorDark,
             ),
@@ -40,19 +51,8 @@ class AchievementWidget extends StatelessWidget {
         Text(
           'S T E P S',
           style: TextStyle(
-            fontSize: 9,
+            fontSize: 10,
             color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 15.0),
-          child: Text(
-            achievementName,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColorDark,
-            ),
           ),
         ),
       ],

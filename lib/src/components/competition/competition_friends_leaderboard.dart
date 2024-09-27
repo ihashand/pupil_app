@@ -9,6 +9,7 @@ import 'package:pet_diary/src/providers/achievements_providers/achievements_prov
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_pet_profile_screen.dart';
 
 class CompetitionFriendsLeaderboard extends ConsumerWidget {
   final bool isExpanded;
@@ -153,9 +154,21 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                         Text('#${index + 1}',
                             style: const TextStyle(fontSize: 16)),
                         const SizedBox(width: 4),
-                        CircleAvatar(
-                          backgroundImage: AssetImage(pet.avatarImage),
-                          radius: 25,
+                        GestureDetector(
+                          onTap: () {
+                            // Nawigacja do ekranu profilu psa po kliknięciu na avatar
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PetProfileScreen(
+                                    pet: pet), // Przejście na ekran profilu psa
+                              ),
+                            );
+                          },
+                          child: CircleAvatar(
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 25,
+                          ),
                         ),
                       ],
                     ),
