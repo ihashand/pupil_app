@@ -76,6 +76,7 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
           alignment: Alignment.center,
           children: [
             AlertDialog(
+              backgroundColor: Theme.of(context).colorScheme.primary,
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -105,35 +106,102 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
                   ),
                   Screenshot(
                     controller: _screenshotController,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(25.0),
-                          child: CircleAvatar(
-                            backgroundImage:
-                                AssetImage(widget.achievement.avatarUrl),
-                            radius: 100,
+                    child: Container(
+                      color: Colors.white, // Dodaj białe tło
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(25.0),
+                            child: CircleAvatar(
+                              backgroundImage:
+                                  AssetImage(widget.achievement.avatarUrl),
+                              radius: 100,
+                            ),
                           ),
-                        ),
-                        Text(
-                          widget.achievement.name,
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          widget.achievement.description,
-                          style: const TextStyle(fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                          Text(
+                            widget.achievement.name,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            widget.achievement.description,
+                            style: const TextStyle(fontSize: 14),
+                            textAlign: TextAlign.center,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: 10.0, top: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: widget.petsWithAchievement
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                int index = entry.key;
+                                Pet pet = entry.value;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        _togglePetNameDisplay(index, pet.name);
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5.0),
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              AssetImage(pet.avatarImage),
+                                          radius: 30,
+                                        ),
+                                      ),
+                                    ),
+                                    if (_selectedPetName != null &&
+                                        _selectedPetIndex == index)
+                                      Positioned(
+                                        top: -30,
+                                        left: 0,
+                                        right: 0,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.transparent,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.2),
+                                                spreadRadius: 1,
+                                                blurRadius: 5,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            _selectedPetName!,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(160, 40),
+                      fixedSize: const Size(200, 40),
                       foregroundColor: Theme.of(context).primaryColorDark,
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       shape: RoundedRectangleBorder(
@@ -156,7 +224,7 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
                       }
                     },
                     child: Text(
-                      'Share',
+                      'S H A R E',
                       style:
                           TextStyle(color: Theme.of(context).primaryColorDark),
                     ),
@@ -191,7 +259,7 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
       child: Card(
         color: widget.isAchieved
             ? Theme.of(context).colorScheme.primary
-            : Colors.grey[400],
+            : Theme.of(context).colorScheme.secondary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -200,7 +268,7 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
           child: Column(
             children: [
               Stack(
-                alignment: Alignment.center, // Wyśrodkujemy kłódkę
+                alignment: Alignment.center,
                 children: [
                   CircleAvatar(
                     backgroundImage: widget.isAchieved
@@ -209,11 +277,13 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
                     radius: 65,
                     backgroundColor: widget.isAchieved
                         ? Colors.transparent
-                        : Colors.grey[500],
+                        : Theme.of(context).colorScheme.secondary,
                     child: !widget.isAchieved
-                        ? const Icon(
+                        ? Icon(
                             Icons.lock,
-                            color: Colors.white,
+                            color: Theme.of(context)
+                                .primaryColorDark
+                                .withOpacity(0.5),
                             size: 40,
                           )
                         : null,

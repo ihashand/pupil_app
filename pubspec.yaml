@@ -92,7 +92,6 @@ flutter:
     - assets/effects/
     - assets/images/achievements/seasonal/
 
-    
 flutter_icons:
   android: true
   ios: true
