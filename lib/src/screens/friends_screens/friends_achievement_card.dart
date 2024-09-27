@@ -107,7 +107,9 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
                   Screenshot(
                     controller: _screenshotController,
                     child: Container(
-                      color: Colors.white, // Dodaj białe tło
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary, // Dodaj białe tło
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -294,22 +296,36 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
                 padding: const EdgeInsets.only(top: 5.0),
                 child: Column(
                   children: [
-                    Text(
-                      widget.isAchieved
-                          ? '${widget.achievement.stepsRequired}'
-                          : '???',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: widget.isAchieved
-                            ? Theme.of(context).primaryColorDark
-                            : Colors.grey[800],
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        widget.isAchieved ? widget.achievement.name : '???',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isAchieved
+                              ? Theme.of(context).primaryColorDark
+                              : Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Text(
+                        widget.achievement.stepsRequired.toString(),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isAchieved
+                              ? Theme.of(context).primaryColorDark
+                              : Colors.grey[800],
+                        ),
                       ),
                     ),
                     Text(
                       "S T E P S",
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 9,
                         color: widget.isAchieved
                             ? Theme.of(context).primaryColorDark
                             : Colors.grey[800],
@@ -320,7 +336,7 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
               ),
               if (widget.isAchieved) ...[
                 Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
+                  padding: const EdgeInsets.only(top: 5.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children:
