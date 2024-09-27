@@ -35,11 +35,14 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 10, bottom: 2),
+            Padding(
+              padding: const EdgeInsets.only(top: 15, bottom: 5),
               child: Text(
                 'Leaderboard',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColorDark),
               ),
             ),
             Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),

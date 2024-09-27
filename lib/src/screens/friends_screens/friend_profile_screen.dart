@@ -580,7 +580,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                       ],
                     ),
                   ),
-                  // Przycisk udostępniania przeniesiony poza obszar Screenshot
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: const Size(160, 40),

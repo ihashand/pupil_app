@@ -17,7 +17,7 @@ class AchievementWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final imageSize = screenSize.width * 0.5;
+    final imageSize = screenSize.width * 0.4;
 
     return Column(
       children: [
@@ -26,13 +26,33 @@ class AchievementWidget extends StatelessWidget {
           height: imageSize,
           width: imageSize,
         ),
-        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            totalSteps.toString(),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+        ),
         Text(
-          achievementName,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+          'S T E P S',
+          style: TextStyle(
+            fontSize: 9,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 15.0),
+          child: Text(
+            achievementName,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
           ),
         ),
       ],
