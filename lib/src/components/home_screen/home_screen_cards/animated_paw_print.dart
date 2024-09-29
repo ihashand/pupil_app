@@ -6,10 +6,10 @@ class AnimatedPawPrint extends StatelessWidget {
   final int strike;
 
   const AnimatedPawPrint({
-    Key? key,
+    super.key,
     required this.isTodayExtended,
     required this.strike,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
