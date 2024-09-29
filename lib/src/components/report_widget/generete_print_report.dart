@@ -15,8 +15,8 @@ Future<void> generateAndPrintReport(
 
   List<EventWalkModel> petWalks = ref.read(eventWalksProvider(pet.id)).when(
         data: (data) => data
-            .where((walk) => walk!.petId == pet.id)
-            .map((walk) => walk!)
+            .where((walk) => walk.petId == pet.id)
+            .map((walk) => walk)
             .toList(),
         loading: () => [],
         error: (error, stack) => [],
@@ -87,7 +87,7 @@ Future<void> generateAndPrintReport(
                     pw.Text("Breed: ${pet.breed}",
                         style: const pw.TextStyle(
                             fontSize: 11, color: PdfColors.black)),
-                    pw.Text("Birthdate: ${pet.age}",
+                    pw.Text("Birth date: ${pet.age}",
                         style: const pw.TextStyle(
                             fontSize: 11, color: PdfColors.black)),
                   ]),

@@ -82,10 +82,10 @@ flutter:
     - assets/images/achievements/natural/
     - assets/images/achievements/steps/
     - assets/images/achievements/fantasy/
-    - assets/images/events_type_cards/
-    - assets/images/dog_avatars/
     - assets/images/dog_backgrounds/
     - assets/images/events_type_cards_no_background/
+    - assets/images/dog_avatars/
+    - assets/images/events_type_cards/
     - assets/images/others/
     - assets/effects/
     - assets/images/achievements/seasonal/
