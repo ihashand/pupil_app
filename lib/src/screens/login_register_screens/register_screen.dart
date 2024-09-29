@@ -6,7 +6,7 @@ import 'package:pet_diary/src/components/others/my_textfield.dart';
 import 'package:pet_diary/src/components/others/signin_button.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
-import '../../helpers/helper_functions.dart';
+import '../../helpers/others/helper_functions.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {

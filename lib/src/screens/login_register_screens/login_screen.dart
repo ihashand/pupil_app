@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/components/others/my_textfield.dart';
 import 'package:pet_diary/src/components/others/signin_button.dart';
-import 'package:pet_diary/src/helpers/helper_functions.dart';
+import 'package:pet_diary/src/helpers/others/helper_functions.dart';
 
 class LoginScreen extends StatefulWidget {
   final void Function()? onTap;

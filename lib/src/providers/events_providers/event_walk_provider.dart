@@ -19,11 +19,7 @@ final eventWalkDateControllerProvider = StateProvider<DateTime>((ref) {
   return DateTime.now();
 });
 
-final eventWalksProvider = StreamProvider<List<EventWalkModel>>((ref) {
-  return EventWalkService().getWalksStream();
-});
-
-final eventWalksFriendProvider =
-    StreamProvider.family<List<EventWalkModel>, String>((ref, id) {
-  return EventWalkService().getWalksFriend(id);
+final eventWalksProvider =
+    StreamProvider.family<List<EventWalkModel?>, String>((ref, petId) {
+  return EventWalkService().getWalksForPet(petId);
 });

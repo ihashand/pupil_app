@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/helpers/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
@@ -515,27 +515,11 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         dateWhenEventAdded: DateTime.now(),
         userId: userId,
         petId: petId,
-        weightId: '',
-        temperatureId: '',
-        walkId: '',
-        waterId: '',
-        noteId: '',
-        pillId: '',
-        moodId: '',
-        stomachId: '',
         description: description,
-        proffesionId: '',
-        personId: '',
-        avatarImage: '',
         emoticon: '🔔',
-        psychicId: '',
-        stoolId: '',
-        urineId: '',
-        serviceId: '',
-        careId: '',
       );
 
-      await ref.read(eventServiceProvider).addEvent(newEvent);
+      await ref.read(eventServiceProvider).addEvent(newEvent, petId);
     }
 
     final EventReminderModel newReminder = EventReminderModel(

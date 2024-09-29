@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserAchievement {
+class PetAchievement {
   final String id;
   final String userId;
   final String petId;
   final String achievementId;
   final DateTime achievedAt;
 
-  UserAchievement({
+  PetAchievement({
     required this.id,
     required this.userId,
     required this.petId,
@@ -15,7 +15,7 @@ class UserAchievement {
     required this.achievedAt,
   });
 
-  UserAchievement.fromDocument(DocumentSnapshot doc)
+  PetAchievement.fromDocument(DocumentSnapshot doc)
       : id = doc.id,
         userId = doc.get('userId') ?? '',
         petId = doc.get('petId') ?? '',

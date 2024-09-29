@@ -5,8 +5,9 @@ class Achievement {
   final String name;
   final String description;
   final String avatarUrl;
-  final String category; // 'steps', 'nature', 'fantasy'
+  final String category;
   final int stepsRequired;
+  final String? monthYear;
 
   Achievement({
     required this.id,
@@ -15,6 +16,7 @@ class Achievement {
     required this.avatarUrl,
     required this.category,
     required this.stepsRequired,
+    this.monthYear,
   });
 
   Achievement.fromDocument(DocumentSnapshot doc)
@@ -23,7 +25,10 @@ class Achievement {
         description = doc.get('description') ?? '',
         avatarUrl = doc.get('avatarUrl') ?? '',
         category = doc.get('category') ?? '',
-        stepsRequired = doc.get('stepsRequired') ?? 0;
+        stepsRequired = doc.get('stepsRequired') ?? 0,
+        monthYear = doc.data().toString().contains('monthYear')
+            ? doc.get('monthYear')
+            : null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -32,6 +37,7 @@ class Achievement {
       'avatarUrl': avatarUrl,
       'category': category,
       'stepsRequired': stepsRequired,
+      if (monthYear != null) 'monthYear': monthYear,
     };
   }
 }

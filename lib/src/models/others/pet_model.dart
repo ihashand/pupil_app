@@ -10,6 +10,7 @@ class Pet {
   late String breed;
   late DateTime dateTime;
   late String backgroundImage;
+  List<String>? achievementIds;
 
   Pet({
     required this.id,
@@ -21,6 +22,7 @@ class Pet {
     required this.breed,
     required this.dateTime,
     required this.backgroundImage,
+    this.achievementIds,
   });
 
   Pet.fromDocument(DocumentSnapshot doc) {
@@ -33,6 +35,9 @@ class Pet {
     breed = doc.get('breed') ?? '';
     dateTime = (doc.get('dateTime') as Timestamp?)?.toDate() ?? DateTime.now();
     backgroundImage = doc.get('backgroundImage') ?? '';
+    achievementIds = doc.data().toString().contains('achievementIds')
+        ? List<String>.from(doc.get('achievementIds'))
+        : [];
   }
 
   Map<String, dynamic> toMap() {
@@ -45,6 +50,7 @@ class Pet {
       'breed': breed,
       'dateTime': dateTime,
       'backgroundImage': backgroundImage,
+      'achievementIds': achievementIds ?? [],
     };
   }
 }

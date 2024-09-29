@@ -20,7 +20,7 @@ class SummarySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, _) {
-      final asyncWalks = ref.watch(eventWalksProvider);
+      final asyncWalks = ref.watch(eventWalksProvider(petId));
 
       return asyncWalks.when(
         loading: () => const CircularProgressIndicator(),

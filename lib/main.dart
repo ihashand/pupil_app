@@ -8,7 +8,10 @@ import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/screens/login_register_screens/login_screen.dart';
 import 'package:pet_diary/src/screens/other_screens/settings_screen.dart';
+import 'package:pet_diary/src/services/achievements_services/achievement_service.dart';
+import 'package:pet_diary/src/services/events_services/event_type_service.dart';
 import 'package:pet_diary/src/services/other_services/notification_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -20,6 +23,9 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService().init();
+  await AchievementService().initializeAchievements();
+
+  await initializeUserSettings();
 
   runApp(ProviderScope(
     child: EasyLocalization(
@@ -29,6 +35,14 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   ));
+}
+
+Future<void> initializeUserSettings() async {
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    final eventTypeService = EventTypeService();
+    await eventTypeService.initializeEventTypePreferences();
+  }
 }
 
 class MyApp extends StatelessWidget {
