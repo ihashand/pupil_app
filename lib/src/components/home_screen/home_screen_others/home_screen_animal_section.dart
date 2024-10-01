@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/add_pet_steps/add_pet_step1_name.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/animal_card.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 
@@ -11,7 +12,7 @@ class HomeScreenAnimalSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncPets = ref.watch(petsProvider);
-    final asyncWalks = ref.watch(eventWalksProvider);
+    final asyncWalks = ref.watch(eventWalksProviderStream);
 
     return asyncWalks.when(
       loading: () => const CircularProgressIndicator(),
@@ -30,7 +31,9 @@ class HomeScreenAnimalSection extends ConsumerWidget {
                   if (index < pets.length) {
                     final currentPet = pets[index];
                     final petWalks = walks
-                        .where((walk) => walk.petId == currentPet.id)
+                        .where((walk) =>
+                            walk != null && walk.petId == currentPet.id)
+                        .cast<EventWalkModel>()
                         .toList();
 
                     return AnimalCard(

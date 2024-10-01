@@ -27,7 +27,7 @@ class SummarySection extends StatelessWidget {
         error: (err, stack) => Text('Error fetching walks: $err'),
         data: (walks) {
           List<EventWalkModel?> petWalks =
-              walks.where((walk) => walk.petId == petId).toList();
+              walks.where((walk) => walk?.petId == petId).toList();
 
           List<EventWalkModel?> filteredWalks;
           if (selectedView == 'D') {

@@ -110,7 +110,11 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
                                 ),
                               ),
                               Text(
-                                pet.name,
+                                pet.name.substring(
+                                    0,
+                                    pet.name.length < 5
+                                        ? pet.name.length
+                                        : 4), // TODO fix UI for longer names
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
