@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '17.x'
+    - uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    - run: flutter pub get
+    # - run: flutter test // uncomment when tests are added
+    - run: flutter build apk
+
+  # build_ios:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Clone repository
+  #       uses: actions/checkout@v4
+  #     - name: Set up Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: stable
+  #     - run: flutter pub get
+  #     - run: flutter build ios --release --no-codesign
