@@ -21,7 +21,7 @@ jobs:
       with:
         channel: 'stable'
     - run: flutter pub get
-    - run: flutter test
+    # - run: flutter test // uncomment when tests are added
     - run: flutter build apk
 
   # build_ios:
