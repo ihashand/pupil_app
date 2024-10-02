@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
@@ -116,17 +116,17 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 bottom: 10,
                 child: GestureDetector(
                   onTap: () async {
-                    final result = await ImageGallerySaver.saveFile(image.path);
-                    if (result["isSuccess"]) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Image saved to gallery!')),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to save image.')),
-                      );
-                    }
+                    // final result = await ImageGallerySaver.saveFile(image.path);
+                    // if (result["isSuccess"]) {
+                    //   ScaffoldMessenger.of(context).showSnackBar(
+                    //     const SnackBar(
+                    //         content: Text('Image saved to gallery!')),
+                    //   );
+                    // } else {
+                    //   ScaffoldMessenger.of(context).showSnackBar(
+                    //     const SnackBar(content: Text('Failed to save image.')),
+                    //   );
+                    // }
                     Navigator.pop(context);
                   },
                   child: const Icon(
