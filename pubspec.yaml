@@ -47,7 +47,7 @@ dependencies:
   uuid: ^4.4.0
   flutter_image_compress: ^2.3.0
   permission_handler: ^11.3.1 #unused?
-  image_gallery_saver: ^2.0.3
+#  image_gallery_saver: ^2.0.3
   photo_view: ^0.15.0 #unused?
   timezone: ^0.9.4
   numberpicker: ^2.1.2
