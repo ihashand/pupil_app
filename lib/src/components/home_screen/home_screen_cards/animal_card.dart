@@ -93,7 +93,7 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Expanded(
-                        flex: 3,
+                        flex: 9,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 5.0,
@@ -110,13 +110,11 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
                                 ),
                               ),
                               Text(
-                                pet.name.substring(
-                                    0,
-                                    pet.name.length < 5
-                                        ? pet.name.length
-                                        : 4), // TODO fix UI for longer names
+                                pet.name.length > 7
+                                    ? '${pet.name.substring(0, 6)}...'
+                                    : pet.name,
                                 style: const TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'San Francisco',
                                 ),
@@ -126,7 +124,7 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
                         ),
                       ),
                       Expanded(
-                        flex: 2,
+                        flex: 4,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
