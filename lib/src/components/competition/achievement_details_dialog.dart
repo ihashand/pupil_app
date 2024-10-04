@@ -17,18 +17,19 @@ class AchievementDetailsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final imageSize = screenSize.width * 0.6;
+    final imageSize = screenSize.width * 0.5;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(12.0),
+        Padding(
+          padding: const EdgeInsets.only(top: 15.0, bottom: 5),
           child: Text(
             'A C H I E V E M E N T',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
             ),
           ),
         ),
@@ -39,43 +40,29 @@ class AchievementDetailsDialog extends StatelessWidget {
           width: imageSize,
         ),
         Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  achievementName,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '🚶 Steps: $currentSteps / $totalSteps',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 18,
-                      ),
-                    ),
-                    Text(
-                      '⏳ Remaining: ${totalSteps - currentSteps}',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.only(bottom: 5.0, top: 20),
+          child: Text(
+            achievementName,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+        ),
+        Text(
+          '$totalSteps',
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+            fontSize: 18,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 15.0),
+          child: Text(
+            "S T E P S",
+            style: TextStyle(
+                fontSize: 9, color: Theme.of(context).primaryColorDark),
           ),
         ),
       ],

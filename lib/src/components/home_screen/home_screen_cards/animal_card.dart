@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/animated_paw_print.dart';
+import 'package:pet_diary/src/helpers/walk_strike.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
@@ -6,10 +9,12 @@ import 'package:pet_diary/src/screens/pet_details_screens/pet_details_screen.dar
 
 class AnimalCard extends ConsumerStatefulWidget {
   final Pet pet;
+  final List<EventWalkModel> walks;
 
   const AnimalCard({
     super.key,
     required this.pet,
+    required this.walks,
   });
 
   @override
@@ -25,14 +30,18 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
   @override
   Widget build(BuildContext context) {
     var pet = widget.pet;
+    var walks = widget.walks;
     var buttonColor = Colors.black;
     var maleColor = const Color(0xff68a2b6).withOpacity(0.6);
     var femaleColor = const Color(0xffff8a70).withOpacity(0.8);
+
     if (pet.gender == 'Male') {
       buttonColor = maleColor;
     } else if (pet.gender == 'Female') {
       buttonColor = femaleColor;
     }
+
+    WalkStrikeCalculator walkStrike = WalkStrikeCalculator.calculate(walks);
 
     return Padding(
       padding: const EdgeInsets.all(5.0),
@@ -79,31 +88,75 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
             SizedBox(
               height: 100,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        top: 7.0, bottom: 10.0, left: 10.0, right: 10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          calculateAge(pet.age),
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                            fontSize: 10,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 5.0,
+                            horizontal: 5.0,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                calculateAge(pet.age),
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark,
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Text(
+                                pet.name.substring(
+                                    0,
+                                    pet.name.length < 5
+                                        ? pet.name.length
+                                        : 4), // TODO fix UI for longer names
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'San Francisco',
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          pet.name,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'San Francisco',
-                          ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                AnimatedPawPrint(
+                                  isTodayExtended: walkStrike.extendedToday,
+                                  strike: walkStrike.strike,
+                                ),
+                                const SizedBox(width: 2),
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      walkStrike.strike.toString(),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10, left: 15),

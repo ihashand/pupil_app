@@ -61,6 +61,7 @@ dependencies:
   barcode_scan2: ^4.2.0
   reorderables: ^0.6.0
   shimmer: ^3.0.0
+  fluttertoast: ^8.2.8
 
 dev_dependencies:
   flutter_test:
@@ -80,10 +81,10 @@ flutter:
     - assets/images/achievements/natural/
     - assets/images/achievements/steps/
     - assets/images/achievements/fantasy/
-    - assets/images/events_type_cards/
-    - assets/images/dog_avatars/
     - assets/images/dog_backgrounds/
     - assets/images/events_type_cards_no_background/
+    - assets/images/dog_avatars/
+    - assets/images/events_type_cards/
     - assets/images/others/
     - assets/effects/
     - assets/images/achievements/seasonal/

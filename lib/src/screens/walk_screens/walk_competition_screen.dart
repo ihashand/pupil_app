@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/competition/achievement_details_dialog.dart';
 import 'package:pet_diary/src/components/competition/achievement_section.dart';
 import 'package:pet_diary/src/components/competition/competition_friends_leaderboard.dart';
+import 'package:pet_diary/src/providers/achievements_providers/achievements_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
@@ -19,6 +20,7 @@ class WalkCompetitionScreen extends ConsumerStatefulWidget {
 class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
   late TextEditingController searchController;
   String searchQuery = '';
+  List<int> selectedPetIndexes = [];
 
   @override
   void initState() {
@@ -35,6 +37,8 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
   void _selectDog(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor:
+          Theme.of(context).colorScheme.primary, // Kolor tła wyboru piesków
       builder: (BuildContext context) {
         return Consumer(
           builder: (context, ref, _) {
@@ -44,15 +48,149 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
               loading: () => const CircularProgressIndicator(),
               error: (err, stack) => const Text('Error fetching pets'),
               data: (pets) {
-                return ListView.builder(
-                  itemCount: pets.length,
-                  itemBuilder: (context, index) {
-                    final pet = pets[index];
-                    return ListTile(
-                      title: Text(pet.name),
-                      onTap: () {
-                        Navigator.pop(context, pet);
-                      },
+                return StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setModalState) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 25,
+                              right: 20,
+                              top: 15,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Select pet',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: selectedPetIndexes.isNotEmpty
+                                      ? () {
+                                          final selectedPets =
+                                              selectedPetIndexes
+                                                  .map((index) => pets[index])
+                                                  .toList();
+
+                                          ref
+                                              .read(activeWalkPetsProvider
+                                                  .notifier)
+                                              .state = selectedPets;
+
+                                          Navigator.pop(context);
+
+                                          final walkNotifier =
+                                              ref.read(walkProvider.notifier);
+                                          walkNotifier.stopWalk();
+                                          walkNotifier.startWalk();
+
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  WalkInProgressScreen(
+                                                pets: selectedPets,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      : null,
+                                  child: Text(
+                                    'Start Walk',
+                                    style: TextStyle(
+                                      color: selectedPetIndexes.isNotEmpty
+                                          ? Theme.of(context).primaryColorDark
+                                          : Colors.grey.withOpacity(0.5),
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Divider(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surface), // Kolor dividera
+                          Container(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary, // Kolor tła wyboru piesków
+                            child: pets.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'No dogs available to display.',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Add a dog to start a walk.',
+                                          style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .primaryColorDark),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 30),
+                                      ],
+                                    ),
+                                  )
+                                : Column(
+                                    children: pets
+                                        .map(
+                                          (pet) => GestureDetector(
+                                            onTap: () {
+                                              setModalState(() {
+                                                int index = pets.indexOf(pet);
+                                                if (selectedPetIndexes
+                                                    .contains(index)) {
+                                                  selectedPetIndexes
+                                                      .remove(index);
+                                                } else {
+                                                  selectedPetIndexes.add(index);
+                                                }
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: selectedPetIndexes
+                                                        .contains(
+                                                            pets.indexOf(pet))
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary // Kolor zaznaczonego pieska
+                                                    : Colors.transparent,
+                                              ),
+                                              child: ListTile(
+                                                leading: CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundImage: AssetImage(
+                                                      pet.avatarImage),
+                                                ),
+                                                title: Text(pet.name),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );
@@ -64,21 +202,31 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
     );
   }
 
-  void _showAchievementDetails(BuildContext context, String achievementName,
-      int currentSteps, int totalSteps, String assetPath) {
+  void _showAchievementDetails(BuildContext context, String petId) {
+    // Pobieranie aktualnych danych o osiągnięciach i krokach z bazy danych
+    final achievementProvider = ref.watch(seasonalAchievementProvider);
+    final petStepsProvider = ref.watch(petStepsProviderFamily(petId));
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: AchievementDetailsDialog(
-            achievementName: achievementName,
-            currentSteps: currentSteps,
-            totalSteps: totalSteps,
-            assetPath: assetPath,
-          ),
+        return achievementProvider.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (err, stack) => const Text('Error fetching achievements'),
+          data: (achievement) {
+            return petStepsProvider.when(
+              loading: () => const CircularProgressIndicator(),
+              error: (err, stack) => const Text('Error fetching steps'),
+              data: (currentSteps) {
+                return AchievementDetailsDialog(
+                  achievementName: achievement.name,
+                  currentSteps: currentSteps,
+                  totalSteps: achievement.stepsRequired,
+                  assetPath: achievement.avatarUrl,
+                );
+              },
+            );
+          },
         );
       },
     );
@@ -192,10 +340,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
               GestureDetector(
                 onTap: () => _showAchievementDetails(
                   context,
-                  "Achievement Name",
-                  45000,
-                  50000,
-                  'assets/achievement.png',
+                  ref.read(activeWalkPetsProvider).first.id,
                 ),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 1200),

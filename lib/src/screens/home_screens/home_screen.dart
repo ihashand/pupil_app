@@ -57,7 +57,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(
-                top: 25.0, left: 25.0, right: 25.0, bottom: 10),
+                top: 25.0, left: 22.0, right: 22.0, bottom: 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -214,6 +214,59 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ShakeAnimation extends StatefulWidget {
+  final Widget child;
+
+  const ShakeAnimation({super.key, required this.child});
+
+  @override
+  createState() => _ShakeAnimationState();
+}
+
+class _ShakeAnimationState extends State<ShakeAnimation>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _animationController;
+  Animation<Offset>? _offsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _offsetAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0.027, 0),
+    ).animate(CurvedAnimation(
+      parent: _animationController!,
+      curve: Curves.elasticIn,
+    ));
+
+    // Stop the animation after 7 seconds
+    Future.delayed(const Duration(seconds: 7), () {
+      if (mounted) {
+        _animationController?.stop();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _offsetAnimation!,
+      child: widget.child,
     );
   }
 }

@@ -36,7 +36,7 @@ class Popup extends StatelessWidget {
               error: (err, stack) => Text('Error fetching walks: $err'),
               data: (walks) {
                 List<EventWalkModel?> petWalks =
-                    walks.where((walk) => walk!.petId == petId).toList();
+                    walks.where((walk) => walk?.petId == petId).toList();
                 double steps = 0;
 
                 if (petWalks.isNotEmpty) {
