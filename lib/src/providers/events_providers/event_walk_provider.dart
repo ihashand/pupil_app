@@ -23,3 +23,7 @@ final eventWalksProvider =
     StreamProvider.family<List<EventWalkModel?>, String>((ref, petId) {
   return EventWalkService().getWalksForPet(petId);
 });
+
+final eventWalksProviderStream = StreamProvider<List<EventWalkModel?>>((ref) {
+  return EventWalkService().getWalksStream();
+});

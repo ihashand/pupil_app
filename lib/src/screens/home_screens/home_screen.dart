@@ -57,7 +57,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.only(
-                top: 25.0, left: 25.0, right: 25.0, bottom: 10),
+                top: 25.0, left: 22.0, right: 22.0, bottom: 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
