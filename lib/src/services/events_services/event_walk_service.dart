@@ -47,14 +47,10 @@ class EventWalkService {
     }
   }
 
-  Stream<List<EventWalkModel>> getWalksForPet(String petId) {
-    if (_currentUser == null) {
-      return Stream.value([]);
-    }
-
+  Stream<List<EventWalkModel>> getWalksForPet(String userId, String petId) {
     return _firestore
         .collection('app_users')
-        .doc(_currentUser.uid)
+        .doc(userId)
         .collection('pets')
         .doc(petId)
         .collection('event_walks')

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
@@ -30,8 +31,11 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    final asyncWalks = ref
+        .watch(eventWalksProviderFamily([currentUserId, widget.initialPet.id]));
     final asyncPets = ref.watch(petFriendServiceProvider(widget.userId));
-    final asyncWalks = ref.watch(eventWalksProvider(widget.initialPet.id));
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
@@ -20,7 +21,11 @@ class SummarySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, _) {
-      final asyncWalks = ref.watch(eventWalksProvider(petId));
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+      // Używaj nowego providera z userId i petId
+      final asyncWalks =
+          ref.watch(eventWalksProviderFamily([currentUserId, petId]));
 
       return asyncWalks.when(
         loading: () => const CircularProgressIndicator(),

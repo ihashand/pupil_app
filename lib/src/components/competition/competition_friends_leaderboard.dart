@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/helpers/extensions/string_extension.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/models/others/friend_model.dart';
@@ -98,38 +99,39 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
       List<Pet> pets, List<Friend> friends, WidgetRef ref) async {
     final List<Map<String, dynamic>> allPetsWithSteps = [];
 
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     // Zbieranie zwierząt użytkownika
     for (var pet in pets) {
-      final asyncWalks = ref.watch(eventWalksProvider(pet.id));
-      final walksData = asyncWalks.whenData((walks) {
-        final totalSteps =
-            walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
-        return {'pet': pet, 'steps': totalSteps};
-      }).value;
+      final walks = await ref
+          .read(eventWalksProviderFamily([currentUserId, pet.id]).future);
+      final totalSteps =
+          walks.fold(0.0, (sum, walk) => sum + (walk?.steps ?? 0)).round();
 
-      if (walksData != null) {
-        allPetsWithSteps.add(walksData);
-      }
+      allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
     }
 
-    // Zbieranie zwierząt znajomych
-    for (var friend in friends) {
-      // Pobierz zwierzęta znajomego
-      final friendPets =
-          await ref.read(friendPetsProvider(friend.friendId).future);
+    // Zbieranie zwierząt znajomych - pobieranie wszystkich zwierząt równocześnie
+    final List<Future<List<Pet>>> friendPetsFutures = friends
+        .map((friend) => ref.read(friendPetsProvider(friend.friendId).future))
+        .toList();
 
-      // Przetwarzanie zwierząt znajomych w taki sam sposób jak zwierząt użytkownika
+    // Pobierz wszystkie zwierzęta znajomych równolegle
+    final List<List<Pet>> friendsPetsList =
+        await Future.wait(friendPetsFutures);
+
+    // Dodaj zwierzęta znajomych do listy allPetsWithSteps
+    for (var i = 0; i < friends.length; i++) {
+      final friendPets = friendsPetsList[i];
+      final friendId = friends[i].friendId;
+
       for (var pet in friendPets) {
-        final asyncWalks = ref.watch(eventWalksProvider(pet.id));
-        final walksData = asyncWalks.whenData((walks) {
-          final totalSteps =
-              walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
-          return {'pet': pet, 'steps': totalSteps};
-        }).value;
+        final walks =
+            await ref.read(eventWalksProviderFamily([friendId, pet.id]).future);
+        final totalSteps =
+            walks.fold(0.0, (sum, walk) => sum + (walk?.steps ?? 0)).round();
 
-        if (walksData != null) {
-          allPetsWithSteps.add(walksData);
-        }
+        allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
       }
     }
 

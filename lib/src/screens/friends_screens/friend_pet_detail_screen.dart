@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
@@ -13,8 +14,11 @@ class FriendPetDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     final petAsyncValue = ref.watch(petFriendServiceProvider(petId));
-    final walksAsyncValue = ref.watch(eventWalksProvider(petId));
+    final walksAsyncValue =
+        ref.watch(eventWalksProviderFamily([currentUserId, petId]));
 
     return Scaffold(
       appBar: AppBar(

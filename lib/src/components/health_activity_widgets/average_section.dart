@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/components/health_activity_widgets/activity_data_row.dart';
@@ -19,7 +20,12 @@ class AverageSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, _) {
-      final asyncWalks = ref.watch(eventWalksProvider(petId));
+      // Pobierz aktualnego użytkownika
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+      // Używaj nowego providera z userId i petId
+      final asyncWalks =
+          ref.watch(eventWalksProviderFamily([currentUserId, petId]));
 
       return asyncWalks.when(
         loading: () => const CircularProgressIndicator(),
