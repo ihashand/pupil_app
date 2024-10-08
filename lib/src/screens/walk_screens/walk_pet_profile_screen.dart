@@ -5,6 +5,7 @@ import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
 
 class WalkPetProfileScreen extends ConsumerStatefulWidget {
@@ -39,16 +40,65 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
             _buildHeaderSection(context),
             _buildAchievementsSection(context),
             const SizedBox(height: 20),
-            _buildDataSection(
-              context,
-              title: 'Statistics',
-              content: _buildPetStatistics(context),
-            ),
+            _buildActionButtons(context),
             const SizedBox(height: 20),
-            _buildDataSection(
-              context,
-              title: 'Routes',
-              content: _buildPetRoutes(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          children: [
+            ListTile(
+              leading: Icon(Icons.bar_chart,
+                  color: Theme.of(context).primaryColorDark),
+              title: Text('Statistics',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => StatisticsScreen(
+                      initialPet: widget.pet,
+                      userId: widget.pet.userId,
+                      isSinglePetMode: true,
+                    ),
+                  ),
+                );
+              },
+            ),
+            Divider(
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            ListTile(
+              leading: Icon(Icons.directions_walk,
+                  color: Theme.of(context).primaryColorDark),
+              title: Text('Activity',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
+              onTap: () {},
+            ),
+            Divider(
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            ListTile(
+              leading:
+                  Icon(Icons.map, color: Theme.of(context).primaryColorDark),
+              title: Text('Routes',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
+              onTap: () {},
             ),
           ],
         ),
@@ -185,7 +235,7 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
           return const Text('Error fetching achievements');
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           List<Achievement> achievements = snapshot.data!;
-          achievements.shuffle(); // Shuffle the achievements for random order
+          achievements.shuffle();
           final displayAchievements =
               achievements.take(6).toList(); // Limit to 6
 
@@ -391,65 +441,9 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
     );
   }
 
-  Widget _buildDataSection(
-    BuildContext context, {
-    required String title,
-    required Widget content,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      height: 150,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: _sectionTitleStyle(context),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: content,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPetStatistics(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Steps: 5000', style: _infoTextStyle(context)),
-        Text('Distance: 10 km', style: _infoTextStyle(context)),
-      ],
-    );
-  }
-
-  Widget _buildPetRoutes(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('No routes available yet.', style: _infoTextStyle(context)),
-      ],
-    );
-  }
-
   TextStyle _infoTextStyle(BuildContext context, {bool isLarge = false}) {
     return TextStyle(
       fontSize: isLarge ? 16 : 14,
-      color: Theme.of(context).primaryColorDark,
-    );
-  }
-
-  TextStyle _sectionTitleStyle(BuildContext context) {
-    return TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.bold,
       color: Theme.of(context).primaryColorDark,
     );
   }

@@ -103,10 +103,11 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
 
     // Zbieranie zwierząt użytkownika
     for (var pet in pets) {
-      final walks = await ref
-          .read(eventWalksProviderFamily([currentUserId, pet.id]).future);
+      final walks = await ref.read(
+          eventWalksProviderFamily({'userId': currentUserId, 'petId': pet.id})
+              .future);
       final totalSteps =
-          walks.fold(0.0, (sum, walk) => sum + (walk?.steps ?? 0)).round();
+          walks.fold(0.0, (sum, walk) => sum + (walk.steps ?? 0)).round();
 
       allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
     }
@@ -126,10 +127,11 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
       final friendId = friends[i].friendId;
 
       for (var pet in friendPets) {
-        final walks =
-            await ref.read(eventWalksProviderFamily([friendId, pet.id]).future);
+        final walks = await ref.read(
+            eventWalksProviderFamily({'userId': friendId, 'petId': pet.id})
+                .future);
         final totalSteps =
-            walks.fold(0.0, (sum, walk) => sum + (walk?.steps ?? 0)).round();
+            walks.fold(0.0, (sum, walk) => sum + (walk.steps ?? 0)).round();
 
         allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
       }

@@ -24,15 +24,15 @@ class SummarySection extends StatelessWidget {
       final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
       // Używaj nowego providera z userId i petId
-      final asyncWalks =
-          ref.watch(eventWalksProviderFamily([currentUserId, petId]));
+      final asyncWalks = ref.watch(
+          eventWalksProviderFamily({'userId': currentUserId, 'petId': petId}));
 
       return asyncWalks.when(
         loading: () => const CircularProgressIndicator(),
         error: (err, stack) => Text('Error fetching walks: $err'),
         data: (walks) {
           List<EventWalkModel?> petWalks =
-              walks.where((walk) => walk?.petId == petId).toList();
+              walks.where((walk) => walk.petId == petId).toList();
 
           List<EventWalkModel?> filteredWalks;
           if (selectedView == 'D') {

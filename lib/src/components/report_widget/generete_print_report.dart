@@ -15,15 +15,17 @@ Future<void> generateAndPrintReport(
   final pdf = pw.Document();
   final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-  List<EventWalkModel> petWalks =
-      ref.watch(eventWalksProviderFamily([currentUserId, pet.id])).when(
-            data: (data) => data
-                .where((walk) => walk != null && walk.petId == pet.id)
-                .map((walk) => walk!)
-                .toList(),
-            loading: () => [],
-            error: (error, stack) => [],
-          );
+  List<EventWalkModel> petWalks = ref
+      .watch(
+          eventWalksProviderFamily({'userId': currentUserId, 'petId': pet.id}))
+      .when(
+        data: (data) => data
+            .where((walk) => walk.petId == pet.id)
+            .map((walk) => walk)
+            .toList(),
+        loading: () => [],
+        error: (error, stack) => [],
+      );
 
   List<EventWalkModel> filteredWalks = petWalks.where((walk) {
     return walk.dateTime.isAfter(dateRange.start) &&

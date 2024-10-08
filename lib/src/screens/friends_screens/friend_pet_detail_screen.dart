@@ -41,14 +41,14 @@ class FriendPetDetailScreen extends ConsumerWidget {
               walksAsyncValue.when(
                 data: (walks) {
                   final petWalks =
-                      walks.where((walk) => walk?.petId == petId).toList();
+                      walks.where((walk) => walk.petId == petId).toList();
                   return ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: petWalks.length,
                     itemBuilder: (context, index) {
                       final walk = petWalks[index];
-                      return _buildActivityTile(context, walk!);
+                      return _buildActivityTile(context, walk);
                     },
                   );
                 },
