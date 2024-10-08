@@ -114,10 +114,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                               ],
                             ),
                           ),
-                          Divider(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surface), // Kolor dividera
+                          Divider(color: Theme.of(context).colorScheme.surface),
                           Container(
                             color: Theme.of(context)
                                 .colorScheme
@@ -167,13 +164,13 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                                             child: Container(
                                               padding: const EdgeInsets.all(10),
                                               decoration: BoxDecoration(
-                                                color: selectedPetIndexes
-                                                        .contains(
+                                                color:
+                                                    selectedPetIndexes.contains(
                                                             pets.indexOf(pet))
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary // Kolor zaznaczonego pieska
-                                                    : Colors.transparent,
+                                                        ? Theme.of(context)
+                                                            .colorScheme
+                                                            .secondary
+                                                        : Colors.transparent,
                                               ),
                                               child: ListTile(
                                                 leading: CircleAvatar(
@@ -203,7 +200,6 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
   }
 
   void _showAchievementDetails(BuildContext context, String petId) {
-    // Pobieranie aktualnych danych o osiągnięciach i krokach z bazy danych
     final achievementProvider = ref.watch(seasonalAchievementProvider);
     final petStepsProvider = ref.watch(petStepsProviderFamily(petId));
 

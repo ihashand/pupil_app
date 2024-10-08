@@ -59,20 +59,29 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                     loading: () => const CircularProgressIndicator(),
                     error: (err, stack) => const Text('Error fetching friends'),
                     data: (friends) {
-                      final allPetsWithSteps = [];
+                      return FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _collectAllPetsWithSteps(pets, friends, ref),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return const Text(
+                                'Error fetching pets and friends');
+                          } else {
+                            final allPetsWithSteps = snapshot.data ?? [];
+                            // Sortowanie zwierząt po krokach
+                            allPetsWithSteps.sort(
+                                (a, b) => b['steps'].compareTo(a['steps']));
 
-                      _collectAllPetsWithSteps(
-                          pets, friends, ref, allPetsWithSteps);
-
-                      // Sortowanie zwierząt po krokach
-                      allPetsWithSteps
-                          .sort((a, b) => b['steps'].compareTo(a['steps']));
-
-                      return _buildPetList(
-                        allPetsWithSteps.cast<Map<String, dynamic>>(),
-                        context,
-                        ref,
-                        seasonalAchievement,
+                            return _buildPetList(
+                              allPetsWithSteps.cast<Map<String, dynamic>>(),
+                              context,
+                              ref,
+                              seasonalAchievement,
+                            );
+                          }
+                        },
                       );
                     },
                   );
@@ -85,43 +94,46 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
     );
   }
 
-  void _collectAllPetsWithSteps(List<Pet> pets, List<Friend> friends,
-      WidgetRef ref, List allPetsWithSteps) {
+  Future<List<Map<String, dynamic>>> _collectAllPetsWithSteps(
+      List<Pet> pets, List<Friend> friends, WidgetRef ref) async {
+    final List<Map<String, dynamic>> allPetsWithSteps = [];
+
+    // Zbieranie zwierząt użytkownika
     for (var pet in pets) {
       final asyncWalks = ref.watch(eventWalksProvider(pet.id));
       final walksData = asyncWalks.whenData((walks) {
         final totalSteps =
             walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
-        if (totalSteps >= 1000) {
-          return {'pet': pet, 'steps': totalSteps};
-        }
-        return null;
-      });
-      if (walksData.value != null) {
-        allPetsWithSteps.add(walksData.value);
+        return {'pet': pet, 'steps': totalSteps};
+      }).value;
+
+      if (walksData != null) {
+        allPetsWithSteps.add(walksData);
       }
     }
 
+    // Zbieranie zwierząt znajomych
     for (var friend in friends) {
-      final friendPetsFuture =
-          ref.read(petServiceProvider).getPetsFriendFuture(friend.friendId);
-      friendPetsFuture.then((friendPets) {
-        for (var pet in friendPets) {
-          final asyncWalks = ref.watch(eventWalksProvider(pet.id));
-          final walksData = asyncWalks.whenData((walks) {
-            final totalSteps =
-                walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
-            if (totalSteps >= 1000) {
-              return {'pet': pet, 'steps': totalSteps};
-            }
-            return null;
-          });
-          if (walksData.value != null) {
-            allPetsWithSteps.add(walksData.value);
-          }
+      // Pobierz zwierzęta znajomego
+      final friendPets =
+          await ref.read(friendPetsProvider(friend.friendId).future);
+
+      // Przetwarzanie zwierząt znajomych w taki sam sposób jak zwierząt użytkownika
+      for (var pet in friendPets) {
+        final asyncWalks = ref.watch(eventWalksProvider(pet.id));
+        final walksData = asyncWalks.whenData((walks) {
+          final totalSteps =
+              walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
+          return {'pet': pet, 'steps': totalSteps};
+        }).value;
+
+        if (walksData != null) {
+          allPetsWithSteps.add(walksData);
         }
-      });
+      }
     }
+
+    return allPetsWithSteps;
   }
 
   Widget _buildPetList(
@@ -278,13 +290,12 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
           Container(
             height: 20,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface, // Kolor tła paska
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
           FractionallySizedBox(
-            widthFactor:
-                progressPercentage % 1, // Obsługuje pełny cykl i nadwyżkę
+            widthFactor: progressPercentage % 1,
             child: Container(
               height: 20,
               decoration: BoxDecoration(
