@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friends_notifier_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
@@ -12,12 +11,14 @@ class FriendRequestsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = FirebaseAuth.instance.currentUser;
-    final friendRequests = ref.watch(friendRequestsProvider).value ?? [];
+    final friendRequests = ref.watch(friendRequestsNotifierProvider);
 
-    if (user == null || friendRequests.isEmpty) {
+    if (friendRequests.isEmpty) {
       return Container();
     }
+
+    final displayedRequests = friendRequests.take(3).toList();
+    final hasMoreRequests = friendRequests.length > 3;
 
     return Card(
       margin: const EdgeInsets.all(10.0),
@@ -68,7 +69,7 @@ class FriendRequestsCard extends ConsumerWidget {
             Divider(
               color: Theme.of(context).colorScheme.secondary,
             ),
-            for (var request in friendRequests)
+            for (var request in displayedRequests)
               Consumer(
                 builder: (context, ref, child) {
                   final userAsyncValue =
@@ -88,12 +89,71 @@ class FriendRequestsCard extends ConsumerWidget {
                         user.email,
                         style: const TextStyle(fontSize: 11),
                       ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.check),
+                            color: Colors.green,
+                            onPressed: () async {
+                              ref
+                                  .read(friendRequestsNotifierProvider.notifier)
+                                  .acceptFriendRequest(
+                                    request.fromUserId,
+                                    request.toUserId,
+                                  );
+                            },
+                          ),
+                          const SizedBox(width: 15),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            color: Colors.red,
+                            onPressed: () async {
+                              ref
+                                  .read(friendRequestsNotifierProvider.notifier)
+                                  .declineFriendRequest(
+                                    request.fromUserId,
+                                    request.toUserId,
+                                  );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                     loading: () => const CircularProgressIndicator(),
                     error: (error, stack) => Text('Error: $error'),
                   );
                 },
               ),
+            if (hasMoreRequests) ...[
+              const Divider(),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Theme.of(context).primaryColorDark,
+                    backgroundColor: const Color(0xff68a2b6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FriendsScreen(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'See all requests',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
