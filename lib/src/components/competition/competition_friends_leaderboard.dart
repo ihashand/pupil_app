@@ -174,7 +174,7 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    PetProfileScreen(pet: pet),
+                                    WalkPetProfileScreen(pet: pet),
                               ),
                             );
                           },

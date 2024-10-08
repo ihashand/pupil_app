@@ -4,20 +4,20 @@ import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
 
-class PetProfileScreen extends StatefulWidget {
+class WalkPetProfileScreen extends ConsumerStatefulWidget {
   final Pet pet;
 
-  const PetProfileScreen({required this.pet, super.key});
+  const WalkPetProfileScreen({required this.pet, super.key});
 
   @override
-  createState() => _PetProfileScreenState();
+  createState() => _WalkPetProfileScreenState();
 }
 
-class _PetProfileScreenState extends State<PetProfileScreen> {
+class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
   String selectedCategory = 'all';
-  bool showCategories = false;
 
   @override
   Widget build(BuildContext context) {
@@ -33,34 +33,25 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      body: Column(
-        children: [
-          _buildHeaderSection(context),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  if (showCategories) _buildAchievementsCategoryFilter(context),
-                  const SizedBox(height: 10),
-                  // _buildDetailsButton(context), //todo: musze cos pomyslec jak to przerobic, ale brak weny dzisiaj :(
-                  _buildAchievementsSection(context),
-                  const SizedBox(height: 20),
-                  _buildDataSection(
-                    context,
-                    title: 'Statistics',
-                    content: _buildPetStatistics(context),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildDataSection(
-                    context,
-                    title: 'Routes',
-                    content: _buildPetRoutes(context),
-                  ),
-                ],
-              ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildHeaderSection(context),
+            _buildAchievementsSection(context),
+            const SizedBox(height: 20),
+            _buildDataSection(
+              context,
+              title: 'Statistics',
+              content: _buildPetStatistics(context),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            _buildDataSection(
+              context,
+              title: 'Routes',
+              content: _buildPetRoutes(context),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -78,73 +69,70 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           bottomRight: Radius.circular(25),
         ),
       ),
-      padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Divider(color: Theme.of(context).colorScheme.surface),
-          const SizedBox(height: 10),
+          Divider(
+            thickness: 1.0,
+            color: Theme.of(context).colorScheme.surface,
+          ),
           CircleAvatar(
             backgroundImage: AssetImage(widget.pet.avatarImage),
             radius: 70,
           ),
-          const SizedBox(height: 20),
-          _buildPetDetailsRow(context),
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: _buildPetDetailsRow(context),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDetailsButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          showCategories = !showCategories;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-      child: Text(
-        showCategories ? 'Hide Details' : 'Show Details',
-        style: TextStyle(
-          color: Theme.of(context).primaryColorDark,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
   Widget _buildPetDetailsRow(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildDetailItem(
-          context,
-          emoji: '🐶',
-          label: 'Breed',
-          value: widget.pet.breed,
-        ),
-        GestureDetector(
-          onTap: () {
-            _showBirthdayToast(widget.pet.age);
-          },
-          child: _buildDetailItem(
-            context,
-            emoji: '🎂',
-            label: 'Age',
-            value: _calculateAge(widget.pet.age),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: _buildDetailItem(
+                context,
+                emoji: '🐶',
+                label: 'Breed',
+                value: widget.pet.breed,
+              ),
+            ),
           ),
-        ),
-        _buildDetailItem(
-          context,
-          emoji: widget.pet.gender == 'Male' ? '♂️' : '♀️',
-          label: 'Gender',
-          value: widget.pet.gender,
-        ),
-      ],
+          Expanded(
+            child: Align(
+              alignment: Alignment.center,
+              child: GestureDetector(
+                onTap: () {
+                  _showBirthdayToast(widget.pet.age);
+                },
+                child: _buildDetailItem(
+                  context,
+                  emoji: '🎂',
+                  label: 'Age',
+                  value: _calculateAge(widget.pet.age),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: _buildDetailItem(
+                context,
+                emoji: widget.pet.gender == 'Male' ? '♂️' : '♀️',
+                label: 'Gender',
+                value: widget.pet.gender,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -187,47 +175,6 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     );
   }
 
-  Widget _buildAchievementsCategoryFilter(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildCategoryButton(context, 'all'),
-        const SizedBox(width: 10),
-        _buildCategoryButton(context, 'steps'),
-        const SizedBox(width: 10),
-        _buildCategoryButton(context, 'nature'),
-        const SizedBox(width: 10),
-        _buildCategoryButton(context, 'seasonal'),
-      ],
-    );
-  }
-
-  Widget _buildCategoryButton(BuildContext context, String category) {
-    bool isSelected = selectedCategory == category;
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          selectedCategory = category;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected
-            ? Theme.of(context).colorScheme.secondary
-            : Theme.of(context).colorScheme.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-      child: Text(
-        category.toUpperCase(),
-        style: TextStyle(
-          color: Theme.of(context).primaryColorDark,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
   Widget _buildAchievementsSection(BuildContext context) {
     return FutureBuilder<List<Achievement>>(
       future: _fetchAchievements(widget.pet.achievementIds ?? []),
@@ -237,13 +184,76 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
         } else if (snapshot.hasError) {
           return const Text('Error fetching achievements');
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          final filteredAchievements = snapshot.data!
-              .where((achievement) =>
-                  selectedCategory == 'all' ||
-                  achievement.category == selectedCategory)
-              .toList();
+          List<Achievement> achievements = snapshot.data!;
+          achievements.shuffle(); // Shuffle the achievements for random order
+          final displayAchievements =
+              achievements.take(6).toList(); // Limit to 6
 
-          return _buildAchievementsRow(context, filteredAchievements);
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0),
+                      child: Text(
+                        "A c h i e v e m e n t s",
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColorDark),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 5.0),
+                      child: TextButton(
+                        onPressed: () {
+                          _showAllAchievementsMenu(context, achievements);
+                        },
+                        child: Text(
+                          'S e e  A l l',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: displayAchievements.map((achievement) {
+                    // Random color generation
+                    Color randomColor = Colors.primaries[
+                        (achievement.hashCode % Colors.primaries.length)];
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: randomColor
+                              .withOpacity(0.3), // Apply random color
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: FriendsAchievementCard(
+                          context: context,
+                          achievement: achievement,
+                          petsWithAchievement: [widget.pet],
+                          isAchieved: true,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          );
         } else {
           return const Text('No achievements found');
         }
@@ -266,25 +276,117 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     return achievements;
   }
 
-  Widget _buildAchievementsRow(
+  void _showAllAchievementsMenu(
       BuildContext context, List<Achievement> achievements) {
-    return SizedBox(
-      height: 280,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: achievements.length,
-        itemBuilder: (context, index) {
-          final achievement = achievements[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-            child: FriendsAchievementCard(
-              context: context,
-              achievement: achievement,
-              petsWithAchievement: [widget.pet],
-              isAchieved: true,
-            ),
-          );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (BuildContext context) {
+        return FractionallySizedBox(
+          heightFactor: 0.85,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              List<Achievement> filteredAchievements =
+                  achievements.where((achievement) {
+                return selectedCategory == 'all' ||
+                    achievement.category == selectedCategory;
+              }).toList();
+
+              double itemHeight = 280;
+              final double itemWidth =
+                  MediaQuery.of(context).size.width / 2 - 20;
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text(
+                          'Achievements',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close,
+                            color: Theme.of(context).primaryColorDark),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildCategoryButton(context, setState, 'all'),
+                          _buildCategoryButton(context, setState, 'steps'),
+                          _buildCategoryButton(context, setState, 'nature'),
+                          _buildCategoryButton(context, setState, 'seasonal'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: itemWidth / itemHeight,
+                      ),
+                      itemCount: filteredAchievements.length,
+                      itemBuilder: (context, index) {
+                        final achievement = filteredAchievements[index];
+                        return FriendsAchievementCard(
+                          context: context,
+                          achievement: achievement,
+                          petsWithAchievement: [widget.pet],
+                          isAchieved: true,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryButton(
+      BuildContext context, StateSetter setState, String category) {
+    bool isSelected = selectedCategory == category;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            selectedCategory = category;
+          });
         },
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Theme.of(context).primaryColorDark,
+          backgroundColor: isSelected
+              ? Theme.of(context).colorScheme.secondary
+              : Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        child: Text(
+          category.toUpperCase(),
+          style: TextStyle(
+              color: Theme.of(context).primaryColorDark, fontSize: 12),
+        ),
       ),
     );
   }
