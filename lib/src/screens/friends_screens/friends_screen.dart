@@ -22,7 +22,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   @override
   void initState() {
     super.initState();
-    ref.read(friendsProvider.notifier).loadFriends();
+    ref.read(friendsNotifierProvider.notifier).loadFriends();
   }
 
   void _searchFriend() async {
@@ -36,7 +36,9 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
   }
 
   void _sendFriendRequest(AppUserModel friend) async {
-    await ref.read(friendsProvider.notifier).sendFriendRequest(friend.id);
+    await ref
+        .read(friendsNotifierProvider.notifier)
+        .sendFriendRequest(friend.id);
     _searchController.clear();
     setState(() {
       _searchResult = null;
@@ -45,7 +47,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
 
   void _acceptFriendRequest(String fromUserId, String toUserId) async {
     await ref
-        .read(friendsProvider.notifier)
+        .read(friendsNotifierProvider.notifier)
         .acceptFriendRequest(fromUserId, toUserId);
     ref.invalidate(friendRequestsStreamProvider);
     ref.invalidate(friendsStreamProvider);
@@ -53,9 +55,8 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
 
   void _declineFriendRequest(String fromUserId, String toUserId) async {
     await ref
-        .read(friendsProvider.notifier)
-        .declineFriendRequest(fromUserId, toUserId);
-    ref.invalidate(friendRequestsStreamProvider);
+        .read(friendsNotifierProvider.notifier)
+        .cancelFriendRequest(fromUserId, toUserId);
   }
 
   void _removeFriend(String friendId) async {
@@ -86,7 +87,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
       );
 
       if (shouldRemove ?? false) {
-        await ref.read(friendsProvider.notifier).removeFriend(friendId);
+        await ref.read(friendsNotifierProvider.notifier).removeFriend(friendId);
         ref.invalidate(friendsStreamProvider);
       }
     }

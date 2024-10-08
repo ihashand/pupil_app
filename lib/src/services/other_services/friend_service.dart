@@ -43,41 +43,79 @@ class FriendService {
         .collection('app_users')
         .doc(correctId)
         .collection('friends')
-        .add(friend.toMap());
+        .doc(friend.id)
+        .set(friend.toMap());
   }
 
   Future<void> removeFriend(String friendId) async {
-    final currentUserId = _currentUser!.uid;
-
     final currentUserFriendDocs = await _firestore
         .collection('app_users')
-        .doc(_currentUser.uid)
+        .doc(_currentUser!.uid)
         .collection('friends')
-        .where('userId', isEqualTo: currentUserId)
         .where('friendId', isEqualTo: friendId)
         .get();
 
     for (var doc in currentUserFriendDocs.docs) {
-      await _firestore.collection('friends').doc(doc.id).delete();
+      await doc.reference.delete();
     }
 
     final friendDocs = await _firestore
         .collection('app_users')
-        .doc(_currentUser.uid)
+        .doc(friendId)
         .collection('friends')
-        .where('userId', isEqualTo: friendId)
-        .where('friendId', isEqualTo: currentUserId)
+        .where('friendId', isEqualTo: _currentUser.uid)
         .get();
 
     for (var doc in friendDocs.docs) {
-      await _firestore.collection('friends').doc(doc.id).delete();
+      await doc.reference.delete();
     }
   }
 
   Future<void> sendFriendRequest(String toUserId) async {
     final currentUserId = _currentUser!.uid;
-    final timestamp = Timestamp.now();
 
+    // Sprawdzenie, czy zaproszenie już istnieje (w obie strony)
+    final existingRequest = await _firestore
+        .collection('app_users')
+        .doc(toUserId)
+        .collection('friend_requests')
+        .where('fromUserId', isEqualTo: currentUserId)
+        .get();
+
+    if (existingRequest.docs.isNotEmpty) {
+      print('Zaproszenie zostało już wysłane.');
+      return;
+    }
+
+    // Sprawdzenie, czy użytkownik jest już znajomym (w obie strony)
+    final existingFriend = await _firestore
+        .collection('app_users')
+        .doc(currentUserId)
+        .collection('friends')
+        .where('friendId', isEqualTo: toUserId)
+        .get();
+
+    if (existingFriend.docs.isNotEmpty) {
+      print('Użytkownik jest już Twoim znajomym.');
+      return;
+    }
+
+    // Sprawdzenie, czy toUserId wysłał już zaproszenie do currentUserId
+    final reverseRequest = await _firestore
+        .collection('app_users')
+        .doc(currentUserId)
+        .collection('friend_requests')
+        .where('fromUserId', isEqualTo: toUserId)
+        .get();
+
+    if (reverseRequest.docs.isNotEmpty) {
+      print(
+          'Masz już zaproszenie od tego użytkownika, możesz je zaakceptować.');
+      return;
+    }
+
+    // Jeśli nie ma duplikatów, dodaj nowe zaproszenie
+    final timestamp = Timestamp.now();
     await _firestore
         .collection('app_users')
         .doc(toUserId)
@@ -89,53 +127,47 @@ class FriendService {
     });
   }
 
-  Future<void> cancelFriendRequest(String toUserId) async {
+  Future<void> cancelFriendRequest(String fromUserId, String toUserId) async {
+    final friendRequestDoc = await _firestore
+        .collection('app_users')
+        .doc(toUserId)
+        .collection('friend_requests')
+        .where('fromUserId', isEqualTo: fromUserId)
+        .get();
+
+    for (var doc in friendRequestDoc.docs) {
+      await doc.reference.delete();
+    }
+  }
+
+  Future<void> acceptFriendRequest(String fromUserId, String toUserId) async {
+    await cancelFriendRequest(fromUserId, toUserId);
+
+    // Add friend 1st time (fromUserId -> toUserId)
+    await addFriend(
+        Friend(
+          id: fromUserId,
+          friendId: fromUserId,
+          userId: toUserId,
+        ),
+        toUserId);
+
+    // Add friend 2nd time (toUserId -> fromUserId)
+    await addFriend(
+        Friend(id: toUserId, friendId: toUserId, userId: fromUserId),
+        fromUserId);
+  }
+
+  Future<bool> hasPendingRequest(String toUserId) async {
     final currentUserId = _currentUser!.uid;
-    final querySnapshot = await _firestore
+
+    final existingRequest = await _firestore
         .collection('app_users')
         .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: currentUserId)
         .get();
 
-    for (var doc in querySnapshot.docs) {
-      await doc.reference.delete();
-    }
-  }
-
-  Future<void> acceptFriendRequest(String fromUserId, String toUserId) async {
-    await addFriend(
-        Friend(
-          id: '',
-          friendId: fromUserId,
-          userId: toUserId,
-        ),
-        toUserId);
-    await addFriend(
-        Friend(id: '', friendId: toUserId, userId: fromUserId), fromUserId);
-
-    final friendRequestDoc = await _firestore
-        .collection('app_users')
-        .doc(toUserId)
-        .collection('friend_requests')
-        .where('fromUserId', isEqualTo: fromUserId)
-        .get();
-
-    for (var doc in friendRequestDoc.docs) {
-      await doc.reference.delete();
-    }
-  }
-
-  Future<void> declineFriendRequest(String fromUserId, String toUserId) async {
-    final friendRequestDoc = await _firestore
-        .collection('app_users')
-        .doc(toUserId)
-        .collection('friend_requests')
-        .where('fromUserId', isEqualTo: fromUserId)
-        .get();
-
-    for (var doc in friendRequestDoc.docs) {
-      await doc.reference.delete();
-    }
+    return existingRequest.docs.isNotEmpty;
   }
 }
