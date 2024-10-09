@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
-import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
+import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
 
 class WalkPetProfileScreen extends ConsumerStatefulWidget {
   final Pet pet;
@@ -39,9 +39,7 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
           children: [
             _buildHeaderSection(context),
             _buildAchievementsSection(context),
-            const SizedBox(height: 20),
             _buildActionButtons(context),
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -50,7 +48,7 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
 
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 0),
+      padding: const EdgeInsets.fromLTRB(10.0, 15, 10, 35),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
@@ -236,8 +234,7 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
           List<Achievement> achievements = snapshot.data!;
           achievements.shuffle();
-          final displayAchievements =
-              achievements.take(6).toList(); // Limit to 6
+          final displayAchievements = achievements.take(6).toList();
 
           return Column(
             children: [
@@ -279,7 +276,6 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: displayAchievements.map((achievement) {
-                    // Random color generation
                     Color randomColor = Colors.primaries[
                         (achievement.hashCode % Colors.primaries.length)];
 
@@ -287,11 +283,10 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 2.0),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: randomColor
-                              .withOpacity(0.3), // Apply random color
+                          color: randomColor.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        child: FriendsAchievementCard(
+                        child: AchievementCard(
                           context: context,
                           achievement: achievement,
                           petsWithAchievement: [widget.pet],
@@ -394,7 +389,7 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
                       itemCount: filteredAchievements.length,
                       itemBuilder: (context, index) {
                         final achievement = filteredAchievements[index];
-                        return FriendsAchievementCard(
+                        return AchievementCard(
                           context: context,
                           achievement: achievement,
                           petsWithAchievement: [widget.pet],

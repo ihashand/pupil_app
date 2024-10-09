@@ -18,7 +18,7 @@ import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
-import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
+import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:pet_diary/src/components/report_widget/generate_report_card.dart';
@@ -500,7 +500,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                 return pet.achievementIds!.contains(achievement.id);
               }).toList();
 
-              return FriendsAchievementCard(
+              return AchievementCard(
                 context: context,
                 achievement: achievement,
                 petsWithAchievement: petsWithAchievement,
@@ -732,32 +732,52 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               return const Center(child: Text('Error loading achievements.'));
             }
 
-            // Wyświetlamy zdobyte achievementy nad przyciskami
+            // Wyświetlamy losowe 6 achievementów z kolorowymi ramkami
+            final achievementsList = uniqueAchievements.entries.toList()
+              ..shuffle();
+            final displayAchievements = achievementsList.take(6).toList();
+
             return Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SectionTitle(title: "Achievements"),
-                    TextButton(
-                      onPressed: () {
-                        _showAchievementsMenu(context, userId, pets);
-                      },
-                      child: Text(
-                        'See All',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15.0),
+                        child: Text(
+                          "A c h i e v e m e n t s",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5.0),
+                        child: TextButton(
+                          onPressed: () {
+                            _showAchievementsMenu(context, userId, pets);
+                          },
+                          child: Text(
+                            'S e e  A l l',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: uniqueAchievements.entries.map((entry) {
+                    children: displayAchievements.map((entry) {
                       final achievementId = entry.key;
                       final petsWithAchievement = entry.value;
 
@@ -774,14 +794,24 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                           }
 
                           final achievementData = snapshot.data!;
-                          return GestureDetector(
-                            onTap: () => _showAchievementDetail(
-                                context, achievementData, true),
-                            child: FriendsAchievementCard(
-                              context: context,
-                              achievement: achievementData,
-                              petsWithAchievement: petsWithAchievement,
-                              isAchieved: true,
+                          Color randomColor = Colors.primaries[
+                              (achievementData.hashCode %
+                                  Colors.primaries.length)];
+
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: randomColor.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: AchievementCard(
+                                context: context,
+                                achievement: achievementData,
+                                petsWithAchievement: petsWithAchievement,
+                                isAchieved: true,
+                              ),
                             ),
                           );
                         },
