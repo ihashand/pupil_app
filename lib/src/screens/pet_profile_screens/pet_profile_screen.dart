@@ -8,16 +8,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
 
-class WalkPetProfileScreen extends ConsumerStatefulWidget {
+class PetProfileScreen extends ConsumerStatefulWidget {
   final Pet pet;
 
-  const WalkPetProfileScreen({required this.pet, super.key});
+  const PetProfileScreen({required this.pet, super.key});
 
   @override
-  createState() => _WalkPetProfileScreenState();
+  createState() => _PetProfileScreenState();
 }
 
-class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
+class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   String selectedCategory = 'all';
 
   @override
@@ -260,10 +260,10 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
                           _showAllAchievementsMenu(context, achievements);
                         },
                         child: Text(
-                          'S e e  A l l',
+                          'S e e  a l l',
                           style: TextStyle(
                             color: Theme.of(context).primaryColorDark,
-                            fontSize: 13,
+                            fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -338,28 +338,43 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
                     achievement.category == selectedCategory;
               }).toList();
 
-              double itemHeight = 280;
-              final double itemWidth =
-                  MediaQuery.of(context).size.width / 2 - 20;
               return Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            top: 18.0, left: 20, bottom: 2),
                         child: Text(
-                          'Achievements',
+                          'A C H I E V E M E N T S',
                           style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark),
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.close,
-                            color: Theme.of(context).primaryColorDark),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                      Padding(
+                        padding: const EdgeInsets.only(top: 18.0, right: 16),
+                        child: CircleAvatar(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          radius: 15,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.close,
+                                size: 22,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              padding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -380,11 +395,10 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
                   Expanded(
                     child: GridView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: itemWidth / itemHeight,
+                        childAspectRatio: 0.72,
                       ),
                       itemCount: filteredAchievements.length,
                       itemBuilder: (context, index) {
@@ -421,7 +435,7 @@ class _WalkPetProfileScreenState extends ConsumerState<WalkPetProfileScreen> {
         style: ElevatedButton.styleFrom(
           foregroundColor: Theme.of(context).primaryColorDark,
           backgroundColor: isSelected
-              ? Theme.of(context).colorScheme.secondary
+              ? Theme.of(context).colorScheme.inversePrimary
               : Theme.of(context).colorScheme.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),

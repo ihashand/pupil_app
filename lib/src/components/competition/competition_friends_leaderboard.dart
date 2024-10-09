@@ -107,7 +107,7 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
           eventWalksProviderFamily({'userId': currentUserId, 'petId': pet.id})
               .future);
       final totalSteps =
-          walks.fold(0.0, (sum, walk) => sum + (walk.steps ?? 0)).round();
+          walks.fold(0.0, (sum, walk) => sum + (walk.steps)).round();
 
       allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
     }
@@ -131,7 +131,7 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
             eventWalksProviderFamily({'userId': friendId, 'petId': pet.id})
                 .future);
         final totalSteps =
-            walks.fold(0.0, (sum, walk) => sum + (walk.steps ?? 0)).round();
+            walks.fold(0.0, (sum, walk) => sum + (walk.steps)).round();
 
         allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
       }
@@ -176,7 +176,7 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    WalkPetProfileScreen(pet: pet),
+                                    PetProfileScreen(pet: pet),
                               ),
                             );
                           },
