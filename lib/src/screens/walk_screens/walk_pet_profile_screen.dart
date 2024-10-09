@@ -94,29 +94,6 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
     );
   }
 
-  Widget _buildDetailsButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          showCategories = !showCategories;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-      child: Text(
-        showCategories ? 'Hide Details' : 'Show Details',
-        style: TextStyle(
-          color: Theme.of(context).primaryColorDark,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
   Widget _buildPetDetailsRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,

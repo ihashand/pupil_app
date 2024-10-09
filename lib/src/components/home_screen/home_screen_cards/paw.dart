@@ -4,14 +4,13 @@ class Paw extends StatefulWidget {
   final Color color;
   final int index;
 
-  const Paw({Key? key, required this.color, required this.index})
-      : super(key: key);
+  const Paw({super.key, required this.color, required this.index});
 
   @override
-  _PawState createState() => _PawState();
+  PawState createState() => PawState();
 }
 
-class _PawState extends State<Paw> with SingleTickerProviderStateMixin {
+class PawState extends State<Paw> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
   bool isFirstIteration = true; // Flag to track the first iteration
