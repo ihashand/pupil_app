@@ -341,7 +341,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 1200),
                   curve: Curves.easeInOut,
-                  height: 250,
+                  height: 150,
                   child: const AchievementSection(),
                 ),
               ),

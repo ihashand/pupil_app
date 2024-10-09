@@ -15,10 +15,9 @@ class FriendPetDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
     final petAsyncValue = ref.watch(petFriendServiceProvider(petId));
-    final walksAsyncValue =
-        ref.watch(eventWalksProviderFamily([currentUserId, petId]));
+    final walksAsyncValue = ref.watch(
+        eventWalksProviderFamily({'userId': currentUserId, 'petId': petId}));
 
     return Scaffold(
       appBar: AppBar(
