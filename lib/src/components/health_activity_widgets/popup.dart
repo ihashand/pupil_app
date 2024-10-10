@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
@@ -29,14 +30,18 @@ class Popup extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Consumer(builder: (context, ref, _) {
-            final asyncWalks = ref.watch(eventWalksProvider(petId));
+            final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+            // Używaj nowego providera z userId i petId
+            final asyncWalks = ref.watch(eventWalksProviderFamily(
+                {'userId': currentUserId, 'petId': petId}));
 
             return asyncWalks.when(
               loading: () => const CircularProgressIndicator(),
               error: (err, stack) => Text('Error fetching walks: $err'),
               data: (walks) {
                 List<EventWalkModel?> petWalks =
-                    walks.where((walk) => walk?.petId == petId).toList();
+                    walks.where((walk) => walk.petId == petId).toList();
                 double steps = 0;
 
                 if (petWalks.isNotEmpty) {

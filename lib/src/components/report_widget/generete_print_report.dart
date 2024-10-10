@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -12,11 +13,15 @@ import '../../providers/events_providers/event_walk_provider.dart';
 Future<void> generateAndPrintReport(
     WidgetRef ref, Pet pet, DateTimeRange dateRange) async {
   final pdf = pw.Document();
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-  List<EventWalkModel> petWalks = ref.read(eventWalksProvider(pet.id)).when(
+  List<EventWalkModel> petWalks = ref
+      .watch(
+          eventWalksProviderFamily({'userId': currentUserId, 'petId': pet.id}))
+      .when(
         data: (data) => data
-            .where((walk) => walk != null && walk.petId == pet.id)
-            .map((walk) => walk!)
+            .where((walk) => walk.petId == pet.id)
+            .map((walk) => walk)
             .toList(),
         loading: () => [],
         error: (error, stack) => [],

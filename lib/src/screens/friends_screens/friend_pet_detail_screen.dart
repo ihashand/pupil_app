@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
@@ -13,8 +14,10 @@ class FriendPetDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final petAsyncValue = ref.watch(petFriendServiceProvider(petId));
-    final walksAsyncValue = ref.watch(eventWalksProvider(petId));
+    final walksAsyncValue = ref.watch(
+        eventWalksProviderFamily({'userId': currentUserId, 'petId': petId}));
 
     return Scaffold(
       appBar: AppBar(
@@ -37,14 +40,14 @@ class FriendPetDetailScreen extends ConsumerWidget {
               walksAsyncValue.when(
                 data: (walks) {
                   final petWalks =
-                      walks.where((walk) => walk?.petId == petId).toList();
+                      walks.where((walk) => walk.petId == petId).toList();
                   return ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: petWalks.length,
                     itemBuilder: (context, index) {
                       final walk = petWalks[index];
-                      return _buildActivityTile(context, walk!);
+                      return _buildActivityTile(context, walk);
                     },
                   );
                 },

@@ -37,8 +37,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
   void _selectDog(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor:
-          Theme.of(context).colorScheme.primary, // Kolor tła wyboru piesków
+      backgroundColor: Theme.of(context).colorScheme.primary,
       builder: (BuildContext context) {
         return Consumer(
           builder: (context, ref, _) {
@@ -114,14 +113,9 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                               ],
                             ),
                           ),
-                          Divider(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surface), // Kolor dividera
+                          Divider(color: Theme.of(context).colorScheme.surface),
                           Container(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary, // Kolor tła wyboru piesków
+                            color: Theme.of(context).colorScheme.primary,
                             child: pets.isEmpty
                                 ? Center(
                                     child: Column(
@@ -167,13 +161,13 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                                             child: Container(
                                               padding: const EdgeInsets.all(10),
                                               decoration: BoxDecoration(
-                                                color: selectedPetIndexes
-                                                        .contains(
+                                                color:
+                                                    selectedPetIndexes.contains(
                                                             pets.indexOf(pet))
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .secondary // Kolor zaznaczonego pieska
-                                                    : Colors.transparent,
+                                                        ? Theme.of(context)
+                                                            .colorScheme
+                                                            .secondary
+                                                        : Colors.transparent,
                                               ),
                                               child: ListTile(
                                                 leading: CircleAvatar(
@@ -203,7 +197,6 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
   }
 
   void _showAchievementDetails(BuildContext context, String petId) {
-    // Pobieranie aktualnych danych o osiągnięciach i krokach z bazy danych
     final achievementProvider = ref.watch(seasonalAchievementProvider);
     final petStepsProvider = ref.watch(petStepsProviderFamily(petId));
 
@@ -336,7 +329,6 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
               GestureDetector(
                 onTap: () => _showAchievementDetails(
                   context,
@@ -345,11 +337,11 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 1200),
                   curve: Curves.easeInOut,
-                  height: 250,
+                  height: 200,
                   child: const AchievementSection(),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 5),
               CompetitionFriendsLeaderboard(
                 isExpanded: true,
                 onExpandToggle: () {},

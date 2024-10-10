@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flame/palette.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
@@ -18,15 +15,14 @@ import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_achievement_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
-import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
+import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
 import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:pet_diary/src/components/report_widget/generate_report_card.dart';
 import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:pet_diary/src/screens/pet_profile_screens/pet_profile_screen.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -44,7 +40,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
   late List<BarChartGroupData> barGroups;
   String selectedCategory = 'all';
   ConfettiController? _confettiController;
-  final ScreenshotController _screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -270,19 +265,29 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                   itemCount: userPets.length,
                   itemBuilder: (context, index) {
                     final pet = userPets[index];
-                    return Container(
-                      margin: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: AssetImage(pet.avatarImage),
-                          radius: 35,
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PetProfileScreen(pet: pet),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        title: Text(pet.name),
-                        subtitle: Text('Age: ${calculateAge(pet.age)}'),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 35,
+                          ),
+                          title: Text(pet.name),
+                          subtitle: Text('Age: ${calculateAge(pet.age)}'),
+                        ),
                       ),
                     );
                   },
@@ -297,6 +302,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
     );
   }
 
+  // Reszta kodu pozostała bez zmian - kontynuacja w następnej odpowiedzi...
   Future<Achievement> _getAchievementById(String achievementId) async {
     return achievements.firstWhere(
       (achievement) => achievement.id == achievementId,
@@ -319,13 +325,15 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Padding(
-                        padding:
-                            EdgeInsets.only(top: 18.0, left: 16, bottom: 2),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            top: 18.0, left: 20, bottom: 2),
                         child: Text(
-                          'Achievements',
+                          'A C H I E V E M E N T S',
                           style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark),
                         ),
                       ),
                       Padding(
@@ -354,13 +362,16 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 10),
-                    child: Row(
-                      children: [
-                        _buildCategoryButton(context, setState, 'all'),
-                        _buildCategoryButton(context, setState, 'steps'),
-                        _buildCategoryButton(context, setState, 'nature'),
-                        _buildCategoryButton(context, setState, 'seasonal'),
-                      ],
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildCategoryButton(context, setState, 'all'),
+                          _buildCategoryButton(context, setState, 'steps'),
+                          _buildCategoryButton(context, setState, 'nature'),
+                          _buildCategoryButton(context, setState, 'seasonal'),
+                        ],
+                      ),
                     ),
                   ),
                   Divider(
@@ -388,6 +399,126 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                           final achievedIds = snapshot.data!;
                           return ListView(
                             children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '🎯',
+                                                style: TextStyle(fontSize: 60),
+                                              ),
+                                            ],
+                                          ),
+                                          FutureBuilder<int>(
+                                            future:
+                                                _countAchievementsInCategory(
+                                                    userId,
+                                                    selectedCategory,
+                                                    pets),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return const Text('...');
+                                              } else if (snapshot.hasError) {
+                                                return const Text('Error');
+                                              }
+                                              final count = snapshot.data ?? 0;
+                                              final total =
+                                                  _getTotalAchievementsForCategory(
+                                                      selectedCategory);
+                                              return Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    '$count/$total',
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Theme.of(context)
+                                                          .primaryColorDark,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    'Total achievements earned',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Theme.of(context)
+                                                          .primaryColorDark,
+                                                    ),
+                                                    textAlign: TextAlign.left,
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 20),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              FutureBuilder<double>(
+                                                future:
+                                                    _calculateAchievementPercentage(
+                                                        userId,
+                                                        selectedCategory,
+                                                        pets),
+                                                builder: (context, snapshot) {
+                                                  if (snapshot
+                                                          .connectionState ==
+                                                      ConnectionState.waiting) {
+                                                    return const CircularProgressIndicator();
+                                                  } else if (snapshot
+                                                      .hasError) {
+                                                    return const Text('Error');
+                                                  } else if (!snapshot
+                                                      .hasData) {
+                                                    return const Text(
+                                                        'No data');
+                                                  }
+
+                                                  final percentage =
+                                                      snapshot.data!;
+                                                  return Text(
+                                                    _getAchievementEmoticon(
+                                                        percentage),
+                                                    style: const TextStyle(
+                                                        fontSize: 50),
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          _getMotivationalTextWidget(),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 15),
                               _buildAchievementsCategory(context, userId,
                                   selectedCategory, achievedIds, pets),
                             ],
@@ -403,6 +534,96 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         );
       },
     );
+  }
+
+  Widget _getMotivationalTextWidget() {
+    final motivationalTexts = [
+      'Great start, keep it up!',
+      'Amazing effort, don’t stop now!',
+      'Incredible progress, well done!',
+      'One step at a time, keep going!',
+      'No limits, just possibilities!',
+      'Stay strong, you’re almost there!',
+      'Success is right around the corner!',
+      'Keep the momentum going, you’ve got this!',
+      'Believe in yourself and push forward!',
+      'Consistency is key, don’t give up!',
+      'Every step counts towards your goal!',
+      'You’re closer than you think!',
+      'Make today your best day yet!',
+      'Persistence pays off, keep pushing!',
+      'Great things take time, stay focused!',
+    ];
+
+    final randomText =
+        motivationalTexts[Random().nextInt(motivationalTexts.length)];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Text(
+        randomText,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).primaryColorDark,
+        ),
+        textAlign: TextAlign.left,
+      ),
+    );
+  }
+
+  Future<int> _countAchievementsInCategory(
+      String userId, String category, List<Pet> pets) async {
+    final achievements = await _getUserAchievementIdsForAllPets(userId, pets);
+
+    if (category == 'all') {
+      // Count achievements across all categories
+      return achievements.length;
+    } else {
+      // Count achievements in the specific category
+      return achievements
+          .where((id) => _getCategoryById(id) == category)
+          .length;
+    }
+  }
+
+  int _getTotalAchievementsForCategory(String category) {
+    if (category == 'all') {
+      // Return the total achievements count across all categories
+      return achievements.length;
+    } else {
+      // Return the count for the specific category
+      return achievements
+          .where((achievement) => achievement.category == category)
+          .length;
+    }
+  }
+
+  String _getCategoryById(String achievementId) {
+    return achievements
+        .firstWhere((achievement) => achievement.id == achievementId)
+        .category;
+  }
+
+  Future<double> _calculateAchievementPercentage(
+      String userId, String category, List<Pet> pets) async {
+    final total = _getTotalAchievementsForCategory(category);
+    if (total == 0) return 0;
+    final count = await _countAchievementsInCategory(userId, category, pets);
+    return (count / total) * 100;
+  }
+
+  String _getAchievementEmoticon(double percentage) {
+    if (percentage < 10) return '💪';
+    if (percentage < 20) return '🔥';
+    if (percentage < 30) return '🏆';
+    if (percentage < 40) return '🚀';
+    if (percentage < 50) return '💯';
+    if (percentage < 60) return '🎉';
+    if (percentage < 70) return '🌟';
+    if (percentage < 80) return '🏅';
+    if (percentage < 90) return '⭐';
+    return '👑';
   }
 
   Future<Set<String>> _getUserAchievementIdsForAllPets(
@@ -443,7 +664,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
         style: ElevatedButton.styleFrom(
           foregroundColor: Theme.of(context).primaryColorDark,
           backgroundColor: isSelected
-              ? const Color(0xff68a2b6)
+              ? Theme.of(context).colorScheme.inversePrimary
               : Theme.of(context).colorScheme.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
@@ -477,19 +698,12 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0, bottom: 10),
-            child: Text(
-              category.toUpperCase(),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 0.68,
+              childAspectRatio: 0.72,
             ),
             itemCount: categoryAchievements.length,
             itemBuilder: (context, index) {
@@ -500,7 +714,7 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                 return pet.achievementIds!.contains(achievement.id);
               }).toList();
 
-              return FriendsAchievementCard(
+              return AchievementCard(
                 context: context,
                 achievement: achievement,
                 petsWithAchievement: petsWithAchievement,
@@ -510,126 +724,6 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showAchievementDetail(
-      BuildContext context, Achievement achievement, bool hasAchieved) {
-    if (hasAchieved) {
-      _confettiController?.play();
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      CircleAvatar(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.secondary,
-                        radius: 15,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.close,
-                              size: 22,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Screenshot(
-                    controller: _screenshotController,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(25.0),
-                          child: CircleAvatar(
-                            backgroundImage: AssetImage(achievement.avatarUrl),
-                            radius: 100,
-                          ),
-                        ),
-                        Text(
-                          achievement.name,
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          achievement.description,
-                          style: const TextStyle(fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(160, 40),
-                      foregroundColor: Theme.of(context).primaryColorDark,
-                      backgroundColor: Theme.of(context).colorScheme.secondary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    onPressed: () async {
-                      final Uint8List? imageBytes =
-                          await _screenshotController.capture();
-                      if (imageBytes != null) {
-                        final tempDir = await getTemporaryDirectory();
-                        final file =
-                            await File('${tempDir.path}/achievement.png')
-                                .create();
-                        await file.writeAsBytes(imageBytes);
-                        final XFile xFile = XFile(file.path);
-                        Share.shareXFiles([xFile],
-                            text:
-                                'I unlocked the achievement ${achievement.name}!\n\n${achievement.description}');
-                      }
-                    },
-                    child: Text(
-                      'Share',
-                      style:
-                          TextStyle(color: Theme.of(context).primaryColorDark),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (hasAchieved)
-              ConfettiWidget(
-                confettiController: _confettiController!,
-                blastDirectionality: BlastDirectionality.directional,
-                shouldLoop: false,
-                blastDirection: -pi / 2,
-                maxBlastForce: 30,
-                minBlastForce: 15,
-                gravity: 0.03,
-                colors: const [
-                  Color(0xffdfd785),
-                  Color(0xff68a2b6),
-                ],
-              ),
-          ],
-        );
-      },
     );
   }
 
@@ -708,10 +802,8 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
           return const Center(child: Text('No pets found.'));
         }
 
-        // Lista do przechowywania wszystkich zdobytych achievementów
         Map<String, List<Pet>> uniqueAchievements = {};
 
-        // Pobierz zdobyte achievementy dla każdego zwierzaka
         final futures = pets.map((pet) async {
           final petAchievements =
               await ref.read(petAchievementsProvider(pet.id).future);
@@ -732,32 +824,51 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
               return const Center(child: Text('Error loading achievements.'));
             }
 
-            // Wyświetlamy zdobyte achievementy nad przyciskami
+            final achievementsList = uniqueAchievements.entries.toList()
+              ..shuffle();
+            final displayAchievements = achievementsList.take(6).toList();
+
             return Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SectionTitle(title: "Achievements"),
-                    TextButton(
-                      onPressed: () {
-                        _showAchievementsMenu(context, userId, pets);
-                      },
-                      child: Text(
-                        'See All',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15.0),
+                        child: Text(
+                          "A c h i e v e m e n t s",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5.0),
+                        child: TextButton(
+                          onPressed: () {
+                            _showAchievementsMenu(context, userId, pets);
+                          },
+                          child: Text(
+                            'S e e  a l l',
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: uniqueAchievements.entries.map((entry) {
+                    children: displayAchievements.map((entry) {
                       final achievementId = entry.key;
                       final petsWithAchievement = entry.value;
 
@@ -774,14 +885,24 @@ class _FriendProfileScreenState extends ConsumerState<FriendProfileScreen> {
                           }
 
                           final achievementData = snapshot.data!;
-                          return GestureDetector(
-                            onTap: () => _showAchievementDetail(
-                                context, achievementData, true),
-                            child: FriendsAchievementCard(
-                              context: context,
-                              achievement: achievementData,
-                              petsWithAchievement: petsWithAchievement,
-                              isAchieved: true,
+                          Color randomColor = Colors.primaries[
+                              (achievementData.hashCode %
+                                  Colors.primaries.length)];
+
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: randomColor.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: AchievementCard(
+                                context: context,
+                                achievement: achievementData,
+                                petsWithAchievement: petsWithAchievement,
+                                isAchieved: true,
+                              ),
                             ),
                           );
                         },

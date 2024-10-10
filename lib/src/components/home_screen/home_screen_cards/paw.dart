@@ -7,7 +7,7 @@ class Paw extends StatefulWidget {
   const Paw({super.key, required this.color, required this.index});
 
   @override
-  PawState createState() => PawState();
+  createState() => PawState();
 }
 
 class PawState extends State<Paw> with SingleTickerProviderStateMixin {
