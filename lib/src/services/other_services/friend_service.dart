@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pet_diary/src/models/others/friend_model.dart';
 import 'package:pet_diary/src/models/others/friend_request_model.dart';
 
@@ -83,7 +84,9 @@ class FriendService {
         .get();
 
     if (existingRequest.docs.isNotEmpty) {
-      print('Zaproszenie zostało już wysłane.');
+      if (kDebugMode) {
+        print('Zaproszenie zostało już wysłane.');
+      }
       return;
     }
 
@@ -96,7 +99,9 @@ class FriendService {
         .get();
 
     if (existingFriend.docs.isNotEmpty) {
-      print('Użytkownik jest już Twoim znajomym.');
+      if (kDebugMode) {
+        print('Użytkownik jest już Twoim znajomym.');
+      }
       return;
     }
 
@@ -109,8 +114,10 @@ class FriendService {
         .get();
 
     if (reverseRequest.docs.isNotEmpty) {
-      print(
-          'Masz już zaproszenie od tego użytkownika, możesz je zaakceptować.');
+      if (kDebugMode) {
+        print(
+            'Masz już zaproszenie od tego użytkownika, możesz je zaakceptować.');
+      }
       return;
     }
 

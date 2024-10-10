@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/helpers/extensions/string_extension.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:pet_diary/src/models/others/friend_model.dart';
@@ -9,7 +10,7 @@ import 'package:pet_diary/src/providers/achievements_providers/achievements_prov
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
-import 'package:pet_diary/src/screens/walk_screens/walk_pet_profile_screen.dart';
+import 'package:pet_diary/src/screens/pet_profile_screens/pet_profile_screen.dart';
 
 class CompetitionFriendsLeaderboard extends ConsumerWidget {
   final bool isExpanded;
@@ -59,20 +60,29 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
                     loading: () => const CircularProgressIndicator(),
                     error: (err, stack) => const Text('Error fetching friends'),
                     data: (friends) {
-                      final allPetsWithSteps = [];
+                      return FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _collectAllPetsWithSteps(pets, friends, ref),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return const Text(
+                                'Error fetching pets and friends');
+                          } else {
+                            final allPetsWithSteps = snapshot.data ?? [];
+                            // Sortowanie zwierząt po krokach
+                            allPetsWithSteps.sort(
+                                (a, b) => b['steps'].compareTo(a['steps']));
 
-                      _collectAllPetsWithSteps(
-                          pets, friends, ref, allPetsWithSteps);
-
-                      // Sortowanie zwierząt po krokach
-                      allPetsWithSteps
-                          .sort((a, b) => b['steps'].compareTo(a['steps']));
-
-                      return _buildPetList(
-                        allPetsWithSteps.cast<Map<String, dynamic>>(),
-                        context,
-                        ref,
-                        seasonalAchievement,
+                            return _buildPetList(
+                              allPetsWithSteps.cast<Map<String, dynamic>>(),
+                              context,
+                              ref,
+                              seasonalAchievement,
+                            );
+                          }
+                        },
                       );
                     },
                   );
@@ -85,43 +95,49 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
     );
   }
 
-  void _collectAllPetsWithSteps(List<Pet> pets, List<Friend> friends,
-      WidgetRef ref, List allPetsWithSteps) {
+  Future<List<Map<String, dynamic>>> _collectAllPetsWithSteps(
+      List<Pet> pets, List<Friend> friends, WidgetRef ref) async {
+    final List<Map<String, dynamic>> allPetsWithSteps = [];
+
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    // Zbieranie zwierząt użytkownika
     for (var pet in pets) {
-      final asyncWalks = ref.watch(eventWalksProvider(pet.id));
-      final walksData = asyncWalks.whenData((walks) {
+      final walks = await ref.read(
+          eventWalksProviderFamily({'userId': currentUserId, 'petId': pet.id})
+              .future);
+      final totalSteps =
+          walks.fold(0.0, (sum, walk) => sum + (walk.steps)).round();
+
+      allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
+    }
+
+    // Zbieranie zwierząt znajomych - pobieranie wszystkich zwierząt równocześnie
+    final List<Future<List<Pet>>> friendPetsFutures = friends
+        .map((friend) => ref.read(friendPetsProvider(friend.friendId).future))
+        .toList();
+
+    // Pobierz wszystkie zwierzęta znajomych równolegle
+    final List<List<Pet>> friendsPetsList =
+        await Future.wait(friendPetsFutures);
+
+    // Dodaj zwierzęta znajomych do listy allPetsWithSteps
+    for (var i = 0; i < friends.length; i++) {
+      final friendPets = friendsPetsList[i];
+      final friendId = friends[i].friendId;
+
+      for (var pet in friendPets) {
+        final walks = await ref.read(
+            eventWalksProviderFamily({'userId': friendId, 'petId': pet.id})
+                .future);
         final totalSteps =
-            walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
-        if (totalSteps >= 1000) {
-          return {'pet': pet, 'steps': totalSteps};
-        }
-        return null;
-      });
-      if (walksData.value != null) {
-        allPetsWithSteps.add(walksData.value);
+            walks.fold(0.0, (sum, walk) => sum + (walk.steps)).round();
+
+        allPetsWithSteps.add({'pet': pet, 'steps': totalSteps});
       }
     }
 
-    for (var friend in friends) {
-      final friendPetsFuture =
-          ref.read(petServiceProvider).getPetsFriendFuture(friend.friendId);
-      friendPetsFuture.then((friendPets) {
-        for (var pet in friendPets) {
-          final asyncWalks = ref.watch(eventWalksProvider(pet.id));
-          final walksData = asyncWalks.whenData((walks) {
-            final totalSteps =
-                walks.fold(0.0, (sum, walk) => sum + walk!.steps).round();
-            if (totalSteps >= 1000) {
-              return {'pet': pet, 'steps': totalSteps};
-            }
-            return null;
-          });
-          if (walksData.value != null) {
-            allPetsWithSteps.add(walksData.value);
-          }
-        }
-      });
-    }
+    return allPetsWithSteps;
   }
 
   Widget _buildPetList(
@@ -278,13 +294,12 @@ class CompetitionFriendsLeaderboard extends ConsumerWidget {
           Container(
             height: 20,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface, // Kolor tła paska
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(10),
             ),
           ),
           FractionallySizedBox(
-            widthFactor:
-                progressPercentage % 1, // Obsługuje pełny cykl i nadwyżkę
+            widthFactor: progressPercentage % 1,
             child: Container(
               height: 20,
               decoration: BoxDecoration(

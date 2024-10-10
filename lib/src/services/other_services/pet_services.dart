@@ -75,8 +75,9 @@ class PetService {
 
   Future<List<Pet>> getPetsByUserId(String userId) async {
     final snapshot = await _firestore
+        .collection('app_users')
+        .doc(userId)
         .collection('pets')
-        .where('userId', isEqualTo: userId)
         .get();
     return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
   }

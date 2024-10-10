@@ -47,7 +47,7 @@ class EventWalkService {
     }
   }
 
-  Stream<List<EventWalkModel>> getWalksForPet(String petId) {
+  Stream<List<EventWalkModel>> getWalksForUserPet(String petId) {
     if (_currentUser == null) {
       return Stream.value([]);
     }
@@ -55,6 +55,22 @@ class EventWalkService {
     return _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
+        .collection('pets')
+        .doc(petId)
+        .collection('event_walks')
+        .orderBy('dateTime', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => EventWalkModel.fromDocument(doc))
+          .toList();
+    });
+  }
+
+  Stream<List<EventWalkModel>> getWalksForPet(String userId, String petId) {
+    return _firestore
+        .collection('app_users')
+        .doc(userId)
         .collection('pets')
         .doc(petId)
         .collection('event_walks')
