@@ -4,7 +4,7 @@ import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
+// import 'package:pet_diary/src/screens/friends_screens/friends_achievement_card.dart';
 
 class PetProfileScreen extends StatefulWidget {
   final Pet pet;
@@ -254,12 +254,12 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
           final achievement = achievements[index];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2.0),
-            child: FriendsAchievementCard(
-              context: context,
-              achievement: achievement,
-              petsWithAchievement: [widget.pet],
-              isAchieved: true,
-            ),
+            // child: FriendsAchievementCard(
+            //   context: context,
+            //   achievement: achievement,
+            //   petsWithAchievement: [widget.pet],
+            //   isAchieved: true,
+            // ),
           );
         },
       ),

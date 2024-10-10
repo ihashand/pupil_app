@@ -62,7 +62,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         id: userCredential.user!.uid,
         email: email,
         username: userName,
-        avatarUrl: 'assets/images/dog_avatar_09.png',
+        avatarUrl: 'assets/images/beagle.png',
       );
 
       await ref.read(appUserServiceProvider).addAppUser(appUser);

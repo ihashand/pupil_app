@@ -48,6 +48,10 @@
 	<string>This application tracks your steps</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) would like to access your photo library.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key> 		<!-- gal library key-->
+	<string>This app needs access to your photo library to save edited photos</string>
+	<key>NSPhotoLibraryUsageDescription</key>		<!-- gal library key-->
+	<string>This app needs access to your photo library to select photos for your profile.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>We need your consent to track ads</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
