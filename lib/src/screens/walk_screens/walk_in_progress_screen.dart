@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
+import 'package:image_picker/image_picker.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
@@ -26,6 +29,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   int? _selectedPetIndex;
   Timer? _hideNameTimer;
   apple_maps.AppleMapController? _mapController;
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _photos = [];
+  final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
@@ -129,13 +135,12 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               controller: _scrollController,
               child: Column(
                 children: [
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 25),
                   _buildProgressBarWithDetailsConteiner(
                       context, walkState, walkNotifier),
-                  const SizedBox(height: 10),
-                  _buildNotesContainer(),
-                  const SizedBox(height: 10),
-                  _buildPhotosContainer(),
+                  const SizedBox(height: 15),
+                  _buildNotesAndPhotosContainer(),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
@@ -233,13 +238,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                               Color(0xff68a2b6)),
                         ),
                       ),
-                      Icon(
-                        Icons.pets,
-                        size: 24,
-                        color: Theme.of(context)
-                            .primaryColorDark
-                            .withOpacity(0.65),
-                      ),
+                      Icon(Icons.pets,
+                          size: 24, color: Theme.of(context).primaryColorDark),
                     ],
                   ),
                 ),
@@ -337,7 +337,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                                   borderRadius: BorderRadius.circular(8),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
+                                      color: Colors.black,
                                       spreadRadius: 1,
                                       blurRadius: 5,
                                     ),
@@ -450,7 +450,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   Widget _buildBottomBar(
       BuildContext context, WalkNotifier walkNotifier, WalkState walkState) {
     return BottomAppBar(
-      height: 50,
+      height: 60,
       color: Theme.of(context).colorScheme.primary,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -467,11 +467,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 ),
               ),
               child: Text(
-                'End Walk',
+                'F I N I S H',
                 style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).primaryColorDark,
-                ),
+                    fontSize: 13,
+                    color: Theme.of(context).primaryColorDark,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -487,11 +487,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 ),
               ),
               child: Text(
-                walkState.isPaused ? 'Resume' : 'Pause',
+                walkState.isPaused ? 'R E S U M E' : 'P A U S E',
                 style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).primaryColorDark,
-                ),
+                    fontSize: 13,
+                    color: Theme.of(context).primaryColorDark,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -506,13 +506,16 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       child: Container(
         padding: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: const TextField(
+          maxLines: null, // Pozwala na wieloliniowe wpisywanie tekstu
+          keyboardType: TextInputType.multiline,
           decoration: InputDecoration(
-            labelText: 'Notes',
-            border: OutlineInputBorder(),
+            hintText: 'Notatki',
+            hintStyle: TextStyle(color: Colors.grey),
+            border: InputBorder.none,
           ),
         ),
       ),
@@ -525,17 +528,304 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       child: Container(
         padding: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _buildAddPhotoButton(),
+                const SizedBox(width: 10),
+                ..._buildPhotoPreviews(),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _closeKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
+  Widget _buildNotesAndPhotosContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
+        decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Container(
-          height: 100,
-          color: Colors.grey[300],
-          child: const Center(
-            child: Text('Photo Section'),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildAddPhotoButton(),
+                  const SizedBox(width: 10),
+                  ..._buildPhotoPreviews(),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: TextField(
+                      controller: _notesController,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      decoration: const InputDecoration(
+                        hintText: 'Take notes...',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 1,
+                    right: 1,
+                    child: SizedBox(
+                      width: 70,
+                      height: 28,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: _closeKeyboard,
+                        child: Text(
+                          'D O N E',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAddPhotoButton() {
+    return GestureDetector(
+      onTap: () {
+        if (_photos.length >= 3) {
+          _showMaxPhotosDialog();
+        } else {
+          _showImageSourceActionSheet();
+        }
+      },
+      child: Container(
+        width: 100,
+        height: 80,
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).primaryColorDark),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt,
+              color: Theme.of(context).primaryColorDark,
+            ),
+            Text(
+              'Add photos',
+              style: TextStyle(color: Theme.of(context).primaryColorDark),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMaxPhotosDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Text(
+            'Maximum of 3 photos allowed.',
+            style: TextStyle(
+                color: Theme.of(context).primaryColorDark,
+                fontSize: 16,
+                fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                'Close',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galeria'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Kamera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? image = await _picker.pickImage(source: source);
+    if (image != null && _photos.length < 3) {
+      setState(() {
+        _photos.add(image);
+      });
+    }
+  }
+
+  List<Widget> _buildPhotoPreviews() {
+    return _photos.map((photo) {
+      return GestureDetector(
+        onTap: () {
+          _showPhotoPreview(photo);
+        },
+        child: Container(
+          width: 100,
+          height: 80,
+          margin: const EdgeInsets.only(right: 10),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(
+              image: FileImage(File(photo.path)),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  void _showPhotoPreview(XFile photo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: SizedBox(
+            width: 350,
+            height: 350,
+            child: Image.file(
+              File(photo.path),
+              fit: BoxFit.contain,
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: 120,
+                  height: 40,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Close',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: 120,
+                  height: 40,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _photos.remove(photo);
+                      });
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
