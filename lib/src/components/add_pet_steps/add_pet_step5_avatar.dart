@@ -87,9 +87,9 @@ class AddPetStep5AvatarState extends State<AddPetStep5Avatar>
     String backgroundImage = '';
 
     if (widget.petGender == 'Male') {
-      backgroundImage = 'assets/images/dog_details_background_04.png';
+      backgroundImage = 'assets/images/dog_backgrounds/dog_details_background_04.png';
     } else if (widget.petGender == 'Female') {
-      backgroundImage = 'assets/images/dog_details_background_06.png';
+      backgroundImage = 'assets/images/dog_backgrounds/dog_details_background_06.png';
     }
 
     return Scaffold(
