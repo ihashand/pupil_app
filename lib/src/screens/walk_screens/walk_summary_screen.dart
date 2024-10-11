@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
-import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
+import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';

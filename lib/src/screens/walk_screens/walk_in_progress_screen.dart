@@ -1,20 +1,12 @@
-// ignore_for_file: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member, use_build_context_synchronously
-
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
-import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
-import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
-import 'package:gal/gal.dart';
+import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
+import 'package:geolocator/geolocator.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -29,10 +21,15 @@ class WalkInProgressScreen extends ConsumerStatefulWidget {
 class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  final MapController _mapController = MapController();
   final ScrollController _scrollController = ScrollController();
-  final List<File> _images = [];
-  bool _showDetails = false;
+  String? selectedPetName;
+  String? _selectedPetName;
+  int? _selectedPetIndex;
+  Timer? _hideNameTimer;
+  apple_maps.AppleMapController? _mapController;
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _photos = [];
+  final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
@@ -41,106 +38,35 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_mapController != null) {
+        _goToCurrentLocation(_mapController!);
+      }
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _scrollController.dispose();
+    _hideNameTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    if (_images.length >= 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You can only add up to 5 images.')),
-      );
-      return;
-    }
-
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      final compressedImage = await _compressImage(File(pickedFile.path));
-      final uniqueFileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${path.basename(compressedImage.path)}';
-      final directory = await getApplicationDocumentsDirectory();
-      final newPath = path.join(directory.path, uniqueFileName);
-      final newFile = await File(compressedImage.path).copy(newPath);
-      setState(() {
-        _images.add(newFile);
-      });
+  void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
+    String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
+    bool confirm = await _showConfirmationDialog(context, action);
+    if (confirm) {
+      walkNotifier.pauseWalk();
     }
   }
 
-  Future<XFile> _compressImage(File file) async {
-    final dir = await getTemporaryDirectory();
-    final targetPath = '${dir.absolute.path}/temp.jpg';
-
-    final result = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      targetPath,
-      quality: 70,
-    );
-
-    return result!;
-  }
-
-  void _showImageDialog(BuildContext context, File image) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Stack(
-            children: [
-              Image.file(image),
-              Positioned(
-                right: 10,
-                top: 10,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _images.remove(image);
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.red,
-                    size: 30,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 10,
-                bottom: 10,
-                child: GestureDetector(
-                  onTap: () async {
-                    try {
-                      await Gal.putImage(image.path);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Image saved to gallery!')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to save image.')),
-                      );
-                    }
-                    Navigator.pop(context);
-                  },
-                  child: const Icon(
-                    Icons.file_download,
-                    color: Colors.green,
-                    size: 30,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
+    bool confirm = await _showConfirmationDialog(context, 'End');
+    if (confirm) {
+      walkNotifier.stopWalk();
+      Navigator.of(context).pop();
+    }
   }
 
   Future<bool> _showConfirmationDialog(
@@ -176,33 +102,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
-    String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
-    bool confirm = await _showConfirmationDialog(context, action);
-    if (confirm) {
-      walkNotifier.pauseWalk();
-    }
-  }
-
-  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
-    bool confirm = await _showConfirmationDialog(context, 'End');
-    if (confirm) {
-      walkNotifier.stopWalk();
-      final petIds = widget.pets.map((pet) => pet.id).toList();
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WalkSummaryScreen(
-            images: _images,
-            walkState: walkNotifier.state,
-            petIds: petIds,
-          ),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final walkState = ref.watch(walkProvider);
@@ -212,540 +111,810 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text(
-          'W A L K',
+          'A C T I V E  W A L K',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
             color: Theme.of(context).primaryColorDark,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _showDetails ? Icons.expand_less : Icons.expand_more,
-              color: Theme.of(context).primaryColorDark,
-              size: 24,
-            ),
-            onPressed: () {
-              setState(() {
-                _showDetails = !_showDetails;
-              });
-            },
-          ),
-        ],
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(15),
-                  bottomRight: Radius.circular(15)),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            child: Column(
-              children: [
-                Divider(
-                    color: Theme.of(context).colorScheme.secondary, height: 1),
-                Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SizedBox(
-                      height: 220,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: walkState.routePoints.isNotEmpty
-                                ? walkState.routePoints.last
-                                : const LatLng(51.5, -0.09),
-                            initialZoom: 16.0,
-                            minZoom: 5,
-                            maxZoom: 25,
-                            onPositionChanged:
-                                (MapCamera camera, bool hasGesture) {
-                              setState(() {
-                                _mapController.move(camera.center, camera.zoom);
-                              });
-                            },
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                              subdomains: const ['a', 'b', 'c'],
-                            ),
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: walkState.routePoints,
-                                  strokeWidth: 15,
-                                  color: const Color(0xff68a2b6),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    )),
-              ],
-            ),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.surface,
           ),
-          const SizedBox(height: 5),
+          _buildMapContainer(walkState),
           Expanded(
-            child: ListView(
-              children: [
-                _buildSimpleView(context, walkState, walkNotifier),
-                if (_showDetails) const SectionTitle(title: "Details"),
-                if (_showDetails)
-                  _buildDetailedView(context, walkState, walkNotifier),
-                if (_showDetails) const SectionTitle(title: "Photos"),
-                if (_showDetails) _buildImageGallerySection(context),
-              ],
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                children: [
+                  const SizedBox(height: 25),
+                  _buildProgressBarWithDetailsConteiner(
+                      context, walkState, walkNotifier),
+                  const SizedBox(height: 15),
+                  _buildEventSelectionContainer(),
+                  const SizedBox(height: 15),
+                  _buildNotesAndPhotosContainer(),
+                  const SizedBox(height: 50),
+                ],
+              ),
             ),
           ),
         ],
       ),
+      bottomNavigationBar: _buildBottomBar(context, walkNotifier, walkState),
     );
   }
 
-  Widget _buildSimpleView(
+  Widget _buildMapContainer(WalkState walkState) {
+    return Container(
+      width: 500,
+      height: 225,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(15),
+        ),
+      ),
+      padding: const EdgeInsets.all(15.0),
+      child: _buildAppleMapSection(walkState),
+    );
+  }
+
+  void _togglePetNameDisplay(int index, String petName) {
+    if (_selectedPetIndex == index) {
+      setState(() {
+        _selectedPetName = null;
+        _selectedPetIndex = null;
+      });
+      _hideNameTimer?.cancel();
+    } else {
+      setState(() {
+        _selectedPetName = petName;
+        _selectedPetIndex = index;
+      });
+      _hideNameTimer?.cancel();
+      _hideNameTimer = Timer(const Duration(seconds: 3), () {
+        setState(() {
+          _selectedPetName = null;
+          _selectedPetIndex = null;
+        });
+      });
+    }
+  }
+
+  Widget _buildProgressBarWithDetailsConteiner(
       BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
     double progressSteps =
         (walkState.currentSteps % walkState.goalSteps) / walkState.goalSteps;
     double progressTime = walkState.seconds / 3600;
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          margin: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SectionTitle(title: "Progress"),
-                ],
-              ),
-              // Progress circural indicator
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0, bottom: 5),
-                child: Stack(
-                  alignment: Alignment.center,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 5.0),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 70,
+                        height: 70,
+                        child: CircularProgressIndicator(
+                          value: progressSteps,
+                          strokeWidth: 9,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xffdfd785)),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CircularProgressIndicator(
+                          value: progressTime,
+                          strokeWidth: 6,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xff68a2b6)),
+                        ),
+                      ),
+                      Icon(Icons.pets,
+                          size: 24, color: Theme.of(context).primaryColorDark),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
+                    Row(
+                      children: [
+                        Text(
+                          'Duration:   ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                        Text(
+                          walkNotifier.formatTime(walkState.seconds),
+                          style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          'Distance:   ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                        Text(
+                          '${walkState.totalDistance.toStringAsFixed(2)} km',
+                          style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8),
+              child: Divider(
+                color: Theme.of(context).colorScheme.surface,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 15.0),
+              child: Text(
+                'P U P S  O N  W A L K:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+            Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: widget.pets
+                  .take(6)
+                  .map(
+                    (pet) => GestureDetector(
+                      onTap: () {
+                        _togglePetNameDisplay(
+                            widget.pets.indexOf(pet), pet.name);
+                      },
                       child: Stack(
-                        alignment: Alignment.center,
+                        clipBehavior: Clip.none,
                         children: [
-                          SizedBox(
-                            height: 200,
-                            width: 200,
-                            child: CircularProgressIndicator(
-                              value: progressSteps,
-                              strokeWidth: 20,
-                              backgroundColor: Colors.grey[200],
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xffdfd785)),
+                          CircleAvatar(
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 25,
+                          ),
+                          if (_selectedPetName != null &&
+                              _selectedPetIndex == widget.pets.indexOf(pet))
+                            Positioned(
+                              top: -30,
+                              left: -10,
+                              right: -10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5.0, vertical: 2.0),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black,
+                                      spreadRadius: 1,
+                                      blurRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  _selectedPetName!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            height: 160,
-                            width: 160,
-                            child: CircularProgressIndicator(
-                              value: progressTime,
-                              strokeWidth: 22,
-                              backgroundColor: Colors.grey[300],
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xff68a2b6)),
-                            ),
-                          ),
-                          Icon(
-                            Icons.pets,
-                            size: 70,
-                            color: Theme.of(context)
-                                .primaryColorDark
-                                .withOpacity(0.65),
-                          ),
                         ],
                       ),
                     ),
-                  ],
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _goToCurrentLocation(
+      apple_maps.AppleMapController controller) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+    }
+
+    final Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+    controller.animateCamera(
+      apple_maps.CameraUpdate.newLatLng(latLng),
+    );
+  }
+
+  Widget _buildAppleMapSection(WalkState walkState) {
+    return Stack(
+      children: [
+        apple_maps.AppleMap(
+          initialCameraPosition: apple_maps.CameraPosition(
+            target: walkState.routePoints.isNotEmpty
+                ? apple_maps.LatLng(
+                    walkState.routePoints.last.latitude,
+                    walkState.routePoints.last.longitude,
+                  )
+                : const apple_maps.LatLng(51.5, -0.09),
+            zoom: 16.0,
+          ),
+          onMapCreated: (apple_maps.AppleMapController controller) {
+            _mapController = controller;
+            // Wywołanie metody, aby ustawić mapę na aktualną lokalizację przy uruchomieniu
+            _goToCurrentLocation(controller);
+          },
+          polylines: {
+            apple_maps.Polyline(
+              polylineId: apple_maps.PolylineId('route'),
+              points: walkState.routePoints
+                  .map((point) =>
+                      apple_maps.LatLng(point.latitude, point.longitude))
+                  .toList(),
+              width: 12,
+              color: const Color.fromARGB(255, 29, 121, 227),
+            ),
+          },
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+        ),
+        Positioned(
+          bottom: 7,
+          right: 7,
+          child: SizedBox(
+            height: 30,
+            width: 30,
+            child: FloatingActionButton(
+              onPressed: () {
+                if (_mapController != null) {
+                  _goToCurrentLocation(_mapController!);
+                }
+              },
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Icon(
+                Icons.near_me,
+                color: Theme.of(context).primaryColorDark,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomBar(
+      BuildContext context, WalkNotifier walkNotifier, WalkState walkState) {
+    return BottomAppBar(
+      height: 60,
+      color: Theme.of(context).colorScheme.primary,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          SizedBox(
+            width: 150,
+            height: 40,
+            child: ElevatedButton(
+              onPressed: () => _endWalk(context, walkNotifier),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              // Left data
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Text(
+                'F I N I S H',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).primaryColorDark,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 150,
+            height: 40,
+            child: ElevatedButton(
+              onPressed: () => _pauseResumeWalk(context, walkNotifier),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                walkState.isPaused ? 'R E S U M E' : 'P A U S E',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).primaryColorDark,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const TextField(
+          maxLines: null, // Pozwala na wieloliniowe wpisywanie tekstu
+          keyboardType: TextInputType.multiline,
+          decoration: InputDecoration(
+            hintText: 'Notatki',
+            hintStyle: TextStyle(color: Colors.grey),
+            border: InputBorder.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotosContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _buildAddPhotoButton(),
+                const SizedBox(width: 10),
+                ..._buildPhotoPreviews(),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _closeKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
+  Widget _buildNotesAndPhotosContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 35.0, top: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4.0),
-                          child: Text(
-                            'STEPS',
-                            style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).primaryColorDark,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10.0),
-                          child: Row(
-                            children: [
-                              Text(
-                                '🦶🏼 ',
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                              Text(
-                                '${walkState.currentSteps}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                'DISTANCE',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  '🚶🏽‍♂️‍➡️ ',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                                Text(
-                                  '${walkState.totalDistance} km',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
+                  _buildAddPhotoButton(),
+                  const SizedBox(width: 10),
+                  ..._buildPhotoPreviews(),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(15.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: TextField(
+                      controller: _notesController,
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      decoration: const InputDecoration(
+                        hintText: 'Take notes...',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
-                  // Right data
-                  Padding(
-                    padding: const EdgeInsets.only(right: 35, top: 5),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                'TIME',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    '⌛ ',
-                                    style: TextStyle(
-                                      fontSize: 25,
-                                      color: Theme.of(context).primaryColorDark,
-                                    ),
-                                  ),
-                                  Text(
-                                    walkNotifier.formatTime(walkState.seconds),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Theme.of(context).primaryColorDark,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                  Positioned(
+                    top: 1,
+                    right: 1,
+                    child: SizedBox(
+                      width: 70,
+                      height: 28,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                'STATUS',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  walkState.status == 'walking' ? '🟢' : '⛔',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                                Text(
-                                  walkState.status == 'walking'
-                                      ? ' Walking'
-                                      : ' Stopped',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        onPressed: _closeKeyboard,
+                        child: Text(
+                          'D O N E',
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              // Buttons
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 12, right: 12, bottom: 5, top: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: 140,
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            _pauseResumeWalk(context, walkNotifier),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.inversePrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          walkState.isPaused ? 'Resume' : 'Pause',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 140,
-                      child: ElevatedButton(
-                        onPressed: () => _endWalk(context, walkNotifier),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.withOpacity(0.8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'End Walk',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddPhotoButton() {
+    return GestureDetector(
+      onTap: () {
+        if (_photos.length >= 3) {
+          _showMaxPhotosDialog();
+        } else {
+          _showImageSourceActionSheet();
+        }
+      },
+      child: Container(
+        width: 100,
+        height: 80,
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).primaryColorDark),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt,
+              color: Theme.of(context).primaryColorDark,
+            ),
+            Text(
+              'Add photos',
+              style: TextStyle(color: Theme.of(context).primaryColorDark),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMaxPhotosDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Text(
+            'Maximum of 3 photos allowed.',
+            style: TextStyle(
+                color: Theme.of(context).primaryColorDark,
+                fontSize: 16,
+                fontWeight: FontWeight.bold),
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                'Close',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('From gallery'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
               ),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildDetailedView(
-      BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildActivityDataRow(
-              context, "Steps", walkState.currentSteps.toString()),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(
-              context, "Time", walkNotifier.formatTime(walkState.seconds)),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Calories Burned",
-              "${walkState.totalCaloriesBurned.toStringAsFixed(0)} kcal"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Distance",
-              "${walkState.totalDistance.toStringAsFixed(2)} km"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Average Pace",
-              "${walkState.averagePace.toStringAsFixed(2)} min/km"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Fastest Pace",
-              "${walkState.fastestPace.toStringAsFixed(2)} min/km"),
-        ],
-      ),
-    );
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? image = await _picker.pickImage(source: source);
+    if (image != null && _photos.length < 3) {
+      setState(() {
+        _photos.add(image);
+      });
+    }
   }
 
-  Widget _buildActivityDataRow(
-      BuildContext context, String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+  List<Widget> _buildPhotoPreviews() {
+    return _photos.map((photo) {
+      return GestureDetector(
+        onTap: () {
+          _showPhotoPreview(photo);
+        },
+        child: Container(
+          width: 100,
+          height: 80,
+          margin: const EdgeInsets.only(right: 10),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8),
+            image: DecorationImage(
+              image: FileImage(File(photo.path)),
+              fit: BoxFit.cover,
+            ),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
+      );
+    }).toList();
   }
 
-  Widget _buildImageGallerySection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                icon: Icon(Icons.camera,
-                    color: Theme.of(context).primaryColorDark),
-                label: Text(
-                  "Camera",
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: Icon(Icons.photo,
-                    color: Theme.of(context).primaryColorDark),
-                label: Text(
-                  "Gallery",
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-              ),
-            ],
+  void _showPhotoPreview(XFile photo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          _buildImageGallery(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageGallery() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15.0),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: _images.map((image) {
-          return GestureDetector(
-            onTap: () {
-              _showImageDialog(context, image);
-            },
-            child: Stack(
+          content: SizedBox(
+            width: 350,
+            height: 350,
+            child: Image.file(
+              File(photo.path),
+              fit: BoxFit.contain,
+            ),
+          ),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Image.file(
-                  image,
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _images.remove(image);
-                      });
-                    },
-                    child: const Icon(
-                      Icons.remove_circle,
-                      color: Colors.red,
+                SizedBox(
+                  width: 120,
+                  height: 40,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
+                    child: Text(
+                      'Close',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: 120,
+                  height: 40,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _photos.remove(photo);
+                      });
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ),
               ],
             ),
-          );
-        }).toList(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEventSelectionContainer() {
+    final List<Map<String, String>> eventOptions = [
+      {'icon': '💩', 'label': 'Stool'},
+      {'icon': '💦', 'label': 'Urine'},
+      {'icon': '🐕', 'label': 'Szczekanie'},
+      {'icon': '🐾', 'label': 'Ciągnięcie smyczy'},
+      {'icon': '🦴', 'label': 'Gryzienie'},
+      {'icon': '😡', 'label': 'Warczenie'},
+      {'icon': '🥶', 'label': 'Zimno'},
+      {'icon': '😱', 'label': 'Strach'},
+      {'icon': '🐶', 'label': 'Poznanie nowego zwierzaka'},
+      {'icon': '👨', 'label': 'Spotkanie innego człowieka'},
+      {'icon': '🦘', 'label': 'Skakanie na ludzi'},
+      {'icon': '🐾', 'label': 'Kopanie w ziemi'},
+      {'icon': '🌀', 'label': 'Zgubienie się'},
+      {'icon': '⏱️', 'label': 'Zbyt szybkie tempo'},
+      {'icon': '🏃', 'label': 'Próba ucieczki'},
+      {'icon': '🚴', 'label': 'Bieganie za rowerzystą'},
+      {'icon': '🐦', 'label': 'Próba złapania ptaka'},
+      {'icon': '🚶‍♂️', 'label': 'Leżenie na ziemi'},
+      {'icon': '👃', 'label': 'Wąchanie innych psów'},
+      {'icon': '🗑️', 'label': 'Próba jedzenia śmieci'},
+      {'icon': '🏊', 'label': 'Chęć kąpieli w wodzie'},
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Select Event',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+            const SizedBox(height: 15),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: eventOptions.map((event) {
+                  return GestureDetector(
+                    onTap: () {
+                      // Handle event selection logic here
+                    },
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            event['icon']!,
+                            style: const TextStyle(fontSize: 30),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            event['label']!,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

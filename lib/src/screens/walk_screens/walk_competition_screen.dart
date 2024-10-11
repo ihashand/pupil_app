@@ -5,8 +5,7 @@ import 'package:pet_diary/src/components/competition/achievement_section.dart';
 import 'package:pet_diary/src/components/competition/competition_friends_leaderboard.dart';
 import 'package:pet_diary/src/providers/achievements_providers/achievements_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
-import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
+import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_in_progress_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -237,7 +236,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
           size: 20,
         ),
         title: Text(
-          'C O M P E T I T I O N',
+          'A C T I V E  W A L K',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
@@ -246,21 +245,6 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 50,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.people),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FriendsScreen(),
-                ),
-              );
-            },
-            color: Theme.of(context).primaryColorDark,
-            iconSize: 20,
-          ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Divider(

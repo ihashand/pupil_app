@@ -42,7 +42,6 @@ class _PetProfileScreenState extends State<PetProfileScreen> {
                 children: [
                   if (showCategories) _buildAchievementsCategoryFilter(context),
                   const SizedBox(height: 10),
-                  // _buildDetailsButton(context), //todo: musze cos pomyslec jak to przerobic, ale brak weny dzisiaj :(
                   _buildAchievementsSection(context),
                   const SizedBox(height: 20),
                   _buildDataSection(

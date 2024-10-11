@@ -23,46 +23,49 @@ class AchievementDetailsDialog extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.only(top: 15.0, bottom: 5),
-          child: Text(
-            'A C H I E V E M E N T',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColorDark,
-            ),
-          ),
-        ),
-        Divider(color: Theme.of(context).colorScheme.surface),
-        Image.asset(
-          assetPath,
-          height: imageSize,
-          width: imageSize,
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 5.0, top: 20),
+          padding: const EdgeInsets.only(top: 20),
           child: Text(
             achievementName,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColorDark,
             ),
           ),
         ),
         Text(
-          '$totalSteps',
+          'A C H I E V E M E N T',
           style: TextStyle(
+            fontSize: 11,
             color: Theme.of(context).primaryColorDark,
-            fontSize: 18,
+          ),
+        ),
+        Divider(color: Theme.of(context).colorScheme.surface),
+        Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: Image.asset(
+            assetPath,
+            height: imageSize,
+            width: imageSize,
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 15.0),
+          padding: const EdgeInsets.only(top: 15.0),
+          child: Text(
+            '$totalSteps',
+            style: TextStyle(
+              color: Theme.of(context).primaryColorDark,
+              fontWeight: FontWeight.bold,
+              fontSize: 21,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20.0),
           child: Text(
             "S T E P S",
             style: TextStyle(
-                fontSize: 9, color: Theme.of(context).primaryColorDark),
+                fontSize: 11, color: Theme.of(context).primaryColorDark),
           ),
         ),
       ],

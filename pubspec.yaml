@@ -46,6 +46,8 @@ dependencies:
   shimmer: ^3.0.0
   fluttertoast: ^8.2.8
   gal: ^2.3.0
+  apple_maps_flutter: ^1.3.0
+  geolocator: ^12.0.0
 
 dev_dependencies:
   flutter_test:
