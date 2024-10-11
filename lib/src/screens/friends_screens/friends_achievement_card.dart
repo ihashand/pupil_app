@@ -107,9 +107,7 @@ class _FriendsAchievementCardState extends State<FriendsAchievementCard> {
                   Screenshot(
                     controller: _screenshotController,
                     child: Container(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary, // Dodaj białe tło
+                      color: Theme.of(context).colorScheme.primary,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [

@@ -4,20 +4,26 @@ A social app for pets
 
 ## Important commands
 
-update db:
-flutter pub run build_runner build
+- **Update database**:
+  flutter pub run build_runner build
 
-while previous update doesn't work
-flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
+- **While the previous update doesn't work**:
+  flutter pub get && flutter pub run build_runner build --delete-conflicting-outputs
 
-Real device relese version for testing
-flutter run --release
+- **Real device release version for testing**:
+  flutter run --release
 
-cocoapod problem
-https://stackoverflow.com/questions/64443888/flutter-cocoapodss-specs-repository-is-too-out-of-date-to-satisfy-dependencies
+- **Cocoapod problem**:
+  https://stackoverflow.com/questions/64443888/flutter-cocoapodss-specs-repository-is-too-out-of-date-to-satisfy-dependencies
 
-sudo lsof -i :8080
-sudo kill -9 51683
-firebase emulators:start
+- **Free up port 8080**:
+  sudo lsof -i :8080
+  sudo kill -9 51683
 
-Build problem
+- **Firebase emulator**:
+  firebase emulators:start
+
+- **Tips for build issues**:
+  - If you encounter issues on simulators or physical devices, try deleting the app and running a fresh build. This can often solve unexpected problems.
+  - Additionally, remember to clean the build folders using: flutter clean
+  - This can help fix issues, such as errors with Apple Maps on simulators.

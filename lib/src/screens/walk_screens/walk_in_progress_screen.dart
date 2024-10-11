@@ -1,20 +1,11 @@
-// ignore_for_file: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member, use_build_context_synchronously
-
 import 'dart:async';
-import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:path_provider/path_provider.dart';
-// ignore: depend_on_referenced_packages
-import 'package:path/path.dart' as path;
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
-import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
-import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
+import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
+import 'package:geolocator/geolocator.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -29,10 +20,12 @@ class WalkInProgressScreen extends ConsumerStatefulWidget {
 class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  final MapController _mapController = MapController();
   final ScrollController _scrollController = ScrollController();
-  final List<File> _images = [];
-  bool _showDetails = false;
+  String? selectedPetName;
+  String? _selectedPetName;
+  int? _selectedPetIndex;
+  Timer? _hideNameTimer;
+  apple_maps.AppleMapController? _mapController;
 
   @override
   void initState() {
@@ -41,155 +34,35 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_mapController != null) {
+        _goToCurrentLocation(_mapController!);
+      }
+    });
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     _scrollController.dispose();
+    _hideNameTimer?.cancel();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final walkState = ref.watch(walkProvider);
-    final walkNotifier = ref.read(walkProvider.notifier);
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(
-          'W A L K',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _showDetails ? Icons.expand_less : Icons.expand_more,
-              color: Theme.of(context).primaryColorDark,
-              size: 24,
-            ),
-            onPressed: () {
-              setState(() {
-                _showDetails = !_showDetails;
-              });
-            },
-          ),
-        ],
-      ),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(15),
-                        bottomRight: Radius.circular(15)),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: Column(
-                    children: [
-                      Divider(
-                          color: Theme.of(context).colorScheme.secondary,
-                          height: 1),
-                      Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: SizedBox(
-                            height: 220,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              child: FlutterMap(
-                                mapController: _mapController,
-                                options: MapOptions(
-                                  initialCenter:
-                                      walkState.routePoints.isNotEmpty
-                                          ? walkState.routePoints.last
-                                          : const LatLng(51.5, -0.09),
-                                  initialZoom: 16.0,
-                                  minZoom: 5,
-                                  maxZoom: 25,
-                                  onPositionChanged:
-                                      (MapCamera camera, bool hasGesture) {
-                                    setState(() {
-                                      _mapController.move(
-                                          camera.center, camera.zoom);
-                                    });
-                                  },
-                                ),
-                                children: [
-                                  TileLayer(
-                                    urlTemplate:
-                                        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                                    subdomains: const ['a', 'b', 'c'],
-                                  ),
-                                  PolylineLayer(
-                                    polylines: [
-                                      Polyline(
-                                        points: walkState.routePoints,
-                                        strokeWidth: 15,
-                                        color: const Color(0xff68a2b6),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )),
-                    ],
-                  ),
-                ),
-                _buildSimpleView(context, walkState, walkNotifier),
-                const SectionTitle(title: "Details"),
-                _buildDetailedView(context, walkState, walkNotifier),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    if (_images.length >= 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You can only add up to 5 images.')),
-      );
-      return;
-    }
-
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
-    if (pickedFile != null) {
-      final compressedImage = await _compressImage(File(pickedFile.path));
-      final uniqueFileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${path.basename(compressedImage.path)}';
-      final directory = await getApplicationDocumentsDirectory();
-      final newPath = path.join(directory.path, uniqueFileName);
-      final newFile = await File(compressedImage.path).copy(newPath);
-      setState(() {
-        _images.add(newFile);
-      });
+  void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
+    String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
+    bool confirm = await _showConfirmationDialog(context, action);
+    if (confirm) {
+      walkNotifier.pauseWalk();
     }
   }
 
-  Future<XFile> _compressImage(File file) async {
-    final dir = await getTemporaryDirectory();
-    final targetPath = '${dir.absolute.path}/temp.jpg';
-
-    final result = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      targetPath,
-      quality: 70,
-    );
-
-    return result!;
+  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
+    bool confirm = await _showConfirmationDialog(context, 'End');
+    if (confirm) {
+      walkNotifier.stopWalk();
+      Navigator.of(context).pop();
+    }
   }
 
   Future<bool> _showConfirmationDialog(
@@ -225,369 +98,444 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
-    String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
-    bool confirm = await _showConfirmationDialog(context, action);
-    if (confirm) {
-      walkNotifier.pauseWalk();
-    }
-  }
+  @override
+  Widget build(BuildContext context) {
+    final walkState = ref.watch(walkProvider);
+    final walkNotifier = ref.read(walkProvider.notifier);
 
-  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
-    bool confirm = await _showConfirmationDialog(context, 'End');
-    if (confirm) {
-      walkNotifier.stopWalk();
-      final petIds = widget.pets.map((pet) => pet.id).toList();
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WalkSummaryScreen(
-            images: _images,
-            walkState: walkNotifier.state,
-            petIds: petIds,
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          'A C T I V E  W A L K',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Theme.of(context).primaryColorDark,
           ),
         ),
-      );
+      ),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: Column(
+        children: [
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          _buildMapContainer(walkState),
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                children: [
+                  const SizedBox(height: 15),
+                  _buildProgressBarWithDetailsConteiner(
+                      context, walkState, walkNotifier),
+                  const SizedBox(height: 10),
+                  _buildNotesContainer(),
+                  const SizedBox(height: 10),
+                  _buildPhotosContainer(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomBar(context, walkNotifier, walkState),
+    );
+  }
+
+  Widget _buildMapContainer(WalkState walkState) {
+    return Container(
+      width: 500,
+      height: 225,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(15),
+        ),
+      ),
+      padding: const EdgeInsets.all(15.0),
+      child: _buildAppleMapSection(walkState),
+    );
+  }
+
+  void _togglePetNameDisplay(int index, String petName) {
+    if (_selectedPetIndex == index) {
+      setState(() {
+        _selectedPetName = null;
+        _selectedPetIndex = null;
+      });
+      _hideNameTimer?.cancel();
+    } else {
+      setState(() {
+        _selectedPetName = petName;
+        _selectedPetIndex = index;
+      });
+      _hideNameTimer?.cancel();
+      _hideNameTimer = Timer(const Duration(seconds: 3), () {
+        setState(() {
+          _selectedPetName = null;
+          _selectedPetIndex = null;
+        });
+      });
     }
   }
 
-  Widget _buildSimpleView(
+  Widget _buildProgressBarWithDetailsConteiner(
       BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
     double progressSteps =
         (walkState.currentSteps % walkState.goalSteps) / walkState.goalSteps;
     double progressTime = walkState.seconds / 3600;
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: BorderRadius.circular(15),
-          ),
-          margin: const EdgeInsets.all(10),
-          child: Column(
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SectionTitle(title: "Progress"),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0, bottom: 5),
-                child: Stack(
-                  alignment: Alignment.center,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 5.0),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 70,
+                        height: 70,
+                        child: CircularProgressIndicator(
+                          value: progressSteps,
+                          strokeWidth: 9,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xffdfd785)),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CircularProgressIndicator(
+                          value: progressTime,
+                          strokeWidth: 6,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xff68a2b6)),
+                        ),
+                      ),
+                      Icon(
+                        Icons.pets,
+                        size: 24,
+                        color: Theme.of(context)
+                            .primaryColorDark
+                            .withOpacity(0.65),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
+                    Row(
+                      children: [
+                        Text(
+                          'Duration:   ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                        Text(
+                          walkNotifier.formatTime(walkState.seconds),
+                          style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          'Distance:   ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                        Text(
+                          '${walkState.totalDistance.toStringAsFixed(2)} km',
+                          style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).primaryColorDark,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8),
+              child: Divider(
+                color: Theme.of(context).colorScheme.surface,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 15.0),
+              child: Text(
+                'P U P S  O N  W A L K:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+            Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: widget.pets
+                  .take(6)
+                  .map(
+                    (pet) => GestureDetector(
+                      onTap: () {
+                        _togglePetNameDisplay(
+                            widget.pets.indexOf(pet), pet.name);
+                      },
                       child: Stack(
-                        alignment: Alignment.center,
+                        clipBehavior: Clip.none,
                         children: [
-                          SizedBox(
-                            height: 200,
-                            width: 200,
-                            child: CircularProgressIndicator(
-                              value: progressSteps,
-                              strokeWidth: 20,
-                              backgroundColor: Colors.grey[200],
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xffdfd785)),
+                          CircleAvatar(
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 25,
+                          ),
+                          if (_selectedPetName != null &&
+                              _selectedPetIndex == widget.pets.indexOf(pet))
+                            Positioned(
+                              top: -30,
+                              left: -10,
+                              right: -10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5.0, vertical: 2.0),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      spreadRadius: 1,
+                                      blurRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  _selectedPetName!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          SizedBox(
-                            height: 160,
-                            width: 160,
-                            child: CircularProgressIndicator(
-                              value: progressTime,
-                              strokeWidth: 22,
-                              backgroundColor: Colors.grey[300],
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xff68a2b6)),
-                            ),
-                          ),
-                          Icon(
-                            Icons.pets,
-                            size: 70,
-                            color: Theme.of(context)
-                                .primaryColorDark
-                                .withOpacity(0.65),
-                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _goToCurrentLocation(
+      apple_maps.AppleMapController controller) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+    }
+
+    final Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+    controller.animateCamera(
+      apple_maps.CameraUpdate.newLatLng(latLng),
+    );
+  }
+
+  Widget _buildAppleMapSection(WalkState walkState) {
+    return Stack(
+      children: [
+        apple_maps.AppleMap(
+          initialCameraPosition: apple_maps.CameraPosition(
+            target: walkState.routePoints.isNotEmpty
+                ? apple_maps.LatLng(
+                    walkState.routePoints.last.latitude,
+                    walkState.routePoints.last.longitude,
+                  )
+                : const apple_maps.LatLng(51.5, -0.09),
+            zoom: 16.0,
+          ),
+          onMapCreated: (apple_maps.AppleMapController controller) {
+            _mapController = controller;
+            // Wywołanie metody, aby ustawić mapę na aktualną lokalizację przy uruchomieniu
+            _goToCurrentLocation(controller);
+          },
+          polylines: {
+            apple_maps.Polyline(
+              polylineId: apple_maps.PolylineId('route'),
+              points: walkState.routePoints
+                  .map((point) =>
+                      apple_maps.LatLng(point.latitude, point.longitude))
+                  .toList(),
+              width: 12,
+              color: const Color.fromARGB(255, 29, 121, 227),
+            ),
+          },
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+        ),
+        Positioned(
+          bottom: 7,
+          right: 7,
+          child: SizedBox(
+            height: 30,
+            width: 30,
+            child: FloatingActionButton(
+              onPressed: () {
+                if (_mapController != null) {
+                  _goToCurrentLocation(_mapController!);
+                }
+              },
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Icon(
+                Icons.near_me,
+                color: Theme.of(context).primaryColorDark,
+                size: 20,
               ),
-              // Left data
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 35.0, top: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4.0),
-                          child: Text(
-                            'STEPS',
-                            style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).primaryColorDark,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10.0),
-                          child: Row(
-                            children: [
-                              Text(
-                                '🦶🏼 ',
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                              Text(
-                                '${walkState.currentSteps}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                'DISTANCE',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  '🚶🏽‍♂️‍➡️ ',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                                Text(
-                                  '${walkState.totalDistance} km',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Right data
-                  Padding(
-                    padding: const EdgeInsets.only(right: 35, top: 5),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                'TIME',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    '⌛ ',
-                                    style: TextStyle(
-                                      fontSize: 25,
-                                      color: Theme.of(context).primaryColorDark,
-                                    ),
-                                  ),
-                                  Text(
-                                    walkNotifier.formatTime(walkState.seconds),
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Theme.of(context).primaryColorDark,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: Text(
-                                'STATUS',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).primaryColorDark,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  walkState.status == 'walking' ? '🟢' : '⛔',
-                                  style: TextStyle(
-                                    fontSize: 25,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                                Text(
-                                  walkState.status == 'walking'
-                                      ? ' Walking'
-                                      : ' Stopped',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              // Buttons
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 12, right: 12, bottom: 5, top: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      width: 140,
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            _pauseResumeWalk(context, walkNotifier),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.inversePrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          walkState.isPaused ? 'Resume' : 'Pause',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 140,
-                      child: ElevatedButton(
-                        onPressed: () => _endWalk(context, walkNotifier),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.withOpacity(0.8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'End Walk',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDetailedView(
-      BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBottomBar(
+      BuildContext context, WalkNotifier walkNotifier, WalkState walkState) {
+    return BottomAppBar(
+      height: 50,
+      color: Theme.of(context).colorScheme.primary,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildActivityDataRow(
-              context, "Steps", walkState.currentSteps.toString()),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(
-              context, "Time", walkNotifier.formatTime(walkState.seconds)),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Calories Burned",
-              "${walkState.totalCaloriesBurned.toStringAsFixed(0)} kcal"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Distance",
-              "${walkState.totalDistance.toStringAsFixed(2)} km"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Average Pace",
-              "${walkState.averagePace.toStringAsFixed(2)} min/km"),
-          const Divider(color: Colors.grey, height: 20),
-          _buildActivityDataRow(context, "Fastest Pace",
-              "${walkState.fastestPace.toStringAsFixed(2)} min/km"),
+          SizedBox(
+            width: 150,
+            height: 40,
+            child: ElevatedButton(
+              onPressed: () => _endWalk(context, walkNotifier),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'End Walk',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 150,
+            height: 40,
+            child: ElevatedButton(
+              onPressed: () => _pauseResumeWalk(context, walkNotifier),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                walkState.isPaused ? 'Resume' : 'Pause',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildActivityDataRow(
-      BuildContext context, String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+  Widget _buildNotesContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const TextField(
+          decoration: InputDecoration(
+            labelText: 'Notes',
+            border: OutlineInputBorder(),
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-            fontSize: 14,
+      ),
+    );
+  }
+
+  Widget _buildPhotosContainer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.all(10.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Container(
+          height: 100,
+          color: Colors.grey[300],
+          child: const Center(
+            child: Text('Photo Section'),
           ),
         ),
-      ],
+      ),
     );
   }
 }
