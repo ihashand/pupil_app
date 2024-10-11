@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
@@ -138,6 +136,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   const SizedBox(height: 25),
                   _buildProgressBarWithDetailsConteiner(
                       context, walkState, walkNotifier),
+                  const SizedBox(height: 15),
+                  _buildEventSelectionContainer(),
                   const SizedBox(height: 15),
                   _buildNotesAndPhotosContainer(),
                   const SizedBox(height: 50),
@@ -461,7 +461,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             child: ElevatedButton(
               onPressed: () => _endWalk(context, walkNotifier),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.secondary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -702,7 +702,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('Galeria'),
+                title: const Text('From gallery'),
                 onTap: () {
                   Navigator.of(context).pop();
                   _pickImage(ImageSource.gallery);
@@ -710,7 +710,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               ),
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text('Kamera'),
+                title: const Text('Camera'),
                 onTap: () {
                   Navigator.of(context).pop();
                   _pickImage(ImageSource.camera);
@@ -826,6 +826,96 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ],
         );
       },
+    );
+  }
+
+  Widget _buildEventSelectionContainer() {
+    final List<Map<String, String>> eventOptions = [
+      {'icon': '💩', 'label': 'Stool'},
+      {'icon': '💦', 'label': 'Urine'},
+      {'icon': '🐕', 'label': 'Szczekanie'},
+      {'icon': '🐾', 'label': 'Ciągnięcie smyczy'},
+      {'icon': '🦴', 'label': 'Gryzienie'},
+      {'icon': '😡', 'label': 'Warczenie'},
+      {'icon': '🥶', 'label': 'Zimno'},
+      {'icon': '😱', 'label': 'Strach'},
+      {'icon': '🐶', 'label': 'Poznanie nowego zwierzaka'},
+      {'icon': '👨', 'label': 'Spotkanie innego człowieka'},
+      {'icon': '🦘', 'label': 'Skakanie na ludzi'},
+      {'icon': '🐾', 'label': 'Kopanie w ziemi'},
+      {'icon': '🌀', 'label': 'Zgubienie się'},
+      {'icon': '⏱️', 'label': 'Zbyt szybkie tempo'},
+      {'icon': '🏃', 'label': 'Próba ucieczki'},
+      {'icon': '🚴', 'label': 'Bieganie za rowerzystą'},
+      {'icon': '🐦', 'label': 'Próba złapania ptaka'},
+      {'icon': '🚶‍♂️', 'label': 'Leżenie na ziemi'},
+      {'icon': '👃', 'label': 'Wąchanie innych psów'},
+      {'icon': '🗑️', 'label': 'Próba jedzenia śmieci'},
+      {'icon': '🏊', 'label': 'Chęć kąpieli w wodzie'},
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Select Event',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+            const SizedBox(height: 15),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: eventOptions.map((event) {
+                  return GestureDetector(
+                    onTap: () {
+                      // Handle event selection logic here
+                    },
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            event['icon']!,
+                            style: const TextStyle(fontSize: 30),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            event['label']!,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
