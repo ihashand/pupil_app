@@ -4,11 +4,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
-// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -16,6 +14,7 @@ import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/others_providers/walk_state_provider.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
+import 'package:gal/gal.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -117,13 +116,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 bottom: 10,
                 child: GestureDetector(
                   onTap: () async {
-                    final result = await ImageGallerySaver.saveFile(image.path);
-                    if (result["isSuccess"]) {
+                    try {
+                      await Gal.putImage(image.path);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text('Image saved to gallery!')),
                       );
-                    } else {
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Failed to save image.')),
                       );
