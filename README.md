@@ -19,3 +19,5 @@ https://stackoverflow.com/questions/64443888/flutter-cocoapodss-specs-repository
 sudo lsof -i :8080
 sudo kill -9 51683
 firebase emulators:start
+
+Build problem
