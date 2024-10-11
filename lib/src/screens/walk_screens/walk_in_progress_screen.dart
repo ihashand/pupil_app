@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
@@ -51,6 +50,112 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final walkState = ref.watch(walkProvider);
+    final walkNotifier = ref.read(walkProvider.notifier);
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
+          'W A L K',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _showDetails ? Icons.expand_less : Icons.expand_more,
+              color: Theme.of(context).primaryColorDark,
+              size: 24,
+            ),
+            onPressed: () {
+              setState(() {
+                _showDetails = !_showDetails;
+              });
+            },
+          ),
+        ],
+      ),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(15),
+                        bottomRight: Radius.circular(15)),
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  child: Column(
+                    children: [
+                      Divider(
+                          color: Theme.of(context).colorScheme.secondary,
+                          height: 1),
+                      Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: SizedBox(
+                            height: 220,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: FlutterMap(
+                                mapController: _mapController,
+                                options: MapOptions(
+                                  initialCenter:
+                                      walkState.routePoints.isNotEmpty
+                                          ? walkState.routePoints.last
+                                          : const LatLng(51.5, -0.09),
+                                  initialZoom: 16.0,
+                                  minZoom: 5,
+                                  maxZoom: 25,
+                                  onPositionChanged:
+                                      (MapCamera camera, bool hasGesture) {
+                                    setState(() {
+                                      _mapController.move(
+                                          camera.center, camera.zoom);
+                                    });
+                                  },
+                                ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate:
+                                        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+                                    subdomains: const ['a', 'b', 'c'],
+                                  ),
+                                  PolylineLayer(
+                                    polylines: [
+                                      Polyline(
+                                        points: walkState.routePoints,
+                                        strokeWidth: 15,
+                                        color: const Color(0xff68a2b6),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+                _buildSimpleView(context, walkState, walkNotifier),
+                const SectionTitle(title: "Details"),
+                _buildDetailedView(context, walkState, walkNotifier),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     if (_images.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,63 +190,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
 
     return result!;
-  }
-
-  void _showImageDialog(BuildContext context, File image) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Stack(
-            children: [
-              Image.file(image),
-              Positioned(
-                right: 10,
-                top: 10,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _images.remove(image);
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: const Icon(
-                    Icons.delete,
-                    color: Colors.red,
-                    size: 30,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 10,
-                bottom: 10,
-                child: GestureDetector(
-                  onTap: () async {
-                    final result = await ImageGallerySaver.saveFile(image.path);
-                    if (result["isSuccess"]) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Image saved to gallery!')),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to save image.')),
-                      );
-                    }
-                    Navigator.pop(context);
-                  },
-                  child: const Icon(
-                    Icons.file_download,
-                    color: Colors.green,
-                    size: 30,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Future<bool> _showConfirmationDialog(
@@ -204,113 +252,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final walkState = ref.watch(walkProvider);
-    final walkNotifier = ref.read(walkProvider.notifier);
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text(
-          'W A L K',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: Theme.of(context).primaryColorDark,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _showDetails ? Icons.expand_less : Icons.expand_more,
-              color: Theme.of(context).primaryColorDark,
-              size: 24,
-            ),
-            onPressed: () {
-              setState(() {
-                _showDetails = !_showDetails;
-              });
-            },
-          ),
-        ],
-      ),
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(15),
-                  bottomRight: Radius.circular(15)),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            child: Column(
-              children: [
-                Divider(
-                    color: Theme.of(context).colorScheme.secondary, height: 1),
-                Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: SizedBox(
-                      height: 220,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
-                        child: FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: walkState.routePoints.isNotEmpty
-                                ? walkState.routePoints.last
-                                : const LatLng(51.5, -0.09),
-                            initialZoom: 16.0,
-                            minZoom: 5,
-                            maxZoom: 25,
-                            onPositionChanged:
-                                (MapCamera camera, bool hasGesture) {
-                              setState(() {
-                                _mapController.move(camera.center, camera.zoom);
-                              });
-                            },
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                              subdomains: const ['a', 'b', 'c'],
-                            ),
-                            PolylineLayer(
-                              polylines: [
-                                Polyline(
-                                  points: walkState.routePoints,
-                                  strokeWidth: 15,
-                                  color: const Color(0xff68a2b6),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    )),
-              ],
-            ),
-          ),
-          const SizedBox(height: 5),
-          Expanded(
-            child: ListView(
-              children: [
-                _buildSimpleView(context, walkState, walkNotifier),
-                if (_showDetails) const SectionTitle(title: "Details"),
-                if (_showDetails)
-                  _buildDetailedView(context, walkState, walkNotifier),
-                if (_showDetails) const SectionTitle(title: "Photos"),
-                if (_showDetails) _buildImageGallerySection(context),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSimpleView(
       BuildContext context, WalkState walkState, WalkNotifier walkNotifier) {
     double progressSteps =
@@ -333,7 +274,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   SectionTitle(title: "Progress"),
                 ],
               ),
-              // Progress circural indicator
               Padding(
                 padding: const EdgeInsets.only(top: 15.0, bottom: 5),
                 child: Stack(
@@ -648,106 +588,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildImageGallerySection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15.0),
-      margin: const EdgeInsets.all(10.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                icon: Icon(Icons.camera,
-                    color: Theme.of(context).primaryColorDark),
-                label: Text(
-                  "Camera",
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: Icon(Icons.photo,
-                    color: Theme.of(context).primaryColorDark),
-                label: Text(
-                  "Gallery",
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          _buildImageGallery(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageGallery() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15.0),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: _images.map((image) {
-          return GestureDetector(
-            onTap: () {
-              _showImageDialog(context, image);
-            },
-            child: Stack(
-              children: [
-                Image.file(
-                  image,
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _images.remove(image);
-                      });
-                    },
-                    child: const Icon(
-                      Icons.remove_circle,
-                      color: Colors.red,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
     );
   }
 }
