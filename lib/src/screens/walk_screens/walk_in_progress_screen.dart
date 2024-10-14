@@ -11,6 +11,9 @@ import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart
 import 'package:geolocator/geolocator.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 
+List<apple_maps.LatLng> stoolEventPoints = [];
+List<apple_maps.LatLng> urineEventPoints = [];
+
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
 
@@ -33,6 +36,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _photos = [];
   final TextEditingController _notesController = TextEditingController();
+  List<apple_maps.Polyline> eventLines = [];
 
   @override
   void initState() {
@@ -67,8 +71,12 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
     bool confirm = await _showConfirmationDialog(context, 'End');
     if (confirm) {
+      // Zatrzymanie spaceru i czyszczenie danych
       walkNotifier.stopWalk();
-      Navigator.of(context).pop();
+      eventLines.clear(); // Wyczyść wydarzenia na mapie
+      stoolEventPoints.clear(); // Wyczyść miejsca wydarzeń
+      urineEventPoints.clear(); // Wyczyść miejsca wydarzeń
+      Navigator.of(context).pop(); // Powrót do poprzedniego ekranu
     }
   }
 
@@ -408,8 +416,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ),
           onMapCreated: (apple_maps.AppleMapController controller) {
             _mapController = controller;
-            // Wywołanie metody, aby ustawić mapę na aktualną lokalizację przy uruchomieniu
-            _goToCurrentLocation(controller);
           },
           polylines: {
             apple_maps.Polyline(
@@ -418,9 +424,10 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   .map((point) =>
                       apple_maps.LatLng(point.latitude, point.longitude))
                   .toList(),
-              width: 12,
+              width: 15,
               color: const Color.fromARGB(255, 29, 121, 227),
             ),
+            ...eventLines,
           },
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
@@ -428,21 +435,16 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         Positioned(
           bottom: 7,
           right: 7,
-          child: SizedBox(
-            height: 30,
-            width: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                if (_mapController != null) {
-                  _goToCurrentLocation(_mapController!);
-                }
-              },
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Icon(
-                Icons.near_me,
-                color: Theme.of(context).primaryColorDark,
-                size: 20,
-              ),
+          child: FloatingActionButton(
+            onPressed: () {
+              if (_mapController != null) {
+                _goToCurrentLocation(_mapController!);
+              }
+            },
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            child: Icon(
+              Icons.my_location,
+              color: Theme.of(context).primaryColorDark,
             ),
           ),
         ),
@@ -789,17 +791,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
-      {'icon': '🐕', 'label': 'Barking'},
-      {'icon': '😡', 'label': 'Growling'},
-      {'icon': '👃', 'label': 'Sniffing'},
-      {'icon': '🦮', 'label': 'Loose leash'},
-      {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
-      {'icon': '🚶‍♂️', 'label': 'Off-leash'},
-      {'icon': '🐶', 'label': 'Meeting new pet'},
-      {'icon': '🏃', 'label': 'Attempted escape'},
-      {'icon': '🍂', 'label': 'Attempted to eat trash'},
-      {'icon': '🐾', 'label': 'Digging in dirt'},
-      {'icon': '💧', 'label': 'Drinking from puddle'},
+      // Możesz dodać inne wydarzenia
     ];
 
     return Padding(
@@ -825,30 +817,43 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                       color: Theme.of(context).primaryColorDark,
                     ),
                   ),
-                  TextButton(
-                    onPressed: () => _handleMoreButtonPressed(),
-                    child: Text(
-                      'M O R E',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Theme.of(context).primaryColorDark,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
               child: SingleChildScrollView(
-                hitTestBehavior: HitTestBehavior.translucent,
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: eventOptions.map((event) {
                     return GestureDetector(
-                      onTap: () {
-                        // Logika obsługi eventów
+                      onTap: () async {
+                        final Position position =
+                            await Geolocator.getCurrentPosition(
+                          desiredAccuracy: LocationAccuracy.high,
+                        );
+                        final latLng = apple_maps.LatLng(
+                            position.latitude, position.longitude);
+
+                        // Tworzenie krótkiej, grubej linii w miejscu wydarzenia
+                        apple_maps.Polyline eventLine = apple_maps.Polyline(
+                          polylineId: apple_maps.PolylineId(
+                              '${event['label']}_${DateTime.now()}'), // Użycie unikalnego ID dla każdego wydarzenia
+                          points: [
+                            latLng,
+                            // Dodanie drugiego punktu blisko pierwszego, aby stworzyć krótki odcinek
+                            apple_maps.LatLng(position.latitude + 0.00005,
+                                position.longitude + 0.00005),
+                          ],
+                          width: 25, // Grubsza linia
+                          color: event['label'] == 'Stool'
+                              ? Colors.brown
+                              : Colors.yellow,
+                        );
+
+                        setState(() {
+                          eventLines.add(eventLine);
+                        });
                       },
                       child: Container(
                         width: 80,
@@ -890,6 +895,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
   Future<List<Pet>> _selectPetsForEvent() async {
     List<Pet> selectedPets = [];
+    if (widget.pets.length == 1) {
+      return [widget.pets.first];
+    }
     await showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -983,9 +991,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   void _handleMoreButtonPressed() {
     _selectPetsForEvent().then((selectedPets) {
       if (selectedPets.isNotEmpty) {
-        // Extract the IDs of the selected pets
         List<String> petIds = selectedPets.map((pet) => pet.id).toList();
-        // Pass the list of petIds to the event type selection screen
         _showAllEventTypesForPets(petIds);
       }
     });
