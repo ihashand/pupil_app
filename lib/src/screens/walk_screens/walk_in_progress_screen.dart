@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 
 List<apple_maps.LatLng> stoolEventPoints = [];
@@ -37,6 +39,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   final List<XFile> _photos = [];
   final TextEditingController _notesController = TextEditingController();
   List<apple_maps.Polyline> eventLines = [];
+  int _currentPage = 0;
+  final int _eventsPerPage = 4;
 
   @override
   void initState() {
@@ -787,11 +791,54 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
+  void _handleMoreButtonPressed() {
+    _selectPetsForEvent().then((selectedPets) {
+      if (selectedPets.isNotEmpty) {
+        List<String> petIds = selectedPets.map((pet) => pet.id).toList();
+        _showAllEventTypesForPets(petIds);
+      }
+    });
+  }
+
+  void _showAllEventTypesForPets(List<String> petIds) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            EventTypeSelectionScreen(petId: '', petIds: petIds),
+      ),
+    );
+  }
+
+// Holds the list of events added during the walk
+  final List<Map<String, dynamic>> _addedEvents = [];
   Widget _buildEventSelectionContainer() {
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
-      // Możesz dodać inne wydarzenia
+      {'icon': '🐕', 'label': 'Barking'},
+      {'icon': '😡', 'label': 'Growling'},
+      {'icon': '👃', 'label': 'Sniffing'},
+      {'icon': '🦮', 'label': 'Loose leash'},
+      {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
+      {'icon': '🚶‍♂️', 'label': 'Off-leash'},
+      {'icon': '🐶', 'label': 'Meeting new pet'},
+      {'icon': '🏃', 'label': 'Attempted escape'},
+      {'icon': '🍂', 'label': 'Attempted to eat trash'},
+      {'icon': '🐾', 'label': 'Digging in dirt'},
+      {'icon': '💧', 'label': 'Drinking from puddle'},
+      {'icon': '🛏️', 'label': 'Resting'},
+      {'icon': '🐕‍🔥', 'label': 'Chasing'},
+      {'icon': '👟', 'label': 'Running'},
+      {'icon': '🐦', 'label': 'Watching birds'},
+      {'icon': '🍖', 'label': 'Eating snack'},
+      {'icon': '🎾', 'label': 'Playing fetch'},
+      {'icon': '🌧️', 'label': 'Getting wet'},
+      {'icon': '🌳', 'label': 'Climbing tree'},
+      {'icon': '🌻', 'label': 'Smelling flowers'},
+      {'icon': '🪵', 'label': 'Carrying stick'},
+      {'icon': '🌞', 'label': 'Sunbathing'},
+      {'icon': '👤', 'label': 'Meeting person'},
     ];
 
     return Padding(
@@ -817,6 +864,17 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                       color: Theme.of(context).primaryColorDark,
                     ),
                   ),
+                  // Dodaj tutaj przycisk "M O R E"
+                  TextButton(
+                    onPressed: _handleMoreButtonPressed,
+                    child: Text(
+                      'M O R E',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -835,24 +893,42 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                         final latLng = apple_maps.LatLng(
                             position.latitude, position.longitude);
 
-                        // Tworzenie krótkiej, grubej linii w miejscu wydarzenia
-                        apple_maps.Polyline eventLine = apple_maps.Polyline(
-                          polylineId: apple_maps.PolylineId(
-                              '${event['label']}_${DateTime.now()}'), // Użycie unikalnego ID dla każdego wydarzenia
-                          points: [
-                            latLng,
-                            // Dodanie drugiego punktu blisko pierwszego, aby stworzyć krótki odcinek
-                            apple_maps.LatLng(position.latitude + 0.00005,
-                                position.longitude + 0.00005),
-                          ],
-                          width: 25, // Grubsza linia
-                          color: event['label'] == 'Stool'
-                              ? Colors.brown
-                              : Colors.yellow,
-                        );
+                        // Dialog dla wyboru, czy zaznaczyć na mapie i wybór koloru
+                        bool markOnMap =
+                            await _showMarkOnMapDialog(event['label']!);
+                        Color eventColor = Colors.brown; // Domyślny kolor
+                        if (markOnMap) {
+                          eventColor = await _showColorSelectionDialog();
+                        }
 
+                        // Stwórz nowe wydarzenie
+                        var newEvent = {
+                          'icon': event['icon'],
+                          'label': event['label'],
+                          'time': DateTime.now(),
+                          'latLng': latLng,
+                          'markOnMap': markOnMap,
+                          'color': eventColor,
+                        };
+
+                        // Dodaj wydarzenie do listy i odśwież UI
                         setState(() {
-                          eventLines.add(eventLine);
+                          _addedEvents.add(newEvent);
+
+                          if (markOnMap) {
+                            // Dodaj na mapę jeśli wybrane
+                            eventLines.add(apple_maps.Polyline(
+                              polylineId: apple_maps.PolylineId(
+                                  '${event['label']}_${DateTime.now()}'),
+                              points: [
+                                latLng,
+                                apple_maps.LatLng(position.latitude + 0.00005,
+                                    position.longitude + 0.00005),
+                              ],
+                              width: 25,
+                              color: eventColor,
+                            ));
+                          }
                         });
                       },
                       child: Container(
@@ -887,10 +963,78 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 ),
               ),
             ),
+            const SizedBox(height: 10),
+            if (_addedEvents.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _buildPaginatedEvents(),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<bool> _showMarkOnMapDialog(String eventLabel) async {
+    bool markOnMap = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Mark $eventLabel on Map?'),
+          content: const Text('Would you like to mark this event on the map?'),
+          actions: [
+            TextButton(
+              child: Text('No',
+                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+              onPressed: () {
+                markOnMap = false;
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Yes',
+                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+              onPressed: () {
+                markOnMap = true;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return markOnMap;
+  }
+
+  Future<Color> _showColorSelectionDialog() async {
+    Color selectedColor = Colors.brown; // Default
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Color for Event Marker'),
+          content: SingleChildScrollView(
+            child: BlockPicker(
+              pickerColor: selectedColor,
+              onColorChanged: (color) {
+                selectedColor = color;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text('Done',
+                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return selectedColor;
   }
 
   Future<List<Pet>> _selectPetsForEvent() async {
@@ -988,22 +1132,64 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     return selectedPets;
   }
 
-  void _handleMoreButtonPressed() {
-    _selectPetsForEvent().then((selectedPets) {
-      if (selectedPets.isNotEmpty) {
-        List<String> petIds = selectedPets.map((pet) => pet.id).toList();
-        _showAllEventTypesForPets(petIds);
-      }
-    });
-  }
+// Display paginated events
+  Widget _buildPaginatedEvents() {
+    int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
+    List<Map<String, dynamic>> paginatedEvents = _addedEvents
+        .skip(_currentPage * _eventsPerPage)
+        .take(_eventsPerPage)
+        .toList();
 
-  void _showAllEventTypesForPets(List<String> petIds) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            EventTypeSelectionScreen(petId: '', petIds: petIds),
-      ),
+    return Column(
+      children: [
+        ...paginatedEvents.map((event) {
+          return ListTile(
+            leading: Text(
+              event['icon'],
+              style: const TextStyle(fontSize: 30),
+            ),
+            title: Text(
+                '${event['label']} - ${DateFormat('HH:mm').format(event['time'])}'),
+            subtitle: Text(DateFormat('dd-MM-yy').format(event['time'])),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  _addedEvents.remove(event);
+                });
+              },
+            ),
+          );
+        }),
+        const SizedBox(height: 10),
+        // Pagination controls
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: _currentPage > 0
+                  ? () {
+                      setState(() {
+                        _currentPage--;
+                      });
+                    }
+                  : null,
+            ),
+            Text('Page ${_currentPage + 1} of $totalPages'),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: _currentPage < totalPages - 1
+                  ? () {
+                      setState(() {
+                        _currentPage++;
+                      });
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
