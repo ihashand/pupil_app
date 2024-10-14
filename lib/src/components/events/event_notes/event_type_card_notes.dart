@@ -14,7 +14,8 @@ Widget eventTypeCardNotes(
     TextEditingController titleController,
     TextEditingController contentTextController,
     WidgetRef ref,
-    String petId) {
+    {String? petId,
+    List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
@@ -128,39 +129,47 @@ Widget eventTypeCardNotes(
                                         return;
                                       }
 
-                                      String eventId = generateUniqueId();
-                                      String noteId = generateUniqueId();
-                                      EventNoteModel newNote = EventNoteModel(
-                                        id: noteId,
-                                        title: titleController.text,
-                                        eventId: eventId,
-                                        petId: petId,
-                                        dateTime: selectedDate,
-                                        contentText: contentTextController.text,
-                                      );
+                                      // Handle multiple petIds or single petId
+                                      List<String> idsToHandle =
+                                          petIds ?? [petId!];
 
-                                      Event newEvent = Event(
-                                        id: eventId,
-                                        title: 'Note',
-                                        eventDate: selectedDate,
-                                        dateWhenEventAdded: selectedDate,
-                                        userId: FirebaseAuth
-                                            .instance.currentUser!.uid,
-                                        petId: petId,
-                                        noteId: newNote.id,
-                                        description:
-                                            '${newNote.title} \n ${newNote.contentText}',
-                                        avatarImage:
-                                            'assets/images/dog_avatar_014.png',
-                                        emoticon: '📝',
-                                      );
+                                      for (var id in idsToHandle) {
+                                        String eventId = generateUniqueId();
+                                        String noteId = generateUniqueId();
+                                        EventNoteModel newNote = EventNoteModel(
+                                          id: noteId,
+                                          title: titleController.text,
+                                          eventId: eventId,
+                                          petId: id,
+                                          dateTime: selectedDate,
+                                          contentText:
+                                              contentTextController.text,
+                                        );
 
-                                      ref
-                                          .read(eventServiceProvider)
-                                          .addEvent(newEvent, petId);
-                                      ref
-                                          .read(eventNoteServiceProvider)
-                                          .addNote(newNote);
+                                        Event newEvent = Event(
+                                          id: eventId,
+                                          title: 'Note',
+                                          eventDate: selectedDate,
+                                          dateWhenEventAdded: selectedDate,
+                                          userId: FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                          petId: id,
+                                          noteId: newNote.id,
+                                          description:
+                                              '${newNote.title} \n ${newNote.contentText}',
+                                          avatarImage:
+                                              'assets/images/dog_avatar_014.png',
+                                          emoticon: '📝',
+                                        );
+
+                                        // Add event and note for each petId
+                                        ref
+                                            .read(eventServiceProvider)
+                                            .addEvent(newEvent, id);
+                                        ref
+                                            .read(eventNoteServiceProvider)
+                                            .addNote(newNote);
+                                      }
 
                                       Navigator.of(context).pop();
                                     },

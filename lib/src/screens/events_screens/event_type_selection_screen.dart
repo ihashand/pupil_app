@@ -19,9 +19,12 @@ import 'package:reorderables/reorderables.dart';
 import 'dart:math';
 
 class EventTypeSelectionScreen extends ConsumerStatefulWidget {
-  final String petId;
+  final String? petId;
+  final List<String>? petIds;
 
-  const EventTypeSelectionScreen({super.key, required this.petId});
+  const EventTypeSelectionScreen({super.key, this.petId, this.petIds})
+      : assert(petId != null || petIds != null,
+            "Either petId or petIds must be provided.");
 
   @override
   createState() => _EventTypeSelectionState();
@@ -418,38 +421,63 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
     });
   }
 
-  Widget _buildCard(String widgetName) {
+  Widget? _buildCard(String widgetName) {
+    if ((widget.petId == null || widget.petId!.isEmpty) &&
+        (widget.petIds == null || widget.petIds!.isEmpty)) {
+      return null;
+    }
+
     switch (widgetName) {
       case 'eventTypeCardWater':
-        return eventTypeCardWater(context, ref, widget.petId);
+        return eventTypeCardWater(context, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardFood':
-        return eventTypeCardFood(context, ref, widget.petId);
+        return widget.petId != null && widget.petId!.isNotEmpty
+            ? eventTypeCardFood(context, ref, widget.petId!)
+            : null;
       case 'eventTypeCardMedicine':
-        return eventTypeCardMedicine(context, ref, widget.petId);
+        return widget.petId != null && widget.petId!.isNotEmpty
+            ? eventTypeCardMedicine(context, ref, widget.petId!)
+            : null;
       case 'eventTypeCardVaccines':
-        return eventTypeCardVaccines(context, ref, widget.petId);
+        return eventTypeCardVaccines(context, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardMood':
-        return eventTypeCardMood(context, ref, widget.petId, dateController);
+        return eventTypeCardMood(context, ref,
+            petId: widget.petId,
+            petIds: widget.petIds,
+            dateController: dateController);
       case 'eventTypeCardIssues':
-        return eventTypeCardIssues(context, ref, widget.petId, dateController);
+        return eventTypeCardIssues(context, ref,
+            petId: widget.petId,
+            petIds: widget.petIds,
+            dateController: dateController);
       case 'eventTypeCardCare':
-        return eventTypeCardCare(context, ref, widget.petId, dateController);
+        return eventTypeCardCare(context, ref,
+            petId: widget.petId,
+            petIds: widget.petIds,
+            dateController: dateController);
       case 'eventTypeCardStool':
-        return eventTypeCardStool(context, ref, widget.petId);
+        return eventTypeCardStool(context, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardUrine':
-        return eventTypeCardUrine(context, ref, widget.petId);
+        return eventTypeCardUrine(context, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardWeight':
-        return eventTypeCardWeight(context, ref, widget.petId);
+        return eventTypeCardWeight(context, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardTemperature':
-        return eventTypeCardTemperature(
-            context, temperatureController, ref, widget.petId);
+        return eventTypeCardTemperature(context, temperatureController, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardNotes':
         return eventTypeCardNotes(
-            context, titleController, contentTextController, ref, widget.petId);
+            context, titleController, contentTextController, ref,
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardWalk':
-        return eventTypeCardWalk(context, ref, widget.petId);
+        return eventTypeCardWalk(context, ref,
+            petId: widget.petId, petIds: widget.petIds);
       default:
-        return const SizedBox.shrink();
+        return null;
     }
   }
 
@@ -458,6 +486,7 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
     double cardWidth = MediaQuery.of(context).size.width / 2 - 36;
 
     List<Widget> cardWidgets = [];
+
     for (int i = 0; i < eventTypeCards.length; i++) {
       if ((isEditMode || eventTypeCards[i]['isActive']) &&
           (searchQuery.isEmpty ||
@@ -467,53 +496,58 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
                           .toString()
                           .toLowerCase()
                           .contains(searchQuery))))) {
-        Widget card = GestureDetector(
-          key: ValueKey(i),
-          onTap: isEditMode ? () => _toggleCardVisibility(i) : null,
-          child: SizedBox(
-            width: cardWidth,
-            height: 205,
-            child: Stack(
-              children: [
-                AnimatedBuilder(
-                  animation: _animationControllers[i],
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: isEditMode
-                          ? Offset(
-                              sin(_animationControllers[i].value * 2 * pi) * 2,
-                              0,
-                            )
-                          : Offset.zero,
-                      child: child,
-                    );
-                  },
-                  child: Opacity(
-                    opacity: eventTypeCards[i]['isActive'] ? 1.0 : 0.5,
-                    child: _buildCard(eventTypeCards[i]['widget']),
-                  ),
-                ),
-                if (isEditMode)
-                  Positioned(
-                    right: 0,
-                    child: IconButton(
-                      icon: Icon(
-                        eventTypeCards[i]['isActive']
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: eventTypeCards[i]['isActive']
-                            ? Colors.green
-                            : Colors.red,
-                      ),
-                      onPressed: () => _toggleCardVisibility(i),
+        Widget? card = _buildCard(eventTypeCards[i]['widget']);
+
+        if (card != null) {
+          Widget validCard = GestureDetector(
+            key: ValueKey(i),
+            onTap: isEditMode ? () => _toggleCardVisibility(i) : null,
+            child: SizedBox(
+              width: cardWidth,
+              height: 205,
+              child: Stack(
+                children: [
+                  AnimatedBuilder(
+                    animation: _animationControllers[i],
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: isEditMode
+                            ? Offset(
+                                sin(_animationControllers[i].value * 2 * pi) *
+                                    2,
+                                0,
+                              )
+                            : Offset.zero,
+                        child: child,
+                      );
+                    },
+                    child: Opacity(
+                      opacity: eventTypeCards[i]['isActive'] ? 1.0 : 0.5,
+                      child: card,
                     ),
                   ),
-              ],
+                  if (isEditMode)
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        icon: Icon(
+                          eventTypeCards[i]['isActive']
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: eventTypeCards[i]['isActive']
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                        onPressed: () => _toggleCardVisibility(i),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
+          );
 
-        cardWidgets.add(card);
+          cardWidgets.add(validCard);
+        }
       }
     }
 

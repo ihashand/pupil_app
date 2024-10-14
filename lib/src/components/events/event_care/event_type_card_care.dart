@@ -9,8 +9,10 @@ import 'package:pet_diary/src/providers/events_providers/event_care_provider.dar
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
-    TextEditingController dateController) {
+Widget eventTypeCardCare(BuildContext context, WidgetRef ref,
+    {String? petId,
+    List<String>? petIds,
+    required TextEditingController dateController}) {
   DateTime selectedDate = DateTime.now();
   dateController.text = DateFormat('dd-MM-yyyy').format(selectedDate);
 
@@ -33,6 +35,19 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
     {'icon': '👁️', 'description': 'Eye Drops'},
     {'icon': '🧴', 'description': 'Moisturizing Paw Pads'},
   ];
+
+  void recordCareEvent(String careDescription, String emoji) {
+    String eventId = generateUniqueId();
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _saveCareEvent(
+            context, ref, id, eventId, careDescription, emoji, selectedDate);
+      }
+    } else if (petId != null) {
+      _saveCareEvent(
+          context, ref, petId, eventId, careDescription, emoji, selectedDate);
+    }
+  }
 
   void showCareOptions(BuildContext context) {
     showModalBottomSheet(
@@ -244,55 +259,10 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
                                                                 .primaryColorDark),
                                                       ),
                                                       onPressed: () {
-                                                        String eventId =
-                                                            generateUniqueId();
-
-                                                        EventCareModel newCare =
-                                                            EventCareModel(
-                                                          id: generateUniqueId(),
-                                                          eventId: eventId,
-                                                          petId: petId,
-                                                          careType: option[
-                                                              'description'],
-                                                          emoji: option['icon'],
-                                                          description: option[
-                                                              'description'],
-                                                          dateTime:
-                                                              selectedDate,
+                                                        recordCareEvent(
+                                                          option['description'],
+                                                          option['icon'],
                                                         );
-
-                                                        ref
-                                                            .read(
-                                                                eventCareServiceProvider)
-                                                            .addCare(newCare);
-
-                                                        Event newEvent = Event(
-                                                          id: eventId,
-                                                          title: 'Care',
-                                                          eventDate:
-                                                              selectedDate,
-                                                          dateWhenEventAdded:
-                                                              DateTime.now(),
-                                                          userId: FirebaseAuth
-                                                              .instance
-                                                              .currentUser!
-                                                              .uid,
-                                                          petId: petId,
-                                                          description: option[
-                                                              'description'],
-                                                          avatarImage:
-                                                              'assets/images/dog_avatar_014.png',
-                                                          emoticon:
-                                                              option['icon'],
-                                                          careId: newCare.id,
-                                                        );
-
-                                                        ref
-                                                            .read(
-                                                                eventServiceProvider)
-                                                            .addEvent(newEvent,
-                                                                petId);
-
                                                         Navigator.of(context)
                                                             .pop();
                                                         Navigator.of(context)
@@ -349,4 +319,40 @@ Widget eventTypeCardCare(BuildContext context, WidgetRef ref, String petId,
       showCareOptions(context);
     },
   );
+}
+
+void _saveCareEvent(
+    BuildContext context,
+    WidgetRef ref,
+    String petId,
+    String eventId,
+    String careDescription,
+    String emoji,
+    DateTime selectedDate) {
+  EventCareModel newCare = EventCareModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    careType: careDescription,
+    emoji: emoji,
+    description: careDescription,
+    dateTime: selectedDate,
+  );
+
+  ref.read(eventCareServiceProvider).addCare(newCare);
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Care',
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    description: careDescription,
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: emoji,
+    careId: newCare.id,
+  );
+
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

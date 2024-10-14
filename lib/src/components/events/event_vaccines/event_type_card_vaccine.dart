@@ -9,8 +9,8 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_vacine_provider.dart';
 import 'package:intl/intl.dart';
 
-Widget eventTypeCardVaccines(
-    BuildContext context, WidgetRef ref, String petId) {
+Widget eventTypeCardVaccines(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   String? selectedVaccineType;
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
@@ -35,29 +35,15 @@ Widget eventTypeCardVaccines(
 
   void recordVaccineEvent() {
     String eventId = generateUniqueId();
-    EventVaccineModel newVaccine = EventVaccineModel(
-      id: generateUniqueId(),
-      eventId: eventId,
-      petId: petId,
-      emoticon: selectedVaccineType ?? 'Default',
-      description: selectedVaccineType ?? 'Vaccine event',
-      dateTime: selectedDate,
-    );
-    ref.read(eventVaccineServiceProvider).addVaccine(newVaccine);
+    String description = selectedVaccineType ?? 'Vaccine event';
 
-    Event newEvent = Event(
-      id: eventId,
-      title: 'Vaccine',
-      eventDate: selectedDate,
-      dateWhenEventAdded: DateTime.now(),
-      userId: FirebaseAuth.instance.currentUser!.uid,
-      petId: petId,
-      description: selectedVaccineType ?? 'Vaccine event',
-      avatarImage: 'assets/images/dog_avatar_014.png',
-      emoticon: '💉',
-      vaccineId: newVaccine.id,
-    );
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _saveVaccineEvent(ref, id, eventId, description, selectedDate);
+      }
+    } else if (petId != null) {
+      _saveVaccineEvent(ref, petId, eventId, description, selectedDate);
+    }
   }
 
   void showConfirmationBottomSheet(
@@ -269,4 +255,33 @@ Widget eventTypeCardVaccines(
       showConfirmationBottomSheet(context, recordVaccineEvent);
     },
   );
+}
+
+void _saveVaccineEvent(WidgetRef ref, String petId, String eventId,
+    String description, DateTime selectedDate) {
+  EventVaccineModel newVaccine = EventVaccineModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    emoticon: '💉',
+    description: description,
+    dateTime: selectedDate,
+  );
+
+  ref.read(eventVaccineServiceProvider).addVaccine(newVaccine);
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Vaccine',
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    description: description,
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: '💉',
+    vaccineId: newVaccine.id,
+  );
+
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

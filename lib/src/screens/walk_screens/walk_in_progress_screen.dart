@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -133,12 +136,12 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               controller: _scrollController,
               child: Column(
                 children: [
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 50),
                   _buildProgressBarWithDetailsConteiner(
                       context, walkState, walkNotifier),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
                   _buildEventSelectionContainer(),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 20),
                   _buildNotesAndPhotosContainer(),
                   const SizedBox(height: 50),
                 ],
@@ -336,7 +339,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                                   color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(8),
                                   boxShadow: [
-                                    BoxShadow(
+                                    const BoxShadow(
                                       color: Colors.black,
                                       spreadRadius: 1,
                                       blurRadius: 5,
@@ -496,53 +499,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildNotesContainer() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Container(
-        padding: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const TextField(
-          maxLines: null, // Pozwala na wieloliniowe wpisywanie tekstu
-          keyboardType: TextInputType.multiline,
-          decoration: InputDecoration(
-            hintText: 'Notatki',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: InputBorder.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotosContainer() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Container(
-        padding: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _buildAddPhotoButton(),
-                const SizedBox(width: 10),
-                ..._buildPhotoPreviews(),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -833,31 +789,22 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
-      {'icon': '🐕', 'label': 'Szczekanie'},
-      {'icon': '🐾', 'label': 'Ciągnięcie smyczy'},
-      {'icon': '🦴', 'label': 'Gryzienie'},
-      {'icon': '😡', 'label': 'Warczenie'},
-      {'icon': '🥶', 'label': 'Zimno'},
-      {'icon': '😱', 'label': 'Strach'},
-      {'icon': '🐶', 'label': 'Poznanie nowego zwierzaka'},
-      {'icon': '👨', 'label': 'Spotkanie innego człowieka'},
-      {'icon': '🦘', 'label': 'Skakanie na ludzi'},
-      {'icon': '🐾', 'label': 'Kopanie w ziemi'},
-      {'icon': '🌀', 'label': 'Zgubienie się'},
-      {'icon': '⏱️', 'label': 'Zbyt szybkie tempo'},
-      {'icon': '🏃', 'label': 'Próba ucieczki'},
-      {'icon': '🚴', 'label': 'Bieganie za rowerzystą'},
-      {'icon': '🐦', 'label': 'Próba złapania ptaka'},
-      {'icon': '🚶‍♂️', 'label': 'Leżenie na ziemi'},
-      {'icon': '👃', 'label': 'Wąchanie innych psów'},
-      {'icon': '🗑️', 'label': 'Próba jedzenia śmieci'},
-      {'icon': '🏊', 'label': 'Chęć kąpieli w wodzie'},
+      {'icon': '🐕', 'label': 'Barking'},
+      {'icon': '😡', 'label': 'Growling'},
+      {'icon': '👃', 'label': 'Sniffing'},
+      {'icon': '🦮', 'label': 'Loose leash'},
+      {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
+      {'icon': '🚶‍♂️', 'label': 'Off-leash'},
+      {'icon': '🐶', 'label': 'Meeting new pet'},
+      {'icon': '🏃', 'label': 'Attempted escape'},
+      {'icon': '🍂', 'label': 'Attempted to eat trash'},
+      {'icon': '🐾', 'label': 'Digging in dirt'},
+      {'icon': '💧', 'label': 'Drinking from puddle'},
     ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(12),
@@ -865,56 +812,191 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Select Event',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-            const SizedBox(height: 15),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0, left: 15, right: 5),
               child: Row(
-                children: eventOptions.map((event) {
-                  return GestureDetector(
-                    onTap: () {
-                      // Handle event selection logic here
-                    },
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            event['icon']!,
-                            style: const TextStyle(fontSize: 30),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            event['label']!,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Event',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _handleMoreButtonPressed(),
+                    child: Text(
+                      'M O R E',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Theme.of(context).primaryColorDark,
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
+              child: SingleChildScrollView(
+                hitTestBehavior: HitTestBehavior.translucent,
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: eventOptions.map((event) {
+                    return GestureDetector(
+                      onTap: () {
+                        // Logika obsługi eventów
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              event['icon']!,
+                              style: const TextStyle(fontSize: 30),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              event['label']!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<List<Pet>> _selectPetsForEvent() async {
+    List<Pet> selectedPets = [];
+    await showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding:
+                            EdgeInsets.only(left: 15.0, top: 15, bottom: 5),
+                        child: Text(
+                          'S E L E C T  P E T S',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            right: 15.0, top: 15, bottom: 5),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'D O N E',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Divider(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: Wrap(
+                      spacing: 10.0,
+                      runSpacing: 10.0,
+                      children: widget.pets.map((pet) {
+                        bool isSelected = selectedPets.contains(pet);
+                        return GestureDetector(
+                          onTap: () {
+                            setModalState(() {
+                              if (isSelected) {
+                                selectedPets.remove(pet);
+                              } else {
+                                selectedPets.add(pet);
+                              }
+                            });
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.secondary,
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 30,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 35),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+    return selectedPets;
+  }
+
+  void _handleMoreButtonPressed() {
+    _selectPetsForEvent().then((selectedPets) {
+      if (selectedPets.isNotEmpty) {
+        // Extract the IDs of the selected pets
+        List<String> petIds = selectedPets.map((pet) => pet.id).toList();
+        // Pass the list of petIds to the event type selection screen
+        _showAllEventTypesForPets(petIds);
+      }
+    });
+  }
+
+  void _showAllEventTypesForPets(List<String> petIds) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            EventTypeSelectionScreen(petId: '', petIds: petIds),
       ),
     );
   }

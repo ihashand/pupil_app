@@ -9,11 +9,12 @@ import 'package:pet_diary/src/providers/events_providers/event_psychic_provider.
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
-    TextEditingController dateController) {
+Widget eventTypeCardIssues(BuildContext context, WidgetRef ref,
+    {String? petId,
+    List<String>? petIds,
+    required TextEditingController dateController}) {
   DateTime selectedDate = DateTime.now();
   dateController.text = DateFormat('dd-MM-yyyy').format(selectedDate);
-
   String? selectedPsychicIssue;
 
   final List<Map<String, dynamic>> psychicIssues = [
@@ -28,6 +29,22 @@ Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
     {'emoji': '😱', 'description': 'Panic'},
     {'emoji': '😖', 'description': 'General Pain'},
   ];
+
+  void recordPsychicEvent() {
+    String eventId = generateUniqueId();
+    String selectedEmoji = psychicIssues.firstWhere(
+        (issue) => issue['description'] == selectedPsychicIssue)['emoji'];
+
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _savePsychicEvent(ref, id, eventId, selectedPsychicIssue!,
+            selectedEmoji, selectedDate);
+      }
+    } else if (petId != null) {
+      _savePsychicEvent(ref, petId, eventId, selectedPsychicIssue!,
+          selectedEmoji, selectedDate);
+    }
+  }
 
   void showIssuesOptions(BuildContext context) {
     showModalBottomSheet(
@@ -86,44 +103,7 @@ Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
                                     color: Theme.of(context).primaryColorDark),
                                 onPressed: () {
                                   if (selectedPsychicIssue != null) {
-                                    String eventId = generateUniqueId();
-                                    String selectedEmoji =
-                                        psychicIssues.firstWhere((issue) =>
-                                            issue['description'] ==
-                                            selectedPsychicIssue)['emoji'];
-
-                                    EventPsychicModel newPsychic =
-                                        EventPsychicModel(
-                                      id: generateUniqueId(),
-                                      eventId: eventId,
-                                      petId: petId,
-                                      emoji: selectedEmoji,
-                                      description: selectedPsychicIssue!,
-                                      dateTime: selectedDate,
-                                    );
-
-                                    ref
-                                        .read(eventPsychicServiceProvider)
-                                        .addPsychicEvent(newPsychic);
-
-                                    Event newEvent = Event(
-                                      id: eventId,
-                                      title: 'Psychic',
-                                      eventDate: selectedDate,
-                                      dateWhenEventAdded: DateTime.now(),
-                                      userId: FirebaseAuth
-                                          .instance.currentUser!.uid,
-                                      petId: petId,
-                                      description: selectedPsychicIssue!,
-                                      avatarImage:
-                                          'assets/images/dog_avatar_014.png',
-                                      emoticon: selectedEmoji,
-                                      psychicId: newPsychic.id,
-                                    );
-
-                                    ref
-                                        .read(eventServiceProvider)
-                                        .addEvent(newEvent, petId);
+                                    recordPsychicEvent();
                                   }
                                   Navigator.of(context).pop();
                                 }),
@@ -273,9 +253,7 @@ Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 15,
-                    )
+                    const SizedBox(height: 15),
                   ],
                 ),
               ),
@@ -294,4 +272,33 @@ Widget eventTypeCardIssues(BuildContext context, WidgetRef ref, String petId,
       showIssuesOptions(context);
     },
   );
+}
+
+void _savePsychicEvent(WidgetRef ref, String petId, String eventId,
+    String description, String emoji, DateTime selectedDate) {
+  EventPsychicModel newPsychic = EventPsychicModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    emoji: emoji,
+    description: description,
+    dateTime: selectedDate,
+  );
+
+  ref.read(eventPsychicServiceProvider).addPsychicEvent(newPsychic);
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Psychic',
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    description: description,
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: emoji,
+    psychicId: newPsychic.id,
+  );
+
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

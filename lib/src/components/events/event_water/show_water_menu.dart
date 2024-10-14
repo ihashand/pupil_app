@@ -5,7 +5,8 @@ import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_water_provider.dart';
 
-void showWaterMenu(BuildContext context, WidgetRef ref, String petId) {
+void showWaterMenu(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   var amountController = TextEditingController();
   DateTime selectedDateTime = DateTime.now();
 
@@ -60,18 +61,18 @@ void showWaterMenu(BuildContext context, WidgetRef ref, String petId) {
                               color: Theme.of(context).primaryColorDark),
                           onPressed: () async {
                             String eventId = generateUniqueId();
-                            EventWaterModel newWaterEvent = EventWaterModel(
-                              id: eventId,
-                              eventId: eventId,
-                              petId: petId,
-                              water:
-                                  double.tryParse(amountController.text) ?? 0.0,
-                              dateTime: selectedDateTime,
-                            );
+                            double waterAmount =
+                                double.tryParse(amountController.text) ?? 0.0;
 
-                            await ref
-                                .read(eventWaterServiceProvider)
-                                .addWater(newWaterEvent);
+                            if (petIds != null && petIds.isNotEmpty) {
+                              for (String id in petIds) {
+                                _saveWaterEvent(ref, id, eventId, waterAmount,
+                                    selectedDateTime);
+                              }
+                            } else if (petId != null) {
+                              _saveWaterEvent(ref, petId, eventId, waterAmount,
+                                  selectedDateTime);
+                            }
 
                             // ignore: use_build_context_synchronously
                             Navigator.of(context).pop();
@@ -202,4 +203,17 @@ void showWaterMenu(BuildContext context, WidgetRef ref, String petId) {
       );
     },
   );
+}
+
+void _saveWaterEvent(WidgetRef ref, String petId, String eventId,
+    double waterAmount, DateTime dateTime) {
+  EventWaterModel newWaterEvent = EventWaterModel(
+    id: eventId,
+    eventId: eventId,
+    petId: petId,
+    water: waterAmount,
+    dateTime: dateTime,
+  );
+
+  ref.read(eventWaterServiceProvider).addWater(newWaterEvent);
 }
