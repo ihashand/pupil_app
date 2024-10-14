@@ -75,12 +75,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
     bool confirm = await _showConfirmationDialog(context, 'End');
     if (confirm) {
-      // Zatrzymanie spaceru i czyszczenie danych
       walkNotifier.stopWalk();
-      eventLines.clear(); // Wyczyść wydarzenia na mapie
-      stoolEventPoints.clear(); // Wyczyść miejsca wydarzeń
-      urineEventPoints.clear(); // Wyczyść miejsca wydarzeń
-      Navigator.of(context).pop(); // Powrót do poprzedniego ekranu
+      eventLines.clear();
+      stoolEventPoints.clear();
+      urineEventPoints.clear();
+      Navigator.of(context).pop();
     }
   }
 
@@ -350,8 +349,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    const BoxShadow(
+                                  boxShadow: const [
+                                    BoxShadow(
                                       color: Colors.black,
                                       spreadRadius: 1,
                                       blurRadius: 5,
@@ -810,8 +809,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-// Holds the list of events added during the walk
   final List<Map<String, dynamic>> _addedEvents = [];
+
   Widget _buildEventSelectionContainer() {
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
@@ -864,7 +863,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                       color: Theme.of(context).primaryColorDark,
                     ),
                   ),
-                  // Dodaj tutaj przycisk "M O R E"
                   TextButton(
                     onPressed: _handleMoreButtonPressed,
                     child: Text(
@@ -893,12 +891,15 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                         final latLng = apple_maps.LatLng(
                             position.latitude, position.longitude);
 
-                        // Dialog dla wyboru, czy zaznaczyć na mapie i wybór koloru
-                        bool markOnMap =
-                            await _showMarkOnMapDialog(event['label']!);
-                        Color eventColor = Colors.brown; // Domyślny kolor
-                        if (markOnMap) {
-                          eventColor = await _showColorSelectionDialog();
+                        bool markOnMap = false;
+                        Color eventColor = Colors.green;
+
+                        if (event['label'] == 'Stool') {
+                          markOnMap = true;
+                          eventColor = Colors.brown;
+                        } else if (event['label'] == 'Urine') {
+                          markOnMap = true;
+                          eventColor = Colors.yellow;
                         }
 
                         // Stwórz nowe wydarzenie
@@ -916,7 +917,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                           _addedEvents.add(newEvent);
 
                           if (markOnMap) {
-                            // Dodaj na mapę jeśli wybrane
+                            // Dodaj na mapę tylko, jeśli zaznaczone
                             eventLines.add(apple_maps.Polyline(
                               polylineId: apple_maps.PolylineId(
                                   '${event['label']}_${DateTime.now()}'),
@@ -929,6 +930,45 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                               color: eventColor,
                             ));
                           }
+                        });
+                      },
+                      onLongPress: () async {
+                        Color newColor = await _showColorSelectionDialog();
+
+                        final Position position =
+                            await Geolocator.getCurrentPosition(
+                          desiredAccuracy: LocationAccuracy.high,
+                        );
+                        final latLng = apple_maps.LatLng(
+                            position.latitude, position.longitude);
+
+                        // Stwórz nowe wydarzenie z wybranym kolorem
+                        var newEvent = {
+                          'icon': event['icon'],
+                          'label': event['label'],
+                          'time': DateTime.now(),
+                          'latLng': latLng,
+                          'markOnMap':
+                              true, // Domyślnie zaznacz na mapie po zmianie koloru
+                          'color': newColor,
+                        };
+
+                        // Dodaj wydarzenie do listy i odśwież UI
+                        setState(() {
+                          _addedEvents.add(newEvent);
+
+                          // Dodaj na mapę z nowym kolorem
+                          eventLines.add(apple_maps.Polyline(
+                            polylineId: apple_maps.PolylineId(
+                                '${event['label']}_${DateTime.now()}'),
+                            points: [
+                              latLng,
+                              apple_maps.LatLng(position.latitude + 0.00005,
+                                  position.longitude + 0.00005),
+                            ],
+                            width: 25,
+                            color: newColor,
+                          ));
                         });
                       },
                       child: Container(
@@ -1008,12 +1048,15 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   }
 
   Future<Color> _showColorSelectionDialog() async {
-    Color selectedColor = Colors.brown; // Default
+    Color selectedColor = Colors.transparent;
     await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Select Color for Event Marker'),
+          title: const Text(
+            'S E L E C T  T O  M A R K  O N  M A P',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          ),
           content: SingleChildScrollView(
             child: BlockPicker(
               pickerColor: selectedColor,
@@ -1024,8 +1067,21 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ),
           actions: [
             TextButton(
-              child: Text('Done',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+                child: Text('C A N C E L',
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  selectedColor = Colors.transparent;
+                  Navigator.of(context).pop();
+                }),
+            TextButton(
+              child: Text('D O N E',
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -1132,7 +1188,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     return selectedPets;
   }
 
-// Display paginated events
   Widget _buildPaginatedEvents() {
     int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
     List<Map<String, dynamic>> paginatedEvents = _addedEvents
@@ -1148,9 +1203,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               event['icon'],
               style: const TextStyle(fontSize: 30),
             ),
-            title: Text(
-                '${event['label']} - ${DateFormat('HH:mm').format(event['time'])}'),
-            subtitle: Text(DateFormat('dd-MM-yy').format(event['time'])),
+            title: Text('${event['label']}'),
+            subtitle: Text(
+              DateFormat('HH:mm').format(event['time']),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
@@ -1162,7 +1219,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           );
         }),
         const SizedBox(height: 10),
-        // Pagination controls
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
