@@ -2,6 +2,8 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
@@ -10,8 +12,10 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 
 List<apple_maps.LatLng> stoolEventPoints = [];
 List<apple_maps.LatLng> urineEventPoints = [];
@@ -41,6 +45,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   List<apple_maps.Polyline> eventLines = [];
   int _currentPage = 0;
   final int _eventsPerPage = 4;
+  final Set<Annotation> _annotations = {};
+  bool _isMapFullScreen = false;
 
   @override
   void initState() {
@@ -49,9 +55,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_mapController != null) {
-        _goToCurrentLocation(_mapController!);
+        await _goToCurrentLocation(_mapController!);
       }
     });
   }
@@ -72,14 +78,29 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     }
   }
 
-  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
+  void _endWalk(
+    BuildContext context,
+    WalkNotifier walkNotifier,
+    WalkState walkState,
+  ) async {
     bool confirm = await _showConfirmationDialog(context, 'End');
     if (confirm) {
       walkNotifier.stopWalk();
-      eventLines.clear();
-      stoolEventPoints.clear();
-      urineEventPoints.clear();
-      Navigator.of(context).pop();
+
+      // Przekazanie pełnej listy punktów trasy do ekranu podsumowania
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => WalkSummaryScreen(
+            eventLines: eventLines, // Linie dla eventów
+            addedEvents: _addedEvents, // Lista eventów
+            photos: _photos, // Zdjęcia
+            totalDistance: walkState.totalDistance.toStringAsFixed(2),
+            totalTimeInSeconds: walkState.seconds,
+            pets: widget.pets,
+            notes: _notesController.text,
+          ),
+        ),
+      );
     }
   }
 
@@ -147,14 +168,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               controller: _scrollController,
               child: Column(
                 children: [
-                  const SizedBox(height: 50),
+                  const SizedBox(
+                    height: 5,
+                  ),
                   _buildProgressBarWithDetailsConteiner(
                       context, walkState, walkNotifier),
-                  const SizedBox(height: 20),
                   _buildEventSelectionContainer(),
-                  const SizedBox(height: 20),
                   _buildNotesAndPhotosContainer(),
-                  const SizedBox(height: 50),
                 ],
               ),
             ),
@@ -166,18 +186,68 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   }
 
   Widget _buildMapContainer(WalkState walkState) {
-    return Container(
-      width: 500,
-      height: 225,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: _isMapFullScreen ? MediaQuery.of(context).size.width : 500,
+      height: _isMapFullScreen ? MediaQuery.of(context).size.height - 220 : 225,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
-        ),
+        borderRadius: _isMapFullScreen
+            ? BorderRadius.zero
+            : const BorderRadius.only(
+                bottomLeft: Radius.circular(15),
+                bottomRight: Radius.circular(15),
+              ),
       ),
       padding: const EdgeInsets.all(15.0),
-      child: _buildAppleMapSection(walkState),
+      child: Stack(
+        children: [
+          _buildAppleMapSection(walkState),
+          Positioned(
+            top: 3,
+            right: 3,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: FloatingActionButton(
+                heroTag: 'fullscreenToggle',
+                mini: true,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Icon(
+                  _isMapFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isMapFullScreen = !_isMapFullScreen;
+                  });
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 3,
+            right: 3,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: FloatingActionButton(
+                heroTag: 'currentLocation',
+                onPressed: () {
+                  if (_mapController != null) {
+                    _goToCurrentLocation(_mapController!);
+                  }
+                },
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Icon(
+                  Icons.near_me,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -210,7 +280,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     double progressTime = walkState.seconds / 3600;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
         decoration: BoxDecoration(
@@ -432,24 +502,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
             ...eventLines,
           },
+          annotations: _annotations,
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
-        ),
-        Positioned(
-          bottom: 7,
-          right: 7,
-          child: FloatingActionButton(
-            onPressed: () {
-              if (_mapController != null) {
-                _goToCurrentLocation(_mapController!);
-              }
-            },
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Icon(
-              Icons.my_location,
-              color: Theme.of(context).primaryColorDark,
-            ),
-          ),
         ),
       ],
     );
@@ -467,7 +522,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             width: 150,
             height: 40,
             child: ElevatedButton(
-              onPressed: () => _endWalk(context, walkNotifier),
+              onPressed: () => _endWalk(context, walkNotifier, walkState),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 shape: RoundedRectangleBorder(
@@ -514,7 +569,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
   Widget _buildNotesAndPhotosContainer() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
         decoration: BoxDecoration(
@@ -810,7 +865,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   }
 
   final List<Map<String, dynamic>> _addedEvents = [];
-
   Widget _buildEventSelectionContainer() {
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
@@ -821,27 +875,21 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       {'icon': '🦮', 'label': 'Loose leash'},
       {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
       {'icon': '🚶‍♂️', 'label': 'Off-leash'},
+      {'icon': '👟', 'label': 'Running'},
       {'icon': '🐶', 'label': 'Meeting new pet'},
       {'icon': '🏃', 'label': 'Attempted escape'},
       {'icon': '🍂', 'label': 'Attempted to eat trash'},
       {'icon': '🐾', 'label': 'Digging in dirt'},
       {'icon': '💧', 'label': 'Drinking from puddle'},
       {'icon': '🛏️', 'label': 'Resting'},
-      {'icon': '🐕‍🔥', 'label': 'Chasing'},
-      {'icon': '👟', 'label': 'Running'},
-      {'icon': '🐦', 'label': 'Watching birds'},
-      {'icon': '🍖', 'label': 'Eating snack'},
-      {'icon': '🎾', 'label': 'Playing fetch'},
+      {'icon': '🎾', 'label': 'Playing'},
       {'icon': '🌧️', 'label': 'Getting wet'},
-      {'icon': '🌳', 'label': 'Climbing tree'},
-      {'icon': '🌻', 'label': 'Smelling flowers'},
       {'icon': '🪵', 'label': 'Carrying stick'},
       {'icon': '🌞', 'label': 'Sunbathing'},
       {'icon': '👤', 'label': 'Meeting person'},
     ];
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
@@ -856,10 +904,10 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Select Event',
+                    'S E L E C T  E V E N T',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 12,
                       color: Theme.of(context).primaryColorDark,
                     ),
                   ),
@@ -869,6 +917,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                       'M O R E',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 11,
                         color: Theme.of(context).primaryColorDark,
                       ),
                     ),
@@ -891,84 +940,21 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                         final latLng = apple_maps.LatLng(
                             position.latitude, position.longitude);
 
-                        bool markOnMap = false;
-                        Color eventColor = Colors.green;
+                        String eventId = '${event['label']}_${DateTime.now()}';
 
-                        if (event['label'] == 'Stool') {
-                          markOnMap = true;
-                          eventColor = Colors.brown;
-                        } else if (event['label'] == 'Urine') {
-                          markOnMap = true;
-                          eventColor = Colors.yellow;
-                        }
-
-                        // Stwórz nowe wydarzenie
-                        var newEvent = {
-                          'icon': event['icon'],
-                          'label': event['label'],
-                          'time': DateTime.now(),
-                          'latLng': latLng,
-                          'markOnMap': markOnMap,
-                          'color': eventColor,
-                        };
-
-                        // Dodaj wydarzenie do listy i odśwież UI
                         setState(() {
-                          _addedEvents.add(newEvent);
+                          _addedEvents.add({
+                            'id': eventId,
+                            'icon': event['icon'],
+                            'label': event['label'],
+                            'time': DateTime.now(),
+                          });
 
-                          if (markOnMap) {
-                            // Dodaj na mapę tylko, jeśli zaznaczone
-                            eventLines.add(apple_maps.Polyline(
-                              polylineId: apple_maps.PolylineId(
-                                  '${event['label']}_${DateTime.now()}'),
-                              points: [
-                                latLng,
-                                apple_maps.LatLng(position.latitude + 0.00005,
-                                    position.longitude + 0.00005),
-                              ],
-                              width: 25,
-                              color: eventColor,
-                            ));
+                          if (event['label'] == 'Stool') {
+                            _addStoolMarker(latLng, eventId);
+                          } else if (event['label'] == 'Urine') {
+                            _addUrineMarker(latLng, eventId);
                           }
-                        });
-                      },
-                      onLongPress: () async {
-                        Color newColor = await _showColorSelectionDialog();
-
-                        final Position position =
-                            await Geolocator.getCurrentPosition(
-                          desiredAccuracy: LocationAccuracy.high,
-                        );
-                        final latLng = apple_maps.LatLng(
-                            position.latitude, position.longitude);
-
-                        // Stwórz nowe wydarzenie z wybranym kolorem
-                        var newEvent = {
-                          'icon': event['icon'],
-                          'label': event['label'],
-                          'time': DateTime.now(),
-                          'latLng': latLng,
-                          'markOnMap':
-                              true, // Domyślnie zaznacz na mapie po zmianie koloru
-                          'color': newColor,
-                        };
-
-                        // Dodaj wydarzenie do listy i odśwież UI
-                        setState(() {
-                          _addedEvents.add(newEvent);
-
-                          // Dodaj na mapę z nowym kolorem
-                          eventLines.add(apple_maps.Polyline(
-                            polylineId: apple_maps.PolylineId(
-                                '${event['label']}_${DateTime.now()}'),
-                            points: [
-                              latLng,
-                              apple_maps.LatLng(position.latitude + 0.00005,
-                                  position.longitude + 0.00005),
-                            ],
-                            width: 25,
-                            color: newColor,
-                          ));
                         });
                       },
                       child: Container(
@@ -1015,82 +1001,145 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  Future<bool> _showMarkOnMapDialog(String eventLabel) async {
-    bool markOnMap = false;
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Mark $eventLabel on Map?'),
-          content: const Text('Would you like to mark this event on the map?'),
-          actions: [
-            TextButton(
-              child: Text('No',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+  Widget _buildPaginatedEvents() {
+    int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
+    List<Map<String, dynamic>> paginatedEvents = _addedEvents
+        .skip(_currentPage * _eventsPerPage)
+        .take(_eventsPerPage)
+        .toList();
+
+    return Column(
+      children: [
+        ...paginatedEvents.map((event) {
+          return ListTile(
+            leading: Text(
+              event['icon'],
+              style: const TextStyle(fontSize: 30),
+            ),
+            title: Text('${event['label']}'),
+            subtitle: Text(
+              DateFormat('HH:mm').format(event['time']),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
               onPressed: () {
-                markOnMap = false;
-                Navigator.of(context).pop();
+                setState(() {
+                  _addedEvents.remove(event);
+
+                  _annotations.removeWhere((annotation) =>
+                      annotation.annotationId.value == event['id']);
+                });
               },
             ),
-            TextButton(
-              child: Text('Yes',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-              onPressed: () {
-                markOnMap = true;
-                Navigator.of(context).pop();
-              },
+          );
+        }),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: _currentPage > 0
+                  ? () {
+                      setState(() {
+                        _currentPage--;
+                      });
+                    }
+                  : null,
+            ),
+            Text('Page ${_currentPage + 1} of $totalPages'),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: _currentPage < totalPages - 1
+                  ? () {
+                      setState(() {
+                        _currentPage++;
+                      });
+                    }
+                  : null,
             ),
           ],
-        );
-      },
+        ),
+      ],
     );
-    return markOnMap;
   }
 
-  Future<Color> _showColorSelectionDialog() async {
-    Color selectedColor = Colors.transparent;
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'S E L E C T  T O  M A R K  O N  M A P',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: BlockPicker(
-              pickerColor: selectedColor,
-              onColorChanged: (color) {
-                selectedColor = color;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-                child: Text('C A N C E L',
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold)),
-                onPressed: () {
-                  selectedColor = Colors.transparent;
-                  Navigator.of(context).pop();
-                }),
-            TextButton(
-              child: Text('D O N E',
-                  style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+  Future<BitmapDescriptor> _getScaledBitmapDescriptor(
+      String assetPath, int width, int height) async {
+    final ByteData imageData = await rootBundle.load(assetPath);
+    final List<int> bytes = imageData.buffer.asUint8List();
+
+    img.Image? image = img.decodeImage(Uint8List.fromList(bytes));
+    if (image != null) {
+      img.Image resizedImage =
+          img.copyResize(image, width: width, height: height);
+
+      final List<int> resizedBytes = img.encodePng(resizedImage);
+      return BitmapDescriptor.fromBytes(Uint8List.fromList(resizedBytes));
+    } else {
+      throw Exception("Nie udało się załadować obrazu");
+    }
+  }
+
+  void _addUrineMarker(apple_maps.LatLng position, String eventId) async {
+    final BitmapDescriptor customIcon = await _getScaledBitmapDescriptor(
+      'assets/images/events_type_cards_no_background/piee.png',
+      190,
+      190,
+    );
+
+    String currentDateTime =
+        DateFormat('HH:mm  dd-MM-yyyy').format(DateTime.now());
+
+    final Annotation urineAnnotation = Annotation(
+      annotationId: AnnotationId(eventId),
+      position: position,
+      icon: customIcon,
+      infoWindow: InfoWindow(
+        title: 'Urine',
+        snippet: currentDateTime,
+      ),
+      onTap: () {
+        if (kDebugMode) {
+          print('Urine event tapped!');
+        }
       },
     );
-    return selectedColor;
+
+    setState(() {
+      _annotations.add(urineAnnotation);
+    });
+  }
+
+  void _addStoolMarker(apple_maps.LatLng position, String eventId) async {
+    final BitmapDescriptor customIcon = await _getScaledBitmapDescriptor(
+      'assets/images/events_type_cards_no_background/poo.png',
+      128,
+      128,
+    );
+
+    String currentDateTime =
+        DateFormat('HH:mm  dd-MM-yyyy').format(DateTime.now());
+
+    final Annotation stoolAnnotation = Annotation(
+      annotationId: AnnotationId(eventId),
+      position: position,
+      icon: customIcon,
+      infoWindow: InfoWindow(
+        title: 'Poo',
+        snippet: currentDateTime,
+      ),
+      onTap: () {
+        if (kDebugMode) {
+          print('Poo event tapped!');
+        }
+      },
+    );
+
+    setState(() {
+      _annotations.add(stoolAnnotation);
+    });
   }
 
   Future<List<Pet>> _selectPetsForEvent() async {
@@ -1186,66 +1235,5 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       },
     );
     return selectedPets;
-  }
-
-  Widget _buildPaginatedEvents() {
-    int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
-    List<Map<String, dynamic>> paginatedEvents = _addedEvents
-        .skip(_currentPage * _eventsPerPage)
-        .take(_eventsPerPage)
-        .toList();
-
-    return Column(
-      children: [
-        ...paginatedEvents.map((event) {
-          return ListTile(
-            leading: Text(
-              event['icon'],
-              style: const TextStyle(fontSize: 30),
-            ),
-            title: Text('${event['label']}'),
-            subtitle: Text(
-              DateFormat('HH:mm').format(event['time']),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                setState(() {
-                  _addedEvents.remove(event);
-                });
-              },
-            ),
-          );
-        }),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: _currentPage > 0
-                  ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
-                    }
-                  : null,
-            ),
-            Text('Page ${_currentPage + 1} of $totalPages'),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: _currentPage < totalPages - 1
-                  ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
-                    }
-                  : null,
-            ),
-          ],
-        ),
-      ],
-    );
   }
 }
