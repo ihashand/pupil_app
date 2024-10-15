@@ -16,6 +16,13 @@ A social app for pets
 - **Cocoapod problem**:
   https://stackoverflow.com/questions/64443888/flutter-cocoapodss-specs-repository-is-too-out-of-date-to-satisfy-dependencies
 
+  flutter clean
+  Delete /ios/Pods
+  Delete /ios/Podfile.lock
+  flutter pub get
+  from inside ios folder: pod install
+  flutter run
+
 - **Free up port 8080**:
   sudo lsof -i :8080
   sudo kill -9 51683

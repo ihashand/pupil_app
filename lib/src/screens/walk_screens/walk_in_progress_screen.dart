@@ -3,19 +3,26 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:pet_diary/src/services/other_services/storage_service.dart';
 
 List<apple_maps.LatLng> stoolEventPoints = [];
 List<apple_maps.LatLng> urineEventPoints = [];
@@ -47,6 +54,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   final int _eventsPerPage = 4;
   final Set<Annotation> _annotations = {};
   bool _isMapFullScreen = false;
+  final List<Map<String, dynamic>> _collectedEvents = [];
 
   @override
   void initState() {
@@ -78,29 +86,47 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     }
   }
 
-  void _endWalk(
-    BuildContext context,
-    WalkNotifier walkNotifier,
-    WalkState walkState,
-  ) async {
-    bool confirm = await _showConfirmationDialog(context, 'End');
-    if (confirm) {
-      walkNotifier.stopWalk();
+  void _endWalk(BuildContext context, WalkNotifier walkNotifier,
+      WalkState walkState) async {
+    try {
+      bool confirm = await _showConfirmationDialog(context, 'End');
+      if (confirm) {
+        walkNotifier.stopWalk();
 
-      // Przekazanie pełnej listy punktów trasy do ekranu podsumowania
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => WalkSummaryScreen(
-            eventLines: eventLines, // Linie dla eventów
-            addedEvents: _addedEvents, // Lista eventów
-            photos: _photos, // Zdjęcia
-            totalDistance: walkState.totalDistance.toStringAsFixed(2),
-            totalTimeInSeconds: walkState.seconds,
-            pets: widget.pets,
-            notes: _notesController.text,
+        // Zapis wszystkich eventów
+        _saveAllEvents();
+
+        // Zapis wszystkich zdjęć do Firebase Storage
+        for (XFile photo in _photos) {
+          String? downloadUrl =
+              await StorageService().uploadPhoto(File(photo.path));
+          if (downloadUrl != null) {
+            print('Zdjęcie zapisane: $downloadUrl');
+          } else {
+            print('Błąd podczas zapisywania zdjęcia.');
+          }
+        }
+
+        // Przejście do ekranu podsumowania
+        print('Przechodzenie do ekranu podsumowania...');
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => WalkSummaryScreen(
+              eventLines: eventLines,
+              addedEvents: _collectedEvents,
+              photos: _photos, // lub przekaż adresy URL
+              totalDistance: walkState.totalDistance.toStringAsFixed(2),
+              totalTimeInSeconds: walkState.seconds,
+              pets: widget.pets,
+              notes: _notesController.text,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        print('Użytkownik anulował zakończenie spaceru.');
+      }
+    } catch (e) {
+      print('Błąd w metodzie _endWalk: $e');
     }
   }
 
@@ -1235,5 +1261,49 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       },
     );
     return selectedPets;
+  }
+
+  void _saveAllEvents() async {
+    for (var event in _collectedEvents) {
+      // Use the existing logic for stool, urine, or custom events
+      if (event['type'] == 'Urine') {
+        _saveUrineEvent(event['petId'], event['time']);
+      } else if (event['type'] == 'Stool') {
+        _saveStoolEvent(event['petId'], event['time']);
+      } else {
+        _saveCustomEvent(event['type'], event['petId'], event['time']);
+      }
+    }
+  }
+
+  void _saveUrineEvent(String petId, DateTime eventTime) {
+    // Your existing save logic for urine event
+    EventUrineModel newUrine = EventUrineModel(
+      id: generateUniqueId(),
+      eventId: generateUniqueId(),
+      petId: petId,
+      color: 'Default', // Add necessary details
+      description: 'Urine event',
+      dateTime: eventTime,
+    );
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+  }
+
+  void _saveStoolEvent(String petId, DateTime eventTime) {
+    // Your existing save logic for stool event
+  }
+
+  void _saveCustomEvent(String type, String petId, DateTime eventTime) {
+    // Logic for saving custom events like loose leash, meeting another pet, etc.
+    Event newEvent = Event(
+      id: generateUniqueId(),
+      title: type,
+      eventDate: eventTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      description: '$type event during walk',
+    );
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 }

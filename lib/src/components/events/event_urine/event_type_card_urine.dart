@@ -112,7 +112,6 @@ Widget eventTypeCardUrine(BuildContext context, WidgetRef ref,
                       ),
                       child: Column(
                         children: [
-                          // Date selection
                           TextFormField(
                             controller: dateController,
                             decoration: InputDecoration(

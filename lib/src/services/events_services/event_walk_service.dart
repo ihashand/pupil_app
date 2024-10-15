@@ -209,10 +209,6 @@ class EventWalkService {
       totalStepsThisMonth += EventWalkModel.fromDocument(doc).steps;
     }
 
-    if (kDebugMode) {
-      print("Total steps this month: $totalStepsThisMonth");
-    }
-
     // Pobieramy osiągnięcia, które już są przyznane zwierzakowi
     final petAchievementsSnapshot = await _firestore
         .collection('app_users')
