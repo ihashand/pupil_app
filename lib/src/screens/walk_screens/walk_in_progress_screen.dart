@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
@@ -93,28 +95,58 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       if (confirm) {
         walkNotifier.stopWalk();
 
-        // Zapis wszystkich eventów
+        // Zapis wszystkich eventów (np. stool, urine itp.)
         _saveAllEvents();
 
-        // Zapis wszystkich zdjęć do Firebase Storage
+        // Zapis zdjęć do Firebase Storage i pobranie URL
+        List<String> photoUrls = [];
         for (XFile photo in _photos) {
           String? downloadUrl =
               await StorageService().uploadPhoto(File(photo.path));
           if (downloadUrl != null) {
-            print('Zdjęcie zapisane: $downloadUrl');
-          } else {
-            print('Błąd podczas zapisywania zdjęcia.');
+            photoUrls.add(downloadUrl);
           }
         }
 
+        // Tworzenie obiektu EventWalkModel na zakończenie spaceru
+        EventWalkModel walkEvent = EventWalkModel(
+          id: generateUniqueId(),
+          walkTime: walkState.seconds.toDouble(), // Czas spaceru
+          eventId: generateUniqueId(),
+          petId: widget.pets.first
+              .id, // Możesz zmodyfikować, jeśli ma być dla kilku zwierząt
+          steps: walkState.currentSteps.toDouble(), // Kroki
+          dateTime: DateTime.now(),
+          caloriesBurned: walkState.totalCaloriesBurned, // Spalone kalorie
+          distance: walkState.totalDistance, // Dystans
+          routePoints: walkState.routePoints, // Punkty trasy
+          images:
+              photoUrls.isNotEmpty ? photoUrls : null, // URL zdjęć, jeśli są
+          notes: _notesController.text.isNotEmpty
+              ? _notesController.text
+              : null, // Notatki
+          events: _collectedEvents.isNotEmpty
+              ? _formatEventsForWalk()
+              : null, // Wydarzenia na trasie
+        );
+
+        // Zapis spaceru do Firestore
+        await FirebaseFirestore.instance
+            .collection('app_users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection('pets')
+            .doc(widget.pets.first.id)
+            .collection('event_walks')
+            .doc(walkEvent.id)
+            .set(walkEvent.toMap());
+
         // Przejście do ekranu podsumowania
-        print('Przechodzenie do ekranu podsumowania...');
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => WalkSummaryScreen(
               eventLines: eventLines,
               addedEvents: _collectedEvents,
-              photos: _photos, // lub przekaż adresy URL
+              photos: _photos,
               totalDistance: walkState.totalDistance.toStringAsFixed(2),
               totalTimeInSeconds: walkState.seconds,
               pets: widget.pets,
@@ -122,12 +154,24 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
           ),
         );
-      } else {
-        print('Użytkownik anulował zakończenie spaceru.');
       }
     } catch (e) {
       print('Błąd w metodzie _endWalk: $e');
     }
+  }
+
+// Funkcja pomocnicza do formatowania wydarzeń dla zapisania spaceru
+  Map<String, dynamic> _formatEventsForWalk() {
+    return {
+      'events': _collectedEvents
+          .map((event) => {
+                'type': event['label'],
+                'time': event['time'],
+                'coordinates':
+                    event['location'], // Można dodać pozycje wydarzenia
+              })
+          .toList(),
+    };
   }
 
   Future<bool> _showConfirmationDialog(

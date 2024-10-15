@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-// ignore: depend_on_referenced_packages
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart'; // Import biblioteki image
 
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -18,16 +20,19 @@ class StorageService {
         return null;
       }
 
-      // Tworzenie unikalnej ścieżki dla pliku w Firebase Storage
+      // Tworzenie unikalnej ścieżki dla pliku w Firebase Storage w folderze 'photos'
       String fileName = basename(photo.path);
-      String storagePath = 'user_photos/${_currentUser.uid}/$fileName';
+      String storagePath =
+          'user_photos/${_currentUser.uid}/walk_photos/$fileName'; // Dodanie folderu 'photos'
 
       try {
         UploadTask uploadTask = _storage.ref(storagePath).putFile(photo);
 
         uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-          print(
-              'Upload is ${snapshot.bytesTransferred / snapshot.totalBytes * 100}% complete.');
+          if (kDebugMode) {
+            print(
+                'Upload is ${snapshot.bytesTransferred / snapshot.totalBytes * 100}% complete.');
+          }
         });
 
         TaskSnapshot snapshot = await uploadTask;
@@ -45,6 +50,34 @@ class StorageService {
       }
     } catch (e) {
       print('Błąd podczas przesyłania zdjęcia: $e');
+      return null;
+    }
+  } // Kompresja zdjęcia
+
+  Future<File?> _compressImage(File photo) async {
+    try {
+      // Wczytanie obrazu z pliku
+      img.Image? image = img.decodeImage(await photo.readAsBytes());
+
+      if (image == null) {
+        return null;
+      }
+
+      // Zmiana rozmiaru zdjęcia (np. zmniejszenie do szerokości 1024px)
+      img.Image resizedImage = img.copyResize(image, width: 1024);
+
+      // Kompresja zdjęcia (zmniejszenie jakości)
+      List<int> compressedBytes =
+          img.encodeJpg(resizedImage, quality: 25); // jakość 75%
+
+      // Zapis skompresowanego zdjęcia w pamięci tymczasowej
+      String tempDir = (await getTemporaryDirectory()).path;
+      File compressedFile = File('$tempDir/${basename(photo.path)}')
+        ..writeAsBytesSync(compressedBytes);
+
+      return compressedFile;
+    } catch (e) {
+      print('Błąd podczas kompresji zdjęcia: $e');
       return null;
     }
   }
