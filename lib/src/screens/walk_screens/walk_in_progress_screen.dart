@@ -1,9 +1,7 @@
-// ignore_for_file: use_build_context_synchronously
-
+// ignore_for_file: use_build_context_synchronously, invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 import 'dart:async';
 import 'dart:io';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +11,18 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_note_model.dart';
+import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_events_model.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_events_service_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
@@ -93,54 +98,49 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     try {
       bool confirm = await _showConfirmationDialog(context, 'End');
       if (confirm) {
+        debugPrint("Confirmed end walk");
         walkNotifier.stopWalk();
 
-        // Zapis wszystkich eventów (np. stool, urine itp.)
         _saveAllEvents();
 
-        // Zapis zdjęć do Firebase Storage i pobranie URL
+        if (_notesController.text.isNotEmpty) {
+          _saveNoteEvent(widget.pets.first.id, _notesController.text);
+        }
+
         List<String> photoUrls = [];
-        for (XFile photo in _photos) {
-          String? downloadUrl =
-              await StorageService().uploadPhoto(File(photo.path));
-          if (downloadUrl != null) {
-            photoUrls.add(downloadUrl);
+        if (_photos.isNotEmpty) {
+          for (XFile photo in _photos) {
+            String? downloadUrl =
+                await StorageService().uploadPhoto(File(photo.path));
+            if (downloadUrl != null) {
+              photoUrls.add(downloadUrl);
+            }
           }
         }
 
-        // Tworzenie obiektu EventWalkModel na zakończenie spaceru
         EventWalkModel walkEvent = EventWalkModel(
           id: generateUniqueId(),
-          walkTime: walkState.seconds.toDouble(), // Czas spaceru
+          walkTime: walkState.seconds.toDouble(),
           eventId: generateUniqueId(),
-          petId: widget.pets.first
-              .id, // Możesz zmodyfikować, jeśli ma być dla kilku zwierząt
-          steps: walkState.currentSteps.toDouble(), // Kroki
+          petId: widget.pets.first.id,
+          steps: walkState.currentSteps.toDouble(),
           dateTime: DateTime.now(),
-          caloriesBurned: walkState.totalCaloriesBurned, // Spalone kalorie
-          distance: walkState.totalDistance, // Dystans
-          routePoints: walkState.routePoints, // Punkty trasy
-          images:
-              photoUrls.isNotEmpty ? photoUrls : null, // URL zdjęć, jeśli są
-          notes: _notesController.text.isNotEmpty
-              ? _notesController.text
-              : null, // Notatki
-          events: _collectedEvents.isNotEmpty
-              ? _formatEventsForWalk()
-              : null, // Wydarzenia na trasie
+          caloriesBurned: walkState.totalCaloriesBurned,
+          distance: walkState.totalDistance,
+          routePoints: walkState.routePoints,
+          images: photoUrls.isNotEmpty ? photoUrls : null,
+          notes:
+              _notesController.text.isNotEmpty ? _notesController.text : null,
+          events: _collectedEvents.isNotEmpty ? _formatEventsForWalk() : null,
         );
 
-        // Zapis spaceru do Firestore
-        await FirebaseFirestore.instance
-            .collection('app_users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .collection('pets')
-            .doc(widget.pets.first.id)
-            .collection('event_walks')
-            .doc(walkEvent.id)
-            .set(walkEvent.toMap());
+        // Zapisz spacer
+        await ref
+            .read(eventWalkServiceProvider)
+            .addWalk(widget.pets.first.id, walkEvent);
 
-        // Przejście do ekranu podsumowania
+        debugPrint("Navigating to summary screen");
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => WalkSummaryScreen(
@@ -154,23 +154,27 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
           ),
         );
+      } else {
+        debugPrint("End walk cancelled");
       }
     } catch (e) {
-      print('Błąd w metodzie _endWalk: $e');
+      debugPrint('Error in _endWalk: $e'); // Capture error logs
     }
   }
 
-// Funkcja pomocnicza do formatowania wydarzeń dla zapisania spaceru
   Map<String, dynamic> _formatEventsForWalk() {
     return {
-      'events': _collectedEvents
-          .map((event) => {
-                'type': event['label'],
-                'time': event['time'],
-                'coordinates':
-                    event['location'], // Można dodać pozycje wydarzenia
-              })
-          .toList(),
+      'events': _collectedEvents.map((event) {
+        final latLng = event['location'] as LatLng;
+        return {
+          'type': event['label'],
+          'time': event['time'],
+          'coordinates': {
+            'latitude': latLng.latitude,
+            'longitude': latLng.longitude,
+          },
+        };
+      }).toList(),
     };
   }
 
@@ -559,6 +563,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ),
           onMapCreated: (apple_maps.AppleMapController controller) {
             _mapController = controller;
+            _goToCurrentLocation(controller);
           },
           polylines: {
             apple_maps.Polyline(
@@ -1002,30 +1007,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                 child: Row(
                   children: eventOptions.map((event) {
                     return GestureDetector(
-                      onTap: () async {
-                        final Position position =
-                            await Geolocator.getCurrentPosition(
-                          desiredAccuracy: LocationAccuracy.high,
-                        );
-                        final latLng = apple_maps.LatLng(
-                            position.latitude, position.longitude);
-
-                        String eventId = '${event['label']}_${DateTime.now()}';
-
-                        setState(() {
-                          _addedEvents.add({
-                            'id': eventId,
-                            'icon': event['icon'],
-                            'label': event['label'],
-                            'time': DateTime.now(),
-                          });
-
-                          if (event['label'] == 'Stool') {
-                            _addStoolMarker(latLng, eventId);
-                          } else if (event['label'] == 'Urine') {
-                            _addUrineMarker(latLng, eventId);
-                          }
-                        });
+                      onTap: () {
+                        _handleEventSelection(event['label']!,
+                            event['icon']!); // Wywołanie zmodyfikowanej metody
                       },
                       child: Container(
                         width: 80,
@@ -1068,70 +1052,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPaginatedEvents() {
-    int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
-    List<Map<String, dynamic>> paginatedEvents = _addedEvents
-        .skip(_currentPage * _eventsPerPage)
-        .take(_eventsPerPage)
-        .toList();
-
-    return Column(
-      children: [
-        ...paginatedEvents.map((event) {
-          return ListTile(
-            leading: Text(
-              event['icon'],
-              style: const TextStyle(fontSize: 30),
-            ),
-            title: Text('${event['label']}'),
-            subtitle: Text(
-              DateFormat('HH:mm').format(event['time']),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                setState(() {
-                  _addedEvents.remove(event);
-
-                  _annotations.removeWhere((annotation) =>
-                      annotation.annotationId.value == event['id']);
-                });
-              },
-            ),
-          );
-        }),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: _currentPage > 0
-                  ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
-                    }
-                  : null,
-            ),
-            Text('Page ${_currentPage + 1} of $totalPages'),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: _currentPage < totalPages - 1
-                  ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
-                    }
-                  : null,
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -1309,45 +1229,313 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
   void _saveAllEvents() async {
     for (var event in _collectedEvents) {
-      // Use the existing logic for stool, urine, or custom events
-      if (event['type'] == 'Urine') {
-        _saveUrineEvent(event['petId'], event['time']);
-      } else if (event['type'] == 'Stool') {
+      if (event['label'] == 'Stool') {
         _saveStoolEvent(event['petId'], event['time']);
-      } else {
-        _saveCustomEvent(event['type'], event['petId'], event['time']);
+      } else if (event['label'] == 'Urine') {
+        _saveUrineEvent(event['petId'], event['time']);
+      } else if (event['label'] != null) {
+        _saveCustomEvent(context, ref, event['petId'], generateUniqueId(),
+            event['label'], event['time']);
       }
     }
   }
 
-  void _saveUrineEvent(String petId, DateTime eventTime) {
-    // Your existing save logic for urine event
-    EventUrineModel newUrine = EventUrineModel(
+  void _saveCustomEvent(BuildContext context, WidgetRef ref, String petId,
+      String eventId, String eventType, DateTime eventTime) {
+    Map<String, String> eventEmoticons = {
+      'Playing': '🎾',
+      'Sniffing': '👃',
+      'Barking': '🐕',
+      'Growling': '😡',
+      'Loose leash': '🦮',
+      'Pulling on leash': '🐕‍🦺',
+      'Running': '👟',
+      'Meeting new pet': '🐶',
+      'Attempted escape': '🏃',
+      'Attempted to eat trash': '🍂',
+      'Digging in dirt': '🐾',
+      'Drinking from puddle': '💧',
+      'Resting': '🛏️',
+      'Getting wet': '🌧️',
+      'Carrying stick': '🪵',
+      'Sunbathing': '🌞',
+      'Meeting person': '👤',
+    };
+
+    String emoticon = eventEmoticons[eventType] ?? '🦮';
+
+    EventWalkEventsModel newEventWalkEvent = EventWalkEventsModel(
       id: generateUniqueId(),
-      eventId: generateUniqueId(),
+      eventId: eventId,
       petId: petId,
-      color: 'Default', // Add necessary details
-      description: 'Urine event',
-      dateTime: eventTime,
+      eventType: eventType,
+      eventTime: eventTime,
+      description: '$eventType event during walk',
     );
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
-  }
 
-  void _saveStoolEvent(String petId, DateTime eventTime) {
-    // Your existing save logic for stool event
-  }
+    ref
+        .read(eventWalkEventsServiceProvider)
+        .addEventsWalkEvent(newEventWalkEvent, petId);
 
-  void _saveCustomEvent(String type, String petId, DateTime eventTime) {
-    // Logic for saving custom events like loose leash, meeting another pet, etc.
     Event newEvent = Event(
-      id: generateUniqueId(),
-      title: type,
+      id: eventId,
+      title: eventType,
       eventDate: eventTime,
       dateWhenEventAdded: DateTime.now(),
       userId: FirebaseAuth.instance.currentUser!.uid,
       petId: petId,
-      description: '$type event during walk',
+      description: '$eventType event during walk',
+      emoticon: emoticon,
     );
+
     ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _handleEventSelection(String eventLabel, String eventIcon) async {
+    List<Pet> selectedPets = await _selectPetsForEvent();
+
+    if (selectedPets.isNotEmpty) {
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+
+      for (var pet in selectedPets) {
+        String eventId = '${eventLabel}_${DateTime.now()}';
+
+        setState(() {
+          _addedEvents.add({
+            'id': eventId,
+            'icon': eventIcon,
+            'label': eventLabel,
+            'time': DateTime.now(),
+            'location': latLng,
+            'petId': pet.id,
+            'petName': pet.name,
+            'petAvatar': pet.avatarImage
+          });
+
+          _collectedEvents.add({
+            'id': eventId,
+            'icon': eventIcon,
+            'label': eventLabel,
+            'time': DateTime.now(),
+            'location': latLng,
+            'petId': pet.id,
+            'petName': pet.name,
+            'petAvatar': pet.avatarImage
+          });
+
+          if (eventLabel == 'Stool') {
+            _addStoolMarker(latLng, eventId);
+          } else if (eventLabel == 'Urine') {
+            _addUrineMarker(latLng, eventId);
+          }
+        });
+      }
+    }
+  }
+
+  Widget _buildPaginatedEvents() {
+    int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
+    List<Map<String, dynamic>> paginatedEvents = _addedEvents
+        .skip(_currentPage * _eventsPerPage)
+        .take(_eventsPerPage)
+        .toList();
+
+    return Column(
+      children: [
+        ...paginatedEvents.map((event) {
+          return ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(
+                        event['icon'],
+                        style: const TextStyle(fontSize: 40),
+                      ),
+                      const SizedBox(width: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                event['label'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                DateFormat('HH:mm').format(event['time']),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundImage: AssetImage(event['petAvatar']),
+                                radius: 16,
+                              ),
+                              if (_selectedPetIndex ==
+                                      _addedEvents.indexOf(event) &&
+                                  _selectedPetName == event['petName'])
+                                Positioned(
+                                  top: -30,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5.0, vertical: 2.0),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black,
+                                          spreadRadius: 1,
+                                          blurRadius: 5,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      _selectedPetName!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      _addedEvents.remove(event);
+
+                      _annotations.removeWhere((annotation) =>
+                          annotation.annotationId.value == event['id']);
+                    });
+                  },
+                ),
+              ],
+            ),
+          );
+        }),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: _currentPage > 0
+                  ? () {
+                      setState(() {
+                        _currentPage--;
+                      });
+                    }
+                  : null,
+            ),
+            Text('Page ${_currentPage + 1} of $totalPages'),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: _currentPage < totalPages - 1
+                  ? () {
+                      setState(() {
+                        _currentPage++;
+                      });
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _saveUrineEvent(String petId, DateTime eventTime) {
+    EventUrineModel newUrine = EventUrineModel(
+      id: generateUniqueId(),
+      eventId: generateUniqueId(),
+      petId: petId,
+      color: 'Default',
+      description: 'Urine event',
+      dateTime: eventTime,
+    );
+
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+
+    Event newEvent = Event(
+      id: newUrine.eventId,
+      title: 'Urine',
+      eventDate: eventTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      description: 'Urine event during walk',
+      emoticon: '💦',
+    );
+
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _saveStoolEvent(String petId, DateTime eventTime) {
+    EventStoolModel newStoolEvent = EventStoolModel(
+      id: generateUniqueId(),
+      eventId: generateUniqueId(),
+      petId: petId,
+      description: 'Stool event during walk',
+      emoji: '💩',
+      dateTime: DateTime.now(),
+    );
+
+    ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent, petId);
+
+    Event newEvent = Event(
+      id: newStoolEvent.eventId,
+      title: 'Stool',
+      eventDate: eventTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      description: 'Stool event during walk',
+      emoticon: '💩',
+    );
+
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _saveNoteEvent(String petId, String contentText) {
+    EventNoteModel newNote = EventNoteModel(
+      id: generateUniqueId(),
+      title: 'Walk note',
+      eventId: generateUniqueId(),
+      petId: petId,
+      dateTime: DateTime.now(),
+      contentText: contentText,
+    );
+
+    // Zapisz notatkę przy użyciu serwisu EventNoteService
+    ref.read(eventNoteServiceProvider).addNote(newNote, petId);
   }
 }

@@ -53,220 +53,170 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final friendRequestsAsyncValue = ref.watch(friendRequestsStreamProvider);
 
     return SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-                top: 25.0, left: 22.0, right: 22.0, bottom: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      top: 10.0, right: 10.0, bottom: 10.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Welcome back,',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontFamily: 'San Francisco',
-                        ),
-                      ),
-                      Text(
-                        appUser?.username != null
-                            ? capitalizeFirstLetter(appUser!.username)
-                            : 'No information available for the user',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'San Francisco',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (appUser != null)
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FriendProfileScreen(
-                            userId: appUser.id,
+      child: Material(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                  top: 25.0, left: 22.0, right: 22.0, bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 10.0, right: 10.0, bottom: 10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Welcome back,',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: 'San Francisco',
                           ),
                         ),
-                      );
-                    },
-                    onLongPress: () {
-                      showAvatarSelectionDialog(
-                        context: context,
-                        onAvatarSelected: (String path) async {
-                          final user = FirebaseAuth.instance.currentUser;
-
-                          if (user != null) {
-                            final updatedUser = appUser.copyWith(
-                              avatarUrl: path,
-                            );
-                            await ref
-                                .read(appUserServiceProvider)
-                                .updateAppUser(updatedUser);
-                            setState(() {
-                              _appUser = updatedUser;
-                            });
-                          }
-                        },
-                      );
-                    },
-                    child: CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      backgroundImage: AssetImage(appUser.avatarUrl),
-                      radius: 35,
+                        Text(
+                          appUser?.username != null
+                              ? capitalizeFirstLetter(appUser!.username)
+                              : 'No information available for the user',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'San Francisco',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-              ],
+                  if (appUser != null)
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FriendProfileScreen(
+                              userId: appUser.id,
+                            ),
+                          ),
+                        );
+                      },
+                      onLongPress: () {
+                        showAvatarSelectionDialog(
+                          context: context,
+                          onAvatarSelected: (String path) async {
+                            final user = FirebaseAuth.instance.currentUser;
+
+                            if (user != null) {
+                              final updatedUser = appUser.copyWith(
+                                avatarUrl: path,
+                              );
+                              await ref
+                                  .read(appUserServiceProvider)
+                                  .updateAppUser(updatedUser);
+                              setState(() {
+                                _appUser = updatedUser;
+                              });
+                            }
+                          },
+                        );
+                      },
+                      child: CircleAvatar(
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: AssetImage(appUser.avatarUrl),
+                        radius: 35,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Divider(
-            color: Theme.of(context).colorScheme.secondary,
-            thickness: 1.2,
-          ),
-          Expanded(
-            child: ReorderableListView(
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) {
-                    newIndex -= 1;
+            Divider(
+              color: Theme.of(context).colorScheme.secondary,
+              thickness: 1.2,
+            ),
+            Expanded(
+              child: ReorderableListView(
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (newIndex > oldIndex) {
+                      newIndex -= 1;
+                    }
+                    final item =
+                        homePreferences.sectionOrder.removeAt(oldIndex);
+                    homePreferences.sectionOrder.insert(newIndex, item);
+                    homePreferencesNotifier
+                        .updateSectionOrder(homePreferences.sectionOrder);
+                  });
+                },
+                children: homePreferences.sectionOrder.map((section) {
+                  switch (section) {
+                    case 'AnimalCard':
+                      return const HomeScreenAnimalSection(
+                          key: ValueKey('AnimalCard'));
+                    case 'WalkCard':
+                      return const Padding(
+                        key: ValueKey('WalkCard'),
+                        padding: EdgeInsets.only(
+                          top: 10,
+                          bottom: 10,
+                        ),
+                        child: WalkCard(),
+                      );
+                    case 'ActiveWalkCard':
+                      return const Padding(
+                        key: ValueKey('ActiveWalkCard'),
+                        padding: EdgeInsets.only(
+                          top: 10,
+                          bottom: 10,
+                        ),
+                        child: ActiveWalkCard(),
+                      );
+                    case 'ReminderCard':
+                      return const Padding(
+                        key: ValueKey('ReminderCard'),
+                        padding: EdgeInsets.only(
+                          top: 10,
+                          bottom: 10,
+                        ),
+                        child: ReminderCard(),
+                      );
+                    case 'AppointmentCard':
+                      return const Padding(
+                        key: ValueKey('AppointmentCard'),
+                        padding: EdgeInsets.only(
+                          top: 10,
+                          bottom: 10,
+                        ),
+                        child: AppointmentCard(),
+                      );
+                    case 'FriendRequestsCard':
+                      return Padding(
+                        key: const ValueKey('FriendRequestsCard'),
+                        padding: const EdgeInsets.only(
+                          top: 10,
+                          bottom: 10,
+                        ),
+                        child: friendRequestsAsyncValue.when(
+                          data: (friendRequests) => friendRequests.isNotEmpty
+                              ? const HomeScreenShakeAnimation(
+                                  child: FriendRequestsCard(),
+                                )
+                              : Container(),
+                          loading: () => const CircularProgressIndicator(),
+                          error: (error, stack) => Text('Error: $error'),
+                        ),
+                      );
+                    default:
+                      return Container(
+                        key: ValueKey(section),
+                      );
                   }
-                  final item = homePreferences.sectionOrder.removeAt(oldIndex);
-                  homePreferences.sectionOrder.insert(newIndex, item);
-                  homePreferencesNotifier
-                      .updateSectionOrder(homePreferences.sectionOrder);
-                });
-              },
-              children: homePreferences.sectionOrder.map((section) {
-                switch (section) {
-                  case 'AnimalCard':
-                    return const HomeScreenAnimalSection(
-                        key: ValueKey('AnimalCard'));
-                  case 'WalkCard':
-                    return const Padding(
-                      key: ValueKey('WalkCard'),
-                      padding: EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      child: WalkCard(),
-                    );
-                  case 'ActiveWalkCard':
-                    return const Padding(
-                      key: ValueKey('ActiveWalkCard'),
-                      padding: EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      child: ActiveWalkCard(),
-                    );
-                  case 'ReminderCard':
-                    return const Padding(
-                      key: ValueKey('ReminderCard'),
-                      padding: EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      child: ReminderCard(),
-                    );
-                  case 'AppointmentCard':
-                    return const Padding(
-                      key: ValueKey('AppointmentCard'),
-                      padding: EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      child: AppointmentCard(),
-                    );
-                  case 'FriendRequestsCard':
-                    return Padding(
-                      key: const ValueKey('FriendRequestsCard'),
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      child: friendRequestsAsyncValue.when(
-                        data: (friendRequests) => friendRequests.isNotEmpty
-                            ? const HomeScreenShakeAnimation(
-                                child: FriendRequestsCard(),
-                              )
-                            : Container(),
-                        loading: () => const CircularProgressIndicator(),
-                        error: (error, stack) => Text('Error: $error'),
-                      ),
-                    );
-                  default:
-                    return Container(
-                      key: ValueKey(section),
-                    );
-                }
-              }).toList(),
+                }).toList(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class ShakeAnimation extends StatefulWidget {
-  final Widget child;
-
-  const ShakeAnimation({super.key, required this.child});
-
-  @override
-  createState() => _ShakeAnimationState();
-}
-
-class _ShakeAnimationState extends State<ShakeAnimation>
-    with SingleTickerProviderStateMixin {
-  AnimationController? _animationController;
-  Animation<Offset>? _offsetAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _offsetAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0.027, 0),
-    ).animate(CurvedAnimation(
-      parent: _animationController!,
-      curve: Curves.elasticIn,
-    ));
-
-    // Stop the animation after 7 seconds
-    Future.delayed(const Duration(seconds: 7), () {
-      if (mounted) {
-        _animationController?.stop();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _animationController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SlideTransition(
-      position: _offsetAnimation!,
-      child: widget.child,
     );
   }
 }

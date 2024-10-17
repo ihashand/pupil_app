@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -109,7 +110,6 @@ void showWalkEventModal(BuildContext context, WidgetRef ref,
                                 if (!confirm) return;
                               }
 
-                              // Handle event saving for single or multiple pet IDs
                               if (petIds != null && petIds.isNotEmpty) {
                                 for (String id in petIds) {
                                   saveWalkEvent(context, ref, walkDistance,

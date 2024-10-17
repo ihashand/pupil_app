@@ -129,7 +129,6 @@ Widget eventTypeCardNotes(
                                         return;
                                       }
 
-                                      // Handle multiple petIds or single petId
                                       List<String> idsToHandle =
                                           petIds ?? [petId!];
 
@@ -162,13 +161,12 @@ Widget eventTypeCardNotes(
                                           emoticon: '📝',
                                         );
 
-                                        // Add event and note for each petId
                                         ref
                                             .read(eventServiceProvider)
                                             .addEvent(newEvent, id);
                                         ref
                                             .read(eventNoteServiceProvider)
-                                            .addNote(newNote);
+                                            .addNote(newNote, petId!);
                                       }
 
                                       Navigator.of(context).pop();

@@ -15,7 +15,7 @@ class WalkSummaryScreen extends StatelessWidget {
   final String notes;
 
   const WalkSummaryScreen({
-    Key? key,
+    super.key,
     required this.eventLines,
     required this.addedEvents,
     required this.photos,
@@ -23,45 +23,111 @@ class WalkSummaryScreen extends StatelessWidget {
     required this.totalTimeInSeconds,
     required this.pets,
     required this.notes,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: const Text(
-          'W A L K  S U M M A R Y',
-          style: TextStyle(
-            fontSize: 13,
-            letterSpacing: 2,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          _buildMapSection(context),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildProgressBarWithDetails(context),
-                  if (addedEvents.isNotEmpty) _buildEventList(context),
-                  if (photos.isNotEmpty) _buildPhotos(context),
-                  if (notes.isNotEmpty) _buildNotesSection(context),
-                  _buildFinalizeButton(context),
-                ],
-              ),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: const Text(
+            'W A L K  S U M M A R Y',
+            style: TextStyle(
+              fontSize: 13,
+              letterSpacing: 2,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ],
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: () async {
+                bool confirm = await _showConfirmationDialog(context);
+                if (confirm) {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+
+                  // Patryk 17.10.2024
+                  //todo nie umiem sobie z tym poradzic w inny sposob, mam jakis problem z czarnymi paskami na dole i u gory jak uzyje np ponizszego:
+
+                  //                   Navigator.of(context).pushAndRemoveUntil(
+                  //   MaterialPageRoute(builder: (context) => const BotomAppBar()),
+                  //   (Route<dynamic> route) => false,
+                  // );
+                }
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            _buildDivider(context),
+            _buildMapSection(context),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    _buildProgressBarWithDetails(context),
+                    const SizedBox(height: 10),
+                    if (addedEvents.isNotEmpty) _buildEventList(context),
+                    const SizedBox(height: 10),
+                    if (photos.isNotEmpty) _buildPhotos(context),
+                    const SizedBox(height: 10),
+                    if (notes.isNotEmpty) _buildNotesSection(context),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Future<bool> _showConfirmationDialog(BuildContext context) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmation'),
+          content: const Text('Are you sure you want to close the summary?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text('Cancel',
+                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text('Confirm',
+                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDivider(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: Theme.of(context).colorScheme.surface,
     );
   }
 
@@ -82,16 +148,14 @@ class WalkSummaryScreen extends StatelessWidget {
           minMaxZoomPreference: const apple_maps.MinMaxZoomPreference(10, 16),
           polylines: eventLines.toSet(),
           initialCameraPosition: apple_maps.CameraPosition(
-            target: eventLines.isNotEmpty
+            target: eventLines.isNotEmpty && eventLines.first.points.isNotEmpty
                 ? eventLines.first.points.first
-                : const apple_maps.LatLng(0, 0),
+                : const apple_maps.LatLng(51.5, -0.09),
             zoom: 16,
           ),
-          zoomGesturesEnabled: false,
+          zoomGesturesEnabled: true,
           scrollGesturesEnabled: true,
-          onMapCreated: (apple_maps.AppleMapController controller) {
-            // Dalsze ustawienia jeśli potrzebne
-          },
+          onMapCreated: (apple_maps.AppleMapController controller) {},
         ),
       ),
     );
@@ -135,8 +199,7 @@ class WalkSummaryScreen extends StatelessWidget {
                         width: 60,
                         height: 60,
                         child: CircularProgressIndicator(
-                          value: double.parse(totalDistance) /
-                              10, // Assuming max distance
+                          value: double.parse(totalDistance) / 10,
                           strokeWidth: 6,
                           backgroundColor:
                               Theme.of(context).colorScheme.surface,
@@ -251,7 +314,7 @@ class WalkSummaryScreen extends StatelessWidget {
               'E V E N T S:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 11,
+                fontSize: 13,
               ),
             ),
             const SizedBox(height: 10),
@@ -261,11 +324,32 @@ class WalkSummaryScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${event['icon']}  ${event['label']}',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Theme.of(context).primaryColorDark,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            event['icon'],
+                            style: const TextStyle(fontSize: 40),
+                          ),
+                          const SizedBox(width: 15),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                event['label'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              CircleAvatar(
+                                backgroundImage: AssetImage(event['petAvatar']),
+                                radius: 16,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                     Text(
@@ -278,7 +362,7 @@ class WalkSummaryScreen extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -302,7 +386,7 @@ class WalkSummaryScreen extends StatelessWidget {
               'P H O T O S:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 11,
+                fontSize: 13,
               ),
             ),
             const SizedBox(height: 10),
@@ -368,7 +452,7 @@ class WalkSummaryScreen extends StatelessWidget {
               'N O T E S:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 11,
+                fontSize: 13,
               ),
             ),
             const SizedBox(height: 10),
@@ -377,33 +461,6 @@ class WalkSummaryScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 14),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFinalizeButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: ElevatedButton(
-        onPressed: () {
-          // Save the data
-          Navigator.of(context).pop();
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Text(
-          'S A V E  W A L K',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).primaryColorDark,
-          ),
         ),
       ),
     );
