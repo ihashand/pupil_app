@@ -10,7 +10,8 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
 Widget eventTypeCardTemperature(BuildContext context,
-    TextEditingController temperatureController, WidgetRef ref, String petId) {
+    TextEditingController temperatureController, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
@@ -166,35 +167,25 @@ Widget eventTypeCardTemperature(BuildContext context,
                                       }
 
                                       String eventId = generateUniqueId();
-                                      EventTemperatureModel newTemperature =
-                                          EventTemperatureModel(
-                                        id: generateUniqueId(),
-                                        eventId: eventId,
-                                        petId: petId,
-                                        temperature: initialTemperature,
-                                      );
-
-                                      Event newEvent = Event(
-                                        id: eventId,
-                                        title: 'Temperature',
-                                        eventDate: selectedDate,
-                                        dateWhenEventAdded: selectedDate,
-                                        userId: FirebaseAuth
-                                            .instance.currentUser!.uid,
-                                        petId: petId,
-                                        temperatureId: newTemperature.id,
-                                        description: '$initialTemperature°C',
-                                        avatarImage:
-                                            'assets/images/dog_avatar_014.png',
-                                        emoticon: '🌡️',
-                                      );
-
-                                      ref
-                                          .read(eventTemperatureServiceProvider)
-                                          .addTemperature(newTemperature);
-                                      ref
-                                          .read(eventServiceProvider)
-                                          .addEvent(newEvent, petId);
+                                      if (petIds != null && petIds.isNotEmpty) {
+                                        for (String id in petIds) {
+                                          _saveTemperatureEvent(
+                                              context,
+                                              ref,
+                                              id,
+                                              initialTemperature,
+                                              eventId,
+                                              selectedDate);
+                                        }
+                                      } else if (petId != null) {
+                                        _saveTemperatureEvent(
+                                            context,
+                                            ref,
+                                            petId,
+                                            initialTemperature,
+                                            eventId,
+                                            selectedDate);
+                                      }
 
                                       Navigator.of(context).pop();
                                     },
@@ -351,4 +342,30 @@ Widget eventTypeCardTemperature(BuildContext context,
       );
     },
   );
+}
+
+void _saveTemperatureEvent(BuildContext context, WidgetRef ref, String petId,
+    double initialTemperature, String eventId, DateTime selectedDate) {
+  EventTemperatureModel newTemperature = EventTemperatureModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    temperature: initialTemperature,
+  );
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Temperature',
+    eventDate: selectedDate,
+    dateWhenEventAdded: selectedDate,
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    temperatureId: newTemperature.id,
+    description: '$initialTemperature°C',
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: '🌡️',
+  );
+
+  ref.read(eventTemperatureServiceProvider).addTemperature(newTemperature);
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/services/events_services/event_walk_service.dart';
@@ -36,14 +35,7 @@ final StreamProviderFamily<List<EventWalkModel>, Map<String, String>>
   final userId = params['userId'];
   final petId = params['petId'];
 
-  if (kDebugMode) {
-    print('eventWalksProviderFamily - userId: $userId, petId: $petId');
-  }
-
   if (userId == null || userId.isEmpty || petId == null || petId.isEmpty) {
-    if (kDebugMode) {
-      print("Error: userId or petId is missing or empty.");
-    }
     return Stream.value([]);
   }
 

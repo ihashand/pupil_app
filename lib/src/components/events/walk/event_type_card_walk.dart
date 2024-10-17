@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,18 +12,20 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget eventTypeCardWalk(BuildContext context, WidgetRef ref, String petId) {
+Widget eventTypeCardWalk(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   return eventTypeCard(
     context,
     'W A L K (Developer Only)',
     'assets/images/events_type_cards_no_background/bed.png',
     () {
-      showWalkEventModal(context, ref, petId);
+      showWalkEventModal(context, ref, petId: petId, petIds: petIds);
     },
   );
 }
 
-void showWalkEventModal(BuildContext context, WidgetRef ref, String petId) {
+void showWalkEventModal(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   TextEditingController walkDistanceController = TextEditingController();
   double walkDistance = 0;
   int selectedHours = 0;
@@ -107,10 +110,16 @@ void showWalkEventModal(BuildContext context, WidgetRef ref, String petId) {
                                 if (!confirm) return;
                               }
 
-                              // ignore: use_build_context_synchronously
-                              saveWalkEvent(context, ref, walkDistance,
-                                  totalDurationInSeconds, petId);
-                              // ignore: use_build_context_synchronously
+                              if (petIds != null && petIds.isNotEmpty) {
+                                for (String id in petIds) {
+                                  saveWalkEvent(context, ref, walkDistance,
+                                      totalDurationInSeconds, id);
+                                }
+                              } else if (petId != null) {
+                                saveWalkEvent(context, ref, walkDistance,
+                                    totalDurationInSeconds, petId);
+                              }
+
                               Navigator.of(context).pop();
                             },
                           ),
@@ -199,8 +208,7 @@ void showWalkEventModal(BuildContext context, WidgetRef ref, String petId) {
                           ),
                           if ((selectedHours * 60 + selectedMinutes) > 6 * 60)
                             Text(
-                              'Are you sure that your walk time was $selectedHours:$selectedMinutes?',
-                            ),
+                                'Are you sure that your walk time was $selectedHours:$selectedMinutes?'),
                         ],
                       ),
                     ),

@@ -9,11 +9,12 @@ import 'package:pet_diary/src/providers/events_providers/event_mood_provider.dar
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget eventTypeCardMood(BuildContext context, WidgetRef ref, String petId,
-    TextEditingController dateController) {
+Widget eventTypeCardMood(BuildContext context, WidgetRef ref,
+    {String? petId,
+    List<String>? petIds,
+    required TextEditingController dateController}) {
   DateTime selectedDate = DateTime.now();
   dateController.text = DateFormat('dd-MM-yyyy').format(selectedDate);
-
   String? selectedMood;
 
   final List<Map<String, dynamic>> moods = [
@@ -28,6 +29,23 @@ Widget eventTypeCardMood(BuildContext context, WidgetRef ref, String petId,
     {'emoji': '😋', 'description': 'Satisfied'},
     {'emoji': '😴', 'description': 'Tired'},
   ];
+
+  void recordMoodEvent() {
+    String eventId = generateUniqueId();
+    int moodRating = EventMoodModel.determineMoodRating(selectedMood!);
+    String selectedEmoji = moods
+        .firstWhere((mood) => mood['description'] == selectedMood)['emoji'];
+
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _saveMoodEvent(ref, id, eventId, selectedMood!, selectedEmoji,
+            moodRating, selectedDate);
+      }
+    } else if (petId != null) {
+      _saveMoodEvent(ref, petId, eventId, selectedMood!, selectedEmoji,
+          moodRating, selectedDate);
+    }
+  }
 
   void showMoodOptions(BuildContext context) {
     showModalBottomSheet(
@@ -86,47 +104,7 @@ Widget eventTypeCardMood(BuildContext context, WidgetRef ref, String petId,
                                     color: Theme.of(context).primaryColorDark),
                                 onPressed: () {
                                   if (selectedMood != null) {
-                                    String eventId = generateUniqueId();
-                                    int moodRating =
-                                        EventMoodModel.determineMoodRating(
-                                            selectedMood!);
-                                    String selectedEmoji = moods.firstWhere(
-                                        (mood) =>
-                                            mood['description'] ==
-                                            selectedMood)['emoji'];
-
-                                    EventMoodModel newMood = EventMoodModel(
-                                      id: generateUniqueId(),
-                                      eventId: eventId,
-                                      petId: petId,
-                                      emoji: selectedEmoji,
-                                      description: selectedMood!,
-                                      dateTime: selectedDate,
-                                      moodRating: moodRating,
-                                    );
-
-                                    ref
-                                        .read(eventMoodServiceProvider)
-                                        .addMood(newMood);
-
-                                    Event newEvent = Event(
-                                      id: eventId,
-                                      title: 'Mood',
-                                      eventDate: selectedDate,
-                                      dateWhenEventAdded: DateTime.now(),
-                                      userId: FirebaseAuth
-                                          .instance.currentUser!.uid,
-                                      petId: petId,
-                                      description: selectedMood!,
-                                      avatarImage:
-                                          'assets/images/dog_avatar_014.png',
-                                      emoticon: selectedEmoji,
-                                      moodId: newMood.id,
-                                    );
-
-                                    ref
-                                        .read(eventServiceProvider)
-                                        .addEvent(newEvent, petId);
+                                    recordMoodEvent();
                                   }
                                   Navigator.of(context).pop();
                                 }),
@@ -296,4 +274,34 @@ Widget eventTypeCardMood(BuildContext context, WidgetRef ref, String petId,
       showMoodOptions(context);
     },
   );
+}
+
+void _saveMoodEvent(WidgetRef ref, String petId, String eventId,
+    String description, String emoji, int moodRating, DateTime selectedDate) {
+  EventMoodModel newMood = EventMoodModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    emoji: emoji,
+    description: description,
+    dateTime: selectedDate,
+    moodRating: moodRating,
+  );
+
+  ref.read(eventMoodServiceProvider).addMood(newMood);
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Mood',
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    description: description,
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: emoji,
+    moodId: newMood.id,
+  );
+
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

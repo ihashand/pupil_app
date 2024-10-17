@@ -236,7 +236,7 @@ class _WalkCompetitionScreenState extends ConsumerState<WalkCompetitionScreen> {
           size: 20,
         ),
         title: Text(
-          'A C T I V E  W A L K',
+          'C O M P E T I T I O N',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,

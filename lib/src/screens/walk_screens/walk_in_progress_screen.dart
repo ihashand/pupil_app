@@ -1,12 +1,38 @@
+// ignore_for_file: use_build_context_synchronously, invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 import 'dart:async';
 import 'dart:io';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_note_model.dart';
+import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
+import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_events_model.dart';
+import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_events_service_provider.dart';
+import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
+import 'package:pet_diary/src/services/other_services/storage_service.dart';
+
+List<apple_maps.LatLng> stoolEventPoints = [];
+List<apple_maps.LatLng> urineEventPoints = [];
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -30,6 +56,12 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _photos = [];
   final TextEditingController _notesController = TextEditingController();
+  List<apple_maps.Polyline> eventLines = [];
+  int _currentPage = 0;
+  final int _eventsPerPage = 4;
+  final Set<Annotation> _annotations = {};
+  bool _isMapFullScreen = false;
+  final List<Map<String, dynamic>> _collectedEvents = [];
 
   @override
   void initState() {
@@ -38,9 +70,9 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_mapController != null) {
-        _goToCurrentLocation(_mapController!);
+        await _goToCurrentLocation(_mapController!);
       }
     });
   }
@@ -61,12 +93,89 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     }
   }
 
-  void _endWalk(BuildContext context, WalkNotifier walkNotifier) async {
-    bool confirm = await _showConfirmationDialog(context, 'End');
-    if (confirm) {
-      walkNotifier.stopWalk();
-      Navigator.of(context).pop();
+  void _endWalk(BuildContext context, WalkNotifier walkNotifier,
+      WalkState walkState) async {
+    try {
+      bool confirm = await _showConfirmationDialog(context, 'End');
+      if (confirm) {
+        debugPrint("Confirmed end walk");
+        walkNotifier.stopWalk();
+
+        _saveAllEvents();
+
+        if (_notesController.text.isNotEmpty) {
+          _saveNoteEvent(widget.pets.first.id, _notesController.text);
+        }
+
+        List<String> photoUrls = [];
+        if (_photos.isNotEmpty) {
+          for (XFile photo in _photos) {
+            String? downloadUrl =
+                await StorageService().uploadPhoto(File(photo.path));
+            if (downloadUrl != null) {
+              photoUrls.add(downloadUrl);
+            }
+          }
+        }
+
+        EventWalkModel walkEvent = EventWalkModel(
+          id: generateUniqueId(),
+          walkTime: walkState.seconds.toDouble(),
+          eventId: generateUniqueId(),
+          petId: widget.pets.first.id,
+          steps: walkState.currentSteps.toDouble(),
+          dateTime: DateTime.now(),
+          caloriesBurned: walkState.totalCaloriesBurned,
+          distance: walkState.totalDistance,
+          routePoints: walkState.routePoints,
+          images: photoUrls.isNotEmpty ? photoUrls : null,
+          notes:
+              _notesController.text.isNotEmpty ? _notesController.text : null,
+          events: _collectedEvents.isNotEmpty ? _formatEventsForWalk() : null,
+        );
+
+        // Zapisz spacer
+        await ref
+            .read(eventWalkServiceProvider)
+            .addWalk(widget.pets.first.id, walkEvent);
+
+        debugPrint("Navigating to summary screen");
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => WalkSummaryScreen(
+              eventLines: eventLines,
+              addedEvents: _collectedEvents,
+              photos: _photos,
+              totalDistance: walkState.totalDistance.toStringAsFixed(2),
+              totalTimeInSeconds: walkState.seconds,
+              pets: widget.pets,
+              notes: _notesController.text,
+            ),
+          ),
+        );
+      } else {
+        debugPrint("End walk cancelled");
+      }
+    } catch (e) {
+      debugPrint('Error in _endWalk: $e'); // Capture error logs
     }
+  }
+
+  Map<String, dynamic> _formatEventsForWalk() {
+    return {
+      'events': _collectedEvents.map((event) {
+        final latLng = event['location'] as LatLng;
+        return {
+          'type': event['label'],
+          'time': event['time'],
+          'coordinates': {
+            'latitude': latLng.latitude,
+            'longitude': latLng.longitude,
+          },
+        };
+      }).toList(),
+    };
   }
 
   Future<bool> _showConfirmationDialog(
@@ -133,14 +242,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               controller: _scrollController,
               child: Column(
                 children: [
-                  const SizedBox(height: 25),
+                  const SizedBox(
+                    height: 5,
+                  ),
                   _buildProgressBarWithDetailsConteiner(
                       context, walkState, walkNotifier),
-                  const SizedBox(height: 15),
                   _buildEventSelectionContainer(),
-                  const SizedBox(height: 15),
                   _buildNotesAndPhotosContainer(),
-                  const SizedBox(height: 50),
                 ],
               ),
             ),
@@ -152,18 +260,68 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   }
 
   Widget _buildMapContainer(WalkState walkState) {
-    return Container(
-      width: 500,
-      height: 225,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: _isMapFullScreen ? MediaQuery.of(context).size.width : 500,
+      height: _isMapFullScreen ? MediaQuery.of(context).size.height - 220 : 225,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
-        ),
+        borderRadius: _isMapFullScreen
+            ? BorderRadius.zero
+            : const BorderRadius.only(
+                bottomLeft: Radius.circular(15),
+                bottomRight: Radius.circular(15),
+              ),
       ),
       padding: const EdgeInsets.all(15.0),
-      child: _buildAppleMapSection(walkState),
+      child: Stack(
+        children: [
+          _buildAppleMapSection(walkState),
+          Positioned(
+            top: 3,
+            right: 3,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: FloatingActionButton(
+                heroTag: 'fullscreenToggle',
+                mini: true,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Icon(
+                  _isMapFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isMapFullScreen = !_isMapFullScreen;
+                  });
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 3,
+            right: 3,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: FloatingActionButton(
+                heroTag: 'currentLocation',
+                onPressed: () {
+                  if (_mapController != null) {
+                    _goToCurrentLocation(_mapController!);
+                  }
+                },
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Icon(
+                  Icons.near_me,
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -196,7 +354,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     double progressTime = walkState.seconds / 3600;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
         decoration: BoxDecoration(
@@ -335,7 +493,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
+                                  boxShadow: const [
                                     BoxShadow(
                                       color: Colors.black,
                                       spreadRadius: 1,
@@ -405,7 +563,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           ),
           onMapCreated: (apple_maps.AppleMapController controller) {
             _mapController = controller;
-            // Wywołanie metody, aby ustawić mapę na aktualną lokalizację przy uruchomieniu
             _goToCurrentLocation(controller);
           },
           polylines: {
@@ -415,33 +572,14 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   .map((point) =>
                       apple_maps.LatLng(point.latitude, point.longitude))
                   .toList(),
-              width: 12,
+              width: 15,
               color: const Color.fromARGB(255, 29, 121, 227),
             ),
+            ...eventLines,
           },
+          annotations: _annotations,
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
-        ),
-        Positioned(
-          bottom: 7,
-          right: 7,
-          child: SizedBox(
-            height: 30,
-            width: 30,
-            child: FloatingActionButton(
-              onPressed: () {
-                if (_mapController != null) {
-                  _goToCurrentLocation(_mapController!);
-                }
-              },
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Icon(
-                Icons.near_me,
-                color: Theme.of(context).primaryColorDark,
-                size: 20,
-              ),
-            ),
-          ),
         ),
       ],
     );
@@ -459,7 +597,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             width: 150,
             height: 40,
             child: ElevatedButton(
-              onPressed: () => _endWalk(context, walkNotifier),
+              onPressed: () => _endWalk(context, walkNotifier, walkState),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 shape: RoundedRectangleBorder(
@@ -500,60 +638,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  Widget _buildNotesContainer() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Container(
-        padding: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const TextField(
-          maxLines: null, // Pozwala na wieloliniowe wpisywanie tekstu
-          keyboardType: TextInputType.multiline,
-          decoration: InputDecoration(
-            hintText: 'Notatki',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: InputBorder.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotosContainer() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: Container(
-        padding: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _buildAddPhotoButton(),
-                const SizedBox(width: 10),
-                ..._buildPhotoPreviews(),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _closeKeyboard() {
     FocusScope.of(context).unfocus();
   }
 
   Widget _buildNotesAndPhotosContainer() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
         decoration: BoxDecoration(
@@ -829,35 +920,52 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
+  void _handleMoreButtonPressed() {
+    _selectPetsForEvent().then((selectedPets) {
+      if (selectedPets.isNotEmpty) {
+        List<String> petIds = selectedPets.map((pet) => pet.id).toList();
+        _showAllEventTypesForPets(petIds);
+      }
+    });
+  }
+
+  void _showAllEventTypesForPets(List<String> petIds) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            EventTypeSelectionScreen(petId: '', petIds: petIds),
+      ),
+    );
+  }
+
+  final List<Map<String, dynamic>> _addedEvents = [];
   Widget _buildEventSelectionContainer() {
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
-      {'icon': '🐕', 'label': 'Szczekanie'},
-      {'icon': '🐾', 'label': 'Ciągnięcie smyczy'},
-      {'icon': '🦴', 'label': 'Gryzienie'},
-      {'icon': '😡', 'label': 'Warczenie'},
-      {'icon': '🥶', 'label': 'Zimno'},
-      {'icon': '😱', 'label': 'Strach'},
-      {'icon': '🐶', 'label': 'Poznanie nowego zwierzaka'},
-      {'icon': '👨', 'label': 'Spotkanie innego człowieka'},
-      {'icon': '🦘', 'label': 'Skakanie na ludzi'},
-      {'icon': '🐾', 'label': 'Kopanie w ziemi'},
-      {'icon': '🌀', 'label': 'Zgubienie się'},
-      {'icon': '⏱️', 'label': 'Zbyt szybkie tempo'},
-      {'icon': '🏃', 'label': 'Próba ucieczki'},
-      {'icon': '🚴', 'label': 'Bieganie za rowerzystą'},
-      {'icon': '🐦', 'label': 'Próba złapania ptaka'},
-      {'icon': '🚶‍♂️', 'label': 'Leżenie na ziemi'},
-      {'icon': '👃', 'label': 'Wąchanie innych psów'},
-      {'icon': '🗑️', 'label': 'Próba jedzenia śmieci'},
-      {'icon': '🏊', 'label': 'Chęć kąpieli w wodzie'},
+      {'icon': '🐕', 'label': 'Barking'},
+      {'icon': '😡', 'label': 'Growling'},
+      {'icon': '👃', 'label': 'Sniffing'},
+      {'icon': '🦮', 'label': 'Loose leash'},
+      {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
+      {'icon': '🚶‍♂️', 'label': 'Off-leash'},
+      {'icon': '👟', 'label': 'Running'},
+      {'icon': '🐶', 'label': 'Meeting new pet'},
+      {'icon': '🏃', 'label': 'Attempted escape'},
+      {'icon': '🍂', 'label': 'Attempted to eat trash'},
+      {'icon': '🐾', 'label': 'Digging in dirt'},
+      {'icon': '💧', 'label': 'Drinking from puddle'},
+      {'icon': '🛏️', 'label': 'Resting'},
+      {'icon': '🎾', 'label': 'Playing'},
+      {'icon': '🌧️', 'label': 'Getting wet'},
+      {'icon': '🪵', 'label': 'Carrying stick'},
+      {'icon': '🌞', 'label': 'Sunbathing'},
+      {'icon': '👤', 'label': 'Meeting person'},
     ];
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 25.0),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(12),
@@ -865,57 +973,569 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Select Event',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Theme.of(context).primaryColorDark,
-              ),
-            ),
-            const SizedBox(height: 15),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0, left: 15, right: 5),
               child: Row(
-                children: eventOptions.map((event) {
-                  return GestureDetector(
-                    onTap: () {
-                      // Handle event selection logic here
-                    },
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            event['icon']!,
-                            style: const TextStyle(fontSize: 30),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            event['label']!,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'S E L E C T  E V E N T',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _handleMoreButtonPressed,
+                    child: Text(
+                      'M O R E',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        color: Theme.of(context).primaryColorDark,
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: eventOptions.map((event) {
+                    return GestureDetector(
+                      onTap: () {
+                        _handleEventSelection(event['label']!,
+                            event['icon']!); // Wywołanie zmodyfikowanej metody
+                      },
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              event['icon']!,
+                              style: const TextStyle(fontSize: 30),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              event['label']!,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (_addedEvents.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _buildPaginatedEvents(),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<BitmapDescriptor> _getScaledBitmapDescriptor(
+      String assetPath, int width, int height) async {
+    final ByteData imageData = await rootBundle.load(assetPath);
+    final List<int> bytes = imageData.buffer.asUint8List();
+
+    img.Image? image = img.decodeImage(Uint8List.fromList(bytes));
+    if (image != null) {
+      img.Image resizedImage =
+          img.copyResize(image, width: width, height: height);
+
+      final List<int> resizedBytes = img.encodePng(resizedImage);
+      return BitmapDescriptor.fromBytes(Uint8List.fromList(resizedBytes));
+    } else {
+      throw Exception("Nie udało się załadować obrazu");
+    }
+  }
+
+  void _addUrineMarker(apple_maps.LatLng position, String eventId) async {
+    final BitmapDescriptor customIcon = await _getScaledBitmapDescriptor(
+      'assets/images/events_type_cards_no_background/piee.png',
+      190,
+      190,
+    );
+
+    String currentDateTime =
+        DateFormat('HH:mm  dd-MM-yyyy').format(DateTime.now());
+
+    final Annotation urineAnnotation = Annotation(
+      annotationId: AnnotationId(eventId),
+      position: position,
+      icon: customIcon,
+      infoWindow: InfoWindow(
+        title: 'Urine',
+        snippet: currentDateTime,
+      ),
+      onTap: () {
+        if (kDebugMode) {
+          print('Urine event tapped!');
+        }
+      },
+    );
+
+    setState(() {
+      _annotations.add(urineAnnotation);
+    });
+  }
+
+  void _addStoolMarker(apple_maps.LatLng position, String eventId) async {
+    final BitmapDescriptor customIcon = await _getScaledBitmapDescriptor(
+      'assets/images/events_type_cards_no_background/poo.png',
+      128,
+      128,
+    );
+
+    String currentDateTime =
+        DateFormat('HH:mm  dd-MM-yyyy').format(DateTime.now());
+
+    final Annotation stoolAnnotation = Annotation(
+      annotationId: AnnotationId(eventId),
+      position: position,
+      icon: customIcon,
+      infoWindow: InfoWindow(
+        title: 'Poo',
+        snippet: currentDateTime,
+      ),
+      onTap: () {
+        if (kDebugMode) {
+          print('Poo event tapped!');
+        }
+      },
+    );
+
+    setState(() {
+      _annotations.add(stoolAnnotation);
+    });
+  }
+
+  Future<List<Pet>> _selectPetsForEvent() async {
+    List<Pet> selectedPets = [];
+    if (widget.pets.length == 1) {
+      return [widget.pets.first];
+    }
+    await showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding:
+                            EdgeInsets.only(left: 15.0, top: 15, bottom: 5),
+                        child: Text(
+                          'S E L E C T  P E T S',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            right: 15.0, top: 15, bottom: 5),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'D O N E',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Divider(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15.0),
+                    child: Wrap(
+                      spacing: 10.0,
+                      runSpacing: 10.0,
+                      children: widget.pets.map((pet) {
+                        bool isSelected = selectedPets.contains(pet);
+                        return GestureDetector(
+                          onTap: () {
+                            setModalState(() {
+                              if (isSelected) {
+                                selectedPets.remove(pet);
+                              } else {
+                                selectedPets.add(pet);
+                              }
+                            });
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.secondary,
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 30,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 35),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+    return selectedPets;
+  }
+
+  void _saveAllEvents() async {
+    for (var event in _collectedEvents) {
+      if (event['label'] == 'Stool') {
+        _saveStoolEvent(event['petId'], event['time']);
+      } else if (event['label'] == 'Urine') {
+        _saveUrineEvent(event['petId'], event['time']);
+      } else if (event['label'] != null) {
+        _saveCustomEvent(context, ref, event['petId'], generateUniqueId(),
+            event['label'], event['time']);
+      }
+    }
+  }
+
+  void _saveCustomEvent(BuildContext context, WidgetRef ref, String petId,
+      String eventId, String eventType, DateTime eventTime) {
+    Map<String, String> eventEmoticons = {
+      'Playing': '🎾',
+      'Sniffing': '👃',
+      'Barking': '🐕',
+      'Growling': '😡',
+      'Loose leash': '🦮',
+      'Pulling on leash': '🐕‍🦺',
+      'Running': '👟',
+      'Meeting new pet': '🐶',
+      'Attempted escape': '🏃',
+      'Attempted to eat trash': '🍂',
+      'Digging in dirt': '🐾',
+      'Drinking from puddle': '💧',
+      'Resting': '🛏️',
+      'Getting wet': '🌧️',
+      'Carrying stick': '🪵',
+      'Sunbathing': '🌞',
+      'Meeting person': '👤',
+    };
+
+    String emoticon = eventEmoticons[eventType] ?? '🦮';
+
+    EventWalkEventsModel newEventWalkEvent = EventWalkEventsModel(
+      id: generateUniqueId(),
+      eventId: eventId,
+      petId: petId,
+      eventType: eventType,
+      eventTime: eventTime,
+      description: '$eventType event during walk',
+    );
+
+    ref
+        .read(eventWalkEventsServiceProvider)
+        .addEventsWalkEvent(newEventWalkEvent, petId);
+
+    Event newEvent = Event(
+      id: eventId,
+      title: eventType,
+      eventDate: eventTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      description: '$eventType event during walk',
+      emoticon: emoticon,
+    );
+
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _handleEventSelection(String eventLabel, String eventIcon) async {
+    List<Pet> selectedPets = await _selectPetsForEvent();
+
+    if (selectedPets.isNotEmpty) {
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+
+      for (var pet in selectedPets) {
+        String eventId = '${eventLabel}_${DateTime.now()}';
+
+        setState(() {
+          _addedEvents.add({
+            'id': eventId,
+            'icon': eventIcon,
+            'label': eventLabel,
+            'time': DateTime.now(),
+            'location': latLng,
+            'petId': pet.id,
+            'petName': pet.name,
+            'petAvatar': pet.avatarImage
+          });
+
+          _collectedEvents.add({
+            'id': eventId,
+            'icon': eventIcon,
+            'label': eventLabel,
+            'time': DateTime.now(),
+            'location': latLng,
+            'petId': pet.id,
+            'petName': pet.name,
+            'petAvatar': pet.avatarImage
+          });
+
+          if (eventLabel == 'Stool') {
+            _addStoolMarker(latLng, eventId);
+          } else if (eventLabel == 'Urine') {
+            _addUrineMarker(latLng, eventId);
+          }
+        });
+      }
+    }
+  }
+
+  Widget _buildPaginatedEvents() {
+    int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
+    List<Map<String, dynamic>> paginatedEvents = _addedEvents
+        .skip(_currentPage * _eventsPerPage)
+        .take(_eventsPerPage)
+        .toList();
+
+    return Column(
+      children: [
+        ...paginatedEvents.map((event) {
+          return ListTile(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(
+                        event['icon'],
+                        style: const TextStyle(fontSize: 40),
+                      ),
+                      const SizedBox(width: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                event['label'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                DateFormat('HH:mm').format(event['time']),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Theme.of(context).primaryColorDark),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircleAvatar(
+                                backgroundImage: AssetImage(event['petAvatar']),
+                                radius: 16,
+                              ),
+                              if (_selectedPetIndex ==
+                                      _addedEvents.indexOf(event) &&
+                                  _selectedPetName == event['petName'])
+                                Positioned(
+                                  top: -30,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5.0, vertical: 2.0),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black,
+                                          spreadRadius: 1,
+                                          blurRadius: 5,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      _selectedPetName!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      _addedEvents.remove(event);
+
+                      _annotations.removeWhere((annotation) =>
+                          annotation.annotationId.value == event['id']);
+                    });
+                  },
+                ),
+              ],
+            ),
+          );
+        }),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: _currentPage > 0
+                  ? () {
+                      setState(() {
+                        _currentPage--;
+                      });
+                    }
+                  : null,
+            ),
+            Text('Page ${_currentPage + 1} of $totalPages'),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward),
+              onPressed: _currentPage < totalPages - 1
+                  ? () {
+                      setState(() {
+                        _currentPage++;
+                      });
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _saveUrineEvent(String petId, DateTime eventTime) {
+    EventUrineModel newUrine = EventUrineModel(
+      id: generateUniqueId(),
+      eventId: generateUniqueId(),
+      petId: petId,
+      color: 'Default',
+      description: 'Urine event',
+      dateTime: eventTime,
+    );
+
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+
+    Event newEvent = Event(
+      id: newUrine.eventId,
+      title: 'Urine',
+      eventDate: eventTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      description: 'Urine event during walk',
+      emoticon: '💦',
+    );
+
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _saveStoolEvent(String petId, DateTime eventTime) {
+    EventStoolModel newStoolEvent = EventStoolModel(
+      id: generateUniqueId(),
+      eventId: generateUniqueId(),
+      petId: petId,
+      description: 'Stool event during walk',
+      emoji: '💩',
+      dateTime: DateTime.now(),
+    );
+
+    ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent, petId);
+
+    Event newEvent = Event(
+      id: newStoolEvent.eventId,
+      title: 'Stool',
+      eventDate: eventTime,
+      dateWhenEventAdded: DateTime.now(),
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      description: 'Stool event during walk',
+      emoticon: '💩',
+    );
+
+    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _saveNoteEvent(String petId, String contentText) {
+    EventNoteModel newNote = EventNoteModel(
+      id: generateUniqueId(),
+      title: 'Walk note',
+      eventId: generateUniqueId(),
+      petId: petId,
+      dateTime: DateTime.now(),
+      contentText: contentText,
+    );
+
+    // Zapisz notatkę przy użyciu serwisu EventNoteService
+    ref.read(eventNoteServiceProvider).addNote(newNote, petId);
   }
 }

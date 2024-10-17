@@ -9,7 +9,8 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget eventTypeCardWeight(BuildContext context, WidgetRef ref, String petId) {
+Widget eventTypeCardWeight(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
@@ -75,113 +76,27 @@ Widget eventTypeCardWeight(BuildContext context, WidgetRef ref, String petId) {
                               onPressed: () {
                                 if (weightController.text.trim().isEmpty ||
                                     initialWeight <= 0.0) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Invalid Input',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
-                                                fontSize: 24)),
-                                        content: SizedBox(
-                                          width: 250,
-                                          child: Text(
-                                              'Weight field cannot be empty.',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark,
-                                                  fontSize: 16)),
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark,
-                                                  fontSize: 20),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
+                                  _showErrorDialog(
+                                      context, 'Weight field cannot be empty.');
                                   return;
                                 }
 
                                 if (initialWeight > 200.0) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Invalid Input',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .primaryColorDark,
-                                                fontSize: 24)),
-                                        content: SizedBox(
-                                          width: 250,
-                                          child: Text(
-                                              'Weight cannot exceed 200 kg.',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark,
-                                                  fontSize: 16)),
-                                        ),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text(
-                                              'OK',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColorDark,
-                                                  fontSize: 20),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
+                                  _showErrorDialog(
+                                      context, 'Weight cannot exceed 200 kg.');
                                   return;
                                 }
 
                                 String eventId = generateUniqueId();
-                                String weightId = generateUniqueId();
-                                EventWeightModel newWeight = EventWeightModel(
-                                    id: weightId,
-                                    eventId: eventId,
-                                    petId: petId,
-                                    weight: initialWeight,
-                                    dateTime: selectedDate);
-
-                                Event newEvent = Event(
-                                  id: eventId,
-                                  eventDate: selectedDate,
-                                  dateWhenEventAdded: DateTime.now(),
-                                  title: 'Weight',
-                                  userId:
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                  petId: petId,
-                                  weightId: newWeight.id,
-                                  description: '$initialWeight',
-                                  avatarImage:
-                                      'assets/images/dog_avatar_012.png',
-                                  emoticon: '⚖️',
-                                );
-
-                                ref
-                                    .read(eventServiceProvider)
-                                    .addEvent(newEvent, petId);
-                                ref
-                                    .read(eventWeightServiceProvider)
-                                    .addWeight(newWeight);
+                                if (petIds != null && petIds.isNotEmpty) {
+                                  for (String id in petIds) {
+                                    _saveWeightEvent(context, ref, id,
+                                        initialWeight, eventId, selectedDate);
+                                  }
+                                } else if (petId != null) {
+                                  _saveWeightEvent(context, ref, petId,
+                                      initialWeight, eventId, selectedDate);
+                                }
 
                                 Navigator.of(context).pop();
                               },
@@ -329,6 +244,64 @@ Widget eventTypeCardWeight(BuildContext context, WidgetRef ref, String petId) {
     'assets/images/events_type_cards_no_background/weight.png',
     () {
       showWeightModal(context);
+    },
+  );
+}
+
+void _saveWeightEvent(BuildContext context, WidgetRef ref, String petId,
+    double initialWeight, String eventId, DateTime selectedDate) {
+  String weightId = generateUniqueId();
+  EventWeightModel newWeight = EventWeightModel(
+      id: weightId,
+      eventId: eventId,
+      petId: petId,
+      weight: initialWeight,
+      dateTime: selectedDate);
+
+  Event newEvent = Event(
+    id: eventId,
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    title: 'Weight',
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    weightId: newWeight.id,
+    description: '$initialWeight',
+    avatarImage: 'assets/images/dog_avatar_012.png',
+    emoticon: '⚖️',
+  );
+
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventWeightServiceProvider).addWeight(newWeight);
+}
+
+void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Invalid Input',
+            style: TextStyle(
+                color: Theme.of(context).primaryColorDark, fontSize: 24)),
+        content: SizedBox(
+          width: 250,
+          child: Text(message,
+              style: TextStyle(
+                  color: Theme.of(context).primaryColorDark, fontSize: 16)),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              'OK',
+              style: TextStyle(
+                  color: Theme.of(context).primaryColorDark, fontSize: 20),
+            ),
+          ),
+        ],
+      );
     },
   );
 }

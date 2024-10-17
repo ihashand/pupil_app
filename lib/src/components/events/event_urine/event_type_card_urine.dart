@@ -9,7 +9,8 @@ import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 
-Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
+Widget eventTypeCardUrine(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
@@ -27,29 +28,15 @@ Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
 
   void recordUrineEvent() {
     String eventId = generateUniqueId();
-    EventUrineModel newUrine = EventUrineModel(
-      id: generateUniqueId(),
-      eventId: eventId,
-      petId: petId,
-      color: selectedUrineType ?? 'Default',
-      description: selectedUrineType ?? 'Urine event',
-      dateTime: selectedDate,
-    );
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
-
-    Event newEvent = Event(
-      id: eventId,
-      title: 'Urine',
-      eventDate: selectedDate,
-      dateWhenEventAdded: DateTime.now(),
-      userId: FirebaseAuth.instance.currentUser!.uid,
-      petId: petId,
-      description: selectedUrineType ?? 'Urine event',
-      avatarImage: 'assets/images/dog_avatar_014.png',
-      emoticon: '💦',
-      urineId: newUrine.id,
-    );
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _saveUrineEvent(
+            context, ref, id, eventId, selectedUrineType, selectedDate);
+      }
+    } else if (petId != null) {
+      _saveUrineEvent(
+          context, ref, petId, eventId, selectedUrineType, selectedDate);
+    }
   }
 
   void showUrineModal(BuildContext context) {
@@ -125,7 +112,6 @@ Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
                       ),
                       child: Column(
                         children: [
-                          // Date selection
                           TextFormField(
                             controller: dateController,
                             decoration: InputDecoration(
@@ -267,4 +253,31 @@ Widget eventTypeCardUrine(BuildContext context, WidgetRef ref, String petId) {
       showUrineModal(context);
     },
   );
+}
+
+void _saveUrineEvent(BuildContext context, WidgetRef ref, String petId,
+    String eventId, String? selectedUrineType, DateTime selectedDate) {
+  EventUrineModel newUrine = EventUrineModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    color: selectedUrineType ?? 'Default',
+    description: selectedUrineType ?? 'Urine event',
+    dateTime: selectedDate,
+  );
+  ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Urine',
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    description: selectedUrineType ?? 'Urine event',
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: '💦',
+    urineId: newUrine.id,
+  );
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

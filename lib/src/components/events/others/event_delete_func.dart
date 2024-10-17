@@ -72,7 +72,7 @@ void eventDeleteFunc(
   }
 
   if (noteId.isNotEmpty) {
-    await ref.read(eventNoteServiceProvider).deleteNote(noteId);
+    await ref.read(eventNoteServiceProvider).deleteNote(noteId, petId);
   }
 
   if (pillId.isNotEmpty) {
@@ -105,7 +105,7 @@ void eventDeleteFunc(
   }
 
   if (stoolId.isNotEmpty) {
-    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId);
+    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId, petId);
   }
 
   if (urineId.isNotEmpty) {

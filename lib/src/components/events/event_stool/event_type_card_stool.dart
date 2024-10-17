@@ -9,7 +9,8 @@ import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 
-Widget eventTypeCardStool(BuildContext context, WidgetRef ref, String petId) {
+Widget eventTypeCardStool(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
@@ -28,29 +29,15 @@ Widget eventTypeCardStool(BuildContext context, WidgetRef ref, String petId) {
 
   void recordStoolEvent() {
     String eventId = generateUniqueId();
-    EventStoolModel newStool = EventStoolModel(
-      id: generateUniqueId(),
-      eventId: eventId,
-      petId: petId,
-      emoji: selectedStoolType ?? '💩',
-      description: selectedStoolType ?? 'Stool event',
-      dateTime: selectedDate,
-    );
-    ref.read(eventStoolServiceProvider).addStoolEvent(newStool);
-
-    Event newEvent = Event(
-      id: eventId,
-      title: 'Stool',
-      eventDate: selectedDate,
-      dateWhenEventAdded: DateTime.now(),
-      userId: FirebaseAuth.instance.currentUser!.uid,
-      petId: petId,
-      description: selectedStoolType ?? 'Stool event',
-      avatarImage: 'assets/images/dog_avatar_014.png',
-      emoticon: '💩',
-      stoolId: newStool.id,
-    );
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _saveStoolEvent(
+            context, ref, id, eventId, selectedStoolType, selectedDate);
+      }
+    } else if (petId != null) {
+      _saveStoolEvent(
+          context, ref, petId, eventId, selectedStoolType, selectedDate);
+    }
   }
 
   void showStoolModal(BuildContext context) {
@@ -160,16 +147,16 @@ Widget eventTypeCardStool(BuildContext context, WidgetRef ref, String petId) {
                                       colorScheme: ColorScheme.light(
                                         primary: Theme.of(context)
                                             .colorScheme
-                                            .secondary, // Secondary color for highlighting
-                                        onPrimary: Theme.of(context)
-                                            .primaryColorDark, // Text and button color
-                                        onSurface: Theme.of(context)
-                                            .primaryColorDark, // Background color for text
+                                            .secondary,
+                                        onPrimary:
+                                            Theme.of(context).primaryColorDark,
+                                        onSurface:
+                                            Theme.of(context).primaryColorDark,
                                       ),
                                       textButtonTheme: TextButtonThemeData(
                                         style: TextButton.styleFrom(
                                           foregroundColor: Theme.of(context)
-                                              .primaryColorDark, // OK/Cancel button color
+                                              .primaryColorDark,
                                         ),
                                       ),
                                     ),
@@ -268,4 +255,31 @@ Widget eventTypeCardStool(BuildContext context, WidgetRef ref, String petId) {
       showStoolModal(context);
     },
   );
+}
+
+void _saveStoolEvent(BuildContext context, WidgetRef ref, String petId,
+    String eventId, String? selectedStoolType, DateTime selectedDate) {
+  EventStoolModel newStool = EventStoolModel(
+    id: generateUniqueId(),
+    eventId: eventId,
+    petId: petId,
+    emoji: selectedStoolType ?? '💩',
+    description: selectedStoolType ?? 'Stool event',
+    dateTime: selectedDate,
+  );
+  ref.read(eventStoolServiceProvider).addStoolEvent(newStool, petId);
+
+  Event newEvent = Event(
+    id: eventId,
+    title: 'Stool',
+    eventDate: selectedDate,
+    dateWhenEventAdded: DateTime.now(),
+    userId: FirebaseAuth.instance.currentUser!.uid,
+    petId: petId,
+    description: selectedStoolType ?? 'Stool event',
+    avatarImage: 'assets/images/dog_avatar_014.png',
+    emoticon: '💩',
+    stoolId: newStool.id,
+  );
+  ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }

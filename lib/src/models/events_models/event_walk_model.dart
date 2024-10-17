@@ -11,7 +11,9 @@ class EventWalkModel {
   double caloriesBurned;
   double distance;
   List<LatLng> routePoints;
-  List<String> images;
+  List<String>? images;
+  String? notes;
+  Map<String, dynamic>? events;
 
   EventWalkModel({
     required this.id,
@@ -23,7 +25,9 @@ class EventWalkModel {
     required this.caloriesBurned,
     required this.distance,
     required this.routePoints,
-    required this.images,
+    this.images,
+    this.notes,
+    this.events,
   });
 
   EventWalkModel.fromDocument(DocumentSnapshot doc)
@@ -39,7 +43,17 @@ class EventWalkModel {
         routePoints = (doc.get('routePoints') as List<dynamic>)
             .map((point) => LatLng(point['latitude'], point['longitude']))
             .toList(),
-        images = List<String>.from(doc.get('images') ?? []);
+        images = (doc.data() as Map<String, dynamic>).containsKey('images')
+            ? List<String>.from(doc.get('images'))
+            : [],
+        notes =
+            (doc.data() as Map<String, dynamic>?)?.containsKey('notes') == true
+                ? doc.get('notes')
+                : null,
+        events =
+            (doc.data() as Map<String, dynamic>?)?.containsKey('events') == true
+                ? doc.get('events')
+                : null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -55,7 +69,9 @@ class EventWalkModel {
           .map((point) =>
               {'latitude': point.latitude, 'longitude': point.longitude})
           .toList(),
-      'images': images,
+      if (images != null) 'images': images,
+      if (notes != null) 'notes': notes,
+      if (events != null) 'events': events,
     };
   }
 }
