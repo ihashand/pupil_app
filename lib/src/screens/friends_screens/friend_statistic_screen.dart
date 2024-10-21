@@ -161,7 +161,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     double totalSteps = walks.fold(0, (sum, walk) => sum + walk.steps);
     double totalActiveMinutes =
         walks.fold(0, (sum, walk) => sum + walk.walkTime);
-    double totalDistance = walks.fold(0, (sum, walk) => sum + walk.distance);
+    double totalDistance = walks.fold(0, (sum, walk) => sum + walk.steps);
     double totalCaloriesBurned = totalSteps * 0.04;
 
     return Container(
@@ -234,7 +234,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     double totalSteps = walks.fold(0, (sum, walk) => sum + walk.steps);
     double totalActiveMinutes =
         walks.fold(0, (sum, walk) => sum + walk.walkTime);
-    double totalDistance = walks.fold(0, (sum, walk) => sum + walk.distance);
+    double totalDistance = walks.fold(0, (sum, walk) => sum + walk.steps);
     double totalCaloriesBurned = totalSteps * 0.04;
     int totalDays =
         walks.map((walk) => walk.dateTime.toLocal().day).toSet().length;

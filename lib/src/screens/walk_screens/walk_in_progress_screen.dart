@@ -16,6 +16,7 @@ import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_events_model.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
+import 'package:pet_diary/src/models/others/global_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
@@ -23,6 +24,7 @@ import 'package:pet_diary/src/providers/events_providers/event_stool_provider.da
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_events_service_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
@@ -30,9 +32,7 @@ import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:pet_diary/src/services/other_services/storage_service.dart';
-
-List<apple_maps.LatLng> stoolEventPoints = [];
-List<apple_maps.LatLng> urineEventPoints = [];
+import 'package:uuid/uuid.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -62,10 +62,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   final Set<Annotation> _annotations = {};
   bool _isMapFullScreen = false;
   final List<Map<String, dynamic>> _collectedEvents = [];
+  String? walkId;
+  final List<Map<String, dynamic>> _addedEvents = [];
 
   @override
   void initState() {
     super.initState();
+    _initializeWalkId();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -85,6 +88,28 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     super.dispose();
   }
 
+  void _initializeWalkId() async {
+    walkId ??=
+        const Uuid().v4(); // Generowanie unikalnego ID globalnego spaceru
+
+    // Tworzenie modelu globalnego spaceru
+    final globalWalk = GlobalWalkModel(
+      id: walkId!,
+      individualWalkIds: [], // Lista indywidualnych spacerów dla psów
+      petIds: widget.pets.map((pet) => pet.id).toList(), // Lista ID psów
+      dateTime: DateTime.now(), // Aktualna data i czas
+      routePoints: [], // Trasa spaceru
+      walkTime: 0.0, // Czas spaceru
+      steps: 0.0, // Liczba kroków
+      stoolsAndUrine: [], // Puste zdarzenia na kupy i siku na mapie
+      images: [], // Zdjęcia zrobione podczas spaceru (na razie puste)
+      noteId: null, // Brak notatki na starcie
+    );
+
+    // Dodanie globalnego spaceru do bazy danych
+    await ref.read(globalWalkServiceProvider).addGlobalWalk(globalWalk);
+  }
+
   void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
     String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
     bool confirm = await _showConfirmationDialog(context, action);
@@ -98,8 +123,30 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     try {
       bool confirm = await _showConfirmationDialog(context, 'End');
       if (confirm) {
-        debugPrint("Confirmed end walk");
         walkNotifier.stopWalk();
+
+        debugPrint('Walk ending initiated');
+        debugPrint('WalkState seconds: ${walkState.seconds}');
+        debugPrint('WalkState steps: ${walkState.currentSteps}');
+        debugPrint('WalkState routePoints: ${walkState.routePoints}');
+        debugPrint(
+            'Collected events (before transformation): $_collectedEvents');
+
+        // Konwersja LatLng do Map<String, double>
+        List<Map<String, dynamic>> transformedEvents =
+            _collectedEvents.map((event) {
+          final LatLng location =
+              event['location']; // Pobieranie LatLng z eventu
+          return {
+            ...event,
+            'location': {
+              'latitude': location.latitude,
+              'longitude': location.longitude
+            }
+          };
+        }).toList();
+
+        debugPrint('Transformed events: $transformedEvents');
 
         _saveAllEvents();
 
@@ -110,42 +157,79 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         List<String> photoUrls = [];
         if (_photos.isNotEmpty) {
           for (XFile photo in _photos) {
+            debugPrint('Uploading photo: ${photo.path}');
             String? downloadUrl =
                 await StorageService().uploadPhoto(File(photo.path));
             if (downloadUrl != null) {
               photoUrls.add(downloadUrl);
+              debugPrint('Photo uploaded: $downloadUrl');
+            } else {
+              debugPrint('Photo upload failed for: ${photo.path}');
             }
           }
         }
 
-        EventWalkModel walkEvent = EventWalkModel(
-          id: generateUniqueId(),
-          walkTime: walkState.seconds.toDouble(),
-          eventId: generateUniqueId(),
-          petId: widget.pets.first.id,
-          steps: walkState.currentSteps.toDouble(),
+        // Zaktualizowana lista indywidualnych spacerów
+        Map<String, String> petWalkIds = {};
+
+        for (var pet in widget.pets) {
+          String individualWalkId = generateUniqueId();
+          petWalkIds[pet.id] = individualWalkId;
+
+          debugPrint(
+              'Creating walk event for pet: ${pet.name} with id: $individualWalkId');
+
+          EventWalkModel walkEvent = EventWalkModel(
+            id: individualWalkId,
+            globalWalkId: walkId!,
+            walkTime: walkState.seconds.toDouble(),
+            petId: pet.id,
+            steps: walkState.currentSteps.toDouble(),
+            dateTime: DateTime.now(),
+            routePoints: walkState.routePoints
+                .map((point) => {
+                      'latitude': point.latitude,
+                      'longitude': point.longitude,
+                    })
+                .toList(),
+            stoolsAndUrine: transformedEvents, // Zmodyfikowane eventy
+          );
+
+          debugPrint('Saving individual walk for pet: ${pet.name}');
+          await ref.read(eventWalkServiceProvider).addWalk(pet.id, walkEvent);
+        }
+
+        // Zaktualizowanie globalnego spaceru z informacjami o wszystkich psach
+        GlobalWalkModel updatedGlobalWalk = GlobalWalkModel(
+          id: walkId!,
+          individualWalkIds: petWalkIds.values.toList(),
+          petIds: widget.pets.map((pet) => pet.id).toList(),
           dateTime: DateTime.now(),
-          caloriesBurned: walkState.totalCaloriesBurned,
-          distance: walkState.totalDistance,
-          routePoints: walkState.routePoints,
-          images: photoUrls.isNotEmpty ? photoUrls : null,
-          notes:
-              _notesController.text.isNotEmpty ? _notesController.text : null,
-          events: _collectedEvents.isNotEmpty ? _formatEventsForWalk() : null,
+          routePoints: walkState.routePoints
+              .map((point) => {
+                    'latitude': point.latitude,
+                    'longitude': point.longitude,
+                  })
+              .toList(),
+          walkTime: walkState.seconds.toDouble(),
+          steps: walkState.currentSteps.toDouble(),
+          stoolsAndUrine: transformedEvents, // Zmodyfikowane eventy
+          images: photoUrls,
+          noteId: _notesController.text.isNotEmpty ? generateUniqueId() : null,
         );
 
-        // Zapisz spacer
+        debugPrint('Updating global walk with id: $walkId');
         await ref
-            .read(eventWalkServiceProvider)
-            .addWalk(widget.pets.first.id, walkEvent);
+            .read(globalWalkServiceProvider)
+            .updateGlobalWalk(updatedGlobalWalk);
 
-        debugPrint("Navigating to summary screen");
+        debugPrint('Walk successfully ended');
 
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => WalkSummaryScreen(
               eventLines: eventLines,
-              addedEvents: _collectedEvents,
+              addedEvents: transformedEvents, // Zmodyfikowane eventy
               photos: _photos,
               totalDistance: walkState.totalDistance.toStringAsFixed(2),
               totalTimeInSeconds: walkState.seconds,
@@ -154,28 +238,10 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
           ),
         );
-      } else {
-        debugPrint("End walk cancelled");
       }
     } catch (e) {
-      debugPrint('Error in _endWalk: $e'); // Capture error logs
+      debugPrint('Error in _endWalk: $e');
     }
-  }
-
-  Map<String, dynamic> _formatEventsForWalk() {
-    return {
-      'events': _collectedEvents.map((event) {
-        final latLng = event['location'] as LatLng;
-        return {
-          'type': event['label'],
-          'time': event['time'],
-          'coordinates': {
-            'latitude': latLng.latitude,
-            'longitude': latLng.longitude,
-          },
-        };
-      }).toList(),
-    };
   }
 
   Future<bool> _showConfirmationDialog(
@@ -939,29 +1005,10 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  final List<Map<String, dynamic>> _addedEvents = [];
   Widget _buildEventSelectionContainer() {
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
-      {'icon': '🐕', 'label': 'Barking'},
-      {'icon': '😡', 'label': 'Growling'},
-      {'icon': '👃', 'label': 'Sniffing'},
-      {'icon': '🦮', 'label': 'Loose leash'},
-      {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
-      {'icon': '🚶‍♂️', 'label': 'Off-leash'},
-      {'icon': '👟', 'label': 'Running'},
-      {'icon': '🐶', 'label': 'Meeting new pet'},
-      {'icon': '🏃', 'label': 'Attempted escape'},
-      {'icon': '🍂', 'label': 'Attempted to eat trash'},
-      {'icon': '🐾', 'label': 'Digging in dirt'},
-      {'icon': '💧', 'label': 'Drinking from puddle'},
-      {'icon': '🛏️', 'label': 'Resting'},
-      {'icon': '🎾', 'label': 'Playing'},
-      {'icon': '🌧️', 'label': 'Getting wet'},
-      {'icon': '🪵', 'label': 'Carrying stick'},
-      {'icon': '🌞', 'label': 'Sunbathing'},
-      {'icon': '👤', 'label': 'Meeting person'},
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
@@ -1008,8 +1055,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   children: eventOptions.map((event) {
                     return GestureDetector(
                       onTap: () {
-                        _handleEventSelection(event['label']!,
-                            event['icon']!); // Wywołanie zmodyfikowanej metody
+                        _handleEventSelection(event['label']!, event['icon']!);
                       },
                       child: Container(
                         width: 80,
@@ -1084,7 +1130,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
     final Annotation urineAnnotation = Annotation(
       annotationId: AnnotationId(eventId),
-      position: position,
+      position: LatLng(position.latitude, position.longitude),
       icon: customIcon,
       infoWindow: InfoWindow(
         title: 'Urine',
@@ -1233,62 +1279,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         _saveStoolEvent(event['petId'], event['time']);
       } else if (event['label'] == 'Urine') {
         _saveUrineEvent(event['petId'], event['time']);
-      } else if (event['label'] != null) {
-        _saveCustomEvent(context, ref, event['petId'], generateUniqueId(),
-            event['label'], event['time']);
       }
     }
-  }
-
-  void _saveCustomEvent(BuildContext context, WidgetRef ref, String petId,
-      String eventId, String eventType, DateTime eventTime) {
-    Map<String, String> eventEmoticons = {
-      'Playing': '🎾',
-      'Sniffing': '👃',
-      'Barking': '🐕',
-      'Growling': '😡',
-      'Loose leash': '🦮',
-      'Pulling on leash': '🐕‍🦺',
-      'Running': '👟',
-      'Meeting new pet': '🐶',
-      'Attempted escape': '🏃',
-      'Attempted to eat trash': '🍂',
-      'Digging in dirt': '🐾',
-      'Drinking from puddle': '💧',
-      'Resting': '🛏️',
-      'Getting wet': '🌧️',
-      'Carrying stick': '🪵',
-      'Sunbathing': '🌞',
-      'Meeting person': '👤',
-    };
-
-    String emoticon = eventEmoticons[eventType] ?? '🦮';
-
-    EventWalkEventsModel newEventWalkEvent = EventWalkEventsModel(
-      id: generateUniqueId(),
-      eventId: eventId,
-      petId: petId,
-      eventType: eventType,
-      eventTime: eventTime,
-      description: '$eventType event during walk',
-    );
-
-    ref
-        .read(eventWalkEventsServiceProvider)
-        .addEventsWalkEvent(newEventWalkEvent, petId);
-
-    Event newEvent = Event(
-      id: eventId,
-      title: eventType,
-      eventDate: eventTime,
-      dateWhenEventAdded: DateTime.now(),
-      userId: FirebaseAuth.instance.currentUser!.uid,
-      petId: petId,
-      description: '$eventType event during walk',
-      emoticon: emoticon,
-    );
-
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   void _handleEventSelection(String eventLabel, String eventIcon) async {
