@@ -1,13 +1,16 @@
 import 'dart:io';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:image/image.dart' as img;
 
-// Nowa klasa dla modala zamiast pełnego ekranu
-class WalkSummaryModal extends StatelessWidget {
-  final List<apple_maps.Polyline> eventLines;
+class WalkSummaryScreen extends StatelessWidget {
+  final List<Polyline> eventLines;
   final List<Map<String, dynamic>> addedEvents;
   final List<XFile> photos;
   final String totalDistance;
@@ -15,7 +18,7 @@ class WalkSummaryModal extends StatelessWidget {
   final List<Pet> pets;
   final String notes;
 
-  const WalkSummaryModal({
+  const WalkSummaryScreen({
     super.key,
     required this.eventLines,
     required this.addedEvents,
@@ -28,110 +31,154 @@ class WalkSummaryModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Korzystamy z DraggableScrollableSheet, aby można było przesuwać modal
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.93, // Początkowa wielkość modala
-      maxChildSize: 0.93, // Maksymalna wielkość modala
-      minChildSize: 0.5, // Minimalna wielkość modala
-      builder: (context, scrollController) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            title: const Text(
-              'W A L K  S U M M A R Y',
-              style: TextStyle(
-                fontSize: 13,
-                letterSpacing: 2,
-                fontWeight: FontWeight.bold,
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text(
+          'W A L K  S U M M A R Y',
+          style: TextStyle(
+            fontSize: 13,
+            letterSpacing: 2,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          FutureBuilder<Set<Annotation>>(
+            future: _buildEventAnnotations(addedEvents),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return const Center(
+                    child: Text('Error loading map annotations'));
+              } else {
+                return _buildMapSection(context, eventLines, snapshot.data!);
+              }
+            },
+          ),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  _buildProgressBarWithDetails(
+                      context, totalDistance, totalTimeInSeconds, pets),
+                  const SizedBox(height: 10),
+                  if (addedEvents.isNotEmpty)
+                    _buildEventList(context, addedEvents),
+                  const SizedBox(height: 10),
+                  if (photos.isNotEmpty) _buildPhotos(context, photos),
+                  const SizedBox(height: 10),
+                  if (notes.isNotEmpty) _buildNotesSection(context, notes),
+                  const SizedBox(height: 10),
+                ],
               ),
             ),
-            automaticallyImplyLeading: false, // Usuwamy strzałkę wstecz
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.close), // Ikona zamykająca (X)
-                onPressed: () {
-                  Navigator.of(context).pop(); // Zamknięcie modala
-                },
-              ),
-            ],
           ),
-          body: Column(
-            children: [
-              _buildDivider(context),
-              _buildMapSection(context),
-              Divider(
-                height: 1,
-                thickness: 1,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController, // Scrollowanie w modal
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      _buildProgressBarWithDetails(context),
-                      const SizedBox(height: 10),
-                      if (addedEvents.isNotEmpty) _buildEventList(context),
-                      const SizedBox(height: 10),
-                      if (photos.isNotEmpty) _buildPhotos(context),
-                      const SizedBox(height: 10),
-                      if (notes.isNotEmpty) _buildNotesSection(context),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  // Separator linii
-  Widget _buildDivider(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: Theme.of(context).colorScheme.surface,
-    );
-  }
-
-  // Sekcja mapy
-  Widget _buildMapSection(BuildContext context) {
-    return Container(
+  Widget _buildMapSection(BuildContext context, List<Polyline> eventLines,
+      Set<Annotation> annotations) {
+    return SizedBox(
       height: 225,
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
+      child: AppleMap(
+        initialCameraPosition: CameraPosition(
+          target: eventLines.isNotEmpty && eventLines.first.points.isNotEmpty
+              ? eventLines.first.points.first
+              : const LatLng(51.5, -0.09),
+          zoom: 16,
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: apple_maps.AppleMap(
-          minMaxZoomPreference: const apple_maps.MinMaxZoomPreference(10, 16),
-          polylines: eventLines.toSet(),
-          initialCameraPosition: apple_maps.CameraPosition(
-            target: eventLines.isNotEmpty && eventLines.first.points.isNotEmpty
-                ? eventLines.first.points.first
-                : const apple_maps.LatLng(51.5, -0.09),
-            zoom: 16,
-          ),
-          zoomGesturesEnabled: true,
-          scrollGesturesEnabled: true,
-          onMapCreated: (apple_maps.AppleMapController controller) {},
-        ),
+        zoomGesturesEnabled: true,
+        scrollGesturesEnabled: true,
+        rotateGesturesEnabled: true,
+        polylines: eventLines.toSet(),
+        annotations: annotations,
+        onMapCreated: (AppleMapController controller) {},
       ),
     );
   }
 
-  // Pasek postępu z szczegółami spaceru
-  Widget _buildProgressBarWithDetails(BuildContext context) {
+  Future<Set<Annotation>> _buildEventAnnotations(
+      List<Map<String, dynamic>> addedEvents) async {
+    Set<Annotation> annotations = {};
+
+    for (var event in addedEvents) {
+      // Bezpieczna konwersja na Map<String, double>
+      final Map<String, dynamic> eventLocation =
+          event['location'] as Map<String, dynamic>;
+
+      // Rzutowanie z dynamicznego typu na double
+      final double latitude = eventLocation['latitude'] is double
+          ? eventLocation['latitude'] as double
+          : double.parse(eventLocation['latitude'].toString());
+      final double longitude = eventLocation['longitude'] is double
+          ? eventLocation['longitude'] as double
+          : double.parse(eventLocation['longitude'].toString());
+
+      // Sprawdzenie czy event to Stool czy Urine i przypisanie odpowiedniego obrazka
+      final String assetPath = (event['label'] == 'Stool')
+          ? 'assets/images/events_type_cards_no_background/poo.png'
+          : 'assets/images/events_type_cards_no_background/piee.png';
+
+      final BitmapDescriptor bitmapDescriptor =
+          await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(48, 48)),
+        assetPath,
+      );
+
+      // Dodanie anotacji
+      annotations.add(
+        Annotation(
+          annotationId: AnnotationId(event['id']),
+          position: LatLng(latitude, longitude),
+          icon: bitmapDescriptor,
+          infoWindow: InfoWindow(
+            title: event['label'],
+            snippet: DateFormat('HH:mm').format(event['time']),
+          ),
+        ),
+      );
+    }
+
+    return annotations;
+  }
+
+// Function to resize the image
+  Future<Uint8List> _getResizedImageData(String assetPath, int size) async {
+    ByteData imageData = await rootBundle.load(assetPath);
+    List<int> bytes = imageData.buffer.asUint8List();
+    img.Image? image = img.decodeImage(Uint8List.fromList(bytes));
+    img.Image resizedImage = img.copyResize(image!, width: size, height: size);
+    return Uint8List.fromList(img.encodePng(resizedImage));
+  }
+
+  Widget _buildProgressBarWithDetails(BuildContext context,
+      String totalDistance, int totalTimeInSeconds, List<Pet> pets) {
     final durationFormatted = _formatTime(totalTimeInSeconds);
 
     return Padding(
@@ -197,9 +244,10 @@ class WalkSummaryModal extends StatelessWidget {
                         Text(
                           durationFormatted,
                           style: TextStyle(
-                              fontSize: 15,
-                              color: Theme.of(context).primaryColorDark,
-                              fontWeight: FontWeight.bold),
+                            fontSize: 15,
+                            color: Theme.of(context).primaryColorDark,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -216,9 +264,10 @@ class WalkSummaryModal extends StatelessWidget {
                         Text(
                           '$totalDistance km',
                           style: TextStyle(
-                              fontSize: 15,
-                              color: Theme.of(context).primaryColorDark,
-                              fontWeight: FontWeight.bold),
+                            fontSize: 15,
+                            color: Theme.of(context).primaryColorDark,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -248,17 +297,15 @@ class WalkSummaryModal extends StatelessWidget {
               spacing: 8.0,
               runSpacing: 8.0,
               children: pets
-                  .map(
-                    (pet) => Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        CircleAvatar(
-                          backgroundImage: AssetImage(pet.avatarImage),
-                          radius: 25,
-                        ),
-                      ],
-                    ),
-                  )
+                  .map((pet) => Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: AssetImage(pet.avatarImage),
+                            radius: 25,
+                          ),
+                        ],
+                      ))
                   .toList(),
             ),
           ],
@@ -267,8 +314,8 @@ class WalkSummaryModal extends StatelessWidget {
     );
   }
 
-  // Lista wydarzeń
-  Widget _buildEventList(BuildContext context) {
+  Widget _buildEventList(
+      BuildContext context, List<Map<String, dynamic>> addedEvents) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -290,6 +337,10 @@ class WalkSummaryModal extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             ...addedEvents.map((event) {
+              final DateTime eventTime = (event['time'] is Timestamp)
+                  ? (event['time'] as Timestamp).toDate()
+                  : event['time'];
+
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5.0),
                 child: Row(
@@ -324,7 +375,7 @@ class WalkSummaryModal extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('HH:mm').format(event['time']),
+                      DateFormat('HH:mm').format(eventTime),
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).primaryColorDark,
@@ -340,8 +391,7 @@ class WalkSummaryModal extends StatelessWidget {
     );
   }
 
-  // Wyświetlanie zdjęć
-  Widget _buildPhotos(BuildContext context) {
+  Widget _buildPhotos(BuildContext context, List<XFile> photos) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -385,7 +435,6 @@ class WalkSummaryModal extends StatelessWidget {
     );
   }
 
-  // Podgląd zdjęcia w powiększeniu
   void _showPhotoPreview(BuildContext context, XFile photo) {
     showDialog(
       context: context,
@@ -408,8 +457,7 @@ class WalkSummaryModal extends StatelessWidget {
     );
   }
 
-  // Sekcja z notatkami
-  Widget _buildNotesSection(BuildContext context) {
+  Widget _buildNotesSection(BuildContext context, String notes) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -440,7 +488,6 @@ class WalkSummaryModal extends StatelessWidget {
     );
   }
 
-  // Formatowanie czasu (godziny, minuty, sekundy)
   String _formatTime(int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;

@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/components/events/walk/walk_summary_helper.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
@@ -48,11 +48,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   String? _selectedPetName;
   int? _selectedPetIndex;
   Timer? _hideNameTimer;
-  apple_maps.AppleMapController? _mapController;
+  AppleMapController? _mapController;
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _photos = [];
   final TextEditingController _notesController = TextEditingController();
-  List<apple_maps.Polyline> eventLines = [];
+  List<Polyline> eventLines = [];
   int _currentPage = 0;
   final int _eventsPerPage = 4;
   final Set<Annotation> _annotations = {};
@@ -121,10 +121,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       if (confirm) {
         walkNotifier.stopWalk();
 
+        // Debugging data
         debugPrint('Walk ending initiated');
         debugPrint('Collected events: $_collectedEvents');
 
-        // Konwersja LatLng do Map<String, double> i ID eventów
+        // Transform event data to the correct format
         List<Map<String, dynamic>> transformedEvents =
             _collectedEvents.map((event) {
           final LatLng location = event['location'];
@@ -132,7 +133,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ...event,
             'location': {
               'latitude': location.latitude,
-              'longitude': location.longitude
+              'longitude': location.longitude,
             },
             'id': event['id'],
           };
@@ -140,8 +141,10 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
         debugPrint('Transformed events: $transformedEvents');
 
+        // Save all events related to the walk
         _saveAllEvents();
 
+        // Upload photos to storage if any exist
         List<String> photoUrls = [];
         if (_photos.isNotEmpty) {
           for (XFile photo in _photos) {
@@ -153,9 +156,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           }
         }
 
-        // Zaktualizowana lista indywidualnych spacerów
+        // Generate individual walk IDs for each pet and save walk data for each
         Map<String, String> petWalkIds = {};
-
         for (var pet in widget.pets) {
           String individualWalkId = generateUniqueId();
           petWalkIds[pet.id] = individualWalkId;
@@ -176,10 +178,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             stoolsAndUrine: transformedEvents,
           );
 
+          // Save individual walk event for the pet
           await ref.read(eventWalkServiceProvider).addWalk(pet.id, walkEvent);
         }
 
-        // Aktualizacja modelu globalnego spaceru z uwzględnieniem notatki
+        // Update global walk data
         GlobalWalkModel updatedGlobalWalk = GlobalWalkModel(
           id: walkId!,
           individualWalkIds: petWalkIds.values.toList(),
@@ -195,26 +198,42 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           steps: walkState.currentSteps.toDouble(),
           stoolsAndUrine: transformedEvents,
           images: photoUrls,
-          noteId: _notesController.text.isNotEmpty
-              ? _notesController.text
-              : null, // Zapisujemy notatkę bez tworzenia osobnego eventu
+          noteId:
+              _notesController.text.isNotEmpty ? _notesController.text : null,
         );
 
+        // Update global walk in the database
         await ref
             .read(globalWalkServiceProvider)
             .updateGlobalWalk(updatedGlobalWalk);
 
+        // Pop the current screen and navigate to WalkSummaryScreen
         Navigator.of(context).pop();
 
-        showWalkSummary(
-          context,
-          eventLines,
-          transformedEvents,
-          _photos,
-          walkState.totalDistance.toStringAsFixed(2),
-          walkState.seconds,
-          widget.pets,
-          _notesController.text,
+        // Ensure you gather the correct event lines, route points, and events
+        final List<Polyline> eventLines = [
+          Polyline(
+            polylineId: PolylineId('route'),
+            points: walkState.routePoints,
+            width: 5,
+            color: Colors.blue,
+          ),
+        ];
+
+        // Navigate to WalkSummaryScreen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => WalkSummaryScreen(
+              eventLines: eventLines, // linie trasy spaceru
+              addedEvents: transformedEvents, // wydarzenia z ikonkami 💩 lub 💦
+              photos: _photos, // zdjęcia ze spaceru
+              totalDistance:
+                  walkState.totalDistance.toStringAsFixed(2), // dystans
+              totalTimeInSeconds: walkState.seconds, // czas trwania
+              pets: widget.pets, // lista zwierząt uczestniczących w spacerze
+              notes: _notesController.text, // notatki ze spaceru
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -570,8 +589,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  Future<void> _goToCurrentLocation(
-      apple_maps.AppleMapController controller) async {
+  Future<void> _goToCurrentLocation(AppleMapController controller) async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -586,35 +604,34 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+    final latLng = LatLng(position.latitude, position.longitude);
     controller.animateCamera(
-      apple_maps.CameraUpdate.newLatLng(latLng),
+      CameraUpdate.newLatLng(latLng),
     );
   }
 
   Widget _buildAppleMapSection(WalkState walkState) {
     return Stack(
       children: [
-        apple_maps.AppleMap(
-          initialCameraPosition: apple_maps.CameraPosition(
+        AppleMap(
+          initialCameraPosition: CameraPosition(
             target: walkState.routePoints.isNotEmpty
-                ? apple_maps.LatLng(
+                ? LatLng(
                     walkState.routePoints.last.latitude,
                     walkState.routePoints.last.longitude,
                   )
-                : const apple_maps.LatLng(51.5, -0.09),
+                : const LatLng(51.5, -0.09),
             zoom: 16.0,
           ),
-          onMapCreated: (apple_maps.AppleMapController controller) {
+          onMapCreated: (AppleMapController controller) {
             _mapController = controller;
             _goToCurrentLocation(controller);
           },
           polylines: {
-            apple_maps.Polyline(
-              polylineId: apple_maps.PolylineId('route'),
+            Polyline(
+              polylineId: PolylineId('route'),
               points: walkState.routePoints
-                  .map((point) =>
-                      apple_maps.LatLng(point.latitude, point.longitude))
+                  .map((point) => LatLng(point.latitude, point.longitude))
                   .toList(),
               width: 15,
               color: const Color.fromARGB(255, 29, 121, 227),
@@ -1028,40 +1045,47 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
             Padding(
               padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: eventOptions.map((event) {
-                  return GestureDetector(
-                    onTap: () {
-                      _handleEventSelection(event['label']!, event['icon']!);
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.37,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: eventOptions.map((event) {
+                      return GestureDetector(
+                        onTap: () {
+                          _handleEventSelection(
+                              event['label']!, event['icon']!);
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.37,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 3,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            event['icon']!,
-                            style: const TextStyle(fontSize: 35),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                event['icon']!,
+                                style: const TextStyle(fontSize: 35),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildPaginatedEvents(), // Add paginated events here
+                ],
               ),
             ),
           ],
@@ -1087,7 +1111,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     }
   }
 
-  void _addUrineMarker(apple_maps.LatLng position, String eventId) async {
+  void _addUrineMarker(LatLng position, String eventId) async {
     final BitmapDescriptor customIcon = await _getScaledBitmapDescriptor(
       'assets/images/events_type_cards_no_background/piee.png',
       190,
@@ -1261,7 +1285,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       final Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+      final latLng = LatLng(position.latitude, position.longitude);
 
       for (var pet in selectedPets) {
         String eventId = '${eventLabel}_${DateTime.now()}';
@@ -1269,8 +1293,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         setState(() {
           _addedEvents.add({
             'id': eventId,
-            'icon': eventIcon,
-            'label': eventLabel,
+            'icon': eventIcon, // np. 💩 lub 💦
+            'label': eventLabel, // np. Stool, Urine
             'time': DateTime.now(),
             'location': latLng,
             'petId': pet.id,
@@ -1280,8 +1304,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
           _collectedEvents.add({
             'id': eventId,
-            'icon': eventIcon,
-            'label': eventLabel,
+            'icon': eventIcon, // np. 💩 lub 💦
+            'label': eventLabel, // np. Stool, Urine
             'time': DateTime.now(),
             'location': latLng,
             'petId': pet.id,
@@ -1290,9 +1314,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           });
 
           if (eventLabel == 'Stool') {
-            _addStoolMarker(latLng, eventId);
+            _addStoolMarker(
+                latLng, eventId); // Dodawanie markerów z emotikonami na mapę
           } else if (eventLabel == 'Urine') {
-            _addUrineMarker(latLng, eventId);
+            _addUrineMarker(
+                latLng, eventId); // Dodawanie markerów z emotikonami na mapę
           }
         });
       }
@@ -1339,51 +1365,16 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                               Text(
                                 DateFormat('HH:mm').format(event['time']),
                                 style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).primaryColorDark),
+                                  fontSize: 13,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              CircleAvatar(
-                                backgroundImage: AssetImage(event['petAvatar']),
-                                radius: 16,
-                              ),
-                              if (_selectedPetIndex ==
-                                      _addedEvents.indexOf(event) &&
-                                  _selectedPetName == event['petName'])
-                                Positioned(
-                                  top: -30,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5.0, vertical: 2.0),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Theme.of(context).colorScheme.surface,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black,
-                                          spreadRadius: 1,
-                                          blurRadius: 5,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      _selectedPetName!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                          CircleAvatar(
+                            backgroundImage: AssetImage(event['petAvatar']),
+                            radius: 16,
                           ),
                         ],
                       ),
@@ -1394,10 +1385,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   icon: const Icon(Icons.delete),
                   onPressed: () {
                     setState(() {
-                      _addedEvents.remove(event);
-
-                      _annotations.removeWhere((annotation) =>
-                          annotation.annotationId.value == event['id']);
+                      _removeEvent(event);
                     });
                   },
                 ),
@@ -1405,33 +1393,35 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
           );
         }),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: _currentPage > 0
-                  ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
-                    }
-                  : null,
-            ),
-            Text('Page ${_currentPage + 1} of $totalPages'),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: _currentPage < totalPages - 1
-                  ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
-                    }
-                  : null,
-            ),
-          ],
-        ),
+        if (_addedEvents.length > 5) ...[
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: _currentPage > 0
+                    ? () {
+                        setState(() {
+                          _currentPage--;
+                        });
+                      }
+                    : null,
+              ),
+              Text('Page ${_currentPage + 1} of $totalPages'),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward),
+                onPressed: _currentPage < totalPages - 1
+                    ? () {
+                        setState(() {
+                          _currentPage++;
+                        });
+                      }
+                    : null,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -1487,5 +1477,28 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
 
     ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  }
+
+  void _removeEvent(Map<String, dynamic> event) {
+    setState(() {
+      _addedEvents.remove(event);
+
+      // Usuwamy marker powiązany z usuniętym wydarzeniem
+      _annotations.removeWhere(
+          (annotation) => annotation.annotationId.value == event['id']);
+
+      // Obliczamy liczbę stron
+      int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
+
+      // Jeśli po usunięciu zdarzenia liczba stron się zmniejszyła, wracamy na poprzednią stronę
+      if (_currentPage >= totalPages) {
+        _currentPage = totalPages - 1;
+      }
+
+      // Upewniamy się, że nie jesteśmy na stronie mniejszej niż 0
+      if (_currentPage < 0) {
+        _currentPage = 0;
+      }
+    });
   }
 }

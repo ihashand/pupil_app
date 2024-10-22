@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
