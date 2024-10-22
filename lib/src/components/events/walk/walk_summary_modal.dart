@@ -5,7 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 
-class WalkSummaryScreen extends StatelessWidget {
+// Nowa klasa dla modala zamiast pełnego ekranu
+class WalkSummaryModal extends StatelessWidget {
   final List<apple_maps.Polyline> eventLines;
   final List<Map<String, dynamic>> addedEvents;
   final List<XFile> photos;
@@ -14,7 +15,7 @@ class WalkSummaryScreen extends StatelessWidget {
   final List<Pet> pets;
   final String notes;
 
-  const WalkSummaryScreen({
+  const WalkSummaryModal({
     super.key,
     required this.eventLines,
     required this.addedEvents,
@@ -27,102 +28,69 @@ class WalkSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          title: const Text(
-            'W A L K  S U M M A R Y',
-            style: TextStyle(
-              fontSize: 13,
-              letterSpacing: 2,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () async {
-                bool confirm = await _showConfirmationDialog(context);
-                if (confirm) {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-
-                  // Patryk 17.10.2024
-                  //todo nie umiem sobie z tym poradzic w inny sposob, mam jakis problem z czarnymi paskami na dole i u gory jak uzyje np ponizszego:
-
-                  //                   Navigator.of(context).pushAndRemoveUntil(
-                  //   MaterialPageRoute(builder: (context) => const BotomAppBar()),
-                  //   (Route<dynamic> route) => false,
-                  // );
-                }
-              },
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            _buildDivider(context),
-            _buildMapSection(context),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    _buildProgressBarWithDetails(context),
-                    const SizedBox(height: 10),
-                    if (addedEvents.isNotEmpty) _buildEventList(context),
-                    const SizedBox(height: 10),
-                    if (photos.isNotEmpty) _buildPhotos(context),
-                    const SizedBox(height: 10),
-                    if (notes.isNotEmpty) _buildNotesSection(context),
-                    const SizedBox(height: 10),
-                  ],
-                ),
+    // Korzystamy z DraggableScrollableSheet, aby można było przesuwać modal
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.93, // Początkowa wielkość modala
+      maxChildSize: 0.93, // Maksymalna wielkość modala
+      minChildSize: 0.5, // Minimalna wielkość modala
+      builder: (context, scrollController) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            title: const Text(
+              'W A L K  S U M M A R Y',
+              style: TextStyle(
+                fontSize: 13,
+                letterSpacing: 2,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<bool> _showConfirmationDialog(BuildContext context) async {
-    return await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmation'),
-          content: const Text('Are you sure you want to close the summary?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: Text('Cancel',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: Text('Confirm',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-          ],
+            automaticallyImplyLeading: false, // Usuwamy strzałkę wstecz
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.close), // Ikona zamykająca (X)
+                onPressed: () {
+                  Navigator.of(context).pop(); // Zamknięcie modala
+                },
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              _buildDivider(context),
+              _buildMapSection(context),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController, // Scrollowanie w modal
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      _buildProgressBarWithDetails(context),
+                      const SizedBox(height: 10),
+                      if (addedEvents.isNotEmpty) _buildEventList(context),
+                      const SizedBox(height: 10),
+                      if (photos.isNotEmpty) _buildPhotos(context),
+                      const SizedBox(height: 10),
+                      if (notes.isNotEmpty) _buildNotesSection(context),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
+  // Separator linii
   Widget _buildDivider(BuildContext context) {
     return Divider(
       height: 1,
@@ -131,6 +99,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Sekcja mapy
   Widget _buildMapSection(BuildContext context) {
     return Container(
       height: 225,
@@ -161,6 +130,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Pasek postępu z szczegółami spaceru
   Widget _buildProgressBarWithDetails(BuildContext context) {
     final durationFormatted = _formatTime(totalTimeInSeconds);
 
@@ -297,6 +267,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Lista wydarzeń
   Widget _buildEventList(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -369,6 +340,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Wyświetlanie zdjęć
   Widget _buildPhotos(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -413,6 +385,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Podgląd zdjęcia w powiększeniu
   void _showPhotoPreview(BuildContext context, XFile photo) {
     showDialog(
       context: context,
@@ -435,6 +408,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Sekcja z notatkami
   Widget _buildNotesSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -466,6 +440,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
+  // Formatowanie czasu (godziny, minuty, sekundy)
   String _formatTime(int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;

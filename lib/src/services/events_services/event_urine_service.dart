@@ -9,7 +9,7 @@ class EventUrineService {
   final _urineEventsController =
       StreamController<List<EventUrineModel>>.broadcast();
 
-  Stream<List<EventUrineModel>> getUrineEventsStream() {
+  Stream<List<EventUrineModel>> getUrineEventsStream(String petId) {
     if (_currentUser == null) {
       return Stream.value([]);
     }
@@ -17,6 +17,8 @@ class EventUrineService {
     _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_urines')
         .snapshots()
         .listen((snapshot) {
@@ -28,19 +30,23 @@ class EventUrineService {
     return _urineEventsController.stream;
   }
 
-  Future<void> addUrineEvent(EventUrineModel event) async {
+  Future<void> addUrineEvent(EventUrineModel event, String petId) async {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_urines')
         .doc(event.id)
         .set(event.toMap());
   }
 
-  Future<void> deleteUrineEvent(String eventId) async {
+  Future<void> deleteUrineEvent(String eventId, String petId) async {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_urines')
         .doc(eventId)
         .delete();

@@ -74,7 +74,7 @@ Widget eventTypeCardStoolAndUrine(
       description: selectedUrineType ?? 'Urine event',
       dateTime: selectedDate,
     );
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine, petId);
 
     Event newEvent = Event(
       id: eventId,

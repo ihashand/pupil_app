@@ -9,26 +9,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/components/events/walk/walk_summary_helper.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
-import 'package:pet_diary/src/models/events_models/event_note_model.dart';
 import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
-import 'package:pet_diary/src/models/events_models/event_walk_events_model.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/global_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_walk_events_service_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
-import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:pet_diary/src/services/other_services/storage_service.dart';
@@ -126,23 +122,19 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         walkNotifier.stopWalk();
 
         debugPrint('Walk ending initiated');
-        debugPrint('WalkState seconds: ${walkState.seconds}');
-        debugPrint('WalkState steps: ${walkState.currentSteps}');
-        debugPrint('WalkState routePoints: ${walkState.routePoints}');
-        debugPrint(
-            'Collected events (before transformation): $_collectedEvents');
+        debugPrint('Collected events: $_collectedEvents');
 
-        // Konwersja LatLng do Map<String, double>
+        // Konwersja LatLng do Map<String, double> i ID eventów
         List<Map<String, dynamic>> transformedEvents =
             _collectedEvents.map((event) {
-          final LatLng location =
-              event['location']; // Pobieranie LatLng z eventu
+          final LatLng location = event['location'];
           return {
             ...event,
             'location': {
               'latitude': location.latitude,
               'longitude': location.longitude
-            }
+            },
+            'id': event['id'],
           };
         }).toList();
 
@@ -150,21 +142,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
         _saveAllEvents();
 
-        if (_notesController.text.isNotEmpty) {
-          _saveNoteEvent(widget.pets.first.id, _notesController.text);
-        }
-
         List<String> photoUrls = [];
         if (_photos.isNotEmpty) {
           for (XFile photo in _photos) {
-            debugPrint('Uploading photo: ${photo.path}');
             String? downloadUrl =
                 await StorageService().uploadPhoto(File(photo.path));
             if (downloadUrl != null) {
               photoUrls.add(downloadUrl);
-              debugPrint('Photo uploaded: $downloadUrl');
-            } else {
-              debugPrint('Photo upload failed for: ${photo.path}');
             }
           }
         }
@@ -175,9 +159,6 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         for (var pet in widget.pets) {
           String individualWalkId = generateUniqueId();
           petWalkIds[pet.id] = individualWalkId;
-
-          debugPrint(
-              'Creating walk event for pet: ${pet.name} with id: $individualWalkId');
 
           EventWalkModel walkEvent = EventWalkModel(
             id: individualWalkId,
@@ -192,14 +173,13 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                       'longitude': point.longitude,
                     })
                 .toList(),
-            stoolsAndUrine: transformedEvents, // Zmodyfikowane eventy
+            stoolsAndUrine: transformedEvents,
           );
 
-          debugPrint('Saving individual walk for pet: ${pet.name}');
           await ref.read(eventWalkServiceProvider).addWalk(pet.id, walkEvent);
         }
 
-        // Zaktualizowanie globalnego spaceru z informacjami o wszystkich psach
+        // Aktualizacja modelu globalnego spaceru z uwzględnieniem notatki
         GlobalWalkModel updatedGlobalWalk = GlobalWalkModel(
           id: walkId!,
           individualWalkIds: petWalkIds.values.toList(),
@@ -213,30 +193,28 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               .toList(),
           walkTime: walkState.seconds.toDouble(),
           steps: walkState.currentSteps.toDouble(),
-          stoolsAndUrine: transformedEvents, // Zmodyfikowane eventy
+          stoolsAndUrine: transformedEvents,
           images: photoUrls,
-          noteId: _notesController.text.isNotEmpty ? generateUniqueId() : null,
+          noteId: _notesController.text.isNotEmpty
+              ? _notesController.text
+              : null, // Zapisujemy notatkę bez tworzenia osobnego eventu
         );
 
-        debugPrint('Updating global walk with id: $walkId');
         await ref
             .read(globalWalkServiceProvider)
             .updateGlobalWalk(updatedGlobalWalk);
 
-        debugPrint('Walk successfully ended');
+        Navigator.of(context).pop();
 
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => WalkSummaryScreen(
-              eventLines: eventLines,
-              addedEvents: transformedEvents, // Zmodyfikowane eventy
-              photos: _photos,
-              totalDistance: walkState.totalDistance.toStringAsFixed(2),
-              totalTimeInSeconds: walkState.seconds,
-              pets: widget.pets,
-              notes: _notesController.text,
-            ),
-          ),
+        showWalkSummary(
+          context,
+          eventLines,
+          transformedEvents,
+          _photos,
+          walkState.totalDistance.toStringAsFixed(2),
+          walkState.seconds,
+          widget.pets,
+          _notesController.text,
         );
       }
     } catch (e) {
@@ -1010,6 +988,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
     ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
@@ -1048,53 +1027,43 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: eventOptions.map((event) {
-                    return GestureDetector(
-                      onTap: () {
-                        _handleEventSelection(event['label']!, event['icon']!);
-                      },
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        margin: const EdgeInsets.only(right: 10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              event['icon']!,
-                              style: const TextStyle(fontSize: 30),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              event['label']!,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: eventOptions.map((event) {
+                  return GestureDetector(
+                    onTap: () {
+                      _handleEventSelection(event['label']!, event['icon']!);
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.37,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    );
-                  }).toList(),
-                ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            event['icon']!,
+                            style: const TextStyle(fontSize: 35),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            const SizedBox(height: 10),
-            if (_addedEvents.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _buildPaginatedEvents(),
-              ),
           ],
         ),
       ),
@@ -1275,10 +1244,12 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
   void _saveAllEvents() async {
     for (var event in _collectedEvents) {
+      String eventId = event['id'];
+
       if (event['label'] == 'Stool') {
-        _saveStoolEvent(event['petId'], event['time']);
+        _saveStoolEvent(event['petId'], event['time'], eventId);
       } else if (event['label'] == 'Urine') {
-        _saveUrineEvent(event['petId'], event['time']);
+        _saveUrineEvent(event['petId'], event['time'], eventId);
       }
     }
   }
@@ -1465,17 +1436,18 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  void _saveUrineEvent(String petId, DateTime eventTime) {
+  void _saveUrineEvent(String petId, DateTime eventTime, String eventId) {
     EventUrineModel newUrine = EventUrineModel(
-      id: generateUniqueId(),
-      eventId: generateUniqueId(),
+      id: eventId,
+      eventId:
+          eventId, // Używamy tego samego ID dla eventu i zapisu w globalnym spacerze
       petId: petId,
       color: 'Default',
       description: 'Urine event',
       dateTime: eventTime,
     );
 
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine, petId);
 
     Event newEvent = Event(
       id: newUrine.eventId,
@@ -1491,14 +1463,14 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
-  void _saveStoolEvent(String petId, DateTime eventTime) {
+  void _saveStoolEvent(String petId, DateTime eventTime, String eventId) {
     EventStoolModel newStoolEvent = EventStoolModel(
-      id: generateUniqueId(),
-      eventId: generateUniqueId(),
+      id: eventId,
+      eventId: eventId, // Używamy tego samego ID
       petId: petId,
       description: 'Stool event during walk',
       emoji: '💩',
-      dateTime: DateTime.now(),
+      dateTime: eventTime,
     );
 
     ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent, petId);
@@ -1515,19 +1487,5 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
 
     ref.read(eventServiceProvider).addEvent(newEvent, petId);
-  }
-
-  void _saveNoteEvent(String petId, String contentText) {
-    EventNoteModel newNote = EventNoteModel(
-      id: generateUniqueId(),
-      title: 'Walk note',
-      eventId: generateUniqueId(),
-      petId: petId,
-      dateTime: DateTime.now(),
-      contentText: contentText,
-    );
-
-    // Zapisz notatkę przy użyciu serwisu EventNoteService
-    ref.read(eventNoteServiceProvider).addNote(newNote, petId);
   }
 }
