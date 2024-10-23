@@ -9,7 +9,9 @@ import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dar
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 
 class WalksListScreen extends ConsumerStatefulWidget {
-  const WalksListScreen({super.key});
+  final String? petId; // Optional petId to filter walks by pet
+
+  const WalksListScreen({super.key, this.petId});
 
   @override
   ConsumerState<WalksListScreen> createState() => _WalksListScreenState();
@@ -42,6 +44,13 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
             return const Center(
               child: Text('No walks available'),
             );
+          }
+
+          // If petId is provided, filter walks to include only those where the pet participated
+          if (widget.petId != null) {
+            walks = walks
+                .where((walk) => walk.petIds.contains(widget.petId))
+                .toList();
           }
 
           // Sortowanie spacerów od najnowszego do najstarszego
