@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,7 @@ import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dar
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 
 class WalksListScreen extends ConsumerStatefulWidget {
-  final String? petId; // Optional petId to filter walks by pet
+  final String? petId; // Opcjonalne petId, aby filtrować spacery po zwierzęciu
 
   const WalksListScreen({super.key, this.petId});
 
@@ -17,9 +18,41 @@ class WalksListScreen extends ConsumerStatefulWidget {
   ConsumerState<WalksListScreen> createState() => _WalksListScreenState();
 }
 
-class _WalksListScreenState extends ConsumerState<WalksListScreen> {
+class _WalksListScreenState extends ConsumerState<WalksListScreen>
+    with SingleTickerProviderStateMixin {
   int _loadedItems = 3;
   bool _isLoadingMore = false;
+  late AnimationController _controller;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicjalizacja kontrolera animacji
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
+
+    // Ustawienie animacji przesuwania
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1), // Zaczyna się powyżej ekranu
+      end: Offset.zero, // Kończy się na normalnej pozycji
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.bounceOut, // Dodanie efektu odbicia
+    ));
+
+    // Uruchomienie animacji przy pierwszym wyświetleniu
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +62,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'W A L K S  L I S T', // Tekst z ustawieniem wielkich liter i spacjami
+          'W A L K S  L I S T',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -40,17 +73,16 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
       ),
       body: globalWalksAsyncValue.when(
         data: (walks) {
-          if (walks.isEmpty) {
-            return const Center(
-              child: Text('No walks available'),
-            );
-          }
-
-          // If petId is provided, filter walks to include only those where the pet participated
+          // Filtrowanie spacerów, jeśli podano petId
           if (widget.petId != null) {
             walks = walks
                 .where((walk) => walk.petIds.contains(widget.petId))
                 .toList();
+          }
+
+          if (walks.isEmpty) {
+            // Jeśli brak spacerów, wyświetlamy animowany stan pusty
+            return _buildEmptyState(context);
           }
 
           // Sortowanie spacerów od najnowszego do najstarszego
@@ -61,13 +93,13 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
               if (scrollInfo.metrics.pixels ==
                       scrollInfo.metrics.maxScrollExtent &&
                   !_isLoadingMore) {
-                // Użytkownik doszedł do końca listy, ładujemy więcej spacerów
+                // Ładowanie więcej spacerów, gdy użytkownik przewinie do końca
                 setState(() {
                   _isLoadingMore = true;
                   _loadedItems += 3;
                 });
 
-                // Dodajemy lekkie opóźnienie dla animacji ładowania
+                // Symulowanie opóźnienia w ładowaniu
                 Future.delayed(const Duration(seconds: 1), () {
                   setState(() {
                     _isLoadingMore = false;
@@ -82,7 +114,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                   : _loadedItems + 1,
               itemBuilder: (context, index) {
                 if (index == _loadedItems) {
-                  // Wyświetlanie animacji ładowania na dole
+                  // Wyświetlanie wskaźnika ładowania na dole
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(
@@ -94,7 +126,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                 final walk = walks[index];
                 return GestureDetector(
                   onTap: () async {
-                    // Pobieranie zwierząt na podstawie petIds z danego spaceru
+                    // Pobieranie zwierząt biorących udział w spacerze
                     final pets = await ref
                         .read(petServiceProvider)
                         .getPetsByUserId(
@@ -103,20 +135,20 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                         .where((pet) => walk.petIds.contains(pet.id))
                         .toList();
 
-                    // ignore: use_build_context_synchronously
+                    // Przejście do ekranu WalkSummaryScreen
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => WalkSummaryScreen(
                           eventLines:
-                              _buildEventLines(walk.routePoints), // linie trasy
-                          addedEvents: walk.stoolsAndUrine, // wydarzenia
+                              _buildEventLines(walk.routePoints), // Linie trasy
+                          addedEvents: walk.stoolsAndUrine, // Wydarzenia
                           photos: _convertImagesToXFiles(walk.images),
-                          totalDistance:
-                              walk.steps.toStringAsFixed(2), // dystans
+                          totalDistance: walk.steps.toStringAsFixed(2), // Kroki
                           totalTimeInSeconds:
-                              walk.walkTime.toInt(), // czas trwania
-                          pets: petsInWalk, // przekazujemy zwierzęta
-                          notes: walk.noteId ?? '', isFromWalksListScreen: true,
+                              walk.walkTime.toInt(), // Czas trwania
+                          pets: petsInWalk, // Zwierzęta biorące udział
+                          notes: walk.noteId ?? '',
+                          isFromWalksListScreen: true,
                         ),
                       ),
                     );
@@ -212,19 +244,16 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Wyświetlanie kroków z poprawioną logiką
+                                  // Wyświetlanie kroków i czasu trwania
                                   Text(
-                                    'Steps: ${walk.steps.toStringAsFixed(0)}', // Wyświetlanie liczby kroków
+                                    'Steps: ${walk.steps.toStringAsFixed(0)}',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).primaryColorDark,
                                     ),
                                   ),
-                                  const SizedBox(
-                                      height:
-                                          5), // Dodatkowa przestrzeń pomiędzy krokami a czasem
-                                  // Wyświetlanie czasu trwania spaceru
+                                  const SizedBox(height: 5),
                                   Text(
                                     'Duration: ${_formatDuration(walk.walkTime)}',
                                     style: TextStyle(
@@ -249,6 +278,73 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(child: Text('Error: $error')),
       ),
+    );
+  }
+
+  // Budowanie animowanego stanu pustego
+  Widget _buildEmptyState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 100.0),
+      child: Center(
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 40),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 25.0),
+                  child: ShaderMask(
+                    shaderCallback: (bounds) =>
+                        _generateRandomGradient().createShader(bounds),
+                    child: const Icon(
+                      Icons.pets,
+                      size: 50,
+                      color:
+                          Colors.white, // The icon is masked, so set to white
+                    ),
+                  ),
+                ),
+                Text(
+                  "No walks activities yet.\nStart exploring with your pet!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColorDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Generowanie losowego gradientu dla ikony
+  LinearGradient _generateRandomGradient() {
+    final random = Random();
+    final colors = [
+      Colors.red,
+      Colors.blue,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.pink
+    ];
+    return LinearGradient(
+      colors: [
+        colors[random.nextInt(colors.length)],
+        colors[random.nextInt(colors.length)],
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
     );
   }
 
