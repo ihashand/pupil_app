@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
+import 'package:pet_diary/src/screens/walk_screens/walks_lists_screen.dart';
 
 class PetProfileScreen extends ConsumerStatefulWidget {
   final Pet pet;
@@ -562,7 +563,17 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               title: Text('Activity',
                   style: TextStyle(
                       color: Theme.of(context).primaryColorDark, fontSize: 14)),
-              onTap: () {},
+              onTap: () {
+                // Navigating to WalksListScreen with filtering by pet ID
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WalksListScreen(
+                      petId: widget.pet.id, // Pass the pet ID to filter walks
+                    ),
+                  ),
+                );
+              },
             ),
             Divider(
               color: Theme.of(context).colorScheme.surface,

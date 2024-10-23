@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -234,7 +233,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   walkState.totalDistance.toStringAsFixed(2), // dystans
               totalTimeInSeconds: walkState.seconds, // czas trwania
               pets: widget.pets, // lista zwierząt uczestniczących w spacerze
-              notes: _notesController.text, // notatki ze spaceru
+              notes: _notesController.text,
+              isFromWalksListScreen: false, // notatki ze spaceru
             ),
           ),
         );
