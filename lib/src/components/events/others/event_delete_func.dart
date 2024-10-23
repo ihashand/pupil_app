@@ -109,7 +109,7 @@ void eventDeleteFunc(
   }
 
   if (urineId.isNotEmpty) {
-    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId);
+    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId, petId);
   }
 
   if (serviceId.isNotEmpty) {

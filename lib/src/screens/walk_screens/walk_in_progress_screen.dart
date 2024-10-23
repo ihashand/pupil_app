@@ -9,30 +9,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
-import 'package:pet_diary/src/models/events_models/event_note_model.dart';
 import 'package:pet_diary/src/models/events_models/event_stool_model.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
-import 'package:pet_diary/src/models/events_models/event_walk_events_model.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
+import 'package:pet_diary/src/models/others/global_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_walk_events_service_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
+import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dart';
 import 'package:pet_diary/src/providers/walks_providers/walk_state_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
-import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:pet_diary/src/services/other_services/storage_service.dart';
-
-List<apple_maps.LatLng> stoolEventPoints = [];
-List<apple_maps.LatLng> urineEventPoints = [];
+import 'package:uuid/uuid.dart';
 
 class WalkInProgressScreen extends ConsumerStatefulWidget {
   final List<Pet> pets;
@@ -52,20 +48,23 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
   String? _selectedPetName;
   int? _selectedPetIndex;
   Timer? _hideNameTimer;
-  apple_maps.AppleMapController? _mapController;
+  AppleMapController? _mapController;
   final ImagePicker _picker = ImagePicker();
   final List<XFile> _photos = [];
   final TextEditingController _notesController = TextEditingController();
-  List<apple_maps.Polyline> eventLines = [];
+  List<Polyline> eventLines = [];
   int _currentPage = 0;
   final int _eventsPerPage = 4;
   final Set<Annotation> _annotations = {};
   bool _isMapFullScreen = false;
   final List<Map<String, dynamic>> _collectedEvents = [];
+  String? walkId;
+  final List<Map<String, dynamic>> _addedEvents = [];
 
   @override
   void initState() {
     super.initState();
+    _initializeWalkId();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -85,6 +84,28 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     super.dispose();
   }
 
+  void _initializeWalkId() async {
+    walkId ??=
+        const Uuid().v4(); // Generowanie unikalnego ID globalnego spaceru
+
+    // Tworzenie modelu globalnego spaceru
+    final globalWalk = GlobalWalkModel(
+      id: walkId!,
+      individualWalkIds: [], // Lista indywidualnych spacerów dla psów
+      petIds: widget.pets.map((pet) => pet.id).toList(), // Lista ID psów
+      dateTime: DateTime.now(), // Aktualna data i czas
+      routePoints: [], // Trasa spaceru
+      walkTime: 0.0, // Czas spaceru
+      steps: 0.0, // Liczba kroków
+      stoolsAndUrine: [], // Puste zdarzenia na kupy i siku na mapie
+      images: [], // Zdjęcia zrobione podczas spaceru (na razie puste)
+      noteId: null, // Brak notatki na starcie
+    );
+
+    // Dodanie globalnego spaceru do bazy danych
+    await ref.read(globalWalkServiceProvider).addGlobalWalk(globalWalk);
+  }
+
   void _pauseResumeWalk(BuildContext context, WalkNotifier walkNotifier) async {
     String action = walkNotifier.state.isPaused ? 'Resume' : 'Pause';
     bool confirm = await _showConfirmationDialog(context, action);
@@ -98,15 +119,32 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     try {
       bool confirm = await _showConfirmationDialog(context, 'End');
       if (confirm) {
-        debugPrint("Confirmed end walk");
         walkNotifier.stopWalk();
 
+        // Debugging data
+        debugPrint('Walk ending initiated');
+        debugPrint('Collected events: $_collectedEvents');
+
+        // Transform event data to the correct format
+        List<Map<String, dynamic>> transformedEvents =
+            _collectedEvents.map((event) {
+          final LatLng location = event['location'];
+          return {
+            ...event,
+            'location': {
+              'latitude': location.latitude,
+              'longitude': location.longitude,
+            },
+            'id': event['id'],
+          };
+        }).toList();
+
+        debugPrint('Transformed events: $transformedEvents');
+
+        // Save all events related to the walk
         _saveAllEvents();
 
-        if (_notesController.text.isNotEmpty) {
-          _saveNoteEvent(widget.pets.first.id, _notesController.text);
-        }
-
+        // Upload photos to storage if any exist
         List<String> photoUrls = [];
         if (_photos.isNotEmpty) {
           for (XFile photo in _photos) {
@@ -118,64 +156,115 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           }
         }
 
-        EventWalkModel walkEvent = EventWalkModel(
-          id: generateUniqueId(),
-          walkTime: walkState.seconds.toDouble(),
-          eventId: generateUniqueId(),
-          petId: widget.pets.first.id,
-          steps: walkState.currentSteps.toDouble(),
+        // Generate individual walk IDs for each pet and save walk data for each
+        Map<String, String> petWalkIds = {};
+        for (var pet in widget.pets) {
+          String individualWalkId = generateUniqueId();
+          petWalkIds[pet.id] = individualWalkId;
+
+          EventWalkModel walkEvent = EventWalkModel(
+            id: individualWalkId,
+            globalWalkId: walkId!,
+            walkTime: walkState.seconds.toDouble(),
+            petId: pet.id,
+            steps: walkState.currentSteps.toDouble(),
+            dateTime: DateTime.now(),
+            routePoints: walkState.routePoints
+                .map((point) => {
+                      'latitude': point.latitude,
+                      'longitude': point.longitude,
+                    })
+                .toList(),
+            stoolsAndUrine: transformedEvents,
+          );
+
+          // Save individual walk event for the pet
+          await ref.read(eventWalkServiceProvider).addWalk(pet.id, walkEvent);
+        }
+
+        // Update global walk data
+        GlobalWalkModel updatedGlobalWalk = GlobalWalkModel(
+          id: walkId!,
+          individualWalkIds: petWalkIds.values.toList(),
+          petIds: widget.pets.map((pet) => pet.id).toList(),
           dateTime: DateTime.now(),
-          caloriesBurned: walkState.totalCaloriesBurned,
-          distance: walkState.totalDistance,
-          routePoints: walkState.routePoints,
-          images: photoUrls.isNotEmpty ? photoUrls : null,
-          notes:
+          routePoints: walkState.routePoints
+              .map((point) => {
+                    'latitude': point.latitude,
+                    'longitude': point.longitude,
+                  })
+              .toList(),
+          walkTime: walkState.seconds.toDouble(),
+          steps: walkState.currentSteps.toDouble(),
+          stoolsAndUrine: transformedEvents,
+          images: photoUrls,
+          noteId:
               _notesController.text.isNotEmpty ? _notesController.text : null,
-          events: _collectedEvents.isNotEmpty ? _formatEventsForWalk() : null,
         );
 
-        // Zapisz spacer
+        // Update global walk in the database
         await ref
-            .read(eventWalkServiceProvider)
-            .addWalk(widget.pets.first.id, walkEvent);
+            .read(globalWalkServiceProvider)
+            .updateGlobalWalk(updatedGlobalWalk);
 
-        debugPrint("Navigating to summary screen");
+        await _compareFirestoreData(walkId!, updatedGlobalWalk);
 
+        // Pop the current screen and navigate to WalkSummaryScreen
+        Navigator.of(context).pop();
+
+        // Ensure you gather the correct event lines, route points, and events
+        final List<Polyline> eventLines = [
+          Polyline(
+            polylineId: PolylineId('route'),
+            points: walkState.routePoints,
+            width: 5,
+            color: Colors.blue,
+          ),
+        ];
+
+        // Navigate to WalkSummaryScreen
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => WalkSummaryScreen(
-              eventLines: eventLines,
-              addedEvents: _collectedEvents,
-              photos: _photos,
-              totalDistance: walkState.totalDistance.toStringAsFixed(2),
-              totalTimeInSeconds: walkState.seconds,
-              pets: widget.pets,
+              eventLines: eventLines, // linie trasy spaceru
+              addedEvents: transformedEvents, // wydarzenia z ikonkami 💩 lub 💦
+              photos: _photos, // zdjęcia ze spaceru
+              totalDistance:
+                  walkState.totalDistance.toStringAsFixed(2), // dystans
+              totalTimeInSeconds: walkState.seconds, // czas trwania
+              pets: widget.pets, // lista zwierząt uczestniczących w spacerze
               notes: _notesController.text,
+              isFromWalksListScreen: false, // notatki ze spaceru
             ),
           ),
         );
-      } else {
-        debugPrint("End walk cancelled");
       }
     } catch (e) {
-      debugPrint('Error in _endWalk: $e'); // Capture error logs
+      debugPrint('Error in _endWalk: $e');
     }
   }
 
-  Map<String, dynamic> _formatEventsForWalk() {
-    return {
-      'events': _collectedEvents.map((event) {
-        final latLng = event['location'] as LatLng;
-        return {
-          'type': event['label'],
-          'time': event['time'],
-          'coordinates': {
-            'latitude': latLng.latitude,
-            'longitude': latLng.longitude,
-          },
-        };
-      }).toList(),
-    };
+  Future<void> _compareFirestoreData(
+      String walkId, GlobalWalkModel localData) async {
+    // Pobranie danych z Firestore
+    final GlobalWalkModel? firestoreData =
+        await ref.read(globalWalkServiceProvider).getGlobalWalkById(walkId);
+
+    // Sprawdzanie, czy dane zostały pobrane poprawnie
+    if (firestoreData != null) {
+      // Porównanie kluczowych danych: stoolsAndUrine, routePoints, walkTime
+      debugPrint('Porównanie danych lokalnych z Firestore:');
+      debugPrint('Lokalne stoolsAndUrine: ${localData.stoolsAndUrine}');
+      debugPrint('Firestore stoolsAndUrine: ${firestoreData.stoolsAndUrine}');
+
+      debugPrint('Lokalne routePoints: ${localData.routePoints}');
+      debugPrint('Firestore routePoints: ${firestoreData.routePoints}');
+
+      debugPrint('Lokalny czas spaceru: ${localData.walkTime}');
+      debugPrint('Firestore czas spaceru: ${firestoreData.walkTime}');
+    } else {
+      debugPrint('Nie znaleziono danych dla spaceru o ID: $walkId');
+    }
   }
 
   Future<bool> _showConfirmationDialog(
@@ -526,8 +615,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  Future<void> _goToCurrentLocation(
-      apple_maps.AppleMapController controller) async {
+  Future<void> _goToCurrentLocation(AppleMapController controller) async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -542,35 +630,34 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+    final latLng = LatLng(position.latitude, position.longitude);
     controller.animateCamera(
-      apple_maps.CameraUpdate.newLatLng(latLng),
+      CameraUpdate.newLatLng(latLng),
     );
   }
 
   Widget _buildAppleMapSection(WalkState walkState) {
     return Stack(
       children: [
-        apple_maps.AppleMap(
-          initialCameraPosition: apple_maps.CameraPosition(
+        AppleMap(
+          initialCameraPosition: CameraPosition(
             target: walkState.routePoints.isNotEmpty
-                ? apple_maps.LatLng(
+                ? LatLng(
                     walkState.routePoints.last.latitude,
                     walkState.routePoints.last.longitude,
                   )
-                : const apple_maps.LatLng(51.5, -0.09),
+                : const LatLng(51.5, -0.09),
             zoom: 16.0,
           ),
-          onMapCreated: (apple_maps.AppleMapController controller) {
+          onMapCreated: (AppleMapController controller) {
             _mapController = controller;
             _goToCurrentLocation(controller);
           },
           polylines: {
-            apple_maps.Polyline(
-              polylineId: apple_maps.PolylineId('route'),
+            Polyline(
+              polylineId: PolylineId('route'),
               points: walkState.routePoints
-                  .map((point) =>
-                      apple_maps.LatLng(point.latitude, point.longitude))
+                  .map((point) => LatLng(point.latitude, point.longitude))
                   .toList(),
               width: 15,
               color: const Color.fromARGB(255, 29, 121, 227),
@@ -939,30 +1026,12 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     );
   }
 
-  final List<Map<String, dynamic>> _addedEvents = [];
   Widget _buildEventSelectionContainer() {
     final List<Map<String, String>> eventOptions = [
       {'icon': '💩', 'label': 'Stool'},
       {'icon': '💦', 'label': 'Urine'},
-      {'icon': '🐕', 'label': 'Barking'},
-      {'icon': '😡', 'label': 'Growling'},
-      {'icon': '👃', 'label': 'Sniffing'},
-      {'icon': '🦮', 'label': 'Loose leash'},
-      {'icon': '🐕‍🦺', 'label': 'Pulling on leash'},
-      {'icon': '🚶‍♂️', 'label': 'Off-leash'},
-      {'icon': '👟', 'label': 'Running'},
-      {'icon': '🐶', 'label': 'Meeting new pet'},
-      {'icon': '🏃', 'label': 'Attempted escape'},
-      {'icon': '🍂', 'label': 'Attempted to eat trash'},
-      {'icon': '🐾', 'label': 'Digging in dirt'},
-      {'icon': '💧', 'label': 'Drinking from puddle'},
-      {'icon': '🛏️', 'label': 'Resting'},
-      {'icon': '🎾', 'label': 'Playing'},
-      {'icon': '🌧️', 'label': 'Getting wet'},
-      {'icon': '🪵', 'label': 'Carrying stick'},
-      {'icon': '🌞', 'label': 'Sunbathing'},
-      {'icon': '👤', 'label': 'Meeting person'},
     ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
       child: Container(
@@ -1001,54 +1070,50 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 10),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: eventOptions.map((event) {
-                    return GestureDetector(
-                      onTap: () {
-                        _handleEventSelection(event['label']!,
-                            event['icon']!); // Wywołanie zmodyfikowanej metody
-                      },
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        margin: const EdgeInsets.only(right: 10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              event['icon']!,
-                              style: const TextStyle(fontSize: 30),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              event['label']!,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Theme.of(context).primaryColorDark,
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: eventOptions.map((event) {
+                      return GestureDetector(
+                        onTap: () {
+                          _handleEventSelection(
+                              event['label']!, event['icon']!);
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.37,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 3,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                event['icon']!,
+                                style: const TextStyle(fontSize: 35),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildPaginatedEvents(), // Add paginated events here
+                ],
               ),
             ),
-            const SizedBox(height: 10),
-            if (_addedEvents.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _buildPaginatedEvents(),
-              ),
           ],
         ),
       ),
@@ -1072,7 +1137,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     }
   }
 
-  void _addUrineMarker(apple_maps.LatLng position, String eventId) async {
+  void _addUrineMarker(LatLng position, String eventId) async {
     final BitmapDescriptor customIcon = await _getScaledBitmapDescriptor(
       'assets/images/events_type_cards_no_background/piee.png',
       190,
@@ -1084,7 +1149,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
     final Annotation urineAnnotation = Annotation(
       annotationId: AnnotationId(eventId),
-      position: position,
+      position: LatLng(position.latitude, position.longitude),
       icon: customIcon,
       infoWindow: InfoWindow(
         title: 'Urine',
@@ -1229,66 +1294,14 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
   void _saveAllEvents() async {
     for (var event in _collectedEvents) {
+      String eventId = event['id'];
+
       if (event['label'] == 'Stool') {
-        _saveStoolEvent(event['petId'], event['time']);
+        _saveStoolEvent(event['petId'], event['time'], eventId);
       } else if (event['label'] == 'Urine') {
-        _saveUrineEvent(event['petId'], event['time']);
-      } else if (event['label'] != null) {
-        _saveCustomEvent(context, ref, event['petId'], generateUniqueId(),
-            event['label'], event['time']);
+        _saveUrineEvent(event['petId'], event['time'], eventId);
       }
     }
-  }
-
-  void _saveCustomEvent(BuildContext context, WidgetRef ref, String petId,
-      String eventId, String eventType, DateTime eventTime) {
-    Map<String, String> eventEmoticons = {
-      'Playing': '🎾',
-      'Sniffing': '👃',
-      'Barking': '🐕',
-      'Growling': '😡',
-      'Loose leash': '🦮',
-      'Pulling on leash': '🐕‍🦺',
-      'Running': '👟',
-      'Meeting new pet': '🐶',
-      'Attempted escape': '🏃',
-      'Attempted to eat trash': '🍂',
-      'Digging in dirt': '🐾',
-      'Drinking from puddle': '💧',
-      'Resting': '🛏️',
-      'Getting wet': '🌧️',
-      'Carrying stick': '🪵',
-      'Sunbathing': '🌞',
-      'Meeting person': '👤',
-    };
-
-    String emoticon = eventEmoticons[eventType] ?? '🦮';
-
-    EventWalkEventsModel newEventWalkEvent = EventWalkEventsModel(
-      id: generateUniqueId(),
-      eventId: eventId,
-      petId: petId,
-      eventType: eventType,
-      eventTime: eventTime,
-      description: '$eventType event during walk',
-    );
-
-    ref
-        .read(eventWalkEventsServiceProvider)
-        .addEventsWalkEvent(newEventWalkEvent, petId);
-
-    Event newEvent = Event(
-      id: eventId,
-      title: eventType,
-      eventDate: eventTime,
-      dateWhenEventAdded: DateTime.now(),
-      userId: FirebaseAuth.instance.currentUser!.uid,
-      petId: petId,
-      description: '$eventType event during walk',
-      emoticon: emoticon,
-    );
-
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
   void _handleEventSelection(String eventLabel, String eventIcon) async {
@@ -1298,7 +1311,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       final Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      final latLng = apple_maps.LatLng(position.latitude, position.longitude);
+      final latLng = LatLng(position.latitude, position.longitude);
 
       for (var pet in selectedPets) {
         String eventId = '${eventLabel}_${DateTime.now()}';
@@ -1306,8 +1319,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
         setState(() {
           _addedEvents.add({
             'id': eventId,
-            'icon': eventIcon,
-            'label': eventLabel,
+            'icon': eventIcon, // np. 💩 lub 💦
+            'label': eventLabel, // np. Stool, Urine
             'time': DateTime.now(),
             'location': latLng,
             'petId': pet.id,
@@ -1317,8 +1330,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
 
           _collectedEvents.add({
             'id': eventId,
-            'icon': eventIcon,
-            'label': eventLabel,
+            'icon': eventIcon, // np. 💩 lub 💦
+            'label': eventLabel, // np. Stool, Urine
             'time': DateTime.now(),
             'location': latLng,
             'petId': pet.id,
@@ -1327,9 +1340,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
           });
 
           if (eventLabel == 'Stool') {
-            _addStoolMarker(latLng, eventId);
+            _addStoolMarker(
+                latLng, eventId); // Dodawanie markerów z emotikonami na mapę
           } else if (eventLabel == 'Urine') {
-            _addUrineMarker(latLng, eventId);
+            _addUrineMarker(
+                latLng, eventId); // Dodawanie markerów z emotikonami na mapę
           }
         });
       }
@@ -1376,51 +1391,16 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                               Text(
                                 DateFormat('HH:mm').format(event['time']),
                                 style: TextStyle(
-                                    fontSize: 13,
-                                    color: Theme.of(context).primaryColorDark),
+                                  fontSize: 13,
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              CircleAvatar(
-                                backgroundImage: AssetImage(event['petAvatar']),
-                                radius: 16,
-                              ),
-                              if (_selectedPetIndex ==
-                                      _addedEvents.indexOf(event) &&
-                                  _selectedPetName == event['petName'])
-                                Positioned(
-                                  top: -30,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5.0, vertical: 2.0),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Theme.of(context).colorScheme.surface,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black,
-                                          spreadRadius: 1,
-                                          blurRadius: 5,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      _selectedPetName!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                          CircleAvatar(
+                            backgroundImage: AssetImage(event['petAvatar']),
+                            radius: 16,
                           ),
                         ],
                       ),
@@ -1431,10 +1411,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
                   icon: const Icon(Icons.delete),
                   onPressed: () {
                     setState(() {
-                      _addedEvents.remove(event);
-
-                      _annotations.removeWhere((annotation) =>
-                          annotation.annotationId.value == event['id']);
+                      _removeEvent(event);
                     });
                   },
                 ),
@@ -1442,48 +1419,51 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             ),
           );
         }),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: _currentPage > 0
-                  ? () {
-                      setState(() {
-                        _currentPage--;
-                      });
-                    }
-                  : null,
-            ),
-            Text('Page ${_currentPage + 1} of $totalPages'),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: _currentPage < totalPages - 1
-                  ? () {
-                      setState(() {
-                        _currentPage++;
-                      });
-                    }
-                  : null,
-            ),
-          ],
-        ),
+        if (_addedEvents.length > 5) ...[
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: _currentPage > 0
+                    ? () {
+                        setState(() {
+                          _currentPage--;
+                        });
+                      }
+                    : null,
+              ),
+              Text('Page ${_currentPage + 1} of $totalPages'),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward),
+                onPressed: _currentPage < totalPages - 1
+                    ? () {
+                        setState(() {
+                          _currentPage++;
+                        });
+                      }
+                    : null,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
 
-  void _saveUrineEvent(String petId, DateTime eventTime) {
+  void _saveUrineEvent(String petId, DateTime eventTime, String eventId) {
     EventUrineModel newUrine = EventUrineModel(
-      id: generateUniqueId(),
-      eventId: generateUniqueId(),
+      id: eventId,
+      eventId:
+          eventId, // Używamy tego samego ID dla eventu i zapisu w globalnym spacerze
       petId: petId,
       color: 'Default',
       description: 'Urine event',
       dateTime: eventTime,
     );
 
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine, petId);
 
     Event newEvent = Event(
       id: newUrine.eventId,
@@ -1499,14 +1479,14 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
-  void _saveStoolEvent(String petId, DateTime eventTime) {
+  void _saveStoolEvent(String petId, DateTime eventTime, String eventId) {
     EventStoolModel newStoolEvent = EventStoolModel(
-      id: generateUniqueId(),
-      eventId: generateUniqueId(),
+      id: eventId,
+      eventId: eventId, // Używamy tego samego ID
       petId: petId,
       description: 'Stool event during walk',
       emoji: '💩',
-      dateTime: DateTime.now(),
+      dateTime: eventTime,
     );
 
     ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent, petId);
@@ -1525,17 +1505,26 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
     ref.read(eventServiceProvider).addEvent(newEvent, petId);
   }
 
-  void _saveNoteEvent(String petId, String contentText) {
-    EventNoteModel newNote = EventNoteModel(
-      id: generateUniqueId(),
-      title: 'Walk note',
-      eventId: generateUniqueId(),
-      petId: petId,
-      dateTime: DateTime.now(),
-      contentText: contentText,
-    );
+  void _removeEvent(Map<String, dynamic> event) {
+    setState(() {
+      _addedEvents.remove(event);
 
-    // Zapisz notatkę przy użyciu serwisu EventNoteService
-    ref.read(eventNoteServiceProvider).addNote(newNote, petId);
+      // Usuwamy marker powiązany z usuniętym wydarzeniem
+      _annotations.removeWhere(
+          (annotation) => annotation.annotationId.value == event['id']);
+
+      // Obliczamy liczbę stron
+      int totalPages = (_addedEvents.length / _eventsPerPage).ceil();
+
+      // Jeśli po usunięciu zdarzenia liczba stron się zmniejszyła, wracamy na poprzednią stronę
+      if (_currentPage >= totalPages) {
+        _currentPage = totalPages - 1;
+      }
+
+      // Upewniamy się, że nie jesteśmy na stronie mniejszej niż 0
+      if (_currentPage < 0) {
+        _currentPage = 0;
+      }
+    });
   }
 }

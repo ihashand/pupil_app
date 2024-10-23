@@ -1,31 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EventWalkModel {
+class GlobalWalkModel {
   String id;
-  String globalWalkId;
-  String petId;
+  List<String> individualWalkIds;
+  List<String> petIds;
   DateTime dateTime;
   List<Map<String, double>> routePoints;
   double walkTime;
   double steps;
   List<Map<String, dynamic>> stoolsAndUrine;
+  List<String>? images;
+  String? noteId;
 
-  EventWalkModel({
+  GlobalWalkModel({
     required this.id,
-    required this.globalWalkId,
-    required this.petId,
+    required this.individualWalkIds,
+    required this.petIds,
     required this.dateTime,
     required this.routePoints,
     required this.walkTime,
     required this.steps,
     required this.stoolsAndUrine,
+    this.images,
+    this.noteId,
   });
 
-  // Konwersja z dokumentu Firestore do obiektu
-  EventWalkModel.fromDocument(DocumentSnapshot doc)
+  GlobalWalkModel.fromDocument(DocumentSnapshot doc)
       : id = doc.id,
-        globalWalkId = doc.get('globalWalkId'),
-        petId = doc.get('petId'),
+        individualWalkIds = List<String>.from(doc.get('individualWalkIds')),
+        petIds = List<String>.from(doc.get('petIds')),
         dateTime = (doc.get('dateTime') as Timestamp).toDate(),
         routePoints = (doc.get('routePoints') as List<dynamic>)
             .map((point) => {
@@ -36,13 +39,20 @@ class EventWalkModel {
         walkTime = doc.get('walkTime'),
         steps = doc.get('steps'),
         stoolsAndUrine =
-            List<Map<String, dynamic>>.from(doc.get('stoolsAndUrine'));
+            List<Map<String, dynamic>>.from(doc.get('stoolsAndUrine')),
+        images =
+            (doc.data() as Map<String, dynamic>).containsKey('images') == true
+                ? List<String>.from(doc.get('images'))
+                : null,
+        noteId =
+            (doc.data() as Map<String, dynamic>).containsKey('noteId') == true
+                ? doc.get('noteId')
+                : null;
 
-  // Konwersja z obiektu na mapę do zapisu w Firestore
   Map<String, dynamic> toMap() {
     return {
-      'globalWalkId': globalWalkId,
-      'petId': petId,
+      'individualWalkIds': individualWalkIds,
+      'petIds': petIds,
       'dateTime': Timestamp.fromDate(dateTime),
       'routePoints': routePoints
           .map((point) => {
@@ -53,6 +63,8 @@ class EventWalkModel {
       'walkTime': walkTime,
       'steps': steps,
       'stoolsAndUrine': stoolsAndUrine,
+      if (images != null) 'images': images,
+      if (noteId != null) 'noteId': noteId,
     };
   }
 }

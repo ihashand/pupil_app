@@ -1,168 +1,211 @@
 import 'dart:io';
+import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:image/image.dart' as img;
 
 class WalkSummaryScreen extends StatelessWidget {
-  final List<apple_maps.Polyline> eventLines;
+  final List<Polyline> eventLines;
   final List<Map<String, dynamic>> addedEvents;
   final List<XFile> photos;
-  final String totalDistance;
-  final int totalTimeInSeconds;
+  final String totalDistance; // teraz reprezentuje kroki
+  final int totalTimeInSeconds; // domyślnie 35 minut
   final List<Pet> pets;
   final String notes;
+  final bool isFromWalksListScreen; // Dodane pole do obsługi przycisku cofania
 
   const WalkSummaryScreen({
     super.key,
     required this.eventLines,
     required this.addedEvents,
     required this.photos,
-    required this.totalDistance,
-    required this.totalTimeInSeconds,
+    required this.totalDistance, // kroki zamiast km
+    required this.totalTimeInSeconds, // czas trwania
     required this.pets,
     required this.notes,
+    required this.isFromWalksListScreen, // Informacja skąd przyszedł użytkownik
   });
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          title: const Text(
-            'W A L K  S U M M A R Y',
-            style: TextStyle(
-              fontSize: 13,
-              letterSpacing: 2,
-              fontWeight: FontWeight.bold,
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text(
+          'W A L K  S U M M A R Y',
+          style: TextStyle(
+            fontSize: 13,
+            letterSpacing: 2,
+            fontWeight: FontWeight.bold,
           ),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () async {
-                bool confirm = await _showConfirmationDialog(context);
-                if (confirm) {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-
-                  // Patryk 17.10.2024
-                  //todo nie umiem sobie z tym poradzic w inny sposob, mam jakis problem z czarnymi paskami na dole i u gory jak uzyje np ponizszego:
-
-                  //                   Navigator.of(context).pushAndRemoveUntil(
-                  //   MaterialPageRoute(builder: (context) => const BotomAppBar()),
-                  //   (Route<dynamic> route) => false,
-                  // );
-                }
-              },
-            ),
-          ],
         ),
-        body: Column(
-          children: [
-            _buildDivider(context),
-            _buildMapSection(context),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    _buildProgressBarWithDetails(context),
-                    const SizedBox(height: 10),
-                    if (addedEvents.isNotEmpty) _buildEventList(context),
-                    const SizedBox(height: 10),
-                    if (photos.isNotEmpty) _buildPhotos(context),
-                    const SizedBox(height: 10),
-                    if (notes.isNotEmpty) _buildNotesSection(context),
-                    const SizedBox(height: 10),
-                  ],
+        leading: isFromWalksListScreen
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            : null,
+        automaticallyImplyLeading: false,
+        actions: isFromWalksListScreen
+            ? []
+            : [
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
+              ],
+      ),
+      body: Column(
+        children: [
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          FutureBuilder<Set<Annotation>>(
+            future: _buildEventAnnotations(addedEvents),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                // Zwraca loader podczas ładowania danych
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                // Obsługa błędu
+                return Center(
+                    child:
+                        Text('Error loading annotations: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                // Obsługa braku danych
+                return const Center(child: Text('No annotations available'));
+              } else {
+                // Jeśli wszystko się udało, wyświetlamy mapę
+                return _buildMapSection(context, eventLines, snapshot.data!);
+              }
+            },
+          ),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  _buildProgressBarWithDetails(
+                      context, totalDistance, totalTimeInSeconds, pets),
+                  const SizedBox(height: 10),
+                  if (addedEvents.isNotEmpty)
+                    _buildEventList(context, addedEvents),
+                  const SizedBox(height: 10),
+                  if (photos.isNotEmpty) _buildPhotos(context, photos),
+                  const SizedBox(height: 10),
+                  if (notes.isNotEmpty) _buildNotesSection(context, notes),
+                  const SizedBox(height: 10),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<bool> _showConfirmationDialog(BuildContext context) async {
-    return await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirmation'),
-          content: const Text('Are you sure you want to close the summary?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: Text('Cancel',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: Text('Confirm',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildDivider(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: Theme.of(context).colorScheme.surface,
-    );
-  }
-
-  Widget _buildMapSection(BuildContext context) {
-    return Container(
+  Widget _buildMapSection(BuildContext context, List<Polyline> eventLines,
+      Set<Annotation> annotations) {
+    return SizedBox(
       height: 225,
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
+      child: AppleMap(
+        initialCameraPosition: CameraPosition(
+          target: eventLines.isNotEmpty && eventLines.first.points.isNotEmpty
+              ? eventLines.first.points.first
+              : const LatLng(51.5, -0.09),
+          zoom: 16,
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: apple_maps.AppleMap(
-          minMaxZoomPreference: const apple_maps.MinMaxZoomPreference(10, 16),
-          polylines: eventLines.toSet(),
-          initialCameraPosition: apple_maps.CameraPosition(
-            target: eventLines.isNotEmpty && eventLines.first.points.isNotEmpty
-                ? eventLines.first.points.first
-                : const apple_maps.LatLng(51.5, -0.09),
-            zoom: 16,
-          ),
-          zoomGesturesEnabled: true,
-          scrollGesturesEnabled: true,
-          onMapCreated: (apple_maps.AppleMapController controller) {},
-        ),
+        zoomGesturesEnabled: true,
+        scrollGesturesEnabled: true,
+        rotateGesturesEnabled: true,
+        polylines: eventLines.toSet(),
+        annotations: annotations,
+        onMapCreated: (AppleMapController controller) {},
       ),
     );
   }
 
-  Widget _buildProgressBarWithDetails(BuildContext context) {
+  Future<Set<Annotation>> _buildEventAnnotations(
+      List<Map<String, dynamic>> addedEvents) async {
+    Set<Annotation> annotations = {};
+
+    for (var event in addedEvents) {
+      final dynamic eventLocation = event['location'];
+
+      if (eventLocation is Map<String, dynamic> &&
+          eventLocation.containsKey('latitude') &&
+          eventLocation.containsKey('longitude')) {
+        final double latitude = eventLocation['latitude'] is double
+            ? eventLocation['latitude']
+            : double.tryParse(eventLocation['latitude'].toString()) ?? 0.0;
+        final double longitude = eventLocation['longitude'] is double
+            ? eventLocation['longitude']
+            : double.tryParse(eventLocation['longitude'].toString()) ?? 0.0;
+
+        final String assetPath = (event['label'] == 'Stool')
+            ? 'assets/images/events_type_cards_no_background/poo.png'
+            : 'assets/images/events_type_cards_no_background/piee.png';
+
+        final Uint8List resizedImageData =
+            await _getResizedImageData(assetPath, 124);
+        final BitmapDescriptor bitmapDescriptor =
+            BitmapDescriptor.fromBytes(resizedImageData);
+
+        final DateTime eventTime = (event['time'] is Timestamp)
+            ? (event['time'] as Timestamp).toDate()
+            : event['time'] as DateTime;
+
+        annotations.add(
+          Annotation(
+            annotationId: AnnotationId(event['id']),
+            position: LatLng(latitude, longitude),
+            icon: bitmapDescriptor,
+            infoWindow: InfoWindow(
+              title: event['label'],
+              snippet: DateFormat('HH:mm').format(eventTime),
+            ),
+          ),
+        );
+      } else {
+        debugPrint('Invalid event location format: $eventLocation');
+      }
+    }
+
+    return annotations;
+  }
+
+  Future<Uint8List> _getResizedImageData(String assetPath, int size) async {
+    ByteData imageData = await rootBundle.load(assetPath);
+    List<int> bytes = imageData.buffer.asUint8List();
+    img.Image? image = img.decodeImage(Uint8List.fromList(bytes));
+    img.Image resizedImage = img.copyResize(image!, width: size, height: size);
+    return Uint8List.fromList(img.encodePng(resizedImage));
+  }
+
+  Widget _buildProgressBarWithDetails(BuildContext context, String totalSteps,
+      int totalTimeInSeconds, List<Pet> pets) {
     final durationFormatted = _formatTime(totalTimeInSeconds);
+    const targetSteps = 6000;
+
+    // Przekonwertowanie totalSteps na int
+    final int totalStepsInt = double.parse(totalSteps).toInt();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -187,7 +230,7 @@ class WalkSummaryScreen extends StatelessWidget {
                         width: 70,
                         height: 70,
                         child: CircularProgressIndicator(
-                          value: totalTimeInSeconds / 3600,
+                          value: totalTimeInSeconds / 2100, // 35 minut
                           strokeWidth: 9,
                           backgroundColor:
                               Theme.of(context).colorScheme.surface,
@@ -199,7 +242,7 @@ class WalkSummaryScreen extends StatelessWidget {
                         width: 60,
                         height: 60,
                         child: CircularProgressIndicator(
-                          value: double.parse(totalDistance) / 10,
+                          value: totalStepsInt / targetSteps, // Kroki
                           strokeWidth: 6,
                           backgroundColor:
                               Theme.of(context).colorScheme.surface,
@@ -218,6 +261,27 @@ class WalkSummaryScreen extends StatelessWidget {
                     Row(
                       children: [
                         Text(
+                          'Steps:       ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                        ),
+                        Text(
+                          totalStepsInt
+                              .toString(), // Wyświetlamy kroki jako liczba całkowita
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Theme.of(context).primaryColorDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
                           'Duration:   ',
                           style: TextStyle(
                             fontSize: 12,
@@ -227,28 +291,10 @@ class WalkSummaryScreen extends StatelessWidget {
                         Text(
                           durationFormatted,
                           style: TextStyle(
-                              fontSize: 15,
-                              color: Theme.of(context).primaryColorDark,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(
-                          'Distance:   ',
-                          style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 15,
                             color: Theme.of(context).primaryColorDark,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        Text(
-                          '$totalDistance km',
-                          style: TextStyle(
-                              fontSize: 15,
-                              color: Theme.of(context).primaryColorDark,
-                              fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -256,48 +302,14 @@ class WalkSummaryScreen extends StatelessWidget {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 8),
-              child: Divider(
-                color: Theme.of(context).colorScheme.surface,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 15.0),
-              child: Text(
-                'P U P S  O N  W A L K:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                  color: Theme.of(context).primaryColorDark,
-                ),
-              ),
-            ),
-            Wrap(
-              alignment: WrapAlignment.start,
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: pets
-                  .map(
-                    (pet) => Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        CircleAvatar(
-                          backgroundImage: AssetImage(pet.avatarImage),
-                          radius: 25,
-                        ),
-                      ],
-                    ),
-                  )
-                  .toList(),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEventList(BuildContext context) {
+  Widget _buildEventList(
+      BuildContext context, List<Map<String, dynamic>> addedEvents) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -310,15 +322,19 @@ class WalkSummaryScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'E V E N T S:',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Theme.of(context).primaryColorDark),
             ),
             const SizedBox(height: 10),
             ...addedEvents.map((event) {
+              final DateTime eventTime = (event['time'] is Timestamp)
+                  ? (event['time'] as Timestamp).toDate()
+                  : event['time'];
+
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5.0),
                 child: Row(
@@ -327,25 +343,29 @@ class WalkSummaryScreen extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          Text(
-                            event['icon'],
-                            style: const TextStyle(fontSize: 40),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 25.0),
+                            child: Text(
+                              event['icon'],
+                              style: TextStyle(
+                                  fontSize: 35,
+                                  color: Theme.of(context).primaryColorDark),
+                            ),
                           ),
-                          const SizedBox(width: 15),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 event['label'],
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColorDark),
                               ),
                               const SizedBox(height: 4),
                               CircleAvatar(
                                 backgroundImage: AssetImage(event['petAvatar']),
-                                radius: 16,
+                                radius: 15,
                               ),
                             ],
                           ),
@@ -353,7 +373,7 @@ class WalkSummaryScreen extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('HH:mm').format(event['time']),
+                      DateFormat('HH:mm').format(eventTime),
                       style: TextStyle(
                         fontSize: 13,
                         color: Theme.of(context).primaryColorDark,
@@ -369,7 +389,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPhotos(BuildContext context) {
+  Widget _buildPhotos(BuildContext context, List<XFile> photos) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -435,7 +455,7 @@ class WalkSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotesSection(BuildContext context) {
+  Widget _buildNotesSection(BuildContext context, String notes) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Container(
@@ -469,8 +489,7 @@ class WalkSummaryScreen extends StatelessWidget {
   String _formatTime(int totalSeconds) {
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
 
-    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
   }
 }

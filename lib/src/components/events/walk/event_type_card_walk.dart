@@ -237,13 +237,11 @@ void saveWalkEvent(BuildContext context, WidgetRef ref, double walkDistance,
     id: generateUniqueId(),
     walkTime: totalDurationInSeconds.toDouble(),
     steps: walkDistance,
-    eventId: generateUniqueId(),
     petId: petId,
     dateTime: DateTime.now(),
-    caloriesBurned: 0,
-    distance: 0,
     routePoints: [],
-    images: [],
+    globalWalkId: '',
+    stoolsAndUrine: [],
   );
 
   String eventId = generateUniqueId();
