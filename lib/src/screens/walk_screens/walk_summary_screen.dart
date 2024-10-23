@@ -63,11 +63,18 @@ class WalkSummaryScreen extends StatelessWidget {
             future: _buildEventAnnotations(addedEvents),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
+                // Zwraca loader podczas ładowania danych
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return const Center(
-                    child: Text('Error loading map annotations'));
+                // Obsługa błędu
+                return Center(
+                    child:
+                        Text('Error loading annotations: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                // Obsługa braku danych
+                return const Center(child: Text('No annotations available'));
               } else {
+                // Jeśli wszystko się udało, wyświetlamy mapę
                 return _buildMapSection(context, eventLines, snapshot.data!);
               }
             },
@@ -128,41 +135,50 @@ class WalkSummaryScreen extends StatelessWidget {
     Set<Annotation> annotations = {};
 
     for (var event in addedEvents) {
-      // Bezpieczna konwersja na Map<String, double>
-      final Map<String, dynamic> eventLocation =
-          event['location'] as Map<String, dynamic>;
+      final dynamic eventLocation = event['location'];
 
-      // Rzutowanie z dynamicznego typu na double
-      final double latitude = eventLocation['latitude'] is double
-          ? eventLocation['latitude'] as double
-          : double.parse(eventLocation['latitude'].toString());
-      final double longitude = eventLocation['longitude'] is double
-          ? eventLocation['longitude'] as double
-          : double.parse(eventLocation['longitude'].toString());
+      // Sprawdzenie struktury danych
+      if (eventLocation is Map<String, dynamic> &&
+          eventLocation.containsKey('latitude') &&
+          eventLocation.containsKey('longitude')) {
+        final double latitude = eventLocation['latitude'] is double
+            ? eventLocation['latitude']
+            : double.tryParse(eventLocation['latitude'].toString()) ?? 0.0;
+        final double longitude = eventLocation['longitude'] is double
+            ? eventLocation['longitude']
+            : double.tryParse(eventLocation['longitude'].toString()) ?? 0.0;
 
-      // Sprawdzenie czy event to Stool czy Urine i przypisanie odpowiedniego obrazka
-      final String assetPath = (event['label'] == 'Stool')
-          ? 'assets/images/events_type_cards_no_background/poo.png'
-          : 'assets/images/events_type_cards_no_background/piee.png';
+        // Sprawdzenie, czy event to Stool czy Urine i przypisanie odpowiedniego obrazka
+        final String assetPath = (event['label'] == 'Stool')
+            ? 'assets/images/events_type_cards_no_background/poo.png'
+            : 'assets/images/events_type_cards_no_background/piee.png';
 
-      final BitmapDescriptor bitmapDescriptor =
-          await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(48, 48)),
-        assetPath,
-      );
+        // Zamiast bezpośredniego Uint8List, utworzymy BitmapDescriptor
+        final Uint8List resizedImageData = await _getResizedImageData(
+            assetPath, 124); // Zmniejszenie rozmiaru do 124
+        final BitmapDescriptor bitmapDescriptor =
+            BitmapDescriptor.fromBytes(resizedImageData);
 
-      // Dodanie anotacji
-      annotations.add(
-        Annotation(
-          annotationId: AnnotationId(event['id']),
-          position: LatLng(latitude, longitude),
-          icon: bitmapDescriptor,
-          infoWindow: InfoWindow(
-            title: event['label'],
-            snippet: DateFormat('HH:mm').format(event['time']),
+        // Konwersja Timestamp na DateTime
+        final DateTime eventTime = (event['time'] is Timestamp)
+            ? (event['time'] as Timestamp).toDate()
+            : event['time'] as DateTime;
+
+        annotations.add(
+          Annotation(
+            annotationId: AnnotationId(event['id']),
+            position: LatLng(latitude, longitude),
+            icon: bitmapDescriptor,
+            infoWindow: InfoWindow(
+              title: event['label'],
+              snippet: DateFormat('HH:mm')
+                  .format(eventTime), // Poprawiona konwersja na DateTime
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        debugPrint('Invalid event location format: $eventLocation');
+      }
     }
 
     return annotations;

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
@@ -15,7 +16,7 @@ class WalksListScreen extends ConsumerStatefulWidget {
 }
 
 class _WalksListScreenState extends ConsumerState<WalksListScreen> {
-  int _loadedItems = 5; // liczba załadowanych spacerów na początek
+  int _loadedItems = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +88,16 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                     itemBuilder: (context, index) {
                       final walk = walks[index];
                       return GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          // Pobieranie zwierząt na podstawie petIds z danego spaceru
+                          final pets = await ref
+                              .read(petServiceProvider)
+                              .getPetsByUserId(
+                                  FirebaseAuth.instance.currentUser!.uid);
+                          final petsInWalk = pets
+                              .where((pet) => walk.petIds.contains(pet.id))
+                              .toList();
+
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => WalkSummaryScreen(
@@ -97,7 +107,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                                 photos: _convertImagesToXFiles(walk.images),
                                 totalDistance: walk.walkTime.toStringAsFixed(2),
                                 totalTimeInSeconds: walk.walkTime.toInt(),
-                                pets: const [], // Lista zwierząt
+                                pets: petsInWalk, // przekazujemy zwierzęta
                                 notes: walk.noteId ?? '',
                               ),
                             ),
@@ -194,7 +204,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Distance: ${walk.walkTime.toStringAsFixed(2)} km',
+                                          'Steps: ${walk.steps.toStringAsFixed(0)}', // Zakładam, że w modelu jest pole 'steps'
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
@@ -263,20 +273,20 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
       child: AppleMap(
         initialCameraPosition: CameraPosition(
           target: points.isNotEmpty ? points.first : const LatLng(51.5, -0.09),
-          zoom: 12, // Ustawienie początkowego zoomu
+          zoom: 16, // Ustawienie domyślnego zoomu
         ),
         polylines: {
           Polyline(
             polylineId: PolylineId('route'),
             points: points,
-            width: 3,
+            width: 5, // Zmniejszenie szerokości linii
             color: Colors.blue,
           ),
         },
         onMapCreated: (controller) {
-          // Przeskalowanie kamery do bounds po stworzeniu mapy
           if (points.isNotEmpty) {
-            controller.moveCamera(CameraUpdate.newLatLngBounds(bounds, 120));
+            // Ustawienie kamery, aby objąć całą trasę spaceru
+            controller.moveCamera(CameraUpdate.newLatLngBounds(bounds, 50));
           }
         },
       ),
@@ -306,7 +316,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen> {
         polylineId: PolylineId('route'),
         points: points,
         color: Colors.blue,
-        width: 3,
+        width: 50, // Zmniejszona szerokość linii dla lepszej widoczności
       )
     ];
   }

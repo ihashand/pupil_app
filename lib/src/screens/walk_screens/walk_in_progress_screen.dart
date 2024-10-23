@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -207,6 +208,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
             .read(globalWalkServiceProvider)
             .updateGlobalWalk(updatedGlobalWalk);
 
+        await _compareFirestoreData(walkId!, updatedGlobalWalk);
+
         // Pop the current screen and navigate to WalkSummaryScreen
         Navigator.of(context).pop();
 
@@ -238,6 +241,29 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       }
     } catch (e) {
       debugPrint('Error in _endWalk: $e');
+    }
+  }
+
+  Future<void> _compareFirestoreData(
+      String walkId, GlobalWalkModel localData) async {
+    // Pobranie danych z Firestore
+    final GlobalWalkModel? firestoreData =
+        await ref.read(globalWalkServiceProvider).getGlobalWalkById(walkId);
+
+    // Sprawdzanie, czy dane zostały pobrane poprawnie
+    if (firestoreData != null) {
+      // Porównanie kluczowych danych: stoolsAndUrine, routePoints, walkTime
+      debugPrint('Porównanie danych lokalnych z Firestore:');
+      debugPrint('Lokalne stoolsAndUrine: ${localData.stoolsAndUrine}');
+      debugPrint('Firestore stoolsAndUrine: ${firestoreData.stoolsAndUrine}');
+
+      debugPrint('Lokalne routePoints: ${localData.routePoints}');
+      debugPrint('Firestore routePoints: ${firestoreData.routePoints}');
+
+      debugPrint('Lokalny czas spaceru: ${localData.walkTime}');
+      debugPrint('Firestore czas spaceru: ${firestoreData.walkTime}');
+    } else {
+      debugPrint('Nie znaleziono danych dla spaceru o ID: $walkId');
     }
   }
 

@@ -25,7 +25,6 @@ class GlobalWalkModel {
     this.noteId,
   });
 
-  // Konwersja z dokumentu Firestore do obiektu
   GlobalWalkModel.fromDocument(DocumentSnapshot doc)
       : id = doc.id,
         individualWalkIds = List<String>.from(doc.get('individualWalkIds')),
@@ -50,7 +49,6 @@ class GlobalWalkModel {
                 ? doc.get('noteId')
                 : null;
 
-  // Konwersja z obiektu na mapę do zapisu w Firestore
   Map<String, dynamic> toMap() {
     return {
       'individualWalkIds': individualWalkIds,
