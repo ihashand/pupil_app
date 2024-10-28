@@ -322,7 +322,7 @@ class _PetEditScreenState extends State<PetEditScreen> {
       bottomNavigationBar: BottomAppBar(
         color: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(5.0),
           child: MaterialButton(
             onPressed: () => _confirmDelete(context),
             color: Colors.red.withOpacity(0.85),

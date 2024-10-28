@@ -9,7 +9,8 @@ import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-Widget eventTypeCardWeight(BuildContext context, WidgetRef ref,
+// Funkcja modalu wyboru opcji Weight
+void showWeightModal(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
   TextEditingController dateController = TextEditingController(
@@ -18,236 +19,207 @@ Widget eventTypeCardWeight(BuildContext context, WidgetRef ref,
   TextEditingController weightController = TextEditingController();
   double initialWeight = 0;
 
-  void showWeightModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return SingleChildScrollView(
-              child: Container(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(25),
-                    topRight: Radius.circular(25),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.close,
-                                  color: Theme.of(context).primaryColorDark),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            Text(
-                              'W E I G H T',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.check,
-                                  color: Theme.of(context).primaryColorDark),
-                              onPressed: () {
-                                if (weightController.text.trim().isEmpty ||
-                                    initialWeight <= 0.0) {
-                                  _showErrorDialog(
-                                      context, 'Weight field cannot be empty.');
-                                  return;
-                                }
-
-                                if (initialWeight > 200.0) {
-                                  _showErrorDialog(
-                                      context, 'Weight cannot exceed 200 kg.');
-                                  return;
-                                }
-
-                                String eventId = generateUniqueId();
-                                if (petIds != null && petIds.isNotEmpty) {
-                                  for (String id in petIds) {
-                                    _saveWeightEvent(context, ref, id,
-                                        initialWeight, eventId, selectedDate);
-                                  }
-                                } else if (petId != null) {
-                                  _saveWeightEvent(context, ref, petId,
-                                      initialWeight, eventId, selectedDate);
-                                }
-
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 20),
-                      child: Container(
-                        padding: const EdgeInsets.all(20.0),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 10, bottom: 5),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: dateController,
-                                      decoration: InputDecoration(
-                                        labelText: 'Date',
-                                        labelStyle: TextStyle(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      readOnly: true,
-                                      onTap: () async {
-                                        final DateTime? picked =
-                                            await showDatePicker(
-                                          context: context,
-                                          initialDate: selectedDate,
-                                          firstDate: DateTime(2000),
-                                          lastDate: DateTime(2101),
-                                          builder: (BuildContext context,
-                                              Widget? child) {
-                                            return Theme(
-                                              data: Theme.of(context).copyWith(
-                                                colorScheme: ColorScheme.light(
-                                                  primary: Theme.of(context)
-                                                      .colorScheme
-                                                      .secondary,
-                                                  onPrimary: Theme.of(context)
-                                                      .primaryColorDark,
-                                                  onSurface: Theme.of(context)
-                                                      .primaryColorDark,
-                                                ),
-                                                textButtonTheme:
-                                                    TextButtonThemeData(
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        Theme.of(context)
-                                                            .primaryColorDark,
-                                                  ),
-                                                ),
-                                              ),
-                                              child: child!,
-                                            );
-                                          },
-                                        );
-                                        if (picked != null &&
-                                            picked != selectedDate) {
-                                          setState(() {
-                                            selectedDate = picked;
-                                            dateController.text =
-                                                DateFormat('dd-MM-yyyy')
-                                                    .format(selectedDate);
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            SizedBox(
-                              width: double.infinity,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Weight',
-                                  border: OutlineInputBorder(),
-                                ),
-                                child: TextFormField(
-                                  controller: weightController,
-                                  cursorColor: Theme.of(context)
-                                      .primaryColorDark
-                                      .withOpacity(0.5),
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                          decimal: true),
-                                  onChanged: (value) {
-                                    final fixedValue =
-                                        value.replaceAll(',', '.');
-                                    initialWeight =
-                                        double.tryParse(fixedValue) ?? 0.0;
-                                    setState(() {});
-                                  },
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+  void recordWeightEvent() {
+    String eventId = generateUniqueId();
+    if (petIds != null && petIds.isNotEmpty) {
+      for (String id in petIds) {
+        _saveWeightEvent(
+            context, ref, id, initialWeight, eventId, selectedDate);
+      }
+    } else if (petId != null) {
+      _saveWeightEvent(
+          context, ref, petId, initialWeight, eventId, selectedDate);
+    }
   }
 
-  return eventTypeCard(
-    context,
-    'W E I G H T',
-    'assets/images/events_type_cards_no_background/weight.png',
-    () {
-      showWeightModal(context);
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.close,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Text(
+                            'W E I G H T',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.check,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              if (weightController.text.trim().isEmpty ||
+                                  initialWeight <= 0.0) {
+                                _showErrorDialog(
+                                    context, 'Weight field cannot be empty.');
+                                return;
+                              }
+
+                              if (initialWeight > 200.0) {
+                                _showErrorDialog(
+                                    context, 'Weight cannot exceed 200 kg.');
+                                return;
+                              }
+
+                              recordWeightEvent();
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: dateController,
+                            decoration: InputDecoration(
+                              labelText: 'Date',
+                              labelStyle: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            readOnly: true,
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2101),
+                                builder: (BuildContext context, Widget? child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: ColorScheme.light(
+                                        primary: Theme.of(context)
+                                            .colorScheme
+                                            .secondary,
+                                        onPrimary:
+                                            Theme.of(context).primaryColorDark,
+                                        onSurface:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      textButtonTheme: TextButtonThemeData(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Theme.of(context)
+                                              .primaryColorDark,
+                                        ),
+                                      ),
+                                    ),
+                                    child: child!,
+                                  );
+                                },
+                              );
+                              if (picked != null && picked != selectedDate) {
+                                setState(() {
+                                  selectedDate = picked;
+                                  dateController.text = DateFormat('dd-MM-yyyy')
+                                      .format(selectedDate);
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Weight',
+                                border: OutlineInputBorder(),
+                              ),
+                              child: TextFormField(
+                                controller: weightController,
+                                cursorColor: Theme.of(context)
+                                    .primaryColorDark
+                                    .withOpacity(0.5),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                onChanged: (value) {
+                                  final fixedValue = value.replaceAll(',', '.');
+                                  initialWeight =
+                                      double.tryParse(fixedValue) ?? 0.0;
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     },
   );
 }
 
+// Funkcja pomocnicza do zapisywania eventu Weight
 void _saveWeightEvent(BuildContext context, WidgetRef ref, String petId,
     double initialWeight, String eventId, DateTime selectedDate) {
   String weightId = generateUniqueId();
@@ -275,6 +247,7 @@ void _saveWeightEvent(BuildContext context, WidgetRef ref, String petId,
   ref.read(eventWeightServiceProvider).addWeight(newWeight, petId);
 }
 
+// Funkcja wyświetlająca dialog błędu
 void _showErrorDialog(BuildContext context, String message) {
   showDialog(
     context: context,
@@ -302,6 +275,19 @@ void _showErrorDialog(BuildContext context, String message) {
           ),
         ],
       );
+    },
+  );
+}
+
+// Główny widget eventTypeCardWeight
+Widget eventTypeCardWeight(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
+  return eventTypeCard(
+    context,
+    'W E I G H T',
+    'assets/images/events_type_cards_no_background/weight.png',
+    () {
+      showWeightModal(context, ref, petId: petId, petIds: petIds);
     },
   );
 }
