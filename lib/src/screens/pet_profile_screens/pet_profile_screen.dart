@@ -1,7 +1,5 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/components/achievement_widgets/initialize_achievements.dart';
 import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
@@ -10,9 +8,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
+import 'package:pet_diary/src/screens/events_screens/events_screen.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
-import 'package:pet_diary/src/screens/walk_screens/walks_lists_screen.dart';
+import 'package:pet_diary/src/screens/activity_screens/activity_screen.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/components/events/event_cards/event_health_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +20,6 @@ import 'package:pet_diary/src/screens/pet_details_screens/pet_edit_screen.dart';
 
 class PetProfileScreen extends ConsumerStatefulWidget {
   final Pet pet;
-
   const PetProfileScreen({required this.pet, super.key});
 
   @override
@@ -65,7 +63,10 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
         actions: isOwner
             ? [
                 IconButton(
-                  icon: const Icon(Icons.settings),
+                  icon: Icon(
+                    Icons.settings,
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -79,15 +80,24 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               ]
             : null,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeaderSection(context),
-            _buildAchievementsSection(context),
-            if (isOwner) _buildHealthEventSection(),
-            _buildActionButtons(context),
-          ],
-        ),
+      body: Column(
+        children: [
+          _buildHeaderSection(context),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  if (isOwner) _buildHealthEventSection(),
+                  _buildAchievementsSection(context),
+                  _buildActionButtons(context),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -124,7 +134,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               radius: 70,
             ),
           ),
-          _buildPetDetailsRow(context), // Płeć, waga, wiek, rasa obok siebie
+          _buildPetDetailsRow(context),
         ],
       ),
     );
@@ -143,9 +153,10 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                 'Gender',
                 widget.pet.gender),
           ),
-          Expanded(
-            child: _buildPetWeight(context), // Waga z ikoną
-          ),
+          if (isOwner) // Pokazywanie wagi tylko dla właściciela
+            Expanded(
+              child: _buildPetWeight(context), // Waga z ikoną
+            ),
           Expanded(
             child: _buildDetailItem(
                 context, '🎂', 'Age', _calculateAge(widget.pet.age)),
@@ -235,32 +246,51 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               .take(remaining)
               .toList();
 
-          return Column(
-            children: [
-              _buildAchievementsHeader(context, achievements),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ...earnedAchievements.map((achievement) => AchievementCard(
-                          context: context,
-                          achievement: achievement,
-                          petsWithAchievement: [widget.pet],
-                          isAchieved: true,
-                        )),
-                    ...unearnedAchievements.map((achievement) => Opacity(
-                          opacity: 0.5,
-                          child: AchievementCard(
-                            context: context,
-                            achievement: achievement,
-                            petsWithAchievement: [widget.pet],
-                            isAchieved: false,
-                          ),
-                        )),
-                  ],
-                ),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
+              child: Column(
+                children: [
+                  _buildAchievementsHeader(context, allAchievements),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 10),
+                        ...earnedAchievements.map((achievement) => Opacity(
+                              opacity: 0.8,
+                              child: AchievementCard(
+                                context: context,
+                                achievement: achievement,
+                                petsWithAchievement: [widget.pet],
+                                isAchieved: true,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                petAvatarBackgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                              ),
+                            )),
+                        ...unearnedAchievements.map((achievement) => Opacity(
+                              opacity: 0.4,
+                              child: AchievementCard(
+                                context: context,
+                                achievement: achievement,
+                                petsWithAchievement: [widget.pet],
+                                isAchieved: false,
+                                height: 240,
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+              ),
+            ),
           );
         } else {
           return const Text('No achievements found');
@@ -284,40 +314,36 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
 
   Widget _buildAchievementsHeader(
       BuildContext context, List<Achievement> achievements) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 15.0),
-            child: Text(
-              "A c h i e v e m e n t s",
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColorDark),
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 18.0),
+          child: Text(
+            "Achievements",
+            style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColorDark),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 5.0),
-            child: TextButton(
-              onPressed: () {
-                _showAllAchievementsMenu(
-                    context, achievements); // Przekazujemy achievements
-              },
-              child: Text(
-                'S e e  a l l',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColorDark,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 5.0),
+          child: TextButton(
+            onPressed: () {
+              _showAllAchievementsMenu(context, achievements);
+            },
+            child: Text(
+              'See all',
+              style: TextStyle(
+                color: Theme.of(context).primaryColorDark,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -624,20 +650,16 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
         child: Column(
           children: [
             ListTile(
-              leading: Icon(Icons.bar_chart,
-                  color: Theme.of(context).primaryColorDark),
-              title: Text('Statistics',
+              leading:
+                  Icon(Icons.event, color: Theme.of(context).primaryColorDark),
+              title: Text('Events',
                   style: TextStyle(
                       color: Theme.of(context).primaryColorDark, fontSize: 14)),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => StatisticsScreen(
-                      initialPet: widget.pet,
-                      userId: widget.pet.userId,
-                      isSinglePetMode: true,
-                    ),
+                    builder: (context) => EventsScreen(widget.pet.id),
                   ),
                 );
               },
@@ -655,7 +677,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => WalksListScreen(
+                    builder: (context) => ActivityScreen(
                       petId: widget.pet.id,
                     ),
                   ),
@@ -666,12 +688,23 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               color: Theme.of(context).colorScheme.surface,
             ),
             ListTile(
-              leading:
-                  Icon(Icons.map, color: Theme.of(context).primaryColorDark),
-              title: Text('Routes',
+              leading: Icon(Icons.bar_chart,
+                  color: Theme.of(context).primaryColorDark),
+              title: Text('Statistics',
                   style: TextStyle(
                       color: Theme.of(context).primaryColorDark, fontSize: 14)),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => StatisticsScreen(
+                      initialPet: widget.pet,
+                      userId: widget.pet.userId,
+                      isSinglePetMode: true,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

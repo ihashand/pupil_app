@@ -17,12 +17,19 @@ class AchievementCard extends StatefulWidget {
     required this.achievement,
     required this.petsWithAchievement,
     required this.isAchieved,
+    this.backgroundColor, // Opcjonalny kolor tła
+    this.height, // Opcjonalna wysokość
+    this.petAvatarBackgroundColor, // Opcjonalny kolor tła awatarów zwierząt
   });
 
   final BuildContext context;
   final Achievement achievement;
   final List<Pet> petsWithAchievement;
   final bool isAchieved;
+  final Color? backgroundColor; // Opcjonalny kolor tła
+  final double? height; // Opcjonalna wysokość
+  final Color?
+      petAvatarBackgroundColor; // Opcjonalny kolor tła awatarów zwierząt
 
   @override
   createState() => _AchievementCardState();
@@ -78,7 +85,10 @@ class _AchievementCardState extends State<AchievementCard> {
               alignment: Alignment.center,
               children: [
                 AlertDialog(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  backgroundColor: widget.backgroundColor ??
+                      Theme.of(context)
+                          .colorScheme
+                          .primary, // Ustawiamy kolor tła
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -109,7 +119,10 @@ class _AchievementCardState extends State<AchievementCard> {
                       Screenshot(
                         controller: _screenshotController,
                         child: Container(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: widget.backgroundColor ??
+                              Theme.of(context)
+                                  .colorScheme
+                                  .primary, // Ustawiamy kolor tła
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -164,6 +177,11 @@ class _AchievementCardState extends State<AchievementCard> {
                                               backgroundImage:
                                                   AssetImage(pet.avatarImage),
                                               radius: 30,
+                                              backgroundColor: widget
+                                                      .petAvatarBackgroundColor ??
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .primary, // Kolor tła awatarów zwierząt
                                             ),
                                           ),
                                         ),
@@ -235,7 +253,7 @@ class _AchievementCardState extends State<AchievementCard> {
                               Share.shareXFiles(
                                 [xFile],
                                 text:
-                                    'DONT CLICK ON THE LINK / NIE KLIKAJ LINKA\n\n\n\nI unlocked the achievement ${widget.achievement.name} - ${widget.achievement.description}\n\nDownload the app and join me in the competition!\n\nhttps://play.google.com/store/apps/details?id=com.example.pet_diary',
+                                    'I unlocked the achievement ${widget.achievement.name} - ${widget.achievement.description}',
                               );
                             }
                           },
@@ -278,12 +296,14 @@ class _AchievementCardState extends State<AchievementCard> {
       onTap: widget.isAchieved ? _showAchievementDetail : null,
       child: Card(
         color: widget.isAchieved
-            ? Theme.of(context).colorScheme.primary
+            ? widget.backgroundColor ??
+                Theme.of(context).colorScheme.primary // Kolor tła
             : Theme.of(context).colorScheme.secondary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         child: Container(
+          height: widget.height, // Opcjonalna wysokość
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
@@ -352,6 +372,9 @@ class _AchievementCardState extends State<AchievementCard> {
                               child: CircleAvatar(
                                 backgroundImage: AssetImage(pet.avatarImage),
                                 radius: 20,
+                                backgroundColor:
+                                    widget.petAvatarBackgroundColor ??
+                                        Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),

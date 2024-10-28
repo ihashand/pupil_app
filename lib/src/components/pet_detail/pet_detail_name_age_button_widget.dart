@@ -76,7 +76,7 @@ class PetDetailNameAgeButtonWidget extends ConsumerWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => HealthScreen(petId),
+                          builder: (context) => EventsScreen(petId),
                         ),
                       );
                     },
