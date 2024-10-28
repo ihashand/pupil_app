@@ -74,8 +74,10 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                       final updatedPet = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              PetEditScreen(petId: widget.pet.id),
+                          builder: (context) => PetEditScreen(
+                            petId: widget.pet.id,
+                            ref: ref,
+                          ),
                         ),
                       );
                       if (updatedPet != null && updatedPet is Pet) {
@@ -280,7 +282,8 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   Widget _buildPetWeight(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final asyncWeights = ref.watch(eventWeightsProvider);
+        final asyncWeights =
+            ref.watch(eventWeightsStreamProvider(widget.pet.id));
         return asyncWeights.when(
           loading: () => const Text('Loading...'),
           error: (err, stack) => const Text('Error fetching weight'),
@@ -790,7 +793,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   }
 
   void _showWeightInfoDialog(BuildContext context) {
-    final asyncWeights = ref.read(eventWeightsProvider);
+    final asyncWeights = ref.watch(eventWeightsStreamProvider(widget.pet.id));
     asyncWeights.when(
       loading: () => showDialog(
         context: context,

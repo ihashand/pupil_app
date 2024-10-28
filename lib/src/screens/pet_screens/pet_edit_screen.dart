@@ -1,42 +1,49 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/breed_data/dogs_breed_data.dart';
+import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_bacground_selection.dart';
+import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
+import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_dog_breed_selection_screen.dart';
 import 'package:pet_diary/src/services/other_services/pet_services.dart';
-import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
+import '../../providers/events_providers/event_provider.dart';
+import '../../providers/events_providers/event_weight_provider.dart';
 
-class PetEditScreen extends ConsumerStatefulWidget {
+class PetEditScreen extends StatefulWidget {
+  final WidgetRef ref;
   final String petId;
 
-  const PetEditScreen({super.key, required this.petId});
+  const PetEditScreen({super.key, required this.ref, required this.petId});
 
   @override
-  createState() => PetEditScreenState();
+  createState() => _PetEditScreenState();
 }
 
-class PetEditScreenState extends ConsumerState<PetEditScreen> {
+class _PetEditScreenState extends State<PetEditScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController = TextEditingController();
-  late final TextEditingController _birthDateController =
-      TextEditingController();
-  late final TextEditingController _breedController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _birthDateController;
+  late TextEditingController _breedController;
+  late TextEditingController _weightController;
 
-  late DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
   String _gender = 'Male';
   String _selectedAvatar = '';
   String _backgroundImage = '';
+  double _initialWeight = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
+    _birthDateController = TextEditingController();
+    _breedController = TextEditingController();
+    _weightController = TextEditingController();
     _loadPetData();
   }
 
@@ -49,6 +56,13 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       _selectedAvatar = pet.avatarImage;
       _backgroundImage = pet.backgroundImage;
       _gender = pet.gender;
+
+      var lastKnownWeight = await widget.ref
+          .read(eventWeightServiceProvider)
+          .getLastKnownWeight(widget.petId);
+
+      _weightController.text =
+          lastKnownWeight != null ? lastKnownWeight.weight.toString() : '';
 
       try {
         _selectedDate = DateFormat('dd/MM/yyyy').parse(pet.age);
@@ -64,29 +78,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     _nameController.dispose();
     _birthDateController.dispose();
     _breedController.dispose();
+    _weightController.dispose();
     super.dispose();
-  }
-
-  Future<DateTime?> _selectDate(
-      BuildContext context, DateTime initialDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Theme.of(context).colorScheme.inversePrimary,
-              onPrimary: Theme.of(context).primaryColorDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    return picked;
   }
 
   Future<void> _selectAvatar(BuildContext context) async {
@@ -111,6 +104,155 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     );
   }
 
+  Future<DateTime?> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Theme.of(context).colorScheme.secondary,
+              onPrimary: Theme.of(context).primaryColorDark,
+              onSurface: Theme.of(context).primaryColorDark,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    return picked;
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Empty Fields',
+            style: TextStyle(color: Theme.of(context).primaryColorDark),
+          ),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _saveWeight(double weight, String petId) {
+    final String weightId = generateUniqueId();
+    final String eventId = generateUniqueId();
+    final DateTime currentDate = DateTime.now();
+
+    final newWeight = EventWeightModel(
+      id: weightId,
+      eventId: eventId,
+      petId: petId,
+      weight: weight,
+      dateTime: currentDate,
+    );
+
+    final newEvent = Event(
+      id: eventId,
+      eventDate: currentDate,
+      dateWhenEventAdded: DateTime.now(),
+      title: 'Weight',
+      userId: FirebaseAuth.instance.currentUser!.uid,
+      petId: petId,
+      weightId: weightId,
+      description: '$weight kg',
+      avatarImage: _selectedAvatar,
+      emoticon: '⚖️',
+    );
+
+    widget.ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight, petId);
+  }
+
+  void _savePet() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      if (_selectedAvatar.isEmpty ||
+          _backgroundImage.isEmpty ||
+          _weightController.text.isEmpty) {
+        _showErrorDialog('Please complete all fields before saving.');
+        return;
+      }
+
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final petService = PetService();
+        final updatedPet = Pet(
+          id: widget.petId,
+          name: _nameController.text,
+          avatarImage: _selectedAvatar,
+          age: DateFormat('dd/MM/yyyy').format(_selectedDate),
+          gender: _gender,
+          breed: _breedController.text,
+          userId: currentUser.uid,
+          dateTime: DateTime.now(),
+          backgroundImage: _backgroundImage,
+        );
+        await petService.updatePet(updatedPet);
+        _saveWeight(_initialWeight, updatedPet.id);
+
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).pop(updatedPet);
+      }
+    }
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Delete Pet',
+            style: TextStyle(color: Theme.of(context).primaryColorDark),
+          ),
+          content: const Text(
+              'Are you sure you want to delete this pet? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                _deletePet();
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Confirm',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deletePet() async {
+    await PetService().deletePet(widget.petId);
+    // ignore: use_build_context_synchronously
+    Navigator.of(context).popUntil(ModalRoute.withName('/'));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,12 +260,11 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: Theme.of(context).primaryColorDark),
         title: Text(
-          'E D I T',
+          'E D I T  P E T',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: Theme.of(context).primaryColorDark,
-          ),
+              color: Theme.of(context).primaryColorDark,
+              fontSize: 13,
+              fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         actions: [
@@ -137,24 +278,43 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(15),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               _buildAvatarAndBackground(),
-              const SizedBox(height: 15),
-              _buildContainer([
-                _buildTextInput(_nameController, 'Name', '🐾'),
-                const SizedBox(height: 30),
-                _buildDateInput(context),
-              ]),
-              const SizedBox(height: 15),
-              _buildContainer([
-                _buildBreedInput(context),
-                const SizedBox(height: 30),
-                _buildGenderDropdown(),
-              ]),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: _buildContainer([
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildTextInput(_nameController, 'Name', '🐾'),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildDateInput(context),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildBreedInput(context),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildWeightInput(),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildGenderDropdown(),
+                  ),
+                  const SizedBox(height: 20),
+                ]),
+              ),
             ],
           ),
         ),
@@ -162,22 +322,19 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       bottomNavigationBar: BottomAppBar(
         color: Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: MaterialButton(
-              onPressed: () => _confirmDelete(context),
-              color: Colors.red.withOpacity(0.85),
-              textColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Text(
-                'Delete your pet',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+          padding: const EdgeInsets.all(15.0),
+          child: MaterialButton(
+            onPressed: () => _confirmDelete(context),
+            color: Colors.red.withOpacity(0.85),
+            textColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: const Text(
+              'Delete Pet',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -188,103 +345,76 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
 
   Widget _buildContainer(List<Widget> children) {
     return Container(
-      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
   Widget _buildAvatarAndBackground() {
-    return _buildContainer([
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          GestureDetector(
-            onTap: () => _selectAvatar(context),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 35,
-                  backgroundImage: _selectedAvatar.isNotEmpty
-                      ? AssetImage(_selectedAvatar)
-                      : const AssetImage('assets/default_avatar.png'),
-                ),
-                const SizedBox(height: 8),
-                Text('Avatar',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).primaryColorDark,
-                    )),
-              ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(22),
+          bottomRight: Radius.circular(22),
+        ),
+      ),
+      child: Column(children: [
+        Divider(color: Theme.of(context).colorScheme.secondary),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            GestureDetector(
+              onTap: () => _selectAvatar(context),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 35,
+                    backgroundImage: _selectedAvatar.isNotEmpty
+                        ? AssetImage(_selectedAvatar)
+                        : const AssetImage(
+                            'assets/images/dog_avatars/beagle.png'),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Avatar',
+                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                  ),
+                ],
+              ),
             ),
-          ),
-          GestureDetector(
-            onTap: () => _selectBackground(context),
-            child: Column(
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      image: _backgroundImage.isNotEmpty
-                          ? AssetImage(_backgroundImage)
-                          : const AssetImage(
-                              'assets/images/dog_backgrounds/dog_details_background_05.png'),
-                      fit: BoxFit.cover,
+            GestureDetector(
+              onTap: () => _selectBackground(context),
+              child: Column(
+                children: [
+                  Container(
+                    width: 100,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: DecorationImage(
+                        image: _backgroundImage.isNotEmpty
+                            ? AssetImage(_backgroundImage)
+                            : const AssetImage(
+                                'assets/images/dog_backgrounds/dog_details_background_05.png'),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text('Background',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).primaryColorDark,
-                    )),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Background',
+                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    ]);
-  }
-
-  Widget _buildGenderDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _gender,
-      decoration: InputDecoration(
-        labelText: 'Gender',
-        prefixIcon: const Padding(
-          padding: EdgeInsets.only(top: 2, left: 6, right: 15),
-          child: Text('♂️/♀️', style: TextStyle(fontSize: 25)),
+          ],
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-        ),
-        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
-      ),
-      onChanged: (newValue) => setState(() => _gender = newValue!),
-      items: ['Male', 'Female'].map<DropdownMenuItem<String>>((value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
+      ]),
     );
   }
 
@@ -300,17 +430,11 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-        ),
-        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
       ),
       validator: (value) =>
           value == null || value.isEmpty ? 'Please enter $label' : null,
@@ -318,7 +442,18 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   }
 
   Widget _buildDateInput(BuildContext context) {
-    return InputDecorator(
+    return TextFormField(
+      controller: _birthDateController,
+      readOnly: true,
+      onTap: () async {
+        final DateTime? picked = await _selectDate(context);
+        if (picked != null) {
+          setState(() {
+            _selectedDate = picked;
+            _birthDateController.text = DateFormat('dd/MM/yyyy').format(picked);
+          });
+        }
+      },
       decoration: InputDecoration(
         labelText: 'Date of Birth',
         prefixIcon: const Padding(
@@ -327,36 +462,10 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-        ),
-        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
-      ),
-      child: TextButton(
-        onPressed: () async {
-          final DateTime? picked = await _selectDate(context, _selectedDate);
-          if (picked != null) {
-            setState(() {
-              _selectedDate = picked;
-              _birthDateController.text =
-                  DateFormat('dd/MM/yyyy').format(picked);
-            });
-          }
-        },
-        style: TextButton.styleFrom(padding: EdgeInsets.zero),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            DateFormat('dd/MM/yyyy').format(_selectedDate),
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
         ),
       ),
     );
@@ -395,17 +504,11 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
-            ),
-            labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
           ),
           readOnly: true,
         ),
@@ -413,60 +516,56 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Delete pet',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-          content: Text(
-            'Are you sure you want to delete your pet? This operation cannot be undone.',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-            TextButton(
-              onPressed: () {
-                _deletePet(context);
-                Navigator.pop(context);
-              },
-              child: Text('Confirm',
-                  style: TextStyle(color: Theme.of(context).primaryColorDark)),
-            ),
-          ],
-        );
+  Widget _buildWeightInput() {
+    return TextFormField(
+      controller: _weightController,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      onChanged: (value) {
+        _initialWeight = double.tryParse(value) ?? 0.0;
       },
+      decoration: InputDecoration(
+        labelText: 'Weight',
+        prefixIcon: const Padding(
+          padding: EdgeInsets.only(left: 12, right: 20),
+          child: Text('⚖️', style: TextStyle(fontSize: 35)),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
+        ),
+      ),
+      validator: (value) =>
+          value == null || value.isEmpty ? 'Please enter Weight' : null,
     );
   }
 
-  void _deletePet(BuildContext context) async {
-    await PetService().deletePet(widget.petId);
-    Navigator.of(context).popUntil(ModalRoute.withName('/'));
-  }
-
-  void _savePet() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      var pet = await ref.read(petServiceProvider).getPetById(widget.petId);
-      Pet updatedPet = Pet(
-        id: widget.petId,
-        name: _nameController.text,
-        avatarImage: _selectedAvatar,
-        age: DateFormat('dd/MM/yyyy').format(_selectedDate),
-        gender: _gender,
-        breed: _breedController.text,
-        userId: FirebaseAuth.instance.currentUser!.uid,
-        dateTime: DateTime.now(),
-        backgroundImage: pet!.backgroundImage,
-      );
-      await ref.read(petServiceProvider).updatePet(updatedPet);
-      Navigator.pop(context, updatedPet);
-    }
+  Widget _buildGenderDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _gender,
+      decoration: InputDecoration(
+        labelText: 'Gender',
+        prefixIcon: const Padding(
+          padding: EdgeInsets.only(left: 12, right: 20),
+          child: Text('♂️/♀️', style: TextStyle(fontSize: 25)),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
+        ),
+      ),
+      onChanged: (value) => setState(() => _gender = value!),
+      items: ['Male', 'Female'].map((value) {
+        return DropdownMenuItem(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
   }
 }

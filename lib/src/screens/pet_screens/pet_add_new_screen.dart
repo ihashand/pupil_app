@@ -104,7 +104,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
       builder: (context) {
         return AlertDialog(
           title: Text(
-            'Invalid Input',
+            'Empty Fields',
             style: TextStyle(color: Theme.of(context).primaryColorDark),
           ),
           content: Text(message),
@@ -149,7 +149,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
     );
 
     widget.ref.read(eventServiceProvider).addEvent(newEvent, petId);
-    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight);
+    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight, petId);
   }
 
   void _savePet() async {
@@ -178,6 +178,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
         await petService.addPet(newPet);
         _saveWeight(_initialWeight, newPet.id);
 
+        // ignore: use_build_context_synchronously
         Navigator.of(context).pop();
       }
     }
