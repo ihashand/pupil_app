@@ -26,7 +26,8 @@ class PetService {
 
     // Stream to get pets shared with the user
     final sharedPetsStream = _firestore
-        .collectionGroup('pets')
+        .collection('app_users')
+        .collection('pets')
         .where('sharedWith', arrayContains: _currentUser.uid)
         .snapshots()
         .map((snapshot) =>
