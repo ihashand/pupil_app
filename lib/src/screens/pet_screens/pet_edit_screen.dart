@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/add_pet_steps/dogs_breed_data.dart';
+import 'package:pet_diary/src/components/breed_data/dogs_breed_data.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_dog_breed_selection_screen.dart';
 import 'package:pet_diary/src/services/other_services/pet_services.dart';
@@ -143,13 +143,13 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
           child: Column(
             children: [
               _buildAvatarAndBackground(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               _buildContainer([
                 _buildTextInput(_nameController, 'Name', '🐾'),
                 const SizedBox(height: 30),
                 _buildDateInput(context),
               ]),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               _buildContainer([
                 _buildBreedInput(context),
                 const SizedBox(height: 30),
@@ -235,7 +235,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
                     image: DecorationImage(
                       image: _backgroundImage.isNotEmpty
                           ? AssetImage(_backgroundImage)
-                          : const AssetImage('assets/default_background.png'),
+                          : const AssetImage(
+                              'assets/images/dog_backgrounds/dog_details_background_05.png'),
                       fit: BoxFit.cover,
                     ),
                   ),

@@ -89,11 +89,11 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       ),
       body: Column(
         children: [
-          _buildHeaderSection(context),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  _buildHeaderSection(context),
                   const SizedBox(height: 10),
                   if (isOwner) _buildHealthEventSection(),
                   _buildAchievementsSection(context),
@@ -167,8 +167,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
           if (isOwner)
             Expanded(
               child: GestureDetector(
-                onTap: () => _showWeightInfoDialog(
-                    context), // Funkcja do wyświetlenia dialogu z wagą
+                onTap: () => _showWeightInfoDialog(context),
                 child: _buildPetWeight(context),
               ),
             ),
@@ -299,7 +298,6 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                 )!
                 .weight;
 
-            // Dodajemy GestureDetector, aby wyświetlić szczegóły wagi w dialogu
             return GestureDetector(
               onTap: () => _showInfoDialog(
                 context,
