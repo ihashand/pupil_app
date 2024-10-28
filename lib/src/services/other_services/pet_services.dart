@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:rxdart/rxdart.dart';
 
 class PetService {
   final _firestore = FirebaseFirestore.instance;
@@ -14,17 +15,31 @@ class PetService {
       return Stream.value([]);
     }
 
-    _firestore
+    // Stream to get the user's pets
+    final userPetsStream = _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
         .collection('pets')
         .snapshots()
-        .listen((snapshot) {
-      _petsController
-          .add(snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
-    });
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
 
-    return _petsController.stream;
+    // Stream to get pets shared with the user
+    final sharedPetsStream = _firestore
+        .collectionGroup('pets')
+        .where('sharedWith', arrayContains: _currentUser.uid)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
+
+    // Combine both streams
+    return Rx.combineLatest2(
+      userPetsStream,
+      sharedPetsStream,
+      (List<Pet> userPets, List<Pet> sharedPets) {
+        return [...userPets, ...sharedPets];
+      },
+    ).asBroadcastStream();
   }
 
   Stream<Pet?> getPetByIdStream(String petId) {

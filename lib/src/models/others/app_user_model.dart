@@ -5,12 +5,14 @@ class AppUserModel {
   final String email;
   final String username;
   final String avatarUrl;
+  final bool isPremium;
 
   AppUserModel({
     required this.id,
     required this.email,
     required this.username,
     required this.avatarUrl,
+    this.isPremium = false,
   });
 
   factory AppUserModel.fromDocument(DocumentSnapshot doc) {
@@ -19,6 +21,7 @@ class AppUserModel {
       email: doc['email'],
       username: doc['username'] ?? 'No username',
       avatarUrl: doc['avatarUrl'] ?? 'assets/images/default_avatar.png',
+      isPremium: doc['isPremium'] ?? false,
     );
   }
 
@@ -28,6 +31,7 @@ class AppUserModel {
       'email': email,
       'username': username,
       'avatarUrl': avatarUrl,
+      'isPremium': isPremium,
     };
   }
 
@@ -36,12 +40,14 @@ class AppUserModel {
     String? email,
     String? username,
     String? avatarUrl,
+    bool? isPremium,
   }) {
     return AppUserModel(
       id: uid ?? id,
       email: email ?? this.email,
       username: username ?? this.username,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      isPremium: isPremium ?? this.isPremium,
     );
   }
 }
