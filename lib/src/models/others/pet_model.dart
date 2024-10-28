@@ -56,7 +56,24 @@ class Pet {
       'dateTime': dateTime,
       'backgroundImage': backgroundImage,
       'achievementIds': achievementIds ?? [],
-      'sharedWith': sharedWithIds ?? [],
+      'sharedWithIds': sharedWithIds ?? [],
     };
+  }
+
+  // Update bazy danych Update all pet documents in Firestore
+  static Future<void> updateAllPets() async {
+    final petCollection = FirebaseFirestore.instance.collection('pets');
+
+    // Fetch all documents in the collection
+    final querySnapshot = await petCollection.get();
+
+    // Loop through each document and update it
+    for (var doc in querySnapshot.docs) {
+      // Convert each document into a Pet instance
+      Pet pet = Pet.fromDocument(doc);
+
+      // Update the document in Firestore with the pet's data
+      await petCollection.doc(pet.id).update(pet.toMap());
+    }
   }
 }
