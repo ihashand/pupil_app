@@ -16,7 +16,7 @@ import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/components/events/event_cards/event_health_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/screens/pet_details_screens/pet_edit_screen.dart';
+import 'package:pet_diary/src/screens/pet_screens/pet_edit_screen.dart';
 
 class PetProfileScreen extends ConsumerStatefulWidget {
   final Pet pet;

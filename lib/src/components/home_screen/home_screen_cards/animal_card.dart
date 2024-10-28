@@ -5,7 +5,7 @@ import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/helpers/others/calculate_age.dart';
-import 'package:pet_diary/src/screens/pet_details_screens/pet_details_screen.dart';
+import 'package:pet_diary/src/screens/pet_screens/pet_profile_screen.dart';
 
 class AnimalCard extends ConsumerStatefulWidget {
   final Pet pet;
@@ -172,8 +172,7 @@ class _AnimalCardState extends ConsumerState<AnimalCard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                PetDetailsScreen(petId: pet.id),
+                            builder: (context) => PetProfileScreen(pet: pet),
                           ),
                         );
                       },

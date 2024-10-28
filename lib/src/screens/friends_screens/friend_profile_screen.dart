@@ -22,7 +22,7 @@ import 'package:pet_diary/src/components/report_widget/generate_report_card.dart
 import 'package:pet_diary/src/components/health_activity_widgets/section_title.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:confetti/confetti.dart';
-import 'package:pet_diary/src/screens/pet_profile_screens/pet_profile_screen.dart';
+import 'package:pet_diary/src/screens/pet_screens/pet_profile_screen.dart';
 import 'package:pet_diary/src/screens/activity_screens/activity_screen.dart';
 
 class FriendProfileScreen extends ConsumerStatefulWidget {

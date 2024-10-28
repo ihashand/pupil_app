@@ -10,10 +10,10 @@ class EventsScreen extends ConsumerStatefulWidget {
   final String petId;
 
   @override
-  createState() => _HealthScreenState();
+  createState() => _EventsScreenState();
 }
 
-class _HealthScreenState extends ConsumerState<EventsScreen>
+class _EventsScreenState extends ConsumerState<EventsScreen>
     with SingleTickerProviderStateMixin {
   bool isCurrentSelected = true;
   bool isCalendarView = true;
