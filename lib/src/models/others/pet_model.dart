@@ -76,4 +76,33 @@ class Pet {
       await petCollection.doc(pet.id).update(pet.toMap());
     }
   }
+
+  static Future<void> migratePetsToTopLevel() async {
+    final usersCollection = FirebaseFirestore.instance.collection('app_users');
+    final petsCollection = FirebaseFirestore.instance.collection('pets');
+
+    // Get all users
+    final usersSnapshot = await usersCollection.get();
+
+    for (var userDoc in usersSnapshot.docs) {
+      // Get userId
+      final userId = userDoc.id;
+
+      // Get pets sub-collection for each user
+      final userPetsSnapshot =
+          await usersCollection.doc(userId).collection('pets').get();
+
+      // Loop through each pet document and copy it to the top-level pets collection
+      for (var petDoc in userPetsSnapshot.docs) {
+        // Create a Pet instance from the document data
+        Pet pet = Pet.fromDocument(petDoc);
+
+        // Ensure the pet has the userId field for ownership tracking
+        pet.userId = userId;
+
+        // Set the pet document in the top-level pets collection
+        await petsCollection.doc(pet.id).set(pet.toMap());
+      }
+    }
+  }
 }

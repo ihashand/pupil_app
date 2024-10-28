@@ -16,12 +16,14 @@ class AppUserModel {
   });
 
   factory AppUserModel.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+
     return AppUserModel(
-      id: doc['uid'],
-      email: doc['email'],
-      username: doc['username'] ?? 'No username',
-      avatarUrl: doc['avatarUrl'] ?? 'assets/images/default_avatar.png',
-      isPremium: doc['isPremium'] ?? false,
+      id: data['uid'] ?? doc.id,
+      email: data['email'] ?? 'No email',
+      username: data['username'] ?? 'No username',
+      avatarUrl: data['avatarUrl'] ?? 'assets/images/default_avatar.png',
+      isPremium: data.containsKey('isPremium') ? data['isPremium'] : false,
     );
   }
 
@@ -35,15 +37,32 @@ class AppUserModel {
     };
   }
 
+  // Update bazy danych Update all user documents in Firestore
+  static Future<void> updateAllUsers() async {
+    final userCollection = FirebaseFirestore.instance.collection('app_users');
+
+    // Fetch all documents in the collection
+    final querySnapshot = await userCollection.get();
+
+    // Loop through each document and update it
+    for (var doc in querySnapshot.docs) {
+      // Convert each document into an AppUserModel instance
+      AppUserModel user = AppUserModel.fromDocument(doc);
+
+      // Update the document in Firestore with the user's data
+      await userCollection.doc(user.id).update(user.toMap());
+    }
+  }
+
   AppUserModel copyWith({
-    String? uid,
+    String? id,
     String? email,
     String? username,
     String? avatarUrl,
     bool? isPremium,
   }) {
     return AppUserModel(
-      id: uid ?? id,
+      id: id ?? this.id,
       email: email ?? this.email,
       username: username ?? this.username,
       avatarUrl: avatarUrl ?? this.avatarUrl,
