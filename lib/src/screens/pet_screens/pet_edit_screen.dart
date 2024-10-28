@@ -10,7 +10,6 @@ import 'package:pet_diary/src/helpers/others/helper_show_bacground_selection.dar
 import 'package:pet_diary/src/screens/pet_screens/pet_dog_breed_selection_screen.dart';
 import 'package:pet_diary/src/services/other_services/pet_services.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:pet_diary/src/models/others/dog_breed_model.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 
@@ -34,7 +33,6 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   String _gender = 'Male';
   String _selectedAvatar = '';
   String _backgroundImage = '';
-  OverlayEntry? overlayEntry;
 
   @override
   void initState() {
@@ -50,6 +48,8 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       _breedController.text = pet.breed;
       _selectedAvatar = pet.avatarImage;
       _backgroundImage = pet.backgroundImage;
+      _gender = pet.gender;
+
       try {
         _selectedDate = DateFormat('dd/MM/yyyy').parse(pet.age);
       } catch (e) {
@@ -145,7 +145,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
               _buildAvatarAndBackground(),
               const SizedBox(height: 10),
               _buildContainer([
-                _buildTextInput(_nameController, 'Name', Icons.pets),
+                _buildTextInput(_nameController, 'Name', '🐾'),
                 const SizedBox(height: 30),
                 _buildDateInput(context),
               ]),
@@ -259,6 +259,10 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
       value: _gender,
       decoration: InputDecoration(
         labelText: 'Gender',
+        prefixIcon: const Padding(
+          padding: EdgeInsets.only(top: 2, left: 6, right: 15),
+          child: Text('♂️/♀️', style: TextStyle(fontSize: 25)),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
@@ -271,8 +275,6 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
-        prefixIcon:
-            Icon(Icons.transgender, color: Theme.of(context).primaryColorDark),
         labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
       ),
       onChanged: (newValue) => setState(() => _gender = newValue!),
@@ -286,12 +288,15 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
   }
 
   Widget _buildTextInput(
-      TextEditingController controller, String label, IconData icon) {
+      TextEditingController controller, String label, String emoji) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Theme.of(context).primaryColorDark),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 12, right: 20),
+          child: Text(emoji, style: const TextStyle(fontSize: 35)),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
@@ -315,8 +320,10 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
     return InputDecorator(
       decoration: InputDecoration(
         labelText: 'Date of Birth',
-        prefixIcon: Icon(Icons.calendar_today,
-            color: Theme.of(context).primaryColorDark),
+        prefixIcon: const Padding(
+          padding: EdgeInsets.only(left: 12, right: 20),
+          child: Text('🎂', style: TextStyle(fontSize: 35)),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
@@ -370,7 +377,6 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
             ),
           ),
         );
-
         if (selectedBreed != null && selectedBreed is String) {
           setState(() {
             _breedController.text = selectedBreed;
@@ -382,8 +388,10 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
           controller: _breedController,
           decoration: InputDecoration(
             labelText: 'Breed',
-            prefixIcon:
-                Icon(Icons.category, color: Theme.of(context).primaryColorDark),
+            prefixIcon: const Padding(
+              padding: EdgeInsets.only(left: 12, right: 20),
+              child: Text('🐶', style: TextStyle(fontSize: 35)),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
@@ -457,110 +465,7 @@ class PetEditScreenState extends ConsumerState<PetEditScreen> {
         backgroundImage: pet!.backgroundImage,
       );
       await ref.read(petServiceProvider).updatePet(updatedPet);
-      Navigator.of(context).pop();
+      Navigator.pop(context, updatedPet);
     }
-  }
-}
-
-class BreedSelectionMenu extends StatefulWidget {
-  final Function(DogBreed) onBreedSelected;
-
-  const BreedSelectionMenu({required this.onBreedSelected, super.key});
-
-  @override
-  State<BreedSelectionMenu> createState() => _BreedSelectionMenuState();
-}
-
-class _BreedSelectionMenuState extends State<BreedSelectionMenu> {
-  String searchQuery = '';
-  final TextEditingController searchController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(15.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildSearchBar(),
-          Expanded(
-            child: ListView.builder(
-              itemCount: dogBreedGroups.length,
-              itemBuilder: (context, groupIndex) {
-                final group = dogBreedGroups[groupIndex];
-                final filteredSections = group.sections
-                    .map((section) {
-                      final filteredBreeds = section.breeds
-                          .where((breed) => breed.name
-                              .toLowerCase()
-                              .contains(searchQuery.toLowerCase()))
-                          .toList();
-                      return DogBreedSection(
-                          sectionName: section.sectionName,
-                          breeds: filteredBreeds);
-                    })
-                    .where((section) => section.breeds.isNotEmpty)
-                    .toList();
-
-                if (filteredSections.isEmpty) return Container();
-
-                return ExpansionTile(
-                  title: Text(
-                    group.groupName,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColorDark),
-                  ),
-                  children: filteredSections.map((section) {
-                    return ExpansionTile(
-                      title: Text(section.sectionName,
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context)
-                                  .primaryColorDark
-                                  .withOpacity(0.8))),
-                      children: section.breeds.map((breed) {
-                        return ListTile(
-                          title: Text(
-                            breed.name,
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark),
-                          ),
-                          onTap: () => widget.onBreedSelected(breed),
-                        );
-                      }).toList(),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: TextField(
-        controller: searchController,
-        onChanged: (query) {
-          setState(() {
-            searchQuery = query;
-          });
-        },
-        decoration: InputDecoration(
-          hintText: 'Search breeds...',
-          prefixIcon: Icon(Icons.search, color: Theme.of(context).primaryColor),
-          filled: true,
-          fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
   }
 }

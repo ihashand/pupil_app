@@ -18,9 +18,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_edit_screen.dart';
 
+// ignore: must_be_immutable
 class PetProfileScreen extends ConsumerStatefulWidget {
-  final Pet pet;
-  const PetProfileScreen({required this.pet, super.key});
+  Pet pet;
+  PetProfileScreen({required this.pet, super.key});
 
   @override
   createState() => _PetProfileScreenState();
@@ -36,6 +37,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     _checkOwnership();
   }
 
+  /// Sprawdza, czy obecny użytkownik jest właścicielem zwierzęcia
   Future<void> _checkOwnership() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -63,20 +65,25 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
         actions: isOwner
             ? [
                 IconButton(
-                  icon: Icon(
-                    Icons.settings,
-                    color: Theme.of(context).primaryColorDark.withOpacity(0.7),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            PetEditScreen(petId: widget.pet.id),
-                      ),
-                    );
-                  },
-                ),
+                    icon: Icon(
+                      Icons.settings,
+                      color:
+                          Theme.of(context).primaryColorDark.withOpacity(0.7),
+                    ),
+                    onPressed: () async {
+                      final updatedPet = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PetEditScreen(petId: widget.pet.id),
+                        ),
+                      );
+                      if (updatedPet != null && updatedPet is Pet) {
+                        setState(() {
+                          widget.pet = updatedPet;
+                        });
+                      }
+                    }),
               ]
             : null,
       ),
@@ -87,9 +94,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   if (isOwner) _buildHealthEventSection(),
                   _buildAchievementsSection(context),
                   _buildActionButtons(context),
@@ -102,6 +107,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Buduje sekcję nagłówka z avatarem i detalami
   Widget _buildHeaderSection(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -140,6 +146,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Buduje wiersz szczegółów zwierzęcia z ikonami i informacjami
   Widget _buildPetDetailsRow(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -147,50 +154,126 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-            child: _buildDetailItem(
-                context,
-                widget.pet.gender == 'Male' ? '♂️' : '♀️',
-                'Gender',
-                widget.pet.gender),
+            child: GestureDetector(
+              onTap: () => _showInfoDialog(context, 'Gender', widget.pet.gender,
+                  widget.pet.gender == 'Male' ? '♂️' : '♀️'),
+              child: _buildDetailItem(
+                  context,
+                  widget.pet.gender == 'Male' ? '♂️' : '♀️',
+                  'Gender',
+                  widget.pet.gender),
+            ),
           ),
-          if (isOwner) // Pokazywanie wagi tylko dla właściciela
+          if (isOwner)
             Expanded(
-              child: _buildPetWeight(context), // Waga z ikoną
+              child: GestureDetector(
+                onTap: () => _showWeightInfoDialog(
+                    context), // Funkcja do wyświetlenia dialogu z wagą
+                child: _buildPetWeight(context),
+              ),
             ),
           Expanded(
-            child: _buildDetailItem(
-                context, '🎂', 'Age', _calculateAge(widget.pet.age)),
+            child: GestureDetector(
+              onTap: () => _showInfoDialog(
+                  context, 'Age', _calculateAge(widget.pet.age), '🎂'),
+              child: _buildDetailItem(
+                  context, '🎂', 'Age', _calculateAge(widget.pet.age)),
+            ),
           ),
           Expanded(
-            child: _buildDetailItem(context, '🐶', 'Breed', widget.pet.breed),
+            child: GestureDetector(
+              onTap: () =>
+                  _showInfoDialog(context, 'Breed', widget.pet.breed, '🐶'),
+              child: _buildDetailItem(
+                  context, '🐶', 'Breed', _shortenBreed(widget.pet.breed)),
+            ),
           ),
         ],
       ),
     );
   }
 
+  /// Skraca nazwę rasy, jeśli jest zbyt długa
+  String _shortenBreed(String breed) {
+    return breed.length > 7 ? '${breed.substring(0, 5)}...' : breed;
+  }
+
+  /// Wyświetla animowany dialog na środku ekranu z informacją o wybranym szczególe
+  Future<void> _showInfoDialog(
+      BuildContext context, String label, String info, String emoji) async {
+    showDialog(
+      context: context,
+      barrierDismissible:
+          true, // Pozwala na zamykanie przez kliknięcie poza dialogiem
+      builder: (BuildContext context) {
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: ScaleTransition(
+              scale: Tween(begin: 0.8, end: 1.0).animate(
+                CurvedAnimation(
+                  parent: ModalRoute.of(context)!.animation!,
+                  curve: Curves.easeInOut,
+                  reverseCurve: Curves.easeInOut, // Animacja wygaszania
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.only(
+                    left: 75, right: 75, top: 34, bottom: 35),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      emoji,
+                      style: const TextStyle(fontSize: 50),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      info,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color:
+                            Theme.of(context).primaryColorDark.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Buduje widżet szczegółu (ikona + tekst) do wyświetlania informacji
   Widget _buildDetailItem(
       BuildContext context, String emoji, String label, String value) {
     return Column(
       children: [
-        Text(
-          emoji,
-          style: const TextStyle(fontSize: 28),
-        ),
+        Text(emoji, style: const TextStyle(fontSize: 28)),
         const SizedBox(height: 5),
-        Text(
-          value,
-          style: TextStyle(
-              fontSize: 16, color: Theme.of(context).primaryColorDark),
-        ),
+        Text(value,
+            style: TextStyle(
+                fontSize: 16, color: Theme.of(context).primaryColorDark)),
         const SizedBox(height: 5),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).primaryColorDark.withOpacity(0.6),
-          ),
-        ),
+        Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).primaryColorDark.withOpacity(0.6))),
       ],
     );
   }
@@ -215,14 +298,29 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                   ),
                 )!
                 .weight;
-            return _buildDetailItem(
-                context, '⚖️', 'Weight', '$weight kg'); // Waga z ikoną
+
+            // Dodajemy GestureDetector, aby wyświetlić szczegóły wagi w dialogu
+            return GestureDetector(
+              onTap: () => _showInfoDialog(
+                context,
+                'Weight',
+                '$weight kg',
+                '⚖️',
+              ),
+              child: _buildDetailItem(
+                context,
+                '⚖️',
+                'Weight',
+                '$weight kg',
+              ),
+            );
           },
         );
       },
     );
   }
 
+  /// Buduje sekcję osiągnięć
   Widget _buildAchievementsSection(BuildContext context) {
     return FutureBuilder<List<Achievement>>(
       future: _fetchAchievements(),
@@ -299,19 +397,18 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
-  String _getAchievementEmoticon(double percentage) {
-    if (percentage < 10) return '💪';
-    if (percentage < 20) return '🔥';
-    if (percentage < 30) return '🏆';
-    if (percentage < 40) return '🚀';
-    if (percentage < 50) return '💯';
-    if (percentage < 60) return '🎉';
-    if (percentage < 70) return '🌟';
-    if (percentage < 80) return '🏅';
-    if (percentage < 90) return '⭐';
-    return '👑';
+  /// Pobiera osiągnięcia z bazy danych
+  Future<List<Achievement>> _fetchAchievements() async {
+    final List<Achievement> achievements = [];
+    final snapshot =
+        await FirebaseFirestore.instance.collection('achievements').get();
+    for (var doc in snapshot.docs) {
+      achievements.add(Achievement.fromDocument(doc));
+    }
+    return achievements;
   }
 
+  /// Buduje nagłówek sekcji osiągnięć
   Widget _buildAchievementsHeader(
       BuildContext context, List<Achievement> achievements) {
     return Row(
@@ -347,16 +444,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
-  Future<List<Achievement>> _fetchAchievements() async {
-    final List<Achievement> achievements = [];
-    final snapshot =
-        await FirebaseFirestore.instance.collection('achievements').get();
-    for (var doc in snapshot.docs) {
-      achievements.add(Achievement.fromDocument(doc));
-    }
-    return achievements;
-  }
-
+  /// Pokazuje wszystkie osiągnięcia w menu
   void _showAllAchievementsMenu(
       BuildContext context, List<Achievement> allAchievements) {
     showModalBottomSheet(
@@ -365,7 +453,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (BuildContext context) {
         return FractionallySizedBox(
-          heightFactor: 0.85, // Dostosowanie wysokości modala
+          heightFactor: 0.85,
           child: StatefulBuilder(
             builder: (context, setState) {
               List<Achievement> filteredAchievements =
@@ -501,6 +589,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Pobiera listę osiągnięć przefiltrowaną według kategorii
   List<Achievement> _getFilteredAchievements(
       List<Achievement> achievements, String category) {
     return category == 'all'
@@ -510,53 +599,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
             .toList();
   }
 
-  Widget _buildCategoryFilterButtons(
-      BuildContext context, StateSetter setState) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: ['all', 'steps', 'nature', 'seasonal']
-              .map((category) => _buildCategoryButton(
-                  context, setState, selectedCategory, category))
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryButton(BuildContext context, StateSetter setState,
-      String selectedCategory, String category) {
-    bool isSelected = selectedCategory == category;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            this.selectedCategory = category;
-          });
-        },
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Theme.of(context).primaryColorDark,
-          backgroundColor: isSelected
-              ? Theme.of(context).colorScheme.inversePrimary
-              : Theme.of(context).colorScheme.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        ),
-        child: Text(
-          category.toUpperCase(),
-          style: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// Buduje nagłówek modalu osiągnięć
   Widget _buildAchievementModalHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -597,6 +640,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Buduje widżet z motywującym tekstem
   Widget _buildMotivationalTextWidget() {
     final motivationalTexts = [
       'Great start, keep it up!',
@@ -623,6 +667,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Buduje sekcję zdarzeń zdrowotnych
   Widget _buildHealthEventSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -638,6 +683,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Buduje przyciski akcji
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10.0, 15, 10, 35),
@@ -712,10 +758,12 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
+  /// Formatuje imię zwierzęcia, aby było wyświetlane dużymi literami
   String _formatPetName(String name) {
     return name.toUpperCase().split('').join(' ');
   }
 
+  /// Oblicza wiek zwierzęcia na podstawie daty urodzenia
   String _calculateAge(String birthdate) {
     final birthDate = DateFormat('dd/MM/yyyy').parse(birthdate);
     final currentDate = DateTime.now();
@@ -727,5 +775,109 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       age--;
     }
     return '$age years';
+  }
+
+  /// Pobiera emotikonę osiągnięcia na podstawie procentu ukończenia
+  String _getAchievementEmoticon(double percentage) {
+    if (percentage < 10) return '💪';
+    if (percentage < 20) return '🔥';
+    if (percentage < 30) return '🏆';
+    if (percentage < 40) return '🚀';
+    if (percentage < 50) return '💯';
+    if (percentage < 60) return '🎉';
+    if (percentage < 70) return '🌟';
+    if (percentage < 80) return '🏅';
+    if (percentage < 90) return '⭐';
+    return '👑';
+  }
+
+  void _showWeightInfoDialog(BuildContext context) {
+    final asyncWeights = ref.read(eventWeightsProvider);
+    asyncWeights.when(
+      loading: () => showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          content: Text('Loading weight data...'),
+        ),
+      ),
+      error: (err, stack) => showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          content: Text('Error fetching weight data'),
+        ),
+      ),
+      data: (weights) {
+        final weight = weights
+            .firstWhere(
+              (element) => element!.petId == widget.pet.id,
+              orElse: () => EventWeightModel(
+                id: '',
+                weight: 0.0,
+                eventId: '',
+                petId: widget.pet.id,
+                dateTime: DateTime.now(),
+              ),
+            )!
+            .weight;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Weight'),
+            content: Text('$weight kg'),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryFilterButtons(
+      BuildContext context, StateSetter setState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: ['all', 'steps', 'nature', 'seasonal']
+              .map((category) => _buildCategoryButton(
+                  context, setState, selectedCategory, category))
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryButton(
+    BuildContext context,
+    StateSetter setState,
+    String selectedCategory,
+    String category,
+  ) {
+    bool isSelected = selectedCategory == category;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            this.selectedCategory = category;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Theme.of(context).primaryColorDark,
+          backgroundColor: isSelected
+              ? Theme.of(context).colorScheme.inversePrimary
+              : Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+        ),
+        child: Text(
+          category.toUpperCase(),
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
   }
 }
