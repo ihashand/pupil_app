@@ -9,16 +9,16 @@ import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 
-class WalksListScreen extends ConsumerStatefulWidget {
+class ActivityScreen extends ConsumerStatefulWidget {
   final String? petId; // Opcjonalne petId, aby filtrować spacery po zwierzęciu
 
-  const WalksListScreen({super.key, this.petId});
+  const ActivityScreen({super.key, this.petId});
 
   @override
-  ConsumerState<WalksListScreen> createState() => _WalksListScreenState();
+  ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
 }
 
-class _WalksListScreenState extends ConsumerState<WalksListScreen>
+class _ActivityScreenState extends ConsumerState<ActivityScreen>
     with SingleTickerProviderStateMixin {
   int _loadedItems = 3;
   bool _isLoadingMore = false;
@@ -62,7 +62,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'W A L K S  L I S T',
+          'A C T I V I T Y',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -136,6 +136,7 @@ class _WalksListScreenState extends ConsumerState<WalksListScreen>
                         .toList();
 
                     // Przejście do ekranu WalkSummaryScreen
+                    // ignore: use_build_context_synchronously
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => WalkSummaryScreen(
