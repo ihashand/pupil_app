@@ -253,7 +253,7 @@ void _saveUrineEvent(BuildContext context, WidgetRef ref, String petId,
     description: selectedUrineType ?? 'Urine event',
     dateTime: selectedDate,
   );
-  ref.read(eventUrineServiceProvider).addUrineEvent(newUrine, petId);
+  ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
 
   Event newEvent = Event(
     id: eventId,

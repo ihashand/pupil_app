@@ -59,7 +59,7 @@ class _PetEditScreenState extends State<PetEditScreen> {
 
       var lastKnownWeight = await widget.ref
           .read(eventWeightServiceProvider)
-          .getLastKnownWeight(widget.petId);
+          .getLastKnownWeight();
 
       _weightController.text =
           lastKnownWeight != null ? lastKnownWeight.weight.toString() : '';
@@ -177,7 +177,7 @@ class _PetEditScreenState extends State<PetEditScreen> {
     );
 
     widget.ref.read(eventServiceProvider).addEvent(newEvent, petId);
-    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight, petId);
+    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight);
   }
 
   void _savePet() async {

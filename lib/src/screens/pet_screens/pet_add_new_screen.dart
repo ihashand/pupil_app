@@ -149,7 +149,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
     );
 
     widget.ref.read(eventServiceProvider).addEvent(newEvent, petId);
-    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight, petId);
+    widget.ref.read(eventWeightServiceProvider).addWeight(newWeight);
   }
 
   void _savePet() async {

@@ -9,7 +9,7 @@ import 'package:pet_diary/src/components/events/event_food/functions/is_same_day
 Widget foodScreenMacroCircles(
     BuildContext context, WidgetRef ref, String petId) {
   final petSettings = ref.watch(eventFoodPetSettingsProvider(petId));
-  final eatenMealsAsyncValue = ref.watch(eventFoodEatenMealsProvider(petId));
+  final eatenMealsAsyncValue = ref.watch(eventFoodEatenMealsProvider);
 
   return eatenMealsAsyncValue.when(
     data: (meals) {

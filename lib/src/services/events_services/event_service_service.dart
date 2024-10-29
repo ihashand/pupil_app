@@ -14,12 +14,7 @@ class EventServiceService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_services')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_services').snapshots().listen((snapshot) {
       _servicesEventController.add(
         snapshot.docs
             .map((doc) => EventServiceModel.fromDocument(doc))
@@ -32,20 +27,13 @@ class EventServiceService {
 
   Future<void> addServiceEvent(EventServiceModel service) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_services')
         .doc(service.id)
         .set(service.toMap());
   }
 
   Future<void> deleteServiceEvent(String serviceId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_services')
-        .doc(serviceId)
-        .delete();
+    await _firestore.collection('event_services').doc(serviceId).delete();
   }
 
   void dispose() {

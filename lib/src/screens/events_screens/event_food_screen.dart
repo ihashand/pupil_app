@@ -203,9 +203,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
             const SizedBox(height: 5),
             if (selectedCategory == 'menu')
               Expanded(
-                child: ref
-                    .watch(eventFoodEatenMealsProvider(widget.petId))
-                    .when(
+                child: ref.watch(eventFoodEatenMealsProvider).when(
                       data: (meals) {
                         final mealsForSelectedDate = meals
                             .where((meal) => isSameDay(meal.date, selectedDate))

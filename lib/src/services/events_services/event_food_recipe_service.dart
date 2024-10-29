@@ -16,8 +16,6 @@ class EventFoodRecipeService {
     } else {
       if (_currentUser != null) {
         await _firestore
-            .collection('app_users')
-            .doc(_currentUser.uid)
             .collection('event_food_user_recipes')
             .add(recipe.toMap());
       }
@@ -38,8 +36,6 @@ class EventFoodRecipeService {
 
   Stream<List<EventFoodRecipeModel>> getUserRecipesStream() {
     return _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_food_user_recipes')
         .snapshots()
         .map((snapshot) {
@@ -51,8 +47,6 @@ class EventFoodRecipeService {
 
   Stream<List<EventFoodRecipeModel>> getUserFavoriteRecipesStream() {
     return _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_food_favorites_recipes')
         .snapshots()
         .map((snapshot) {
@@ -64,8 +58,6 @@ class EventFoodRecipeService {
 
   Future<void> addFavoriteRecipe(EventFoodRecipeModel recipe) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_food_favorites_recipes')
         .doc(recipe.id)
         .set(recipe.toMap());
@@ -73,8 +65,6 @@ class EventFoodRecipeService {
 
   Future<void> removeFavoriteRecipe(String recipeId) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_food_favorites_recipes')
         .doc(recipeId)
         .delete();
@@ -88,8 +78,6 @@ class EventFoodRecipeService {
     }
 
     final userRecipeDoc = await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_food_user_recipes')
         .doc(recipeId)
         .get();
@@ -98,8 +86,6 @@ class EventFoodRecipeService {
     }
 
     final favoriteRecipeDoc = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
         .collection('event_food_favorites_recipes')
         .doc(recipeId)
         .get();

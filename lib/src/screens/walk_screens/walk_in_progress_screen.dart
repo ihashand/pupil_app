@@ -1463,7 +1463,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       dateTime: eventTime,
     );
 
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine, petId);
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
 
     Event newEvent = Event(
       id: newUrine.eventId,
@@ -1489,7 +1489,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       dateTime: eventTime,
     );
 
-    ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent, petId);
+    ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent);
 
     Event newEvent = Event(
       id: newStoolEvent.eventId,

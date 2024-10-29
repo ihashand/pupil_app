@@ -35,7 +35,7 @@ void showMealDetails(BuildContext context, EventEatenMealModel meal,
 
               final selectedDate = ref.watch(selectedDateProvider);
               final eatenMealsAsyncValue =
-                  ref.watch(eventFoodEatenMealsProvider(petId));
+                  ref.watch(eventFoodEatenMealsProvider);
 
               double totalDailyKcal = 0.0;
               double totalDailyFat = 0.0;

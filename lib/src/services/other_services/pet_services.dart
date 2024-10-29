@@ -14,12 +14,7 @@ class PetService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('pets')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('pets').snapshots().listen((snapshot) {
       _petsController
           .add(snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
     });
@@ -36,72 +31,39 @@ class PetService {
       return null;
     }
 
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('pets')
-        .doc(petId)
-        .get();
+    final docSnapshot = await _firestore.collection('pets').doc(petId).get();
 
     return docSnapshot.exists ? Pet.fromDocument(docSnapshot) : null;
   }
 
   Future<void> addPet(Pet pet) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(pet.id)
-        .set(pet.toMap());
+    await _firestore.collection('pets').doc(pet.id).set(pet.toMap());
   }
 
   Future<void> updatePet(Pet pet) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(pet.id)
-        .update(pet.toMap());
+    await _firestore.collection('pets').doc(pet.id).update(pet.toMap());
   }
 
   Future<void> deletePet(String petId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(petId)
-        .delete();
+    await _firestore.collection('pets').doc(petId).delete();
   }
 
   Future<List<Pet>> getPetsByUserId(String userId) async {
-    final snapshot = await _firestore
-        .collection('app_users')
-        .doc(userId)
-        .collection('pets')
-        .get();
+    final snapshot = await _firestore.collection('pets').get();
     return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
   }
 
   Stream<List<Pet>> getPetsFriendStream(String uid) {
-    final petsStream = _firestore
-        .collection('app_users')
-        .doc(uid)
-        .collection('pets')
-        .snapshots()
-        .map((snapshot) =>
+    final petsStream = _firestore.collection('pets').snapshots().map(
+        (snapshot) =>
             snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
 
     return petsStream;
   }
 
   Future<List<Pet>> getPetsFriendFuture(String uid) async {
-    final querySnapshot = await _firestore
-        .collection('app_users')
-        .doc(uid)
-        .collection('pets')
-        .get();
+    final querySnapshot = await _firestore.collection('pets').get();
 
-    // Zwracamy listę zwierząt z dokumentów
     return querySnapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
   }
 
