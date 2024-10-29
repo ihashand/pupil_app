@@ -46,7 +46,7 @@ void showNotesModal(BuildContext context, TextEditingController titleController,
       );
 
       ref.read(eventServiceProvider).addEvent(newEvent, id);
-      ref.read(eventNoteServiceProvider).addNote(newNote, id);
+      ref.read(eventNoteServiceProvider).addNote(newNote);
     }
   }
 

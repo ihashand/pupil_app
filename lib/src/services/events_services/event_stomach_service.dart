@@ -14,12 +14,7 @@ class EventStomachService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_stomachs')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_stomachs').snapshots().listen((snapshot) {
       _stomachController.add(snapshot.docs
           .map((doc) => EventStomachModel.fromDocument(doc))
           .toList());
@@ -30,20 +25,13 @@ class EventStomachService {
 
   Future<void> addStomach(EventStomachModel event) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_stomachs')
         .doc(event.id)
         .set(event.toMap());
   }
 
   Future<void> deleteStomach(String eventId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_stomachs')
-        .doc(eventId)
-        .delete();
+    await _firestore.collection('event_stomachs').doc(eventId).delete();
   }
 
   void dispose() {

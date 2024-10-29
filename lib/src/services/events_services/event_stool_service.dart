@@ -9,19 +9,12 @@ class EventStoolService {
   final _stoolEventsController =
       StreamController<List<EventStoolModel>>.broadcast();
 
-  Stream<List<EventStoolModel>> getStoolEventsStream(String petId) {
+  Stream<List<EventStoolModel>> getStoolEventsStream() {
     if (_currentUser == null) {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('pets')
-        .doc(petId)
-        .collection('event_stools')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_stools').snapshots().listen((snapshot) {
       _stoolEventsController.add(snapshot.docs
           .map((doc) => EventStoolModel.fromDocument(doc))
           .toList());
@@ -30,26 +23,15 @@ class EventStoolService {
     return _stoolEventsController.stream;
   }
 
-  Future<void> addStoolEvent(EventStoolModel event, String petId) async {
+  Future<void> addStoolEvent(EventStoolModel event) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(petId)
         .collection('event_stools')
         .doc(event.id)
         .set(event.toMap());
   }
 
-  Future<void> deleteStoolEvent(String eventId, String petId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(petId)
-        .collection('event_stools')
-        .doc(eventId)
-        .delete();
+  Future<void> deleteStoolEvent(String eventId) async {
+    await _firestore.collection('event_stools').doc(eventId).delete();
   }
 
   void dispose() {

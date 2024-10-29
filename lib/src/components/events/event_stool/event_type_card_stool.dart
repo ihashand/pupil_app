@@ -254,7 +254,7 @@ void _saveStoolEvent(BuildContext context, WidgetRef ref, String petId,
     description: selectedStoolType ?? 'Stool event',
     dateTime: selectedDate,
   );
-  ref.read(eventStoolServiceProvider).addStoolEvent(newStool, petId);
+  ref.read(eventStoolServiceProvider).addStoolEvent(newStool);
 
   Event newEvent = Event(
     id: eventId,

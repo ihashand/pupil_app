@@ -15,12 +15,7 @@ class EventTemperatureService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_temperatures')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_temperatures').snapshots().listen((snapshot) {
       _temperatureController.add(snapshot.docs
           .map((doc) => EventTemperatureModel.fromDocument(doc))
           .toList());
@@ -36,8 +31,6 @@ class EventTemperatureService {
     }
 
     final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
         .collection('event_temperatures')
         .doc(temperatureId)
         .get();
@@ -49,8 +42,6 @@ class EventTemperatureService {
 
   Future<void> addTemperature(EventTemperatureModel temperature) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_temperatures')
         .doc(temperature.id)
         .set(temperature.toMap());
@@ -58,8 +49,6 @@ class EventTemperatureService {
 
   Future<void> updateTemperature(EventTemperatureModel temperature) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_temperatures')
         .doc(temperature.id)
         .update(temperature.toMap());
@@ -67,8 +56,6 @@ class EventTemperatureService {
 
   Future<void> deleteTemperature(String temperatureId) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_temperatures')
         .doc(temperatureId)
         .delete();

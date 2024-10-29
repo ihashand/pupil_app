@@ -15,12 +15,7 @@ class EventMedicineService {
       return Stream.value([]);
     }
 
-    return _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_medicines')
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection('event_medicines').snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => EventMedicineModel.fromDocument(doc))
           .toList();
@@ -36,12 +31,8 @@ class EventMedicineService {
       return null;
     }
 
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_medicines')
-        .doc(medicineId)
-        .get();
+    final docSnapshot =
+        await _firestore.collection('event_medicines').doc(medicineId).get();
 
     return docSnapshot.exists
         ? EventMedicineModel.fromDocument(docSnapshot)
@@ -50,8 +41,6 @@ class EventMedicineService {
 
   Future<void> addMedicine(EventMedicineModel medicine) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_medicines')
         .doc(medicine.id)
         .set(medicine.toMap());
@@ -59,20 +48,13 @@ class EventMedicineService {
 
   Future<void> updateMedicine(EventMedicineModel medicine) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_medicines')
         .doc(medicine.id)
         .update(medicine.toMap());
   }
 
   Future<void> deleteMedicine(String medicineId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_medicines')
-        .doc(medicineId)
-        .delete();
+    await _firestore.collection('event_medicines').doc(medicineId).delete();
   }
 
   void dispose() {

@@ -14,14 +14,7 @@ class EventNoteService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('pets')
-        .doc(petId)
-        .collection('event_notes')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_notes').snapshots().listen((snapshot) {
       _notesController.add(snapshot.docs
           .map((doc) => EventNoteModel.fromDocument(doc))
           .toList());
@@ -31,57 +24,33 @@ class EventNoteService {
   }
 
   Stream<EventNoteModel?> getNoteByIdStream(String noteId, String petId) {
-    return Stream.fromFuture(getNoteById(noteId, petId));
+    return Stream.fromFuture(getNoteById(noteId));
   }
 
-  Future<EventNoteModel?> getNoteById(String noteId, String petId) async {
+  Future<EventNoteModel?> getNoteById(String noteId) async {
     if (_currentUser == null) {
       return null;
     }
 
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('pets')
-        .doc(petId)
-        .collection('event_notes')
-        .doc(noteId)
-        .get();
+    final docSnapshot =
+        await _firestore.collection('event_notes').doc(noteId).get();
 
     return docSnapshot.exists ? EventNoteModel.fromDocument(docSnapshot) : null;
   }
 
-  Future<void> addNote(EventNoteModel note, String petId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(petId)
-        .collection('event_notes')
-        .doc(note.id)
-        .set(note.toMap());
+  Future<void> addNote(EventNoteModel note) async {
+    await _firestore.collection('event_notes').doc(note.id).set(note.toMap());
   }
 
-  Future<void> updateNote(EventNoteModel note, String petId) async {
+  Future<void> updateNote(EventNoteModel note) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(petId)
         .collection('event_notes')
         .doc(note.id)
         .update(note.toMap());
   }
 
   Future<void> deleteNote(String noteId, String petId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('pets')
-        .doc(petId)
-        .collection('event_notes')
-        .doc(noteId)
-        .delete();
+    await _firestore.collection('event_notes').doc(noteId).delete();
   }
 
   void dispose() {

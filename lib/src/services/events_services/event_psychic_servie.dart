@@ -14,12 +14,7 @@ class EventPsychicService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_psychics')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_psychics').snapshots().listen((snapshot) {
       _psychicEventsController.add(snapshot.docs
           .map((doc) => EventPsychicModel.fromDocument(doc))
           .toList());
@@ -30,20 +25,13 @@ class EventPsychicService {
 
   Future<void> addPsychicEvent(EventPsychicModel event) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_psychics')
         .doc(event.id)
         .set(event.toMap());
   }
 
   Future<void> deletePsychicEvent(String eventId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_psychics')
-        .doc(eventId)
-        .delete();
+    await _firestore.collection('event_psychics').doc(eventId).delete();
   }
 
   void dispose() {

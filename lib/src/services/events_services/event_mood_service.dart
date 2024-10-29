@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
@@ -14,12 +13,7 @@ class EventMoodService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_moods')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_moods').snapshots().listen((snapshot) {
       _moodsController.add(snapshot.docs
           .map((doc) => EventMoodModel.fromDocument(doc))
           .toList());
@@ -29,21 +23,11 @@ class EventMoodService {
   }
 
   Future<void> addMood(EventMoodModel mood) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_moods')
-        .doc(mood.id)
-        .set(mood.toMap());
+    await _firestore.collection('event_moods').doc(mood.id).set(mood.toMap());
   }
 
   Future<void> deleteMood(String moodId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_moods')
-        .doc(moodId)
-        .delete();
+    await _firestore.collection('event_moods').doc(moodId).delete();
   }
 
   void dispose() {

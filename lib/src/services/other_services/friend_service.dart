@@ -15,8 +15,6 @@ class FriendService {
     }
 
     return _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
         .collection('friends')
         .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
@@ -29,29 +27,18 @@ class FriendService {
       return Stream.value([]);
     }
 
-    return _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('friend_requests')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
+    return _firestore.collection('friend_requests').snapshots().map(
+        (snapshot) => snapshot.docs
             .map((doc) => FriendRequest.fromDocument(doc))
             .toList());
   }
 
   Future<void> addFriend(Friend friend, String correctId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(correctId)
-        .collection('friends')
-        .doc(friend.id)
-        .set(friend.toMap());
+    await _firestore.collection('friends').doc(friend.id).set(friend.toMap());
   }
 
   Future<void> removeFriend(String friendId) async {
     final currentUserFriendDocs = await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('friends')
         .where('friendId', isEqualTo: friendId)
         .get();
@@ -61,10 +48,8 @@ class FriendService {
     }
 
     final friendDocs = await _firestore
-        .collection('app_users')
-        .doc(friendId)
         .collection('friends')
-        .where('friendId', isEqualTo: _currentUser.uid)
+        .where('friendId', isEqualTo: _currentUser!.uid)
         .get();
 
     for (var doc in friendDocs.docs) {
@@ -77,8 +62,6 @@ class FriendService {
 
     // Sprawdzenie, czy zaproszenie już istnieje (w obie strony)
     final existingRequest = await _firestore
-        .collection('app_users')
-        .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: currentUserId)
         .get();
@@ -92,8 +75,6 @@ class FriendService {
 
     // Sprawdzenie, czy użytkownik jest już znajomym (w obie strony)
     final existingFriend = await _firestore
-        .collection('app_users')
-        .doc(currentUserId)
         .collection('friends')
         .where('friendId', isEqualTo: toUserId)
         .get();
@@ -107,8 +88,6 @@ class FriendService {
 
     // Sprawdzenie, czy toUserId wysłał już zaproszenie do currentUserId
     final reverseRequest = await _firestore
-        .collection('app_users')
-        .doc(currentUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: toUserId)
         .get();
@@ -123,11 +102,7 @@ class FriendService {
 
     // Jeśli nie ma duplikatów, dodaj nowe zaproszenie
     final timestamp = Timestamp.now();
-    await _firestore
-        .collection('app_users')
-        .doc(toUserId)
-        .collection('friend_requests')
-        .add({
+    await _firestore.collection('friend_requests').add({
       'fromUserId': currentUserId,
       'toUserId': toUserId,
       'timestamp': timestamp,
@@ -136,8 +111,6 @@ class FriendService {
 
   Future<void> cancelFriendRequest(String fromUserId, String toUserId) async {
     final friendRequestDoc = await _firestore
-        .collection('app_users')
-        .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: fromUserId)
         .get();
@@ -169,8 +142,6 @@ class FriendService {
     final currentUserId = _currentUser!.uid;
 
     final existingRequest = await _firestore
-        .collection('app_users')
-        .doc(toUserId)
         .collection('friend_requests')
         .where('fromUserId', isEqualTo: currentUserId)
         .get();

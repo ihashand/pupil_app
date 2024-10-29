@@ -244,7 +244,7 @@ void _saveWeightEvent(BuildContext context, WidgetRef ref, String petId,
   );
 
   ref.read(eventServiceProvider).addEvent(newEvent, petId);
-  ref.read(eventWeightServiceProvider).addWeight(newWeight, petId);
+  ref.read(eventWeightServiceProvider).addWeight(newWeight);
 }
 
 // Funkcja wyświetlająca dialog błędu

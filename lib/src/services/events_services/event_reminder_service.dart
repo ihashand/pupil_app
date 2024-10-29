@@ -20,12 +20,7 @@ class EventReminderService {
       return Stream.value([]);
     }
 
-    firestore
-        .collection('app_users')
-        .doc(auth.currentUser!.uid)
-        .collection('event_reminders')
-        .snapshots()
-        .listen((snapshot) {
+    firestore.collection('event_reminders').snapshots().listen((snapshot) {
       _reminderController.add(snapshot.docs
           .map((doc) => EventReminderModel.fromDocument(doc))
           .toList());
@@ -39,11 +34,7 @@ class EventReminderService {
       return [];
     }
 
-    final querySnapshot = await firestore
-        .collection('app_users')
-        .doc(auth.currentUser!.uid)
-        .collection('event_reminders')
-        .get();
+    final querySnapshot = await firestore.collection('event_reminders').get();
 
     return querySnapshot.docs
         .map((doc) => EventReminderModel.fromDocument(doc))
@@ -55,12 +46,8 @@ class EventReminderService {
       return null;
     }
 
-    final docSnapshot = await firestore
-        .collection('app_users')
-        .doc(auth.currentUser!.uid)
-        .collection('event_reminders')
-        .doc(reminderId)
-        .get();
+    final docSnapshot =
+        await firestore.collection('event_reminders').doc(reminderId).get();
 
     return docSnapshot.exists
         ? EventReminderModel.fromDocument(docSnapshot)
@@ -69,8 +56,6 @@ class EventReminderService {
 
   Future<void> addReminder(EventReminderModel reminder) async {
     await firestore
-        .collection('app_users')
-        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminder.id)
         .set(reminder.toMap());
@@ -78,20 +63,13 @@ class EventReminderService {
 
   Future<void> updateReminder(EventReminderModel reminder) async {
     await firestore
-        .collection('app_users')
-        .doc(auth.currentUser!.uid)
         .collection('event_reminders')
         .doc(reminder.id)
         .update(reminder.toMap());
   }
 
   Future<void> deleteReminder(String reminderId) async {
-    await firestore
-        .collection('app_users')
-        .doc(auth.currentUser!.uid)
-        .collection('event_reminders')
-        .doc(reminderId)
-        .delete();
+    await firestore.collection('event_reminders').doc(reminderId).delete();
   }
 
   Future<void> removeExpiredReminders() async {

@@ -1,25 +1,14 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 
 class EventWaterService {
   final _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
 
   final _waterController = StreamController<List<EventWaterModel>>.broadcast();
 
   Stream<List<EventWaterModel>> getWatersStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
-    }
-
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_waters')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('event_waters').snapshots().listen((snapshot) {
       _waterController.add(snapshot.docs
           .map((doc) => EventWaterModel.fromDocument(doc))
           .toList());
@@ -33,16 +22,8 @@ class EventWaterService {
   }
 
   Future<EventWaterModel?> getWaterById(String waterId) async {
-    if (_currentUser == null) {
-      return null;
-    }
-
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_waters')
-        .doc(waterId)
-        .get();
+    final docSnapshot =
+        await _firestore.collection('event_waters').doc(waterId).get();
 
     return docSnapshot.exists
         ? EventWaterModel.fromDocument(docSnapshot)
@@ -51,8 +32,6 @@ class EventWaterService {
 
   Future<void> addWater(EventWaterModel water) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_waters')
         .doc(water.id)
         .set(water.toMap());
@@ -60,20 +39,13 @@ class EventWaterService {
 
   Future<void> updateWater(EventWaterModel water) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_waters')
         .doc(water.id)
         .update(water.toMap());
   }
 
   Future<void> deleteWater(String waterId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_waters')
-        .doc(waterId)
-        .delete();
+    await _firestore.collection('event_waters').doc(waterId).delete();
   }
 
   void dispose() {

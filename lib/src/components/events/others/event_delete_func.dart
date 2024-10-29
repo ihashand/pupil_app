@@ -43,7 +43,7 @@ void eventDeleteFunc(
   final String serviceId = event.serviceId;
   final String careId = event.careId;
 
-  ref.read(eventServiceProvider).deleteEvent(eventId, petId);
+  ref.read(eventServiceProvider).deleteEvent(eventId);
 
   showDialog(
     context: context,
@@ -54,7 +54,7 @@ void eventDeleteFunc(
   );
 
   if (weightId.isNotEmpty) {
-    await ref.read(eventWeightServiceProvider).deleteWeight(weightId, petId);
+    await ref.read(eventWeightServiceProvider).deleteWeight(weightId);
   }
 
   if (waterId.isNotEmpty) {
@@ -68,7 +68,7 @@ void eventDeleteFunc(
   }
 
   if (walkId.isNotEmpty) {
-    await ref.read(eventWalkServiceProvider).deleteWalk(walkId, petId);
+    await ref.read(eventWalkServiceProvider).deleteWalk(walkId);
   }
 
   if (noteId.isNotEmpty) {
@@ -105,11 +105,11 @@ void eventDeleteFunc(
   }
 
   if (stoolId.isNotEmpty) {
-    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId, petId);
+    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId);
   }
 
   if (urineId.isNotEmpty) {
-    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId, petId);
+    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId);
   }
 
   if (serviceId.isNotEmpty) {
