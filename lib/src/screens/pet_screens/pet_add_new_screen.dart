@@ -14,17 +14,16 @@ import 'package:pet_diary/src/services/other_services/pet_services.dart';
 import '../../providers/events_providers/event_provider.dart';
 import '../../providers/events_providers/event_weight_provider.dart';
 
-class PetEditScreen extends StatefulWidget {
+class AddPetScreen extends StatefulWidget {
   final WidgetRef ref;
-  final String petId;
 
-  const PetEditScreen({super.key, required this.ref, required this.petId});
+  const AddPetScreen({super.key, required this.ref});
 
   @override
-  createState() => _PetEditScreenState();
+  createState() => _AddPetScreenState();
 }
 
-class _PetEditScreenState extends State<PetEditScreen> {
+class _AddPetScreenState extends State<AddPetScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _birthDateController;
@@ -44,33 +43,6 @@ class _PetEditScreenState extends State<PetEditScreen> {
     _birthDateController = TextEditingController();
     _breedController = TextEditingController();
     _weightController = TextEditingController();
-    _loadPetData();
-  }
-
-  Future<void> _loadPetData() async {
-    var pet = await PetService().getPetById(widget.petId);
-    if (pet != null) {
-      _nameController.text = pet.name;
-      _birthDateController.text = pet.age;
-      _breedController.text = pet.breed;
-      _selectedAvatar = pet.avatarImage;
-      _backgroundImage = pet.backgroundImage;
-      _gender = pet.gender;
-
-      var lastKnownWeight = await widget.ref
-          .read(eventWeightServiceProvider)
-          .getLastKnownWeight(widget.petId);
-
-      _weightController.text =
-          lastKnownWeight != null ? lastKnownWeight.weight.toString() : '';
-
-      try {
-        _selectedDate = DateFormat('dd/MM/yyyy').parse(pet.age);
-      } catch (e) {
-        _selectedDate = DateTime.now();
-      }
-      setState(() {});
-    }
   }
 
   @override
@@ -192,8 +164,8 @@ class _PetEditScreenState extends State<PetEditScreen> {
       final User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         final petService = PetService();
-        final updatedPet = Pet(
-          id: widget.petId,
+        final newPet = Pet(
+          id: UniqueKey().toString(),
           name: _nameController.text,
           avatarImage: _selectedAvatar,
           age: DateFormat('dd/MM/yyyy').format(_selectedDate),
@@ -203,54 +175,13 @@ class _PetEditScreenState extends State<PetEditScreen> {
           dateTime: DateTime.now(),
           backgroundImage: _backgroundImage,
         );
-        await petService.updatePet(updatedPet);
-        _saveWeight(_initialWeight, updatedPet.id);
+        await petService.addPet(newPet);
+        _saveWeight(_initialWeight, newPet.id);
 
         // ignore: use_build_context_synchronously
-        Navigator.of(context).pop(updatedPet);
+        Navigator.of(context).pop();
       }
     }
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Delete Pet',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-          content: const Text(
-              'Are you sure you want to delete this pet? This action cannot be undone.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                _deletePet();
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Confirm',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deletePet() async {
-    await PetService().deletePet(widget.petId);
-    // ignore: use_build_context_synchronously
-    Navigator.of(context).popUntil(ModalRoute.withName('/'));
   }
 
   @override
@@ -258,24 +189,15 @@ class _PetEditScreenState extends State<PetEditScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Theme.of(context).primaryColorDark),
         title: Text(
-          'E D I T  P E T',
+          'N E W  P E T',
           style: TextStyle(
               color: Theme.of(context).primaryColorDark,
               fontSize: 13,
               fontWeight: FontWeight.bold),
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
-        actions: [
-          IconButton(
-            onPressed: _savePet,
-            icon: Icon(
-              Icons.check,
-              color: Theme.of(context).primaryColorDark,
-            ),
-          ),
-        ],
+        iconTheme: IconThemeData(color: Theme.of(context).primaryColorDark),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -305,7 +227,7 @@ class _PetEditScreenState extends State<PetEditScreen> {
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: _buildWeightInput(),
+                    child: _buildWeightInput(context),
                   ),
                   const SizedBox(height: 20),
                   Padding(
@@ -319,23 +241,22 @@ class _PetEditScreenState extends State<PetEditScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: MaterialButton(
-            onPressed: () => _confirmDelete(context),
-            color: Colors.red.withOpacity(0.85),
-            textColor: Colors.white,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(30.0),
+        child: ElevatedButton(
+          onPressed: _savePet,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.all(15),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Text(
-              'Delete Pet',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          child: Text(
+            'Save Pet',
+            style: TextStyle(
+              color: Theme.of(context).primaryColorDark,
+              fontSize: 18,
             ),
           ),
         ),
@@ -363,7 +284,9 @@ class _PetEditScreenState extends State<PetEditScreen> {
         ),
       ),
       child: Column(children: [
-        Divider(color: Theme.of(context).colorScheme.secondary),
+        Divider(
+          color: Theme.of(context).colorScheme.secondary,
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -381,8 +304,11 @@ class _PetEditScreenState extends State<PetEditScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Avatar',
-                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                    ),
                   ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -407,8 +333,11 @@ class _PetEditScreenState extends State<PetEditScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Background',
-                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColorDark,
+                    ),
                   ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -516,7 +445,7 @@ class _PetEditScreenState extends State<PetEditScreen> {
     );
   }
 
-  Widget _buildWeightInput() {
+  Widget _buildWeightInput(BuildContext context) {
     return TextFormField(
       controller: _weightController,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),

@@ -1,5 +1,16 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:pet_diary/src/components/events/event_care/event_type_card_care.dart';
+import 'package:pet_diary/src/components/events/event_issue/event_type_card_issue.dart';
+import 'package:pet_diary/src/components/events/event_mood/event_type_card_mood.dart';
+import 'package:pet_diary/src/components/events/event_notes/event_type_card_notes.dart';
+import 'package:pet_diary/src/components/events/event_stool/event_type_card_stool.dart';
+import 'package:pet_diary/src/components/events/event_temperature/event_type_card_temperature.dart';
+import 'package:pet_diary/src/components/events/event_urine/event_type_card_urine.dart';
+import 'package:pet_diary/src/components/events/event_vaccines/event_type_card_vaccine.dart';
+import 'package:pet_diary/src/components/events/event_water/show_water_menu.dart';
+import 'package:pet_diary/src/components/events/event_weight/event_type_card_weight.dart';
+import 'package:pet_diary/src/components/events/walk/event_type_card_walk.dart';
 import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
@@ -7,6 +18,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
+import 'package:pet_diary/src/screens/events_screens/event_food_screen.dart';
 import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
 import 'package:pet_diary/src/screens/events_screens/events_screen.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
@@ -16,6 +28,7 @@ import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/components/events/event_cards/event_health_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
+import 'package:pet_diary/src/screens/medicine_screens/medicine_screen.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_edit_screen.dart';
 
 // ignore: must_be_immutable
@@ -74,8 +87,10 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                       final updatedPet = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              PetEditScreen(petId: widget.pet.id),
+                          builder: (context) => PetEditScreen(
+                            petId: widget.pet.id,
+                            ref: ref,
+                          ),
                         ),
                       );
                       if (updatedPet != null && updatedPet is Pet) {
@@ -89,12 +104,17 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       ),
       body: Column(
         children: [
-          _buildHeaderSection(context),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  _buildHeaderSection(context),
                   const SizedBox(height: 10),
+                  PetMoodAndNeedsContainer(
+                    petName: widget.pet.name,
+                    petId: widget.pet.id,
+                    ref: ref,
+                  ),
                   if (isOwner) _buildHealthEventSection(),
                   _buildAchievementsSection(context),
                   _buildActionButtons(context),
@@ -167,8 +187,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
           if (isOwner)
             Expanded(
               child: GestureDetector(
-                onTap: () => _showWeightInfoDialog(
-                    context), // Funkcja do wyświetlenia dialogu z wagą
+                onTap: () => _showWeightInfoDialog(context),
                 child: _buildPetWeight(context),
               ),
             ),
@@ -281,7 +300,8 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   Widget _buildPetWeight(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final asyncWeights = ref.watch(eventWeightsProvider);
+        final asyncWeights =
+            ref.watch(eventWeightsStreamProvider(widget.pet.id));
         return asyncWeights.when(
           loading: () => const Text('Loading...'),
           error: (err, stack) => const Text('Error fetching weight'),
@@ -299,7 +319,6 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                 )!
                 .weight;
 
-            // Dodajemy GestureDetector, aby wyświetlić szczegóły wagi w dialogu
             return GestureDetector(
               onTap: () => _showInfoDialog(
                 context,
@@ -792,7 +811,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   }
 
   void _showWeightInfoDialog(BuildContext context) {
-    final asyncWeights = ref.read(eventWeightsProvider);
+    final asyncWeights = ref.watch(eventWeightsStreamProvider(widget.pet.id));
     asyncWeights.when(
       loading: () => showDialog(
         context: context,
@@ -877,6 +896,200 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
             fontSize: 12,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class PetMoodAndNeedsContainer extends StatelessWidget {
+  final String petName;
+  final WidgetRef ref;
+  final String? petId;
+  final List<String>? petIds;
+
+  const PetMoodAndNeedsContainer({
+    super.key,
+    required this.petName,
+    required this.ref,
+    this.petId,
+    this.petIds,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    TextEditingController titleController = TextEditingController();
+    TextEditingController contentTextController = TextEditingController();
+    TextEditingController temperatureController = TextEditingController();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'How is $petName doing?',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+          const SizedBox(height: 100), // Miejsce na dodatkowe elementy
+          Text(
+            'Other needs',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 100,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildEventItem(
+                  context,
+                  'Water',
+                  'assets/images/events_type_cards_no_background/water_bowl.png',
+                  () =>
+                      showWaterMenu(context, ref, petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Food',
+                  'assets/images/events_type_cards_no_background/food_bowl.png',
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => FoodScreen(petId: petId!),
+                    ),
+                  ),
+                ),
+                _buildEventItem(
+                  context,
+                  'Medicine',
+                  'assets/images/events_type_cards_no_background/pills.png',
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => MedicineScreen(petId!),
+                    ),
+                  ),
+                ),
+                _buildEventItem(
+                  context,
+                  'Mood',
+                  'assets/images/events_type_cards_no_background/heart.png',
+                  () => showMoodOptions(
+                    context,
+                    ref,
+                    petId: petId,
+                    petIds: petIds,
+                  ),
+                ),
+                _buildEventItem(
+                  context,
+                  'Vaccines',
+                  'assets/images/events_type_cards_no_background/syringe.png',
+                  () => showVaccineOptions(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Issues',
+                  'assets/images/events_type_cards_no_background/issue.png',
+                  () => showIssuesOptions(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Care',
+                  'assets/images/events_type_cards_no_background/wanna.png',
+                  () => showCareOptions(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Stool',
+                  'assets/images/events_type_cards_no_background/poo.png',
+                  () => showStoolModal(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Urine',
+                  'assets/images/events_type_cards_no_background/piee.png',
+                  () => showUrineModal(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Weight',
+                  'assets/images/events_type_cards_no_background/weight.png',
+                  () => showWeightModal(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Temperature',
+                  'assets/images/events_type_cards_no_background/thermometr.png',
+                  () => showTemperatureModal(
+                      context, temperatureController, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Notes',
+                  'assets/images/events_type_cards_no_background/notes.png',
+                  () => showNotesModal(
+                      context, titleController, contentTextController, ref,
+                      petId: petId, petIds: petIds),
+                ),
+                _buildEventItem(
+                  context,
+                  'Walk DEVONLY',
+                  'assets/images/events_type_cards_no_background/bed.png',
+                  () => showWalkEventModal(context, ref,
+                      petId: petId, petIds: petIds),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Buduje pojedynczy element eventu z ikoną, podpisem i przypisaną akcją
+  Widget _buildEventItem(BuildContext context, String label, String assetPath,
+      VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: onTap,
+            child: CircleAvatar(
+              radius: 30,
+              backgroundImage: AssetImage(assetPath),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surface.withOpacity(0.1),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -21,22 +21,27 @@ Future<void> showBackgroundSelectionDialog({
 
   await showModalBottomSheet(
     context: context,
+    backgroundColor: Theme.of(context).colorScheme.primary,
     builder: (BuildContext context) {
       return SizedBox(
-        height: 250,
-        width: 400,
+        height: 280,
+        width: double.infinity,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: const EdgeInsets.all(15.0),
-              child: const Center(
+            const Padding(
+              padding: EdgeInsets.only(top: 20.0, bottom: 15),
+              child: Center(
                 child: Text(
-                  'Choose Background',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  'B A C K G R O U N D',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                 ),
               ),
             ),
+            Divider(color: Theme.of(context).colorScheme.surface),
             Expanded(
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
@@ -66,9 +71,7 @@ Future<void> showBackgroundSelectionDialog({
                 },
               ),
             ),
-            const SizedBox(
-              height: 30,
-            )
+            const SizedBox(height: 20),
           ],
         ),
       );

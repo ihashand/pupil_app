@@ -54,7 +54,7 @@ void eventDeleteFunc(
   );
 
   if (weightId.isNotEmpty) {
-    await ref.read(eventWeightServiceProvider).deleteWeight(weightId);
+    await ref.read(eventWeightServiceProvider).deleteWeight(weightId, petId);
   }
 
   if (waterId.isNotEmpty) {

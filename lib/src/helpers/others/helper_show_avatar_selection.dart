@@ -27,48 +27,45 @@ Future<void> showAvatarSelectionDialog({
     backgroundColor: Theme.of(context).colorScheme.primary,
     builder: (BuildContext context) {
       return SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              const Padding(
-                padding: EdgeInsets.all(6.0),
-                child: Text(
-                  'Pick an avatar',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
+        child: Column(
+          children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.only(top: 20.0, bottom: 15),
+              child: Text(
+                'A V A T A R',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
               ),
-              Divider(color: const Color(0xff68a2b6).withOpacity(0.2)),
-              GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 5,
-                physics: const NeverScrollableScrollPhysics(),
-                children: List.generate(avatars.length, (index) {
-                  final avatarPath = avatars[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      onAvatarSelected(avatarPath);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: CircleAvatar(
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withOpacity(0.5),
-                        backgroundImage: AssetImage(avatarPath),
-                        radius: 40,
-                      ),
+            ),
+            Divider(color: Theme.of(context).colorScheme.surface),
+            GridView.count(
+              shrinkWrap: true,
+              crossAxisCount: 5,
+              physics: const NeverScrollableScrollPhysics(),
+              children: List.generate(avatars.length, (index) {
+                final avatarPath = avatars[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                    onAvatarSelected(avatarPath);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: CircleAvatar(
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withOpacity(0.5),
+                      backgroundImage: AssetImage(avatarPath),
+                      radius: 40,
                     ),
-                  );
-                }),
-              ),
-            ],
-          ),
+                  ),
+                );
+              }),
+            ),
+          ],
         ),
       );
     },

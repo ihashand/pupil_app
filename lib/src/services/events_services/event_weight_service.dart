@@ -10,7 +10,7 @@ class EventWeightService {
   final _weightsController =
       StreamController<List<EventWeightModel>>.broadcast();
 
-  Stream<List<EventWeightModel>> getWeightsStream() {
+  Stream<List<EventWeightModel>> getWeightsStream(String? petId) {
     if (_currentUser == null) {
       return Stream.value([]);
     }
@@ -18,6 +18,8 @@ class EventWeightService {
     _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_weights')
         .snapshots()
         .listen((snapshot) {
@@ -29,11 +31,13 @@ class EventWeightService {
     return _weightsController.stream;
   }
 
-  Stream<EventWeightModel?> getWeightByIdStream(String weightId) {
-    return Stream.fromFuture(getWeightById(weightId));
+  Stream<EventWeightModel?> getWeightByIdStream(
+      String weightId, String? petId) {
+    return Stream.fromFuture(getWeightById(weightId, petId));
   }
 
-  Future<EventWeightModel?> getWeightById(String weightId) async {
+  Future<EventWeightModel?> getWeightById(
+      String weightId, String? petId) async {
     if (_currentUser == null) {
       return null;
     }
@@ -41,6 +45,8 @@ class EventWeightService {
     final docSnapshot = await _firestore
         .collection('app_users')
         .doc(_currentUser.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_weights')
         .doc(weightId)
         .get();
@@ -50,31 +56,56 @@ class EventWeightService {
         : null;
   }
 
-  Future<void> addWeight(EventWeightModel weight) async {
+  Future<void> addWeight(EventWeightModel weight, String? petId) async {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_weights')
         .doc(weight.id)
         .set(weight.toMap());
   }
 
-  Future<void> updateWeight(EventWeightModel weight) async {
+  Future<void> updateWeight(EventWeightModel weight, String? petId) async {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_weights')
         .doc(weight.id)
         .update(weight.toMap());
   }
 
-  Future<void> deleteWeight(String weightId) async {
+  Future<void> deleteWeight(String weightId, String? petId) async {
     await _firestore
         .collection('app_users')
         .doc(_currentUser!.uid)
+        .collection('pets')
+        .doc(petId)
         .collection('event_weights')
         .doc(weightId)
         .delete();
+  }
+
+  Future<EventWeightModel?> getLastKnownWeight(String? petId) async {
+    if (_currentUser == null || petId == null) return null;
+
+    final querySnapshot = await _firestore
+        .collection('app_users')
+        .doc(_currentUser.uid)
+        .collection('pets')
+        .doc(petId)
+        .collection('event_weights')
+        .orderBy('dateTime', descending: true)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return EventWeightModel.fromDocument(querySnapshot.docs.first);
+    }
+    return null;
   }
 
   void dispose() {
