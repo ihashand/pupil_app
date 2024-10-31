@@ -153,7 +153,7 @@ void showIssuesOptions(BuildContext context, WidgetRef ref,
                                           CircleAvatar(
                                             radius: 30,
                                             backgroundColor: isSelected
-                                                ? Colors.blueGrey
+                                                ? Colors.blue
                                                 : Colors.transparent,
                                             child: Text(
                                               issue['emoji'],

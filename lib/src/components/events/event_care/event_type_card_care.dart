@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_care_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_care_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-// Główna funkcja modalu wyboru eventu Care
 void showCareOptions(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
-  TextEditingController dateController = TextEditingController(
+  TimeOfDay? selectedTime;
+  bool showDetails = false;
+  String? selectedCareOption;
+  final TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
   );
+  TextEditingController otherCareController = TextEditingController();
 
   final List<Map<String, dynamic>> careOptions = [
     {'icon': '🛁', 'description': 'Bathing'},
@@ -35,18 +39,27 @@ void showCareOptions(BuildContext context, WidgetRef ref,
     {'icon': '👃', 'description': 'Nose Health Check'},
     {'icon': '👁️', 'description': 'Eye Drops'},
     {'icon': '🧴', 'description': 'Moisturizing Paw Pads'},
+    {'icon': '❓', 'description': 'Other'},
   ];
 
-  void recordCareEvent(String careDescription, String emoji) {
+  void recordCareEvent() {
     String eventId = generateUniqueId();
+    String careDescription = selectedCareOption == "Other"
+        ? otherCareController.text
+        : selectedCareOption ?? 'Care';
+    String emoji = careOptions.firstWhere(
+      (option) => option['description'] == selectedCareOption,
+      orElse: () => {'icon': ''},
+    )['icon'] as String;
+
     if (petIds != null && petIds.isNotEmpty) {
       for (String id in petIds) {
-        _saveCareEvent(
-            context, ref, id, eventId, careDescription, emoji, selectedDate);
+        _saveCareEvent(context, ref, id, eventId, careDescription, emoji,
+            selectedDate, selectedTime);
       }
     } else if (petId != null) {
-      _saveCareEvent(
-          context, ref, petId, eventId, careDescription, emoji, selectedDate);
+      _saveCareEvent(context, ref, petId, eventId, careDescription, emoji,
+          selectedDate, selectedTime);
     }
   }
 
@@ -57,244 +70,307 @@ void showCareOptions(BuildContext context, WidgetRef ref,
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
+          final double screenHeight = MediaQuery.of(context).size.height;
+          double initialSize = screenHeight > 800 ? 0.3 : 0.4;
+          double detailsSize = screenHeight > 800 ? 0.55 : 0.75;
+
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: showDetails ? detailsSize : initialSize,
+            minChildSize: initialSize,
+            maxChildSize: 1,
+            builder: (context, scrollController) {
+              return Container(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context).primaryColorDark),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          Text(
-                            'C A R E',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.check,
-                                color: Theme.of(context)
-                                    .primaryColorDark
-                                    .withOpacity(0)),
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                    ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(25),
+                    topRight: Radius.circular(25),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 20),
-                    child: Container(
-                      padding: const EdgeInsets.all(20.0),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Nagłówek
+                    Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10, bottom: 5),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: dateController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Date',
-                                      labelStyle: TextStyle(
-                                        color:
-                                            Theme.of(context).primaryColorDark,
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.close,
+                                  color: Theme.of(context).primaryColorDark),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            Text(
+                              'C A R E',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.check,
+                                  color: Theme.of(context).primaryColorDark),
+                              onPressed: () {
+                                if (selectedCareOption != null) {
+                                  recordCareEvent();
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Pierwszy kontener z wyborem Care i przyciskiem "More Details"
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Column(
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: careOptions.map((option) {
+                                  bool isSelected = selectedCareOption ==
+                                      option['description'];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedCareOption =
+                                            option['description'];
+                                        if (selectedCareOption == "Other") {
+                                          otherCareController.clear();
+                                        }
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Column(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 30,
+                                            backgroundColor: isSelected
+                                                ? Colors.blue
+                                                : Colors.transparent,
+                                            child: Text(
+                                              option['icon'],
+                                              style:
+                                                  const TextStyle(fontSize: 30),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            option['description'],
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    readOnly: true,
-                                    onTap: () async {
-                                      final DateTime? picked =
-                                          await showDatePicker(
-                                        context: context,
-                                        initialDate: selectedDate,
-                                        firstDate: DateTime(2000),
-                                        lastDate: DateTime(2101),
-                                        builder: (BuildContext context,
-                                            Widget? child) {
-                                          return Theme(
-                                            data: Theme.of(context).copyWith(
-                                              colorScheme: ColorScheme.light(
-                                                primary: Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary,
-                                                onPrimary: Theme.of(context)
-                                                    .primaryColorDark,
-                                                onSurface: Theme.of(context)
-                                                    .primaryColorDark,
-                                              ),
-                                              textButtonTheme:
-                                                  TextButtonThemeData(
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor:
-                                                      Theme.of(context)
-                                                          .primaryColorDark,
-                                                ),
-                                              ),
-                                            ),
-                                            child: child!,
-                                          );
-                                        },
-                                      );
-                                      if (picked != null &&
-                                          picked != selectedDate) {
-                                        setState(() {
-                                          selectedDate = picked;
-                                          dateController.text =
-                                              DateFormat('dd-MM-yyyy')
-                                                  .format(selectedDate);
-                                        });
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ],
+                                  );
+                                }).toList(),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 15),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: careOptions.map((option) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0),
-                                  child: Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                    'Confirm Care Option'),
-                                                content: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    const Text(
-                                                        'Are you sure you want to add this care option?'),
-                                                    Text(
-                                                      option['icon'],
-                                                      style: const TextStyle(
-                                                          fontSize: 50),
-                                                    ),
-                                                    Text(option['description']),
-                                                  ],
-                                                ),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    child: Text(
-                                                      'Cancel',
-                                                      style: TextStyle(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .primaryColorDark),
-                                                    ),
-                                                    onPressed: () =>
-                                                        Navigator.of(context)
-                                                            .pop(),
-                                                  ),
-                                                  TextButton(
-                                                    child: Text(
-                                                      'Confirm',
-                                                      style: TextStyle(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .primaryColorDark),
-                                                    ),
-                                                    onPressed: () {
-                                                      recordCareEvent(
-                                                        option['description'],
-                                                        option['icon'],
-                                                      );
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
+                            const SizedBox(height: 15),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SizedBox(
+                                width: 150,
+                                height: 30,
+                                child: showDetails
+                                    ? IconButton(
+                                        icon: const Icon(Icons.more_horiz),
+                                        onPressed: () {
+                                          setState(() {
+                                            showDetails = !showDetails;
+                                          });
                                         },
-                                        child: CircleAvatar(
-                                          radius: 30,
-                                          child: Text(
-                                            option['icon'],
-                                            style:
-                                                const TextStyle(fontSize: 30),
+                                        color: Theme.of(context)
+                                            .primaryColorDark
+                                            .withOpacity(0.6),
+                                      )
+                                    : ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            showDetails = !showDetails;
+                                          });
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "M O R E",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .primaryColorDark
+                                                .withOpacity(0.6),
+                                            fontSize: 10,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        option['description'],
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 15),
-                ],
-              ),
-            ),
+                    // Drugi kontener z wyborem daty, godziny i przyciskiem "ZAPISZ"
+                    if (showDetails)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 4),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
+                            children: [
+                              if (selectedCareOption == "Other") ...[
+                                TextField(
+                                  controller: otherCareController,
+                                  decoration: InputDecoration(
+                                    labelText: "Enter Care Description",
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: selectedDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2101),
+                                  );
+                                  if (pickedDate != null) {
+                                    setState(() {
+                                      selectedDate = pickedDate;
+                                      dateController.text =
+                                          DateFormat('dd-MM-yyyy')
+                                              .format(selectedDate);
+                                    });
+                                  }
+                                },
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Select Date',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(selectedDate),
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedTime = await showStyledTimePicker(
+                                    context: context,
+                                    initialTime:
+                                        selectedTime ?? TimeOfDay.now(),
+                                  );
+                                  if (pickedTime != null) {
+                                    setState(() {
+                                      selectedTime = pickedTime;
+                                    });
+                                  }
+                                },
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Select Time',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    selectedTime != null
+                                        ? selectedTime!.format(context)
+                                        : 'Select Time',
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
           );
         },
       );
@@ -310,7 +386,8 @@ void _saveCareEvent(
     String eventId,
     String careDescription,
     String emoji,
-    DateTime selectedDate) {
+    DateTime selectedDate,
+    TimeOfDay? time) {
   EventCareModel newCare = EventCareModel(
     id: generateUniqueId(),
     eventId: eventId,
@@ -319,6 +396,7 @@ void _saveCareEvent(
     emoji: emoji,
     description: careDescription,
     dateTime: selectedDate,
+    time: time,
   );
 
   ref.read(eventCareServiceProvider).addCare(newCare);
