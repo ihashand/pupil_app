@@ -6,6 +6,13 @@ final eventVaccineServiceProvider = Provider((ref) {
   return VaccineService();
 });
 
-final eventVaccineProvider = StreamProvider<List<EventVaccineModel>>((ref) {
+// Provider dla strumienia danych o szczepieniach
+final eventVaccineStreamProvider =
+    StreamProvider<List<EventVaccineModel>>((ref) {
   return ref.watch(eventVaccineServiceProvider).getVaccineStream();
+});
+
+// Provider dla jednorazowego pobrania danych o szczepieniach
+final eventVaccineOnceProvider = FutureProvider<List<EventVaccineModel>>((ref) {
+  return ref.watch(eventVaccineServiceProvider).getVaccineEventsOnce();
 });
