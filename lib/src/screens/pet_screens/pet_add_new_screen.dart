@@ -10,6 +10,7 @@ import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_dog_breed_selection_screen.dart';
 import 'package:pet_diary/src/services/other_services/pet_services.dart';
 import '../../providers/events_providers/event_provider.dart';
@@ -117,6 +118,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
       petId: petId,
       weight: weight,
       dateTime: currentDate,
+      userId: widget.ref.read(userIdProvider)!,
+      time: TimeOfDay.now(),
     );
 
     final newEvent = Event(

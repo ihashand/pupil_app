@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:pet_diary/src/components/pet_components/pet_mood_and_needs_container.dart';
-import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -295,31 +294,23 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
           loading: () => const Text('Loading...'),
           error: (err, stack) => const Text('Error fetching weight'),
           data: (weights) {
-            var weight = weights
-                .firstWhere(
-                  (element) => element!.petId == widget.pet.id,
-                  orElse: () => EventWeightModel(
-                    id: '',
-                    weight: 0.0,
-                    eventId: '',
-                    petId: widget.pet.id,
-                    dateTime: DateTime.now(),
-                  ),
-                )!
-                .weight;
+            // Sortuj wagę malejąco, aby pobrać najnowszą
+            weights.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+            final latestWeight =
+                weights.isNotEmpty ? weights.first.weight : 0.0;
 
             return GestureDetector(
               onTap: () => _showInfoDialog(
                 context,
                 'Weight',
-                '$weight kg',
+                '$latestWeight kg',
                 '⚖️',
               ),
               child: _buildDetailItem(
                 context,
                 '⚖️',
                 'Weight',
-                '$weight kg',
+                '$latestWeight kg',
               ),
             );
           },
@@ -817,15 +808,8 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       data: (weights) {
         final weight = weights
             .firstWhere(
-              (element) => element!.petId == widget.pet.id,
-              orElse: () => EventWeightModel(
-                id: '',
-                weight: 0.0,
-                eventId: '',
-                petId: widget.pet.id,
-                dateTime: DateTime.now(),
-              ),
-            )!
+              (element) => element.petId == widget.pet.id,
+            )
             .weight;
         showDialog(
           context: context,
