@@ -229,7 +229,7 @@ void showFoodSimpleMenu(BuildContext context, WidgetRef ref,
                                             ),
                                           ),
                                           child: Text(
-                                            "Optional",
+                                            "M O R E",
                                             style: TextStyle(
                                               color: Theme.of(context)
                                                   .primaryColorDark,

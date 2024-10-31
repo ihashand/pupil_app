@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
@@ -11,16 +13,16 @@ import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 
 void showWaterMenu(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
-  var amountController = TextEditingController();
+  var amountController = TextEditingController(text: '0');
+  var nameController = TextEditingController();
   DateTime selectedDateTime = DateTime.now();
+  TimeOfDay? selectedTime;
   bool showDetails = false;
-  int selectedWaterLevel = 0; // 0 - brak, 1 - mało, 2 - średnio, 3 - dużo
 
   final double screenHeight = MediaQuery.of(context).size.height;
-
-  // Definiujemy proporcje dla różnych rozmiarów ekranu
-  double initialSize = screenHeight > 800 ? 0.45 : 0.55;
-  double maxSize = screenHeight > 800 ? 0.85 : 0.9;
+  double initialSize = screenHeight > 800 ? 0.25 : 0.3;
+  double detailsSize = screenHeight > 800 ? 0.5 : 0.6;
+  double maxSize = screenHeight > 800 ? 1 : 1;
 
   showModalBottomSheet(
     context: context,
@@ -31,7 +33,7 @@ void showWaterMenu(BuildContext context, WidgetRef ref,
         builder: (BuildContext context, StateSetter setState) {
           return DraggableScrollableSheet(
             expand: false,
-            initialChildSize: initialSize,
+            initialChildSize: showDetails ? detailsSize : initialSize,
             minChildSize: initialSize,
             maxChildSize: maxSize,
             builder: (context, scrollController) {
@@ -43,6 +45,7 @@ void showWaterMenu(BuildContext context, WidgetRef ref,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
+                      height: 60,
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
                         borderRadius: const BorderRadius.only(
@@ -50,222 +53,376 @@ void showWaterMenu(BuildContext context, WidgetRef ref,
                           bottomRight: Radius.circular(20),
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10.0, vertical: 12.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.close,
-                                  color: Theme.of(context).primaryColorDark),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.close,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          Text(
+                            'W A T E R',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColorDark,
                             ),
-                            Text(
-                              'W A T E R',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.check,
-                                  color: Theme.of(context).primaryColorDark),
-                              onPressed: () async {
-                                String eventId = generateUniqueId();
-                                double? waterAmount = showDetails
-                                    ? double.tryParse(amountController.text)
-                                    : null;
-                                String? waterLevel;
-                                if (!showDetails) {
-                                  waterLevel = selectedWaterLevel == 1
-                                      ? 'Low'
-                                      : selectedWaterLevel == 2
-                                          ? 'Medium'
-                                          : selectedWaterLevel == 3
-                                              ? 'High'
-                                              : null;
-                                }
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.check,
+                                color: Theme.of(context).primaryColorDark),
+                            onPressed: () async {
+                              String eventId = generateUniqueId();
+                              double waterAmount =
+                                  double.tryParse(amountController.text) ?? 0;
+                              if (waterAmount > 0) {
+                                String userId = ref.read(userIdProvider)!;
                                 if (petIds != null && petIds.isNotEmpty) {
                                   for (String id in petIds) {
                                     _saveWaterEvent(
-                                        ref,
-                                        id,
-                                        eventId,
-                                        waterAmount,
-                                        waterLevel,
-                                        selectedDateTime);
+                                      ref,
+                                      id,
+                                      eventId,
+                                      userId,
+                                      waterAmount,
+                                      selectedDateTime,
+                                      name: nameController.text.isNotEmpty
+                                          ? nameController.text
+                                          : null,
+                                      time: selectedTime,
+                                    );
                                   }
                                 } else if (petId != null) {
                                   _saveWaterEvent(
-                                      ref,
-                                      petId,
-                                      eventId,
-                                      waterAmount,
-                                      waterLevel,
-                                      selectedDateTime);
+                                    ref,
+                                    petId,
+                                    eventId,
+                                    userId,
+                                    waterAmount,
+                                    selectedDateTime,
+                                    name: nameController.text.isNotEmpty
+                                        ? nameController.text
+                                        : null,
+                                    time: selectedTime,
+                                  );
                                 }
-
                                 Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        ),
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 15),
+                          horizontal: 8.0, vertical: 12),
                       child: Container(
-                        padding: const EdgeInsets.all(20.0),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.primary,
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Column(
                           children: [
-                            if (showDetails)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: TextFormField(
-                                  controller: amountController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Amount (ml)',
-                                    labelStyle: TextStyle(
-                                      color: Theme.of(context).primaryColorDark,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color:
-                                            Theme.of(context).primaryColorDark,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color:
-                                            Theme.of(context).primaryColorDark,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                ),
-                              )
-                            else
-                              Row(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 8),
+                              child: Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: List.generate(3, (index) {
-                                  int level = index + 1;
-                                  Color color;
-                                  if (level == 1) {
-                                    color = Colors.green;
-                                  } else if (level == 2) {
-                                    color = Colors.amber;
-                                  } else {
-                                    color = Colors.red;
-                                  }
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedWaterLevel = level;
-                                      });
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    iconSize: 30,
+                                    color: Theme.of(context).primaryColorDark,
+                                    icon: const Icon(Icons.remove),
+                                    onPressed: () {
+                                      double currentAmount = double.tryParse(
+                                              amountController.text) ??
+                                          0;
+                                      if (currentAmount > 0) {
+                                        setState(() {
+                                          amountController.text =
+                                              (currentAmount - 50).toString();
+                                        });
+                                      }
                                     },
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.water_drop,
-                                          size: 50,
-                                          color: selectedWaterLevel == level
-                                              ? color
-                                              : Colors.blue,
+                                  ),
+                                  SizedBox(
+                                    width: 150,
+                                    height: 35,
+                                    child: TextField(
+                                      controller: amountController,
+                                      textAlign: TextAlign.center,
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                            RegExp(r'^\d*\.?\d*')),
+                                      ],
+                                      decoration: InputDecoration(
+                                        labelText: 'ml',
+                                        labelStyle: TextStyle(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                          fontSize: 14,
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          level == 1
-                                              ? 'Low'
-                                              : level == 2
-                                                  ? 'Medium'
-                                                  : 'High',
-                                          style: TextStyle(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                vertical: 5),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
                                             color: Theme.of(context)
                                                 .primaryColorDark,
                                           ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
-                                      ],
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
                                     ),
-                                  );
-                                }),
+                                  ),
+                                  IconButton(
+                                    iconSize: 30,
+                                    color: Theme.of(context).primaryColorDark,
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () {
+                                      double currentAmount = double.tryParse(
+                                              amountController.text) ??
+                                          0;
+                                      setState(() {
+                                        amountController.text =
+                                            (currentAmount + 50).toString();
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
+                            ),
                             Padding(
-                              padding: const EdgeInsets.only(top: 18.0),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    showDetails = !showDetails;
-                                  });
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  side: BorderSide(
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                                child: Text(
-                                  showDetails ? 'Water Level' : 'Amount in ml',
-                                  style: TextStyle(
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
+                              padding:
+                                  const EdgeInsets.only(top: 10.0, bottom: 10),
+                              child: SizedBox(
+                                width: 125,
+                                height: 25,
+                                child: showDetails
+                                    ? IconButton(
+                                        icon: const Icon(Icons.more_horiz),
+                                        onPressed: () {
+                                          setState(() {
+                                            showDetails = !showDetails;
+                                          });
+                                        },
+                                        color: Theme.of(context)
+                                            .primaryColorDark
+                                            .withOpacity(0.6),
+                                      )
+                                    : ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            showDetails = !showDetails;
+                                          });
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "M O R E",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 8),
-                      child: Container(
-                        height: 60,
-                        padding: const EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: GestureDetector(
-                          onTap: () async {
-                            final DateTime? pickedDate =
-                                await showStyledDatePicker(
-                              context: context,
-                              initialDate: selectedDateTime,
-                            );
-                            if (pickedDate != null) {
-                              setState(() {
-                                selectedDateTime = pickedDate;
-                              });
-                            }
-                          },
-                          child: Center(
-                            child: Text(
-                              'Date: ${DateFormat('dd-MM-yyyy').format(selectedDateTime)}',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontSize: 16,
+                    if (showDetails)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 5.0),
+                                child: SizedBox(
+                                  width: 350,
+                                  height: 45,
+                                  child: TextField(
+                                    controller: nameController,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                    ),
+                                    decoration: InputDecoration(
+                                      labelText: 'Name (optional)',
+                                      labelStyle: TextStyle(
+                                        fontSize: 11,
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 12.0),
+                                child: SizedBox(
+                                  width: 350,
+                                  height: 45,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final TimeOfDay? pickedTime =
+                                          await showStyledTimePicker(
+                                        context: context,
+                                        initialTime:
+                                            selectedTime ?? TimeOfDay.now(),
+                                      );
+                                      if (pickedTime != null) {
+                                        setState(() {
+                                          selectedTime = pickedTime;
+                                        });
+                                      }
+                                    },
+                                    child: InputDecorator(
+                                      decoration: InputDecoration(
+                                        labelText: 'Select Time',
+                                        labelStyle: TextStyle(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                          fontSize: 13,
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        selectedTime != null
+                                            ? selectedTime!.format(context)
+                                            : 'Select Time',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 12.0, bottom: 5),
+                                child: SizedBox(
+                                  width: 350,
+                                  height: 45,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final DateTime? pickedDate =
+                                          await showStyledDatePicker(
+                                        context: context,
+                                        initialDate: selectedDateTime,
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime(2101),
+                                      );
+                                      if (pickedDate != null) {
+                                        setState(() {
+                                          selectedDateTime = pickedDate;
+                                        });
+                                      }
+                                    },
+                                    child: InputDecorator(
+                                      decoration: InputDecoration(
+                                        labelText: 'Select Date',
+                                        labelStyle: TextStyle(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                          fontSize: 13,
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context)
+                                                .primaryColorDark,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        DateFormat('dd-MM-yyyy')
+                                            .format(selectedDateTime),
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .primaryColorDark,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               );
@@ -277,34 +434,43 @@ void showWaterMenu(BuildContext context, WidgetRef ref,
   );
 }
 
-void _saveWaterEvent(WidgetRef ref, String petId, String eventId,
-    double? waterAmount, String? waterLevel, DateTime dateTime) {
-  final description = [
-    if (waterAmount != null) '$waterAmount ml water',
-    if (waterLevel != null) 'Water intake: $waterLevel',
-  ].join(', ');
-
+void _saveWaterEvent(
+  WidgetRef ref,
+  String petId,
+  String eventId,
+  String userId,
+  double waterAmount,
+  DateTime dateTime, {
+  String? name,
+  TimeOfDay? time,
+}) {
   final newWaterEvent = EventWaterModel(
     id: eventId,
     eventId: eventId,
     petId: petId,
+    userId: userId,
     water: waterAmount,
-    waterLevel: waterLevel,
     dateTime: dateTime,
+    name: name,
+    time: time,
   );
+  ref.read(eventWaterServiceProvider).addWater(newWaterEvent);
+
+  final description = [
+    '$waterAmount ml water',
+    if (name != null) 'Name: $name',
+  ].join(', ');
 
   final newEvent = Event(
     id: eventId,
     title: 'Water Intake',
     eventDate: dateTime,
     dateWhenEventAdded: DateTime.now(),
-    userId: ref.read(userIdProvider)!,
+    userId: userId,
     petId: petId,
     description: description,
     avatarImage: 'assets/images/water_bowl.png',
     emoticon: '💧',
   );
-
-  ref.read(eventWaterServiceProvider).addWater(newWaterEvent);
   ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }
