@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
@@ -6,6 +5,7 @@ import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_water_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 
 class EventWater extends ConsumerStatefulWidget {
   final double iconSize;
@@ -211,20 +211,22 @@ class _EventWaterState extends ConsumerState<EventWater> {
                               }
 
                               String eventId = generateUniqueId();
+                              String userId = ref.read(userIdProvider)!;
 
                               EventWaterModel newWater = EventWaterModel(
                                   id: generateUniqueId(),
                                   eventId: eventId,
                                   petId: widget.petId,
                                   water: initialWater,
-                                  dateTime: widget.eventDateTime);
+                                  dateTime: widget.eventDateTime,
+                                  userId: userId);
 
                               Event newEvent = Event(
                                 id: eventId,
                                 title: 'Water',
                                 eventDate: widget.eventDateTime,
                                 dateWhenEventAdded: DateTime.now(),
-                                userId: FirebaseAuth.instance.currentUser!.uid,
+                                userId: userId,
                                 petId: widget.petId,
                                 waterId: newWater.id,
                                 description: '$initialWater ',

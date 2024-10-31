@@ -4,19 +4,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_urine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 
-// Funkcja modalu wyboru opcji Urine
 void showUrineModal(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
-  TextEditingController dateController = TextEditingController(
+  TimeOfDay? selectedTime;
+  bool showDetails = false;
+  String? selectedUrineType;
+
+  final TextEditingController dateController = TextEditingController(
     text: DateFormat('dd-MM-yyyy').format(selectedDate),
   );
-  String? selectedUrineType;
 
   final List<Map<String, dynamic>> urineTypes = [
     {'emoji': '🟦', 'color': Colors.blue, 'description': 'Over-hydrated'},
@@ -31,12 +35,12 @@ void showUrineModal(BuildContext context, WidgetRef ref,
     String eventId = generateUniqueId();
     if (petIds != null && petIds.isNotEmpty) {
       for (String id in petIds) {
-        _saveUrineEvent(
-            context, ref, id, eventId, selectedUrineType, selectedDate);
+        _saveUrineEvent(context, ref, id, eventId, selectedUrineType,
+            selectedDate, selectedTime);
       }
     } else if (petId != null) {
-      _saveUrineEvent(
-          context, ref, petId, eventId, selectedUrineType, selectedDate);
+      _saveUrineEvent(context, ref, petId, eventId, selectedUrineType,
+          selectedDate, selectedTime);
     }
   }
 
@@ -58,31 +62,29 @@ void showUrineModal(BuildContext context, WidgetRef ref,
                 topRight: Radius.circular(25),
               ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
                           icon: Icon(Icons.close,
                               color: Theme.of(context).primaryColorDark),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                         Text(
-                          'Confirm Urine Event',
+                          'U R I N E',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -100,79 +102,74 @@ void showUrineModal(BuildContext context, WidgetRef ref,
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: dateController,
-                          decoration: InputDecoration(
-                            labelText: 'Date',
-                            labelStyle: TextStyle(
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          readOnly: true,
-                          onTap: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2101),
-                              builder: (BuildContext context, Widget? child) {
-                                return Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: ColorScheme.light(
-                                      primary: Theme.of(context)
-                                          .colorScheme
-                                          .secondary,
-                                      onPrimary:
-                                          Theme.of(context).primaryColorDark,
-                                      onSurface:
-                                          Theme.of(context).primaryColorDark,
+                  // Kontener z przyciskiem „More”
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 10, right: 10, top: 10, bottom: 5),
+                    child: Container(
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            width: 150,
+                            height: 30,
+                            child: showDetails
+                                ? IconButton(
+                                    icon: const Icon(Icons.more_horiz),
+                                    onPressed: () {
+                                      setState(() {
+                                        showDetails = !showDetails;
+                                      });
+                                    },
+                                    color: Theme.of(context)
+                                        .primaryColorDark
+                                        .withOpacity(0.6),
+                                  )
+                                : ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        showDetails = !showDetails;
+                                      });
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.surface,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
                                     ),
-                                    textButtonTheme: TextButtonThemeData(
-                                      style: TextButton.styleFrom(
-                                        foregroundColor:
-                                            Theme.of(context).primaryColorDark,
+                                    child: Text(
+                                      "M O R E",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context)
+                                            .primaryColorDark
+                                            .withOpacity(0.6),
+                                        fontSize: 10,
                                       ),
                                     ),
                                   ),
-                                  child: child!,
-                                );
-                              },
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                selectedDate = picked;
-                                dateController.text = DateFormat('dd-MM-yyyy')
-                                    .format(selectedDate);
-                              });
-                            }
-                          },
+                          ),
                         ),
-                        const SizedBox(height: 20),
-                        SingleChildScrollView(
+                      ),
+                    ),
+                  ),
+                  // Drugi kontener z wyborem typu „Urine” (po kliknięciu „More”)
+                  if (showDetails)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: urineTypes.map((type) {
@@ -184,43 +181,26 @@ void showUrineModal(BuildContext context, WidgetRef ref,
                                     selectedUrineType = type['description'];
                                   });
                                 },
-                                child: Container(
-                                  width: 90,
-                                  height: 90,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 5),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Theme.of(context).colorScheme.surface
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0),
                                   child: Column(
                                     children: [
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 8.0),
+                                      CircleAvatar(
+                                        radius: 30,
+                                        backgroundColor: isSelected
+                                            ? type['color'] as Color
+                                            : Colors.transparent,
                                         child: Text(
                                           type['emoji'],
-                                          style: const TextStyle(fontSize: 35),
+                                          style: const TextStyle(fontSize: 30),
                                         ),
                                       ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 8.0),
-                                        child: Text(
-                                          type['description'],
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Theme.of(context)
-                                                .primaryColorDark,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        type['description'],
+                                        style: const TextStyle(fontSize: 12),
                                       ),
-                                      const SizedBox(height: 8),
                                     ],
                                   ),
                                 ),
@@ -228,12 +208,109 @@ void showUrineModal(BuildContext context, WidgetRef ref,
                             }).toList(),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 15),
-              ],
+                  // Trzeci kontener z wyborem daty i godziny
+                  if (showDetails)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 4),
+                      child: Container(
+                        padding: const EdgeInsets.all(15.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Column(
+                          children: [
+                            // Wybór daty
+                            GestureDetector(
+                              onTap: () async {
+                                final pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: selectedDate,
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2101),
+                                );
+                                if (pickedDate != null) {
+                                  setState(() {
+                                    selectedDate = pickedDate;
+                                    dateController.text =
+                                        DateFormat('dd-MM-yyyy')
+                                            .format(selectedDate);
+                                  });
+                                }
+                              },
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Select Date',
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  DateFormat('dd-MM-yyyy').format(selectedDate),
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            // Wybór godziny
+                            GestureDetector(
+                              onTap: () async {
+                                final pickedTime = await showStyledTimePicker(
+                                  context: context,
+                                  initialTime: selectedTime ?? TimeOfDay.now(),
+                                );
+                                if (pickedTime != null) {
+                                  setState(() {
+                                    selectedTime = pickedTime;
+                                  });
+                                }
+                              },
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Select Time',
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  selectedTime != null
+                                      ? selectedTime!.format(context)
+                                      : 'Select Time',
+                                  style: TextStyle(
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           );
         },
@@ -243,8 +320,14 @@ void showUrineModal(BuildContext context, WidgetRef ref,
 }
 
 // Funkcja pomocnicza do zapisywania eventu Urine
-void _saveUrineEvent(BuildContext context, WidgetRef ref, String petId,
-    String eventId, String? selectedUrineType, DateTime selectedDate) {
+void _saveUrineEvent(
+    BuildContext context,
+    WidgetRef ref,
+    String petId,
+    String eventId,
+    String? selectedUrineType,
+    DateTime selectedDate,
+    TimeOfDay? time) {
   EventUrineModel newUrine = EventUrineModel(
     id: generateUniqueId(),
     eventId: eventId,
@@ -252,7 +335,10 @@ void _saveUrineEvent(BuildContext context, WidgetRef ref, String petId,
     color: selectedUrineType ?? 'Default',
     description: selectedUrineType ?? 'Urine event',
     dateTime: selectedDate,
+    time: time,
+    userId: ref.read(userIdProvider)!,
   );
+
   ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
 
   Event newEvent = Event(
@@ -267,6 +353,7 @@ void _saveUrineEvent(BuildContext context, WidgetRef ref, String petId,
     emoticon: '💦',
     urineId: newUrine.id,
   );
+
   ref.read(eventServiceProvider).addEvent(newEvent, petId);
 }
 

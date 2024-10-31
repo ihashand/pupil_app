@@ -201,7 +201,7 @@ class EventTile extends StatelessWidget {
       showWorkingProgress(context);
     } else if (event.stomachId.isNotEmpty) {
       showWorkingProgress(context);
-    } else if (event.psychicId.isNotEmpty) {
+    } else if (event.issueId.isNotEmpty) {
       showWorkingProgress(context);
     } else if (event.stoolId.isNotEmpty) {
       showWorkingProgress(context);

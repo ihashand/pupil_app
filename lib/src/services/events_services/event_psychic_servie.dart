@@ -1,40 +1,63 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/models/events_models/event_psychic_model.dart';
+import 'package:pet_diary/src/models/events_models/event_issue_model.dart';
 
-class EventPsychicService {
+class EventIssueService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
-  final _psychicEventsController =
-      StreamController<List<EventPsychicModel>>.broadcast();
 
-  Stream<List<EventPsychicModel>> getPsychicEventsStream() {
+  final _issueEventsController =
+      StreamController<List<EventIssueModel>>.broadcast();
+
+  // Cache for fetched event issues, to optimize performance
+  List<EventIssueModel>? _cachedIssues = []; // Initialize with an empty list
+
+  /// Stream to get real-time updates of user's event issues.
+  Stream<List<EventIssueModel>> getIssuesStream() {
     if (_currentUser == null) {
-      return Stream.value([]);
+      return Stream.value(
+          []); // Return empty stream if user is not authenticated
     }
 
-    _firestore.collection('event_psychics').snapshots().listen((snapshot) {
-      _psychicEventsController.add(snapshot.docs
-          .map((doc) => EventPsychicModel.fromDocument(doc))
-          .toList());
+    // Listen to Firestore collection changes, and update cache & controller
+    _firestore
+        .collection('event_issues')
+        .where('userId', isEqualTo: _currentUser.uid)
+        .snapshots()
+        .listen((snapshot) {
+      _cachedIssues = snapshot.docs
+          .map((doc) => EventIssueModel.fromDocument(doc))
+          .toList();
+      _issueEventsController.add(_cachedIssues!);
     });
 
-    return _psychicEventsController.stream;
+    return _issueEventsController.stream;
   }
 
-  Future<void> addPsychicEvent(EventPsychicModel event) async {
+  /// Adds a new event issue to Firestore
+  Future<void> addIssue(EventIssueModel issue) async {
     await _firestore
-        .collection('event_psychics')
-        .doc(event.id)
-        .set(event.toMap());
+        .collection('event_issues')
+        .doc(issue.id)
+        .set(issue.toMap());
+
+    // Ensure _cachedIssues is initialized
+    _cachedIssues ??= [];
+
+    _cachedIssues!.add(issue); // Update cache immediately after adding
+    _issueEventsController.add(_cachedIssues!); // Update the stream
   }
 
-  Future<void> deletePsychicEvent(String eventId) async {
-    await _firestore.collection('event_psychics').doc(eventId).delete();
+  /// Deletes an event issue from Firestore
+  Future<void> deleteIssue(String issueId) async {
+    await _firestore.collection('event_issues').doc(issueId).delete();
+    _cachedIssues?.removeWhere((issue) => issue.id == issueId); // Update cache
+    _issueEventsController.add(_cachedIssues!); // Update the stream
   }
 
+  /// Clears stream controller on disposal
   void dispose() {
-    _psychicEventsController.close();
+    _issueEventsController.close();
   }
 }

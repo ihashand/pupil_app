@@ -1,76 +1,80 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EventWeightService {
-  final _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  final _weightsController =
-      StreamController<List<EventWeightModel>>.broadcast();
+  List<EventWeightModel>? _cachedWeights;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
-  Stream<List<EventWeightModel>> getWeightsStream(String? petId) {
-    _firestore.collection('event_weights').snapshots().listen((snapshot) {
-      _weightsController.add(snapshot.docs
-          .map((doc) => EventWeightModel.fromDocument(doc))
-          .toList());
-    });
+  Future<List<EventWeightModel>> getWeightsOnce(String petId) async {
+    if (_cachedWeights != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedWeights!;
+    }
 
-    return _weightsController.stream;
+    final querySnapshot = await _firestore
+        .collection('event_weights')
+        .where('petId', isEqualTo: petId)
+        .where('userId', isEqualTo: _currentUser?.uid)
+        .get();
+
+    _cachedWeights = querySnapshot.docs
+        .map((doc) => EventWeightModel.fromDocument(doc))
+        .toList();
+    _lastFetchTime = DateTime.now();
+
+    return _cachedWeights!;
   }
 
-  Stream<EventWeightModel?> getWeightByIdStream(String weightId) {
-    return Stream.fromFuture(getWeightById(weightId));
+  Stream<List<EventWeightModel>> getWeightsStream(String petId) {
+    return _firestore
+        .collection('event_weights')
+        .where('petId', isEqualTo: petId)
+        .where('userId', isEqualTo: _currentUser?.uid)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EventWeightModel.fromDocument(doc))
+            .toList());
   }
 
-  Future<EventWeightModel?> getWeightById(
-    String weightId,
-  ) async {
-    final docSnapshot =
-        await _firestore.collection('event_weights').doc(weightId).get();
-
-    return docSnapshot.exists
-        ? EventWeightModel.fromDocument(docSnapshot)
-        : null;
-  }
-
-  Future<void> addWeight(
-    EventWeightModel weight,
-  ) async {
+  Future<void> addWeight(EventWeightModel weight) async {
     await _firestore
         .collection('event_weights')
         .doc(weight.id)
         .set(weight.toMap());
+    _cachedWeights = null;
   }
 
-  Future<void> updateWeight(
-    EventWeightModel weight,
-  ) async {
+  Future<void> updateWeight(EventWeightModel weight) async {
     await _firestore
         .collection('event_weights')
         .doc(weight.id)
         .update(weight.toMap());
+    _cachedWeights = null;
   }
 
-  Future<void> deleteWeight(
-    String weightId,
-  ) async {
+  Future<void> deleteWeight(String weightId) async {
     await _firestore.collection('event_weights').doc(weightId).delete();
+    _cachedWeights = null;
   }
 
-  Future<EventWeightModel?> getLastKnownWeight() async {
+  // Metoda zwracająca ostatnią znaną wagę dla konkretnego zwierzęcia (petId)
+  Future<EventWeightModel?> getLastKnownWeight(String petId) async {
     final querySnapshot = await _firestore
         .collection('event_weights')
+        .where('petId', isEqualTo: petId)
         .orderBy('dateTime', descending: true)
-        .limit(1)
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
       return EventWeightModel.fromDocument(querySnapshot.docs.first);
     }
     return null;
-  }
-
-  void dispose() {
-    _weightsController.close();
   }
 }

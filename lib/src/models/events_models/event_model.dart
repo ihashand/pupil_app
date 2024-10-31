@@ -27,7 +27,7 @@ class Event {
   String emoticon = '';
   String vetVisitId = '';
   String vaccineId = '';
-  String psychicId = '';
+  String issueId = '';
 
   Event({
     required this.id,
@@ -53,7 +53,7 @@ class Event {
     this.urineId = '',
     this.serviceId = '',
     this.careId = '',
-    this.psychicId = '',
+    this.issueId = '',
     this.vetVisitId = '',
     this.vaccineId = '',
   });
@@ -81,7 +81,7 @@ class Event {
     stomachId = doc.get('stomachId') ?? '';
     stoolId = doc.get('stoolId') ?? '';
     urineId = doc.get('urineId') ?? '';
-    psychicId = doc.get('psychicId') ?? '';
+    issueId = doc.get('psychicId') ?? '';
     serviceId = doc.get('serviceId') ?? '';
     careId = doc.get('careId') ?? '';
     vaccineId = doc.get('vaccineId') ?? '';
@@ -109,7 +109,7 @@ class Event {
       'avatarImage': avatarImage,
       'emoticon': emoticon,
       'moodId': moodId,
-      'psychicId': psychicId,
+      'psychicId': issueId,
       'stoolId': stoolId,
       'urineId': urineId,
       'careId': careId,

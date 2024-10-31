@@ -5,32 +5,57 @@ import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
 
 class EventMoodService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
-  final _moodsController = StreamController<List<EventMoodModel>>.broadcast();
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
+
+  List<EventMoodModel>? _cachedMoods;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
   Stream<List<EventMoodModel>> getMoodsStream() {
     if (_currentUser == null) {
       return Stream.value([]);
     }
 
-    _firestore.collection('event_moods').snapshots().listen((snapshot) {
-      _moodsController.add(snapshot.docs
-          .map((doc) => EventMoodModel.fromDocument(doc))
-          .toList());
-    });
+    return _firestore
+        .collection('event_moods')
+        .where('userId', isEqualTo: _currentUser.uid)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EventMoodModel.fromDocument(doc))
+            .toList());
+  }
 
-    return _moodsController.stream;
+  Future<List<EventMoodModel>> getMoodsOnce() async {
+    if (_currentUser == null) {
+      return [];
+    }
+
+    if (_cachedMoods != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedMoods!;
+    }
+
+    final querySnapshot = await _firestore
+        .collection('event_moods')
+        .where('userId', isEqualTo: _currentUser.uid)
+        .get();
+
+    _cachedMoods = querySnapshot.docs
+        .map((doc) => EventMoodModel.fromDocument(doc))
+        .toList();
+    _lastFetchTime = DateTime.now();
+
+    return _cachedMoods!;
   }
 
   Future<void> addMood(EventMoodModel mood) async {
     await _firestore.collection('event_moods').doc(mood.id).set(mood.toMap());
+    _cachedMoods = null;
   }
 
   Future<void> deleteMood(String moodId) async {
     await _firestore.collection('event_moods').doc(moodId).delete();
-  }
-
-  void dispose() {
-    _moodsController.close();
+    _cachedMoods = null;
   }
 }

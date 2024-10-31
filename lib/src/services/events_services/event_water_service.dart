@@ -1,24 +1,45 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 
 class EventWaterService {
-  final _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  final _waterController = StreamController<List<EventWaterModel>>.broadcast();
+  List<EventWaterModel>? _cachedWaterEvents;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
-  Stream<List<EventWaterModel>> getWatersStream() {
-    _firestore.collection('event_waters').snapshots().listen((snapshot) {
-      _waterController.add(snapshot.docs
-          .map((doc) => EventWaterModel.fromDocument(doc))
-          .toList());
-    });
+  Future<List<EventWaterModel>> getWatersOnce(String petId) async {
+    if (_cachedWaterEvents != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedWaterEvents!;
+    }
 
-    return _waterController.stream;
+    final querySnapshot = await _firestore
+        .collection('event_waters')
+        .where('petId', isEqualTo: petId)
+        .where('userId', isEqualTo: _currentUser?.uid)
+        .get();
+
+    _cachedWaterEvents = querySnapshot.docs
+        .map((doc) => EventWaterModel.fromDocument(doc))
+        .toList();
+    _lastFetchTime = DateTime.now();
+
+    return _cachedWaterEvents!;
   }
 
-  Stream<EventWaterModel?> getWaterByIdStream(String waterId) {
-    return Stream.fromFuture(getWaterById(waterId));
+  Stream<List<EventWaterModel>> getWatersStream(String petId) {
+    return _firestore
+        .collection('event_waters')
+        .where('petId', isEqualTo: petId)
+        .where('userId', isEqualTo: _currentUser?.uid)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EventWaterModel.fromDocument(doc))
+            .toList());
   }
 
   Future<EventWaterModel?> getWaterById(String waterId) async {
@@ -30,25 +51,24 @@ class EventWaterService {
         : null;
   }
 
-  Future<void> addWater(EventWaterModel water) async {
+  Future<void> addWater(EventWaterModel waterEvent) async {
     await _firestore
         .collection('event_waters')
-        .doc(water.id)
-        .set(water.toMap());
+        .doc(waterEvent.id)
+        .set(waterEvent.toMap());
+    _cachedWaterEvents = null;
   }
 
-  Future<void> updateWater(EventWaterModel water) async {
+  Future<void> updateWater(EventWaterModel waterEvent) async {
     await _firestore
         .collection('event_waters')
-        .doc(water.id)
-        .update(water.toMap());
+        .doc(waterEvent.id)
+        .update(waterEvent.toMap());
+    _cachedWaterEvents = null;
   }
 
   Future<void> deleteWater(String waterId) async {
     await _firestore.collection('event_waters').doc(waterId).delete();
-  }
-
-  void dispose() {
-    _waterController.close();
+    _cachedWaterEvents = null;
   }
 }

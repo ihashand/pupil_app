@@ -6,9 +6,11 @@ import 'package:pet_diary/src/components/breed_data/dogs_breed_data.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_bacground_selection.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_dog_breed_selection_screen.dart';
 import 'package:pet_diary/src/services/other_services/pet_services.dart';
 import '../../providers/events_providers/event_provider.dart';
@@ -57,9 +59,10 @@ class _PetEditScreenState extends State<PetEditScreen> {
       _backgroundImage = pet.backgroundImage;
       _gender = pet.gender;
 
+      // Uzyskanie ostatniej znanej wagi z przekazanym petId
       var lastKnownWeight = await widget.ref
           .read(eventWeightServiceProvider)
-          .getLastKnownWeight();
+          .getLastKnownWeight(widget.petId);
 
       _weightController.text =
           lastKnownWeight != null ? lastKnownWeight.weight.toString() : '';
@@ -104,28 +107,6 @@ class _PetEditScreenState extends State<PetEditScreen> {
     );
   }
 
-  Future<DateTime?> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Theme.of(context).colorScheme.secondary,
-              onPrimary: Theme.of(context).primaryColorDark,
-              onSurface: Theme.of(context).primaryColorDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    return picked;
-  }
-
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
@@ -161,6 +142,8 @@ class _PetEditScreenState extends State<PetEditScreen> {
       petId: petId,
       weight: weight,
       dateTime: currentDate,
+      userId: widget.ref.read(userIdProvider)!,
+      time: TimeOfDay.now(),
     );
 
     final newEvent = Event(
@@ -446,11 +429,16 @@ class _PetEditScreenState extends State<PetEditScreen> {
       controller: _birthDateController,
       readOnly: true,
       onTap: () async {
-        final DateTime? picked = await _selectDate(context);
-        if (picked != null) {
+        final DateTime? pickedDate = await showStyledDatePicker(
+          context: context,
+          initialDate: _selectedDate,
+          lastDate: DateTime.now(),
+        );
+        if (pickedDate != null) {
           setState(() {
-            _selectedDate = picked;
-            _birthDateController.text = DateFormat('dd/MM/yyyy').format(picked);
+            _selectedDate = pickedDate;
+            _birthDateController.text =
+                DateFormat('dd/MM/yyyy').format(pickedDate);
           });
         }
       },
