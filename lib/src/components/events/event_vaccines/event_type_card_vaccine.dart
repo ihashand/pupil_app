@@ -126,8 +126,8 @@ void showVaccineOptions(BuildContext context, WidgetRef ref,
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 5),
+                      padding: const EdgeInsets.only(
+                          left: 10, right: 10, top: 10, bottom: 5),
                       child: Container(
                         height: 70,
                         decoration: BoxDecoration(
@@ -135,29 +135,49 @@ void showVaccineOptions(BuildContext context, WidgetRef ref,
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Center(
-                          child: SizedBox(
-                            height: 30,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  showDetails = !showDetails;
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.surface,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                              child: Text(
-                                "M O R E  D E T A I L S",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColorDark,
-                                  fontSize: 12,
-                                ),
-                              ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 150,
+                              height: 30,
+                              child: showDetails
+                                  ? IconButton(
+                                      icon: const Icon(Icons.more_horiz),
+                                      onPressed: () {
+                                        setState(() {
+                                          showDetails = !showDetails;
+                                        });
+                                      },
+                                      color: Theme.of(context)
+                                          .primaryColorDark
+                                          .withOpacity(0.6),
+                                    )
+                                  : ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          showDetails = !showDetails;
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context)
+                                            .colorScheme
+                                            .surface,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        "M O R E",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .primaryColorDark
+                                              .withOpacity(0.6),
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
                             ),
                           ),
                         ),

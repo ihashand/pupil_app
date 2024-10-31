@@ -207,11 +207,10 @@ void showWaterMenu(BuildContext context, WidgetRef ref,
                               ),
                             ),
                             Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 10.0, bottom: 10),
+                              padding: const EdgeInsets.all(8.0),
                               child: SizedBox(
-                                width: 125,
-                                height: 25,
+                                width: 150,
+                                height: 30,
                                 child: showDetails
                                     ? IconButton(
                                         icon: const Icon(Icons.more_horiz),
@@ -244,7 +243,8 @@ void showWaterMenu(BuildContext context, WidgetRef ref,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Theme.of(context)
-                                                .primaryColorDark,
+                                                .primaryColorDark
+                                                .withOpacity(0.6),
                                             fontSize: 10,
                                           ),
                                         ),

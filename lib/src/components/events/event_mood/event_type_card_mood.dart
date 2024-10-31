@@ -171,8 +171,8 @@ void showMoodOptions(BuildContext context, WidgetRef ref,
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: SizedBox(
-                                width: 125,
-                                height: 25,
+                                width: 150,
+                                height: 30,
                                 child: showDetails
                                     ? IconButton(
                                         icon: const Icon(Icons.more_horiz),

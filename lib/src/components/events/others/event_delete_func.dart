@@ -37,7 +37,7 @@ void eventDeleteFunc(
   final String weightId = event.weightId;
   final String moodId = event.moodId;
   final String stomachId = event.stomachId;
-  final String psychicId = event.psychicId;
+  final String isssueId = event.issueId;
   final String stoolId = event.stoolId;
   final String urineId = event.urineId;
   final String serviceId = event.serviceId;
@@ -100,8 +100,8 @@ void eventDeleteFunc(
     await ref.read(eventStomachServiceProvider).deleteStomach(stomachId);
   }
 
-  if (psychicId.isNotEmpty) {
-    await ref.read(eventPsychicServiceProvider).deletePsychicEvent(psychicId);
+  if (isssueId.isNotEmpty) {
+    await ref.read(eventIssueServiceProvider).deleteIssue(isssueId);
   }
 
   if (stoolId.isNotEmpty) {
