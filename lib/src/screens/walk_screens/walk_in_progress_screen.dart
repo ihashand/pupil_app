@@ -1462,6 +1462,8 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       color: 'Default',
       description: 'Urine event',
       dateTime: eventTime,
+      userId: ref.read(userIdProvider)!,
+      time: TimeOfDay.now(),
     );
 
     ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
