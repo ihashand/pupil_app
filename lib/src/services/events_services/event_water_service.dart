@@ -4,7 +4,6 @@ import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 
 class EventWaterService {
   final _firestore = FirebaseFirestore.instance;
-
   final _waterController = StreamController<List<EventWaterModel>>.broadcast();
 
   Stream<List<EventWaterModel>> getWatersStream() {
