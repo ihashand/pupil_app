@@ -72,7 +72,7 @@ void eventDeleteFunc(
   }
 
   if (noteId.isNotEmpty) {
-    await ref.read(eventNoteServiceProvider).deleteNote(noteId, petId);
+    await ref.read(eventNoteServiceProvider).deleteNote(noteId);
   }
 
   if (pillId.isNotEmpty) {
