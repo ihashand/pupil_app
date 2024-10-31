@@ -2,23 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_mood_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
-import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 
-// Funkcja główna wywołująca modal mood options
 void showMoodOptions(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
   DateTime selectedDate = DateTime.now();
-  TextEditingController dateController = TextEditingController(
-    text: DateFormat('dd-MM-yyyy').format(selectedDate),
-  );
+  TimeOfDay? selectedTime;
+  bool showDetails = false;
   String? selectedMood;
 
-  // Lista dostępnych nastrojów
+  final double screenHeight = MediaQuery.of(context).size.height;
+  double initialSize = screenHeight > 800 ? 0.28 : 0.38;
+  double detailsSize = screenHeight > 800 ? 0.48 : 0.58;
+  double maxSize = screenHeight > 800 ? 1 : 1;
+
   final List<Map<String, dynamic>> moods = [
     {'emoji': '😊', 'description': 'Calm'},
     {'emoji': '😃', 'description': 'Energetic'},
@@ -32,7 +36,6 @@ void showMoodOptions(BuildContext context, WidgetRef ref,
     {'emoji': '😴', 'description': 'Tired'},
   ];
 
-  // Funkcja zapisująca zdarzenie Mood
   void recordMoodEvent() {
     String eventId = generateUniqueId();
     int moodRating = EventMoodModel.determineMoodRating(selectedMood!);
@@ -42,15 +45,14 @@ void showMoodOptions(BuildContext context, WidgetRef ref,
     if (petIds != null && petIds.isNotEmpty) {
       for (String id in petIds) {
         _saveMoodEvent(ref, id, eventId, selectedMood!, selectedEmoji,
-            moodRating, selectedDate);
+            moodRating, selectedDate, selectedTime);
       }
     } else if (petId != null) {
       _saveMoodEvent(ref, petId, eventId, selectedMood!, selectedEmoji,
-          moodRating, selectedDate);
+          moodRating, selectedDate, selectedTime);
     }
   }
 
-  // Wyświetlanie modal bottom sheet z opcjami nastroju
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -58,51 +60,49 @@ void showMoodOptions(BuildContext context, WidgetRef ref,
     builder: (BuildContext context) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: showDetails ? detailsSize : initialSize,
+            minChildSize: initialSize,
+            maxChildSize: maxSize,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context).primaryColorDark),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          Text(
-                            'M O O D',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColorDark,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.close,
+                                  color: Theme.of(context).primaryColorDark),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          IconButton(
+                            Text(
+                              'M O O D',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            IconButton(
                               icon: Icon(Icons.check,
                                   color: Theme.of(context).primaryColorDark),
                               onPressed: () {
@@ -110,154 +110,216 @@ void showMoodOptions(BuildContext context, WidgetRef ref,
                                   recordMoodEvent();
                                 }
                                 Navigator.of(context).pop();
-                              }),
-                        ],
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 20),
-                    child: Container(
-                      padding: const EdgeInsets.all(20.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(15),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Column(
+                          children: [
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: moods.map((mood) {
+                                  bool isSelected =
+                                      selectedMood == mood['description'];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedMood = mood['description'];
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10.0),
+                                      child: Column(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 30,
+                                            backgroundColor: isSelected
+                                                ? Colors.blue
+                                                : Colors.transparent,
+                                            child: Text(
+                                              mood['emoji'],
+                                              style:
+                                                  const TextStyle(fontSize: 30),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            mood['description'],
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SizedBox(
+                                width: 125,
+                                height: 25,
+                                child: showDetails
+                                    ? IconButton(
+                                        icon: const Icon(Icons.more_horiz),
+                                        onPressed: () {
+                                          setState(() {
+                                            showDetails = !showDetails;
+                                          });
+                                        },
+                                        color: Theme.of(context)
+                                            .primaryColorDark
+                                            .withOpacity(0.6),
+                                      )
+                                    : ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            showDetails = !showDetails;
+                                          });
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "M O R E",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .primaryColorDark
+                                                .withOpacity(0.6),
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10, bottom: 5),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: dateController,
-                                    decoration: InputDecoration(
-                                      labelText: 'Date',
-                                      labelStyle: TextStyle(
+                    ),
+                    if (showDetails)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedDate = await showStyledDatePicker(
+                                    context: context,
+                                    initialDate: selectedDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2101),
+                                  );
+                                  if (pickedDate != null) {
+                                    setState(() {
+                                      selectedDate = pickedDate;
+                                    });
+                                  }
+                                },
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Select Date',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
                                         color:
                                             Theme.of(context).primaryColorDark,
                                       ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context)
-                                              .primaryColorDark,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    readOnly: true,
-                                    onTap: () async {
-                                      final DateTime? picked =
-                                          await showDatePicker(
-                                        context: context,
-                                        initialDate: selectedDate,
-                                        firstDate: DateTime(2000),
-                                        lastDate: DateTime(2101),
-                                        builder: (BuildContext context,
-                                            Widget? child) {
-                                          return Theme(
-                                            data: Theme.of(context).copyWith(
-                                              colorScheme: ColorScheme.light(
-                                                primary: Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary,
-                                                onPrimary: Theme.of(context)
-                                                    .primaryColorDark,
-                                                onSurface: Theme.of(context)
-                                                    .primaryColorDark,
-                                              ),
-                                              textButtonTheme:
-                                                  TextButtonThemeData(
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor:
-                                                      Theme.of(context)
-                                                          .primaryColorDark,
-                                                ),
-                                              ),
-                                            ),
-                                            child: child!,
-                                          );
-                                        },
-                                      );
-                                      if (picked != null &&
-                                          picked != selectedDate) {
-                                        setState(() {
-                                          selectedDate = picked;
-                                          dateController.text =
-                                              DateFormat('dd-MM-yyyy')
-                                                  .format(selectedDate);
-                                        });
-                                      }
-                                    },
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(selectedDate),
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          const Text('M O O D',
-                              style: TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 10),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: moods.map((mood) {
-                                bool isSelected =
-                                    selectedMood == mood['description'];
-                                return GestureDetector(
-                                  onTap: () {
+                              ),
+                              const SizedBox(height: 10),
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedTime = await showStyledTimePicker(
+                                    context: context,
+                                    initialTime:
+                                        selectedTime ?? TimeOfDay.now(),
+                                  );
+                                  if (pickedTime != null) {
                                     setState(() {
-                                      selectedMood = mood['description'];
+                                      selectedTime = pickedTime;
                                     });
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10.0),
-                                    child: Column(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 30,
-                                          backgroundColor: isSelected
-                                              ? Colors.blueGrey
-                                              : Colors.transparent,
-                                          child: Text(
-                                            mood['emoji'],
-                                            style:
-                                                const TextStyle(fontSize: 30),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          mood['description'],
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      ],
+                                  }
+                                },
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Select Time',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                                  child: Text(
+                                    selectedTime != null
+                                        ? selectedTime!.format(context)
+                                        : 'Select Time',
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  )
-                ],
-              ),
-            ),
+                  ],
+                ),
+              );
+            },
           );
         },
       );
@@ -265,25 +327,27 @@ void showMoodOptions(BuildContext context, WidgetRef ref,
   );
 }
 
-// Funkcja pomocnicza do zapisywania wydarzenia mood
 void _saveMoodEvent(WidgetRef ref, String petId, String eventId,
-    String description, String emoji, int moodRating, DateTime selectedDate) {
-  EventMoodModel newMood = EventMoodModel(
+    String description, String emoji, int moodRating, DateTime date,
+    [TimeOfDay? time]) {
+  final newMood = EventMoodModel(
     id: generateUniqueId(),
     eventId: eventId,
     petId: petId,
+    userId: FirebaseAuth.instance.currentUser!.uid,
     emoji: emoji,
     description: description,
-    dateTime: selectedDate,
+    dateTime: date,
+    time: time,
     moodRating: moodRating,
   );
 
   ref.read(eventMoodServiceProvider).addMood(newMood);
 
-  Event newEvent = Event(
+  final newEvent = Event(
     id: eventId,
     title: 'Mood',
-    eventDate: selectedDate,
+    eventDate: date,
     dateWhenEventAdded: DateTime.now(),
     userId: FirebaseAuth.instance.currentUser!.uid,
     petId: petId,
