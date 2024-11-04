@@ -183,6 +183,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             .addEvent(event, widget.petId);
       }
 
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     }
   }

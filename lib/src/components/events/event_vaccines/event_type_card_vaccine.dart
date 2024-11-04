@@ -10,6 +10,7 @@ import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_vacine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_vacine_provider.dart';
+import 'package:pet_diary/src/screens/other_screens/add_reminder_screen.dart';
 
 void showVaccineOptions(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
@@ -62,6 +63,41 @@ void showVaccineOptions(BuildContext context, WidgetRef ref,
       _saveVaccineEvent(
           ref, petId, eventId, description, selectedDateTime, selectedTime);
     }
+
+    // Wyświetlenie dialogu z pytaniem o przypomnienie po zapisaniu szczepionki
+    Future.delayed(Duration.zero, () {
+      showDialog(
+        context: context,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Set Reminder?'),
+            content: const Text(
+              'Do you want to set a reminder for the next vaccine?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext); // Zamknij dialog bez akcji
+                },
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext); // Zamknij dialog
+                  // Przejdź do ekranu dodawania przypomnienia
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AddReminderScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Yes'),
+              ),
+            ],
+          );
+        },
+      );
+    });
   }
 
   showModalBottomSheet(
@@ -73,7 +109,7 @@ void showVaccineOptions(BuildContext context, WidgetRef ref,
         builder: (context, setState) {
           final double screenHeight = MediaQuery.of(context).size.height;
           double initialSize = screenHeight > 800 ? 0.22 : 0.25;
-          double detailsSize = screenHeight > 800 ? 0.60 : 0.75;
+          double detailsSize = screenHeight > 800 ? 0.5 : 0.6;
           double maxSize = screenHeight > 800 ? 1 : 1;
 
           return DraggableScrollableSheet(

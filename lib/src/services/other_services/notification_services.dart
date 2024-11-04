@@ -71,6 +71,7 @@ class NotificationService {
       body,
       _convertToTZDateTime(scheduledDate),
       platformDetails,
+      // ignore: deprecated_member_use
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
