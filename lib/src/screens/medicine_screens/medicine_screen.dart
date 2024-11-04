@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/screens/medicine_screens/add_medicine_screen.dart';
 
 class MedicineScreen extends ConsumerStatefulWidget {
@@ -54,10 +55,6 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
             ),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: Container(),
-        ),
       ),
       body: Column(
         children: [
@@ -157,11 +154,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 
                 final petMedicines = snapshot.data;
 
-                if (petMedicines!.isEmpty) {
-                  return const Center(child: Text('No medicine found.'));
-                }
-
-                final filteredMedicines = petMedicines.where((medicine) {
+                final filteredMedicines = petMedicines!.where((medicine) {
                   final endDate = medicine.endDate ?? DateTime.now();
                   if (isCurrentSelected) {
                     return endDate.isAfter(now) ||
@@ -197,6 +190,13 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     EventMedicineModel? medicine,
   }) async {
     await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
+
+    // Usunięcie wszystkich powiązanych eventów z pigułką
+    final events =
+        await ref.read(eventServiceProvider).getEventsByPillId(medicine.id);
+    for (var event in events) {
+      await ref.read(eventServiceProvider).deleteEvent(event.id);
+    }
   }
 }
 
@@ -251,7 +251,6 @@ class _MedicineTileState extends State<MedicineTile>
   @override
   Widget build(BuildContext context) {
     final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
-
     return GestureDetector(
       onTap: _toggleExpanded,
       child: Card(
@@ -282,16 +281,11 @@ class _MedicineTileState extends State<MedicineTile>
                     ),
                   ),
                   if (widget.medicine.dosage != null &&
-                      widget.medicine.dosage != '0 mg' &&
-                      widget.medicine.dosage != '0 mcg' &&
-                      widget.medicine.dosage != '0 g' &&
-                      widget.medicine.dosage != '0 ml' &&
-                      widget.medicine.dosage != '0 %' &&
-                      widget.medicine.dosage != '')
+                      widget.medicine.dosage!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        '${widget.medicine.dosage}',
+                        widget.medicine.dosage ?? '',
                         style: TextStyle(
                           color: Theme.of(context).primaryColorDark,
                           fontSize: 14,
@@ -310,52 +304,34 @@ class _MedicineTileState extends State<MedicineTile>
               sizeFactor: _animation,
               axisAlignment: 1.0,
               child: Padding(
-                padding: const EdgeInsets.all(25.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-                              child: _buildDetailColumn(context, 'Frequency',
-                                  widget.medicine.frequency ?? 'N/A'),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
-                              child: _buildDetailColumn(
-                                  context,
-                                  'Start',
-                                  dateFormat.format(widget.medicine.startDate ??
-                                      DateTime.now())),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-                              child: _buildDetailColumn(context, 'Type',
-                                  widget.medicine.medicineType),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
-                              child: _buildDetailColumn(
-                                  context,
-                                  'End',
-                                  dateFormat.format(widget.medicine.endDate ??
-                                      DateTime.now())),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    _buildSectionHeader(context, 'Medication Details'),
+                    _buildDetailRow(
+                        context, 'Type', widget.medicine.medicineType),
+                    _buildDetailRow(context, 'Frequency',
+                        widget.medicine.frequency ?? 'N/A'),
+                    const SizedBox(height: 10),
+                    _buildSectionHeader(context, 'Dates'),
+                    _buildDetailRow(
+                        context,
+                        'Start Date',
+                        dateFormat.format(
+                            widget.medicine.startDate ?? DateTime.now())),
+                    _buildDetailRow(
+                        context,
+                        'End Date',
+                        dateFormat
+                            .format(widget.medicine.endDate ?? DateTime.now())),
+                    const SizedBox(height: 10),
+                    _buildSectionHeader(context, 'Schedule Information'),
                     _buildScheduleDetails(
-                        context, widget.medicine.scheduleDetails)
+                        context, widget.medicine.scheduleDetails),
+                    const SizedBox(height: 10),
+                    _buildSectionHeader(context, 'Times'),
+                    _buildTimesList(context, widget.medicine.times),
                   ],
                 ),
               ),
@@ -366,62 +342,119 @@ class _MedicineTileState extends State<MedicineTile>
     );
   }
 
-  Widget _buildDetailColumn(BuildContext context, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).primaryColorDark,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 18,
             color: Theme.of(context).primaryColorDark,
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            color: Theme.of(context).primaryColorDark,
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).primaryColorDark,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-      ],
+          const Spacer(),
+          Text(
+            value,
+            style: TextStyle(
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildScheduleDetails(BuildContext context, String? scheduleDetails) {
+    final bool isDaysInterval =
+        scheduleDetails != null && scheduleDetails.contains('Every');
     final List<String> daysOfWeek = scheduleDetails?.split(', ') ?? ['N/A'];
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 18.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Schedule:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+    if (isDaysInterval) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Icon(
+              Icons.schedule,
               color: Theme.of(context).primaryColorDark,
+              size: 18,
             ),
-          ),
-          const SizedBox(height: 5),
-          Wrap(
-            spacing: 8.0,
-            runSpacing: 4.0,
-            children: daysOfWeek.map((day) {
-              return Chip(
-                label: Text(
-                  day,
-                  style: TextStyle(color: Theme.of(context).primaryColorDark),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                scheduleDetails,
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                  fontSize: 14,
                 ),
-                backgroundColor: Theme.of(context).colorScheme.surface,
-              );
-            }).toList(),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Wrap(
+        spacing: 8.0,
+        runSpacing: 4.0,
+        children: daysOfWeek.map((day) {
+          return Chip(
+            label: Text(
+              day,
+              style: TextStyle(color: Theme.of(context).primaryColorDark),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+          );
+        }).toList(),
+      );
+    }
+  }
+
+  Widget _buildTimesList(BuildContext context, List<TimeOfDay> times) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: times.map((time) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Row(
+            children: [
+              Icon(
+                Icons.access_time,
+                size: 18,
+                color: Theme.of(context).primaryColorDark,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                time.format(context),
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      }).toList(),
     );
   }
 }

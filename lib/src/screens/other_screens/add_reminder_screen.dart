@@ -8,7 +8,6 @@ import 'package:pet_diary/src/providers/events_providers/event_reminder_provider
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -503,10 +502,8 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
     }
 
     List<String> selectedPetIdList = [];
-
     for (var petId in selectedPets) {
       selectedPetIdList.add(petId);
-
       final String eventId = generateUniqueId();
       final Event newEvent = Event(
         id: eventId,
@@ -518,7 +515,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         description: description,
         emoticon: '🔔',
       );
-
       await ref.read(eventServiceProvider).addEvent(newEvent, petId);
     }
 
@@ -537,17 +533,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
 
     await ref.read(eventReminderServiceProvider).addReminder(newReminder);
 
-    await NotificationService().scheduleNotification(
-      id: int.parse(objectId.substring(0, 9)),
-      title: title,
-      body: description,
-      scheduledDate: scheduledDate,
-      repeatOption: repeatOption,
-      endDate: endDate,
-      interval: intervalController.text,
-    );
-
-    // ignore: use_build_context_synchronously
     Navigator.of(context).pop();
   }
 }

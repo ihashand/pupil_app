@@ -1,7 +1,9 @@
+// EventMedicineModel.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class EventMedicineModel {
-  late String id = '';
+  late String id;
   late String name;
   DateTime? addDate;
   String? note;
@@ -16,6 +18,7 @@ class EventMedicineModel {
   String emoji = '';
   String scheduleDetails = '';
   String medicineType = '';
+  List<TimeOfDay> times = [];
 
   EventMedicineModel({
     required this.id,
@@ -33,7 +36,9 @@ class EventMedicineModel {
     this.emoji = '',
     this.scheduleDetails = '',
     this.medicineType = '',
+    this.times = const [],
   });
+
   bool get isCurrent {
     final now = DateTime.now();
     return startDate != null &&
@@ -47,18 +52,21 @@ class EventMedicineModel {
     name = doc.get('name') ?? '';
     eventId = doc.get('eventId') ?? '';
     petId = doc.get('petId') ?? '';
-    addDate = (doc.get('addDate') as Timestamp?)?.toDate() ?? DateTime.now();
+    addDate = (doc.get('addDate') as Timestamp?)?.toDate();
     note = doc.get('note') ?? '';
     frequency = doc.get('frequency') ?? '';
     dosage = doc.get('dosage') ?? '';
     icon = doc.get('icon') ?? '';
-    endDate = (doc.get('endDate') as Timestamp?)?.toDate() ?? DateTime.now();
-    startDate =
-        (doc.get('startDate') as Timestamp?)?.toDate() ?? DateTime.now();
+    endDate = (doc.get('endDate') as Timestamp?)?.toDate();
+    startDate = (doc.get('startDate') as Timestamp?)?.toDate();
     remindersEnabled = doc.get('remindersEnabled') ?? false;
     emoji = doc.get('emoji') ?? '';
     scheduleDetails = doc.get('scheduleDetails') ?? '';
     medicineType = doc.get('medicineType') ?? '';
+    times = (doc.get('times') as List<dynamic>?)
+            ?.map((e) => _fromJsonTimeOfDay(e))
+            .toList() ??
+        [];
   }
 
   Map<String, dynamic> toMap() {
@@ -78,6 +86,17 @@ class EventMedicineModel {
       'emoji': emoji,
       'scheduleDetails': scheduleDetails,
       'medicineType': medicineType,
+      'times': times.map((time) => _toJsonTimeOfDay(time)).toList(),
     };
+  }
+
+  // Helper to convert TimeOfDay to JSON format
+  Map<String, int> _toJsonTimeOfDay(TimeOfDay time) {
+    return {'hour': time.hour, 'minute': time.minute};
+  }
+
+  // Helper to convert JSON format to TimeOfDay
+  TimeOfDay _fromJsonTimeOfDay(Map<String, dynamic> json) {
+    return TimeOfDay(hour: json['hour'] as int, minute: json['minute'] as int);
   }
 }
