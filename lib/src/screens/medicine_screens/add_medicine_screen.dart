@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -33,7 +34,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   String _selectedUnit = 'mg';
   String _selectedType = 'Capsule';
   String _selectedSchedule = 'Daily';
-  Map<String, bool> _daysOfWeek = {
+  final Map<String, bool> _daysOfWeek = {
     'Monday': false,
     'Tuesday': false,
     'Wednesday': false,
@@ -42,28 +43,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     'Saturday': false,
     'Sunday': false,
   };
-  final List<String> _emojis = [
-    '💊',
-    '💉',
-    '🧴',
-    '🩹',
-    '💧',
-    '🧪',
-    '🧬',
-    '💡',
-    '🍎',
-    '🥑',
-    '🧃',
-    '🌟',
-    '❤️',
-    '🌼',
-    '🐾',
-    '⚡️',
-    '🌀',
-    '💥',
-    '☕️',
-    '🌿'
-  ];
 
   @override
   void initState() {
@@ -146,6 +125,12 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         emoticon: _selectedEmoji,
       );
 
+      // Debugging info
+      if (kDebugMode) {
+        print('Medicine Data: ${newMedicine.toString()}');
+        print('Event Data: ${newEvent.toString()}');
+      }
+
       await widget.ref
           .read(eventMedicineServiceProvider)
           .addMedicine(newMedicine);
@@ -153,6 +138,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           .read(eventServiceProvider)
           .addEvent(newEvent, widget.petId);
 
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     }
   }
@@ -163,7 +149,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
-          'N E W  M E D I C I N E',
+          'A D D  M E D I C I N E',
           style: TextStyle(
             color: Theme.of(context).primaryColorDark,
             fontSize: 13,
@@ -271,24 +257,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                                 _daysOfWeek[day] = value!;
                               });
                             },
-                            activeColor:
-                                Theme.of(context).colorScheme.secondary,
-                            checkColor: Theme.of(context).primaryColorDark,
-                            side: BorderSide(
-                              color: Theme.of(context).primaryColorDark,
-                              width: 1.5,
-                            ),
                           );
                         }).toList(),
                       ),
-                    ),
-                  if (_selectedSchedule == 'Every X Days' ||
-                      _selectedSchedule == 'Every X Weeks' ||
-                      _selectedSchedule == 'Every X Months')
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: _buildTextInput(_scheduleDetailsController,
-                          'Interval (e.g., X = days/weeks/months)', '🔄'),
                     ),
                   const SizedBox(height: 20),
                   Padding(
@@ -309,16 +280,17 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           onPressed: _saveMedicine,
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primary,
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
           child: Text(
-            'Save Medicine',
+            'S A V E  M E D I C I N E',
             style: TextStyle(
               color: Theme.of(context).primaryColorDark,
-              fontSize: 18,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
@@ -352,7 +324,13 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               GestureDetector(
-                onTap: () => _selectEmoji(context),
+                onTap: () {
+                  const emojis = ['💊', '💉', '🩹', '🧴', '⚕️', '🧪'];
+                  setState(() {
+                    _selectedEmoji = emojis[
+                        (emojis.indexOf(_selectedEmoji) + 1) % emojis.length];
+                  });
+                },
                 child: Column(
                   children: [
                     CircleAvatar(
@@ -360,13 +338,11 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       child: Text(_selectedEmoji,
                           style: const TextStyle(fontSize: 35)),
                     ),
-                    const SizedBox(height: 8),
                     Text(
                       'Emoji',
                       style:
                           TextStyle(color: Theme.of(context).primaryColorDark),
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -378,19 +354,23 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 },
                 child: Column(
                   children: [
-                    Text(
-                      _selectedUnit,
-                      style: TextStyle(
-                          fontSize: 30,
-                          color: Theme.of(context).primaryColorDark),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        _selectedUnit,
+                        style: TextStyle(
+                            fontSize: 30,
+                            color: Theme.of(context).primaryColorDark),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Unit',
-                      style:
-                          TextStyle(color: Theme.of(context).primaryColorDark),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: Text(
+                        'Unit',
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorDark),
+                      ),
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -399,35 +379,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _selectEmoji(BuildContext context) async {
-    String? selectedEmoji = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select Emoji'),
-          content: Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: _emojis.map((emoji) {
-              return GestureDetector(
-                onTap: () => Navigator.of(context).pop(emoji),
-                child: CircleAvatar(
-                  child: Text(emoji, style: const TextStyle(fontSize: 25)),
-                ),
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-
-    if (selectedEmoji != null) {
-      setState(() {
-        _selectedEmoji = selectedEmoji;
-      });
-    }
   }
 
   Widget _buildTextInput(
@@ -462,8 +413,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         final DateTime? pickedDate = await showStyledDatePicker(
           context: context,
           initialDate: _selectedStartDate,
-          firstDate: DateTime(2000),
           lastDate: DateTime(2100),
+          firstDate: DateTime(2000),
         );
         if (pickedDate != null) {
           setState(() {
