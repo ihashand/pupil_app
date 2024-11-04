@@ -207,23 +207,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
                     ),
                   if (_repeatOption == 'Selected Days of the Week')
                     _buildDaysOfWeekSelector(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: _buildTextInput(
-                      _intervalController,
-                      'Frequency',
-                      '⏰',
-                      onChanged: (value) {
-                        int frequency = int.tryParse(value) ?? 1;
-                        if (frequency > 12) {
-                          _showErrorDialog(
-                              'Maximum 12 reminders allowed per day');
-                          frequency = 12;
-                        }
-                        _updateReminderTimes(frequency);
-                      },
-                    ),
-                  ),
+                  _buildFrequencySelector(),
                   const SizedBox(height: 10),
                   ..._buildTimeSelectors(),
                   const SizedBox(height: 20),
@@ -253,6 +237,67 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  int _frequency = 0;
+
+  Widget _buildFrequencySelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(right: 8.0),
+                child: Text('⏰', style: TextStyle(fontSize: 24)),
+              ),
+              Text(
+                'Frequency',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.remove_circle_outline,
+                    color: Theme.of(context).primaryColorDark),
+                onPressed: () {
+                  setState(() {
+                    if (_frequency > 0) _frequency--;
+                    _updateReminderTimes(_frequency);
+                  });
+                },
+              ),
+              Text(
+                '$_frequency',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).primaryColorDark,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.add_circle_outline,
+                    color: Theme.of(context).primaryColorDark),
+                onPressed: () {
+                  setState(() {
+                    if (_frequency < 12) _frequency++; // Maksimum to 12
+                    _updateReminderTimes(_frequency);
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
