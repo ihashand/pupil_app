@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:pet_diary/src/components/events/event_medications/add_medicine/show_add_medicine_name.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/screens/medicine_screens/add_medicine_screen.dart';
 
 class MedicineScreen extends ConsumerStatefulWidget {
   final String petId;
@@ -44,7 +44,14 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
               color: Theme.of(context).primaryColorDark,
               size: 24,
             ),
-            onPressed: () => showAddMedicineName(context, ref, widget.petId),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AddMedicineScreen(
+                  ref: ref,
+                  petId: widget.petId,
+                ),
+              ),
+            ),
           ),
         ],
         bottom: PreferredSize(
