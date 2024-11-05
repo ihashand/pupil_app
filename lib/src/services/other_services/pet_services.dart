@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
-import 'package:rxdart/rxdart.dart';
 
 class PetService {
   final _firestore = FirebaseFirestore.instance;
@@ -30,13 +29,7 @@ class PetService {
             snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
 
     // Combine both streams
-    return Rx.combineLatest2(
-      userPetsStream,
-      sharedPetsStream,
-      (List<Pet> userPets, List<Pet> sharedPets) {
-        return [...userPets, ...sharedPets];
-      },
-    ).asBroadcastStream();
+    return sharedPetsStream;
   }
 
   // Stream for a specific pet by ID
@@ -69,12 +62,6 @@ class PetService {
   Future<List<Pet>> getPetsByUserId(String userId) async {
     final snapshot = await _firestore.collection('pets').get();
     return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
-  }
-
-  Stream<List<Pet>> getPetsFriendStream(String uid) {
-    final petsStream = _firestore.collection('pets').snapshots().map(
-        (snapshot) =>
-            snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
   }
 
   Future<List<Pet>> getPetsFriendFuture(String uid) async {
