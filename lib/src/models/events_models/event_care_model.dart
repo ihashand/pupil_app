@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class EventCareModel {
   String id;
@@ -8,6 +9,7 @@ class EventCareModel {
   String emoji;
   String description;
   DateTime dateTime;
+  TimeOfDay? time; // Dodane pole dla czasu
 
   EventCareModel({
     required this.id,
@@ -17,6 +19,7 @@ class EventCareModel {
     required this.emoji,
     required this.description,
     required this.dateTime,
+    this.time, // Konstruktor z opcjonalnym polem czasu
   });
 
   EventCareModel.fromDocument(DocumentSnapshot doc)
@@ -26,7 +29,10 @@ class EventCareModel {
         careType = doc.get('careType'),
         emoji = doc.get('emoji'),
         description = doc.get('description'),
-        dateTime = (doc.get('dateTime') as Timestamp).toDate();
+        dateTime = (doc.get('dateTime') as Timestamp).toDate(),
+        time = doc.get('time') != null
+            ? TimeOfDay.fromDateTime((doc.get('time') as Timestamp).toDate())
+            : null; // Pobieranie czasu
 
   Map<String, dynamic> toMap() {
     return {
@@ -37,6 +43,9 @@ class EventCareModel {
       'emoji': emoji,
       'description': description,
       'dateTime': Timestamp.fromDate(dateTime),
+      'time': time != null
+          ? Timestamp.fromDate(DateTime(2000, 1, 1, time!.hour, time!.minute))
+          : null, // Zapis czasu
     };
   }
 }

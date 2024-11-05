@@ -10,8 +10,6 @@ class GlobalWalkService {
     if (_currentUser == null) return;
 
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
         .collection('global_walks')
         .doc(globalWalk.id)
         .set(globalWalk.toMap());
@@ -20,12 +18,8 @@ class GlobalWalkService {
   Future<GlobalWalkModel?> getGlobalWalkById(String walkId) async {
     if (_currentUser == null) return null;
 
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('global_walks')
-        .doc(walkId)
-        .get();
+    final docSnapshot =
+        await _firestore.collection('global_walks').doc(walkId).get();
 
     if (docSnapshot.exists) {
       return GlobalWalkModel.fromDocument(docSnapshot);
@@ -38,8 +32,6 @@ class GlobalWalkService {
     if (_currentUser == null) return;
 
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
         .collection('global_walks')
         .doc(globalWalk.id)
         .update(globalWalk.toMap());
@@ -48,24 +40,13 @@ class GlobalWalkService {
   Future<void> deleteGlobalWalk(String walkId) async {
     if (_currentUser == null) return;
 
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('global_walks')
-        .doc(walkId)
-        .delete();
+    await _firestore.collection('global_walks').doc(walkId).delete();
   }
 
   Stream<List<GlobalWalkModel>> getGlobalWalksStream() {
     if (_currentUser == null) return Stream.value([]);
 
-    return _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('global_walks')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => GlobalWalkModel.fromDocument(doc))
-            .toList());
+    return _firestore.collection('global_walks').snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => GlobalWalkModel.fromDocument(doc)).toList());
   }
 }

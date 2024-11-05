@@ -16,13 +16,10 @@ class PetService {
       return Stream.value([]);
     }
 
-    // Stream to get pets owned by the user
-    final userPetsStream = _firestore
-        .collection('pets')
-        .where('userId', isEqualTo: _currentUser.uid)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
+    _firestore.collection('pets').snapshots().listen((snapshot) {
+      _petsController
+          .add(snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
+    });
 
     // Stream to get pets shared with the user
     final sharedPetsStream = _firestore
@@ -48,7 +45,12 @@ class PetService {
   }
 
   Future<Pet?> getPetById(String petId) async {
+    if (_currentUser == null) {
+      return null;
+    }
+
     final docSnapshot = await _firestore.collection('pets').doc(petId).get();
+
     return docSnapshot.exists ? Pet.fromDocument(docSnapshot) : null;
   }
 
@@ -65,27 +67,18 @@ class PetService {
   }
 
   Future<List<Pet>> getPetsByUserId(String userId) async {
-    final snapshot = await _firestore
-        .collection('pets')
-        .where('userId', isEqualTo: userId)
-        .get();
+    final snapshot = await _firestore.collection('pets').get();
     return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
   }
 
   Stream<List<Pet>> getPetsFriendStream(String uid) {
-    return _firestore
-        .collection('pets')
-        .where('userId', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) =>
+    final petsStream = _firestore.collection('pets').snapshots().map(
+        (snapshot) =>
             snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList());
   }
 
   Future<List<Pet>> getPetsFriendFuture(String uid) async {
-    final querySnapshot = await _firestore
-        .collection('pets')
-        .where('userId', isEqualTo: uid)
-        .get();
+    final querySnapshot = await _firestore.collection('pets').get();
 
     return querySnapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
   }

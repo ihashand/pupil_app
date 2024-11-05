@@ -6,7 +6,6 @@ import 'package:pet_diary/src/models/others/local_user_model.dart';
 class LocalUserService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;
-
   final _localUserController = StreamController<List<LocalUser>>.broadcast();
 
   Stream<List<LocalUser>> getLocalUsersStream() {
@@ -14,12 +13,7 @@ class LocalUserService {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('localUsers')
-        .snapshots()
-        .listen((snapshot) {
+    _firestore.collection('localUsers').snapshots().listen((snapshot) {
       _localUserController.add(
           snapshot.docs.map((doc) => LocalUser.fromDocument(doc)).toList());
     });
@@ -32,20 +26,14 @@ class LocalUserService {
       return null;
     }
 
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('localUsers')
-        .doc(localUserId)
-        .get();
+    final docSnapshot =
+        await _firestore.collection('localUsers').doc(localUserId).get();
 
     return docSnapshot.exists ? LocalUser.fromDocument(docSnapshot) : null;
   }
 
   Future<void> addLocalUser(LocalUser localUser) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('localUsers')
         .doc(localUser.id)
         .set(localUser.toMap());
@@ -53,20 +41,13 @@ class LocalUserService {
 
   Future<void> updateLocalUser(LocalUser localUser) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('localUsers')
         .doc(localUser.id)
         .update(localUser.toMap());
   }
 
   Future<void> deleteLocalUser(String localUserId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('localUsers')
-        .doc(localUserId)
-        .delete();
+    await _firestore.collection('localUsers').doc(localUserId).delete();
   }
 
   void dispose() {

@@ -444,19 +444,21 @@ class _EventTypeSelectionState extends ConsumerState<EventTypeSelectionScreen>
             petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardMood':
         return eventTypeCardMood(context, ref,
-            petId: widget.petId,
-            petIds: widget.petIds,
-            dateController: dateController);
+            petId: widget.petId, petIds: widget.petIds);
       case 'eventTypeCardIssues':
-        return eventTypeCardIssues(context, ref,
-            petId: widget.petId,
-            petIds: widget.petIds,
-            dateController: dateController);
+        return eventTypeCardIssues(
+          context,
+          ref,
+          petId: widget.petId,
+          petIds: widget.petIds,
+        );
       case 'eventTypeCardCare':
-        return eventTypeCardCare(context, ref,
-            petId: widget.petId,
-            petIds: widget.petIds,
-            dateController: dateController);
+        return eventTypeCardCare(
+          context,
+          ref,
+          petId: widget.petId,
+          petIds: widget.petIds,
+        );
       case 'eventTypeCardStool':
         return eventTypeCardStool(context, ref,
             petId: widget.petId, petIds: widget.petIds);

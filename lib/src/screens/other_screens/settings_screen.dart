@@ -3,10 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/helper_functions.dart';
-import 'package:pet_diary/src/providers/others_providers/settings_providers.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/notification_provider.dart';
-import 'package:pet_diary/src/components/reminders_widgets/number_picker_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -16,9 +14,6 @@ class SettingsScreen extends ConsumerWidget {
     final theme = ref.watch(themeProvider);
     final notificationTime = ref.watch(notificationTimeProvider);
     final isNotificationEnabled = ref.watch(notificationEnabledProvider);
-    final autoRemoveEnabled = ref.watch(autoRemoveEnabledProvider);
-    final autoRemoveHours = ref.watch(autoRemoveHoursProvider);
-    final autoRemoveMinutes = ref.watch(autoRemoveMinutesProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -105,104 +100,6 @@ class SettingsScreen extends ConsumerWidget {
                               fontSize: 16,
                               color: Theme.of(context).primaryColorDark),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              Container(
-                decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12)),
-                margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Auto Remove Past Reminders",
-                      style:
-                          TextStyle(color: Theme.of(context).primaryColorDark),
-                    ),
-                    CupertinoSwitch(
-                      value: autoRemoveEnabled,
-                      onChanged: (value) {
-                        ref
-                            .read(autoRemoveEnabledProvider.notifier)
-                            .toggle(value);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              if (autoRemoveEnabled)
-                Container(
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(12)),
-                  margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Remove after:",
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          TextButton(
-                            onPressed: () async {
-                              final hours = await showDialog<int>(
-                                context: context,
-                                builder: (context) {
-                                  return NumberPickerDialog(
-                                    initialValue: autoRemoveHours,
-                                    minValue: 0,
-                                    maxValue: 24,
-                                  );
-                                },
-                              );
-                              if (hours != null) {
-                                await ref
-                                    .read(autoRemoveHoursProvider.notifier)
-                                    .setHours(hours);
-                              }
-                            },
-                            child: Text(
-                              "$autoRemoveHours hrs",
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context).primaryColorDark),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              final minutes = await showDialog<int>(
-                                context: context,
-                                builder: (context) {
-                                  return NumberPickerDialog(
-                                    initialValue: autoRemoveMinutes,
-                                    minValue: 0,
-                                    maxValue: 59,
-                                  );
-                                },
-                              );
-                              if (minutes != null) {
-                                await ref
-                                    .read(autoRemoveMinutesProvider.notifier)
-                                    .setMinutes(minutes);
-                              }
-                            },
-                            child: Text(
-                              "$autoRemoveMinutes mins",
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context).primaryColorDark),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

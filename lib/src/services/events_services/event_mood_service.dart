@@ -1,52 +1,61 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_mood_model.dart';
 
 class EventMoodService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
-  final _moodsController = StreamController<List<EventMoodModel>>.broadcast();
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
+
+  List<EventMoodModel>? _cachedMoods;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
   Stream<List<EventMoodModel>> getMoodsStream() {
     if (_currentUser == null) {
       return Stream.value([]);
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
+    return _firestore
         .collection('event_moods')
+        .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
-        .listen((snapshot) {
-      _moodsController.add(snapshot.docs
-          .map((doc) => EventMoodModel.fromDocument(doc))
-          .toList());
-    });
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EventMoodModel.fromDocument(doc))
+            .toList());
+  }
 
-    return _moodsController.stream;
+  Future<List<EventMoodModel>> getMoodsOnce() async {
+    if (_currentUser == null) {
+      return [];
+    }
+
+    if (_cachedMoods != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedMoods!;
+    }
+
+    final querySnapshot = await _firestore
+        .collection('event_moods')
+        .where('userId', isEqualTo: _currentUser.uid)
+        .get();
+
+    _cachedMoods = querySnapshot.docs
+        .map((doc) => EventMoodModel.fromDocument(doc))
+        .toList();
+    _lastFetchTime = DateTime.now();
+
+    return _cachedMoods!;
   }
 
   Future<void> addMood(EventMoodModel mood) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_moods')
-        .doc(mood.id)
-        .set(mood.toMap());
+    await _firestore.collection('event_moods').doc(mood.id).set(mood.toMap());
+    _cachedMoods = null;
   }
 
   Future<void> deleteMood(String moodId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_moods')
-        .doc(moodId)
-        .delete();
-  }
-
-  void dispose() {
-    _moodsController.close();
+    await _firestore.collection('event_moods').doc(moodId).delete();
+    _cachedMoods = null;
   }
 }

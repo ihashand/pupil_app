@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:pet_diary/src/models/events_models/event_weight_model.dart';
+
+import 'package:pet_diary/src/components/pet_components/pet_mood_and_needs_container.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -74,8 +75,10 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                       final updatedPet = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              PetEditScreen(petId: widget.pet.id),
+                          builder: (context) => PetEditScreen(
+                            petId: widget.pet.id,
+                            ref: ref,
+                          ),
                         ),
                       );
                       if (updatedPet != null && updatedPet is Pet) {
@@ -89,12 +92,17 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       ),
       body: Column(
         children: [
-          _buildHeaderSection(context),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  _buildHeaderSection(context),
                   const SizedBox(height: 10),
+                  PetMoodAndNeedsContainer(
+                    petName: widget.pet.name,
+                    petId: widget.pet.id,
+                    ref: ref,
+                  ),
                   if (isOwner) _buildHealthEventSection(),
                   _buildAchievementsSection(context),
                   _buildActionButtons(context),
@@ -167,8 +175,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
           if (isOwner)
             Expanded(
               child: GestureDetector(
-                onTap: () => _showWeightInfoDialog(
-                    context), // Funkcja do wyświetlenia dialogu z wagą
+                onTap: () => _showWeightInfoDialog(context),
                 child: _buildPetWeight(context),
               ),
             ),
@@ -281,37 +288,29 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   Widget _buildPetWeight(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final asyncWeights = ref.watch(eventWeightsProvider);
+        final asyncWeights =
+            ref.watch(eventWeightsStreamProvider(widget.pet.id));
         return asyncWeights.when(
           loading: () => const Text('Loading...'),
           error: (err, stack) => const Text('Error fetching weight'),
           data: (weights) {
-            var weight = weights
-                .firstWhere(
-                  (element) => element!.petId == widget.pet.id,
-                  orElse: () => EventWeightModel(
-                    id: '',
-                    weight: 0.0,
-                    eventId: '',
-                    petId: widget.pet.id,
-                    dateTime: DateTime.now(),
-                  ),
-                )!
-                .weight;
+            // Sortuj wagę malejąco, aby pobrać najnowszą
+            weights.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+            final latestWeight =
+                weights.isNotEmpty ? weights.first.weight : 0.0;
 
-            // Dodajemy GestureDetector, aby wyświetlić szczegóły wagi w dialogu
             return GestureDetector(
               onTap: () => _showInfoDialog(
                 context,
                 'Weight',
-                '$weight kg',
+                '$latestWeight kg',
                 '⚖️',
               ),
               child: _buildDetailItem(
                 context,
                 '⚖️',
                 'Weight',
-                '$weight kg',
+                '$latestWeight kg',
               ),
             );
           },
@@ -792,7 +791,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   }
 
   void _showWeightInfoDialog(BuildContext context) {
-    final asyncWeights = ref.read(eventWeightsProvider);
+    final asyncWeights = ref.watch(eventWeightsStreamProvider(widget.pet.id));
     asyncWeights.when(
       loading: () => showDialog(
         context: context,
@@ -809,15 +808,8 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       data: (weights) {
         final weight = weights
             .firstWhere(
-              (element) => element!.petId == widget.pet.id,
-              orElse: () => EventWeightModel(
-                id: '',
-                weight: 0.0,
-                eventId: '',
-                petId: widget.pet.id,
-                dateTime: DateTime.now(),
-              ),
-            )!
+              (element) => element.petId == widget.pet.id,
+            )
             .weight;
         showDialog(
           context: context,

@@ -37,13 +37,13 @@ void eventDeleteFunc(
   final String weightId = event.weightId;
   final String moodId = event.moodId;
   final String stomachId = event.stomachId;
-  final String psychicId = event.psychicId;
+  final String isssueId = event.issueId;
   final String stoolId = event.stoolId;
   final String urineId = event.urineId;
   final String serviceId = event.serviceId;
   final String careId = event.careId;
 
-  ref.read(eventServiceProvider).deleteEvent(eventId, petId);
+  ref.read(eventServiceProvider).deleteEvent(eventId);
 
   showDialog(
     context: context,
@@ -68,11 +68,11 @@ void eventDeleteFunc(
   }
 
   if (walkId.isNotEmpty) {
-    await ref.read(eventWalkServiceProvider).deleteWalk(walkId, petId);
+    await ref.read(eventWalkServiceProvider).deleteWalk(walkId);
   }
 
   if (noteId.isNotEmpty) {
-    await ref.read(eventNoteServiceProvider).deleteNote(noteId, petId);
+    await ref.read(eventNoteServiceProvider).deleteNote(noteId);
   }
 
   if (pillId.isNotEmpty) {
@@ -100,16 +100,16 @@ void eventDeleteFunc(
     await ref.read(eventStomachServiceProvider).deleteStomach(stomachId);
   }
 
-  if (psychicId.isNotEmpty) {
-    await ref.read(eventPsychicServiceProvider).deletePsychicEvent(psychicId);
+  if (isssueId.isNotEmpty) {
+    await ref.read(eventIssueServiceProvider).deleteIssue(isssueId);
   }
 
   if (stoolId.isNotEmpty) {
-    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId, petId);
+    await ref.read(eventStoolServiceProvider).deleteStoolEvent(stoolId);
   }
 
   if (urineId.isNotEmpty) {
-    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId, petId);
+    await ref.read(eventUrineServiceProvider).deleteUrineEvent(urineId);
   }
 
   if (serviceId.isNotEmpty) {

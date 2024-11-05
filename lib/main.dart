@@ -6,6 +6,7 @@ import 'package:pet_diary/bottom_app_bar.dart';
 import 'package:pet_diary/firebase_options.dart';
 import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/screens/login_register_screens/login_screen.dart';
 import 'package:pet_diary/src/screens/other_screens/settings_screen.dart';
 import 'package:pet_diary/src/services/achievements_services/achievement_service.dart';
@@ -25,9 +26,13 @@ Future<void> main() async {
   await NotificationService().init();
   await AchievementService().initializeAchievements();
 
-  await initializeUserSettings();
-
   runApp(ProviderScope(
+    overrides: [
+      userIdProvider.overrideWith((ref) {
+        final currentUser = FirebaseAuth.instance.currentUser;
+        return currentUser?.uid;
+      }),
+    ],
     child: EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('de'), Locale('pl')],
       path: 'assets/translations',

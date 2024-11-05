@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as apple_maps;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
@@ -1461,9 +1462,11 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       color: 'Default',
       description: 'Urine event',
       dateTime: eventTime,
+      userId: ref.read(userIdProvider)!,
+      time: TimeOfDay.now(),
     );
 
-    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine, petId);
+    ref.read(eventUrineServiceProvider).addUrineEvent(newUrine);
 
     Event newEvent = Event(
       id: newUrine.eventId,
@@ -1486,10 +1489,10 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       petId: petId,
       description: 'Stool event during walk',
       emoji: '💩',
-      dateTime: eventTime,
+      dateTime: eventTime, userId: ref.read(userIdProvider)!,
     );
 
-    ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent, petId);
+    ref.read(eventStoolServiceProvider).addStoolEvent(newStoolEvent);
 
     Event newEvent = Event(
       id: newStoolEvent.eventId,

@@ -1,82 +1,74 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/events_models/event_water_model.dart';
 
 class EventWaterService {
-  final _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  final _waterController = StreamController<List<EventWaterModel>>.broadcast();
+  List<EventWaterModel>? _cachedWaterEvents;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
-  Stream<List<EventWaterModel>> getWatersStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
+  Future<List<EventWaterModel>> getWatersOnce(String petId) async {
+    if (_cachedWaterEvents != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedWaterEvents!;
     }
 
-    _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
+    final querySnapshot = await _firestore
         .collection('event_waters')
-        .snapshots()
-        .listen((snapshot) {
-      _waterController.add(snapshot.docs
-          .map((doc) => EventWaterModel.fromDocument(doc))
-          .toList());
-    });
+        .where('petId', isEqualTo: petId)
+        .where('userId', isEqualTo: _currentUser?.uid)
+        .get();
 
-    return _waterController.stream;
+    _cachedWaterEvents = querySnapshot.docs
+        .map((doc) => EventWaterModel.fromDocument(doc))
+        .toList();
+    _lastFetchTime = DateTime.now();
+
+    return _cachedWaterEvents!;
   }
 
-  Stream<EventWaterModel?> getWaterByIdStream(String waterId) {
-    return Stream.fromFuture(getWaterById(waterId));
+  Stream<List<EventWaterModel>> getWatersStream(String petId) {
+    return _firestore
+        .collection('event_waters')
+        .where('petId', isEqualTo: petId)
+        .where('userId', isEqualTo: _currentUser?.uid)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EventWaterModel.fromDocument(doc))
+            .toList());
   }
 
   Future<EventWaterModel?> getWaterById(String waterId) async {
-    if (_currentUser == null) {
-      return null;
-    }
-
-    final docSnapshot = await _firestore
-        .collection('app_users')
-        .doc(_currentUser.uid)
-        .collection('event_waters')
-        .doc(waterId)
-        .get();
+    final docSnapshot =
+        await _firestore.collection('event_waters').doc(waterId).get();
 
     return docSnapshot.exists
         ? EventWaterModel.fromDocument(docSnapshot)
         : null;
   }
 
-  Future<void> addWater(EventWaterModel water) async {
+  Future<void> addWater(EventWaterModel waterEvent) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_waters')
-        .doc(water.id)
-        .set(water.toMap());
+        .doc(waterEvent.id)
+        .set(waterEvent.toMap());
+    _cachedWaterEvents = null;
   }
 
-  Future<void> updateWater(EventWaterModel water) async {
+  Future<void> updateWater(EventWaterModel waterEvent) async {
     await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
         .collection('event_waters')
-        .doc(water.id)
-        .update(water.toMap());
+        .doc(waterEvent.id)
+        .update(waterEvent.toMap());
+    _cachedWaterEvents = null;
   }
 
   Future<void> deleteWater(String waterId) async {
-    await _firestore
-        .collection('app_users')
-        .doc(_currentUser!.uid)
-        .collection('event_waters')
-        .doc(waterId)
-        .delete();
-  }
-
-  void dispose() {
-    _waterController.close();
+    await _firestore.collection('event_waters').doc(waterId).delete();
+    _cachedWaterEvents = null;
   }
 }

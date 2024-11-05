@@ -1,21 +1,23 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/components/events/others/event_type_card.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/events_models/event_vacine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_vacine_provider.dart';
-import 'package:intl/intl.dart';
 
-Widget eventTypeCardVaccines(BuildContext context, WidgetRef ref,
+void showVaccineOptions(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
+  DateTime selectedDateTime = DateTime.now();
+  TimeOfDay? selectedTime;
+  bool showDetails = false;
   String? selectedVaccineType;
-  DateTime selectedDate = DateTime.now();
-  TextEditingController dateController = TextEditingController(
-    text: DateFormat('dd-MM-yyyy').format(selectedDate),
-  );
+  TextEditingController otherVaccineController = TextEditingController();
 
   final List<Map<String, dynamic>> vaccineTypes = [
     {'icon': Icons.vaccines, 'description': 'Rabies', 'color': Colors.red},
@@ -31,66 +33,81 @@ Widget eventTypeCardVaccines(BuildContext context, WidgetRef ref,
       'description': 'Leptospirosis',
       'color': Colors.purple
     },
+    {'icon': Icons.healing, 'description': 'Parvovirus', 'color': Colors.pink},
+    {
+      'icon': Icons.sanitizer,
+      'description': 'Parainfluenza',
+      'color': Colors.teal
+    },
+    {
+      'icon': Icons.local_hospital,
+      'description': 'Adenovirus',
+      'color': Colors.indigo
+    },
+    {'icon': Icons.other_houses, 'description': 'Other', 'color': Colors.grey},
   ];
 
   void recordVaccineEvent() {
     String eventId = generateUniqueId();
-    String description = selectedVaccineType ?? 'Vaccine event';
+    String description = selectedVaccineType == "Other"
+        ? otherVaccineController.text
+        : selectedVaccineType ?? 'Vaccine event';
 
     if (petIds != null && petIds.isNotEmpty) {
       for (String id in petIds) {
-        _saveVaccineEvent(ref, id, eventId, description, selectedDate);
+        _saveVaccineEvent(
+            ref, id, eventId, description, selectedDateTime, selectedTime);
       }
     } else if (petId != null) {
-      _saveVaccineEvent(ref, petId, eventId, description, selectedDate);
+      _saveVaccineEvent(
+          ref, petId, eventId, description, selectedDateTime, selectedTime);
     }
   }
 
-  void showConfirmationBottomSheet(
-      BuildContext context, VoidCallback onConfirm) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          final double screenHeight = MediaQuery.of(context).size.height;
+          double initialSize = screenHeight > 800 ? 0.22 : 0.25;
+          double detailsSize = screenHeight > 800 ? 0.60 : 0.75;
+          double maxSize = screenHeight > 800 ? 1 : 1;
+
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: showDetails ? detailsSize : initialSize,
+            minChildSize: initialSize,
+            maxChildSize: maxSize,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           IconButton(
                             icon: Icon(Icons.close,
                                 color: Theme.of(context).primaryColorDark),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
+                            onPressed: () => Navigator.of(context).pop(),
                           ),
                           Text(
-                            'Confirm Vaccine Event',
+                            'V A C C I N E S',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -101,187 +118,304 @@ Widget eventTypeCardVaccines(BuildContext context, WidgetRef ref,
                             icon: Icon(Icons.check,
                                 color: Theme.of(context).primaryColorDark),
                             onPressed: () {
-                              onConfirm();
-                              Navigator.of(context).pop();
+                              recordVaccineEvent();
                               Navigator.of(context).pop();
                             },
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 20),
-                    child: Container(
-                      padding: const EdgeInsets.all(20.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Column(
-                        children: [
-                          TextFormField(
-                            controller: dateController,
-                            decoration: InputDecoration(
-                              labelText: 'Date',
-                              labelStyle: TextStyle(
-                                  color: Theme.of(context).primaryColorDark),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColorDark),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).primaryColorDark),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            readOnly: true,
-                            onTap: () async {
-                              final DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: selectedDate,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2101),
-                                builder: (BuildContext context, Widget? child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: ColorScheme.light(
-                                        primary: Theme.of(context)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 10, right: 10, top: 10, bottom: 5),
+                      child: Container(
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 150,
+                              height: 30,
+                              child: showDetails
+                                  ? IconButton(
+                                      icon: const Icon(Icons.more_horiz),
+                                      onPressed: () {
+                                        setState(() {
+                                          showDetails = !showDetails;
+                                        });
+                                      },
+                                      color: Theme.of(context)
+                                          .primaryColorDark
+                                          .withOpacity(0.6),
+                                    )
+                                  : ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          showDetails = !showDetails;
+                                        });
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context)
                                             .colorScheme
-                                            .secondary,
-                                        onPrimary:
-                                            Theme.of(context).primaryColorDark,
-                                        onSurface:
-                                            Theme.of(context).primaryColorDark,
+                                            .surface,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
                                       ),
-                                      textButtonTheme: TextButtonThemeData(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: Theme.of(context)
-                                              .primaryColorDark,
+                                      child: Text(
+                                        "M O R E",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .primaryColorDark
+                                              .withOpacity(0.6),
+                                          fontSize: 10,
                                         ),
                                       ),
                                     ),
-                                    child: child!,
-                                  );
-                                },
-                              );
-                              if (picked != null && picked != selectedDate) {
-                                setState(() {
-                                  selectedDate = picked;
-                                  dateController.text = DateFormat('dd-MM-yyyy')
-                                      .format(selectedDate);
-                                });
-                              }
-                            },
+                            ),
                           ),
-                          const SizedBox(height: 20),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: vaccineTypes.map((type) {
-                                bool isSelected =
-                                    type['description'] == selectedVaccineType;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      selectedVaccineType = type['description'];
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 80,
-                                    height: 80,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .surface
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 8.0),
-                                          child: Icon(type['icon'],
-                                              size: 35, color: type['color']),
-                                        ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 8.0),
-                                          child: Text(
+                        ),
+                      ),
+                    ),
+                    // Kontener dla wyboru szczepionki
+                    if (showDetails)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 5),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: vaccineTypes.map((type) {
+                                  bool isSelected = type['description'] ==
+                                      selectedVaccineType;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedVaccineType =
+                                            type['description'];
+                                        if (selectedVaccineType != "Other") {
+                                          otherVaccineController.clear();
+                                        }
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12.0),
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            type['icon'],
+                                            size: 50,
+                                            color: isSelected
+                                                ? type['color']
+                                                : Colors.grey,
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
                                             type['description'],
                                             style: TextStyle(
-                                                fontSize: 10,
-                                                color: Theme.of(context)
-                                                    .primaryColorDark),
+                                              fontSize: 10,
+                                              color: Theme.of(context)
+                                                  .primaryColorDark,
+                                            ),
                                             textAlign: TextAlign.center,
                                           ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              }).toList(),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  return eventTypeCard(
-    context,
-    'V A C C I N E S',
-    'assets/images/events_type_cards_no_background/syringe.png',
-    () {
-      showConfirmationBottomSheet(context, recordVaccineEvent);
+                    // Kontener dla wyboru daty, godziny oraz pola tekstowego dla "Other"
+                    if (showDetails)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 5),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Column(
+                            children: [
+                              if (selectedVaccineType == "Other") ...[
+                                TextField(
+                                  controller: otherVaccineController,
+                                  decoration: InputDecoration(
+                                    labelText: "Enter Vaccine Name",
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedDate = await showStyledDatePicker(
+                                    context: context,
+                                    initialDate: selectedDateTime,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2101),
+                                  );
+                                  if (pickedDate != null) {
+                                    setState(() {
+                                      selectedDateTime = pickedDate;
+                                    });
+                                  }
+                                },
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Select Date',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(selectedDateTime),
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedTime = await showStyledTimePicker(
+                                    context: context,
+                                    initialTime:
+                                        selectedTime ?? TimeOfDay.now(),
+                                  );
+                                  if (pickedTime != null) {
+                                    setState(() {
+                                      selectedTime = pickedTime;
+                                    });
+                                  }
+                                },
+                                child: InputDecorator(
+                                  decoration: InputDecoration(
+                                    labelText: 'Select Time',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    selectedTime != null
+                                        ? selectedTime!.format(context)
+                                        : 'Select Time',
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColorDark,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
     },
   );
 }
 
 void _saveVaccineEvent(WidgetRef ref, String petId, String eventId,
-    String description, DateTime selectedDate) {
-  EventVaccineModel newVaccine = EventVaccineModel(
+    String description, DateTime date, TimeOfDay? time) {
+  final newVaccine = EventVaccineModel(
     id: generateUniqueId(),
     eventId: eventId,
     petId: petId,
+    userId: FirebaseAuth.instance.currentUser!.uid,
     emoticon: '💉',
     description: description,
-    dateTime: selectedDate,
+    dateTime: date,
+    time: time,
   );
 
   ref.read(eventVaccineServiceProvider).addVaccine(newVaccine);
 
-  Event newEvent = Event(
+  final newEvent = Event(
     id: eventId,
     title: 'Vaccine',
-    eventDate: selectedDate,
+    eventDate: date,
     dateWhenEventAdded: DateTime.now(),
     userId: FirebaseAuth.instance.currentUser!.uid,
     petId: petId,
     description: description,
-    avatarImage: 'assets/images/dog_avatar_014.png',
+    avatarImage: 'assets/images/vaccine.png',
     emoticon: '💉',
     vaccineId: newVaccine.id,
   );
 
   ref.read(eventServiceProvider).addEvent(newEvent, petId);
+}
+
+Widget eventTypeCardVaccines(BuildContext context, WidgetRef ref,
+    {String? petId, List<String>? petIds}) {
+  return eventTypeCard(
+    context,
+    'V A C C I N E S',
+    'assets/images/events_type_cards_no_background/syringe.png',
+    () => showVaccineOptions(context, ref, petId: petId, petIds: petIds),
+  );
 }

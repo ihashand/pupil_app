@@ -24,6 +24,7 @@ Widget eventTypeCardWalk(BuildContext context, WidgetRef ref,
   );
 }
 
+// Modal dodawania wydarzenia typu Walk
 void showWalkEventModal(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
   TextEditingController walkDistanceController = TextEditingController();
@@ -53,165 +54,53 @@ void showWalkEventModal(BuildContext context, WidgetRef ref,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context).primaryColorDark),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                          Text(
-                            'Walk Event (Developer Only)',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.check,
-                                color: Theme.of(context).primaryColorDark),
-                            onPressed: () async {
-                              if (walkDistanceController.text.trim().isEmpty ||
-                                  walkDistance <= 0.0 ||
-                                  (selectedHours == 0 &&
-                                      selectedMinutes == 0)) {
-                                emptyFieldsAlert(context);
-                                return;
-                              }
+                  buildModalHeader(
+                    context,
+                    title: 'Walk Event (Developer Only)',
+                    onConfirm: () async {
+                      if (walkDistanceController.text.trim().isEmpty ||
+                          walkDistance <= 0.0 ||
+                          (selectedHours == 0 && selectedMinutes == 0)) {
+                        emptyFieldsAlert(context);
+                        return;
+                      }
 
-                              int totalDurationInSeconds =
-                                  selectedHours * 60 + selectedMinutes;
+                      int totalDurationInSeconds =
+                          selectedHours * 60 + selectedMinutes;
 
-                              if (totalDurationInSeconds > 6 * 60) {
-                                bool confirm = await showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return EventWalkManyHoursAlert(
-                                      selectedHours: selectedHours,
-                                      selectedMinutes: selectedMinutes,
-                                    );
-                                  },
-                                );
-                                if (!confirm) return;
-                              }
+                      if (totalDurationInSeconds > 6 * 60) {
+                        bool confirm = await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return EventWalkManyHoursAlert(
+                              selectedHours: selectedHours,
+                              selectedMinutes: selectedMinutes,
+                            );
+                          },
+                        );
+                        if (!confirm) return;
+                      }
 
-                              if (petIds != null && petIds.isNotEmpty) {
-                                for (String id in petIds) {
-                                  saveWalkEvent(context, ref, walkDistance,
-                                      totalDurationInSeconds, id);
-                                }
-                              } else if (petId != null) {
-                                saveWalkEvent(context, ref, walkDistance,
-                                    totalDurationInSeconds, petId);
-                              }
-
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+                      List<String> idsToHandle = petIds ?? [petId!];
+                      for (String id in idsToHandle) {
+                        saveWalkEvent(context, ref, walkDistance,
+                            totalDurationInSeconds, id);
+                      }
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 20),
-                    child: Container(
-                      padding: const EdgeInsets.all(20.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 15),
-                          SizedBox(
-                            width: 250,
-                            height: 70,
-                            child: InputDecorator(
-                              decoration: const InputDecoration(
-                                labelText: 'Distance',
-                                border: OutlineInputBorder(),
-                              ),
-                              child: TextFormField(
-                                controller: walkDistanceController,
-                                cursorColor: Theme.of(context)
-                                    .primaryColorDark
-                                    .withOpacity(0.5),
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true),
-                                onChanged: (value) {
-                                  final fixedValue = value.replaceAll(',', '.');
-                                  walkDistance =
-                                      double.tryParse(fixedValue) ?? 0.0;
-                                  setState(() {});
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.all(15.0),
-                                padding: const EdgeInsets.all(3.0),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.black),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(10.0)),
-                                ),
-                                child: SizedBox(
-                                  width: 70,
-                                  child: eventWalkBuildTimeSelector(
-                                      context, 'Hours', selectedHours, (value) {
-                                    setState(() {
-                                      selectedHours = value;
-                                    });
-                                  }, 24),
-                                ),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.all(15.0),
-                                padding: const EdgeInsets.all(3.0),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.black),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(10.0)),
-                                ),
-                                child: SizedBox(
-                                  width: 70,
-                                  child: eventWalkBuildTimeSelector(
-                                      context, 'Minutes', selectedMinutes,
-                                      (value) {
-                                    setState(() {
-                                      selectedMinutes = value;
-                                    });
-                                  }, 60),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if ((selectedHours * 60 + selectedMinutes) > 6 * 60)
-                            Text(
-                                'Are you sure that your walk time was $selectedHours:$selectedMinutes?'),
-                        ],
-                      ),
-                    ),
+                  buildWalkInputSection(
+                    context,
+                    walkDistanceController,
+                    (value) {
+                      final fixedValue = value.replaceAll(',', '.');
+                      walkDistance = double.tryParse(fixedValue) ?? 0.0;
+                      setState(() {});
+                    },
+                    selectedHours,
+                    (value) => setState(() => selectedHours = value),
+                    selectedMinutes,
+                    (value) => setState(() => selectedMinutes = value),
                   ),
                 ],
               ),
@@ -223,6 +112,121 @@ void showWalkEventModal(BuildContext context, WidgetRef ref,
   );
 }
 
+// Sekcja nagłówka modalu
+Widget buildModalHeader(BuildContext context,
+    {required String title, required VoidCallback onConfirm}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.primary,
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(20),
+        bottomRight: Radius.circular(20),
+      ),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: Icon(Icons.close, color: Theme.of(context).primaryColorDark),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColorDark,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          IconButton(
+            icon: Icon(Icons.check, color: Theme.of(context).primaryColorDark),
+            onPressed: onConfirm,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Sekcja wejściowa do wprowadzania dystansu oraz godzin i minut
+Widget buildWalkInputSection(
+    BuildContext context,
+    TextEditingController walkDistanceController,
+    ValueChanged<String> onDistanceChanged,
+    int selectedHours,
+    ValueChanged<int> onHoursChanged,
+    int selectedMinutes,
+    ValueChanged<int> onMinutesChanged) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20),
+    child: Container(
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 15),
+          SizedBox(
+            width: 250,
+            height: 70,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: 'Distance',
+                border: OutlineInputBorder(),
+              ),
+              child: TextFormField(
+                controller: walkDistanceController,
+                cursorColor:
+                    Theme.of(context).primaryColorDark.withOpacity(0.5),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                onChanged: onDistanceChanged,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              buildTimeSelector(context, 'Hours', selectedHours, onHoursChanged,
+                  maxValue: 24),
+              buildTimeSelector(
+                  context, 'Minutes', selectedMinutes, onMinutesChanged,
+                  maxValue: 60),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+// Widget selektora czasu
+Widget buildTimeSelector(
+    BuildContext context, String label, int value, ValueChanged<int> onChanged,
+    {required int maxValue}) {
+  return Container(
+    margin: const EdgeInsets.all(15.0),
+    padding: const EdgeInsets.all(3.0),
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.black),
+      borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+    ),
+    child: SizedBox(
+      width: 70,
+      child: eventWalkBuildTimeSelector(
+          context, label, value, onChanged, maxValue),
+    ),
+  );
+}
+
+// Funkcja zapisu wydarzenia
 void saveWalkEvent(BuildContext context, WidgetRef ref, double walkDistance,
     int totalDurationInSeconds, String petId) {
   showDialog(
@@ -244,10 +248,8 @@ void saveWalkEvent(BuildContext context, WidgetRef ref, double walkDistance,
     stoolsAndUrine: [],
   );
 
-  String eventId = generateUniqueId();
-
   Event newEvent = Event(
-    id: eventId,
+    id: generateUniqueId(),
     title: 'Walk',
     eventDate: DateTime.now(),
     dateWhenEventAdded: DateTime.now(),
@@ -276,24 +278,15 @@ Future<dynamic> toBigDistance(BuildContext context) {
           style: TextStyle(
               color: Theme.of(context).primaryColorDark, fontSize: 24),
         ),
-        content: SizedBox(
-          width: 250,
-          child: Text(
-            'Walk distance cannot exceed 120 km.',
-            style: TextStyle(
-                color: Theme.of(context).primaryColorDark, fontSize: 16),
-          ),
+        content: const Text(
+          'Walk distance cannot exceed 120 km.',
         ),
         actions: <Widget>[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text(
-              'OK',
-              style: TextStyle(
-                  color: Theme.of(context).primaryColorDark, fontSize: 20),
-            ),
+            child: const Text('OK'),
           ),
         ],
       );
@@ -311,22 +304,13 @@ Future<dynamic> emptyFieldsAlert(BuildContext context) {
           style: TextStyle(
               color: Theme.of(context).primaryColorDark, fontSize: 20),
         ),
-        content: SizedBox(
-          width: 270,
-          child: Text(
-            'Walk fields cannot be empty.',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-        ),
+        content: const Text('Walk fields cannot be empty.'),
         actions: <Widget>[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text(
-              'OK',
-              style: TextStyle(color: Theme.of(context).primaryColorDark),
-            ),
+            child: const Text('OK'),
           ),
         ],
       );

@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/others/product_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_food_recipe_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_product_provider.dart';
 
 class EventFoodProductService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final userId = FirebaseAuth.instance.currentUser?.uid;
 
-  // Stream Controllers
   final StreamController<List<ProductModel>> _globalProductsController =
       StreamController<List<ProductModel>>.broadcast();
   final StreamController<List<ProductModel>> _userProductsController =
@@ -17,47 +17,38 @@ class EventFoodProductService {
   final StreamController<List<ProductModel>> _userFavoritesController =
       StreamController<List<ProductModel>>.broadcast();
 
-  // Getters for Streams
   Stream<List<ProductModel>> getProductsStream() {
     _firestore.collection('products').snapshots().listen((snapshot) {
       _globalProductsController.add(
           snapshot.docs.map((doc) => ProductModel.fromDocument(doc)).toList());
     });
-
     return _globalProductsController.stream;
   }
 
   Stream<List<ProductModel>> getUserProductsStream() {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
     _firestore
-        .collection('app_users')
-        .doc(userId)
         .collection('event_food_user_products')
+        .where('userId', isEqualTo: userId)
         .snapshots()
         .listen((snapshot) {
       _userProductsController.add(
           snapshot.docs.map((doc) => ProductModel.fromDocument(doc)).toList());
     });
-
     return _userProductsController.stream;
   }
 
   Stream<List<ProductModel>> getUserFavoriteProductsStream() {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
     _firestore
-        .collection('app_users')
-        .doc(userId)
         .collection('event_food_favorites')
+        .where('userId', isEqualTo: userId)
         .snapshots()
         .listen((snapshot) {
       _userFavoritesController.add(
           snapshot.docs.map((doc) => ProductModel.fromDocument(doc)).toList());
     });
-
     return _userFavoritesController.stream;
   }
 
-  // Product Operations
   Future<ProductModel?> getProductByBarcode(String barcode) async {
     final querySnapshot = await _firestore
         .collection('products')
@@ -73,21 +64,13 @@ class EventFoodProductService {
   Future<void> addProduct(ProductModel product, {bool isGlobal = true}) async {
     if (isGlobal) {
       await _firestore.collection('products').add(product.toMap());
-    } else {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId != null) {
-        await _firestore
-            .collection('app_users')
-            .doc(userId)
-            .collection('event_food_user_products')
-            .add(product.toMap());
-      }
+    } else if (userId != null) {
+      await _firestore
+          .collection('event_food_user_products')
+          .doc()
+          .set({...product.toMap(), 'userId': userId});
     }
-    // Refresh relevant providers
-    final container = ProviderContainer();
-    container.refresh(eventGlobalProductsProvider);
-    container.refresh(eventUserProductsProvider);
-    container.refresh(combinedAllProvider);
+    _refreshProviders();
   }
 
   Future<void> updateProduct(ProductModel product) async {
@@ -101,68 +84,55 @@ class EventFoodProductService {
     await _firestore.collection('products').doc(productId).delete();
   }
 
-  // Favorite Operations
   Future<void> addFavoriteProduct(ProductModel product) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId != null) {
-      await _firestore
-          .collection('app_users')
-          .doc(userId)
-          .collection('event_food_favorites')
-          .doc(product.id)
-          .set(product.toMap());
-    }
+    await _firestore
+        .collection('event_food_favorites')
+        .doc()
+        .set({...product.toMap(), 'userId': userId});
   }
 
   Future<void> removeFavoriteProduct(String productId) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId != null) {
-      await _firestore
-          .collection('app_users')
-          .doc(userId)
+      final snapshot = await _firestore
           .collection('event_food_favorites')
-          .doc(productId)
-          .delete();
+          .where('userId', isEqualTo: userId)
+          .where('id', isEqualTo: productId)
+          .get();
+      if (snapshot.docs.isNotEmpty) {
+        await snapshot.docs.first.reference.delete();
+      }
     }
   }
 
-  // New method to remove a product from all locations
   Future<void> removeProductFromAll(String productId) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-
     if (userId != null) {
-      // Remove from favorites if it exists
-      final favoriteDoc = await _firestore
-          .collection('app_users')
-          .doc(userId)
-          .collection('event_food_favorites')
-          .doc(productId)
-          .get();
-      if (favoriteDoc.exists) {
-        await favoriteDoc.reference.delete();
-      }
-
-      // Remove from user products if it exists
-      final userProductDoc = await _firestore
-          .collection('app_users')
-          .doc(userId)
-          .collection('event_food_user_products')
-          .doc(productId)
-          .get();
-      if (userProductDoc.exists) {
-        await userProductDoc.reference.delete();
-      }
-
-      // Remove from global products if it exists
-      final globalProductDoc =
-          await _firestore.collection('products').doc(productId).get();
-      if (globalProductDoc.exists) {
-        await globalProductDoc.reference.delete();
-      }
+      await _removeFromCollectionIfExists(
+          'event_food_favorites', productId, userId!);
+      await _removeFromCollectionIfExists(
+          'event_food_user_products', productId, userId!);
+      await _removeFromCollectionIfExists('products', productId, userId!);
     }
   }
 
-  // Dispose Stream Controllers
+  Future<void> _removeFromCollectionIfExists(
+      String collection, String productId, String userId) async {
+    final snapshot = await _firestore
+        .collection(collection)
+        .where('userId', isEqualTo: userId)
+        .where('id', isEqualTo: productId)
+        .get();
+    if (snapshot.docs.isNotEmpty) {
+      await snapshot.docs.first.reference.delete();
+    }
+  }
+
+  void _refreshProviders() {
+    final container = ProviderContainer();
+    container.refresh(eventGlobalProductsProvider);
+    container.refresh(eventUserProductsProvider);
+    container.refresh(combinedAllProvider);
+  }
+
   void dispose() {
     _globalProductsController.close();
     _userProductsController.close();

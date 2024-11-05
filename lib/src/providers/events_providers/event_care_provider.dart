@@ -6,6 +6,6 @@ final eventCareServiceProvider = Provider<EventCareService>((ref) {
   return EventCareService();
 });
 
-final eventCaresProvider = StreamProvider<List<EventCareModel>>((ref) {
+final eventCareProvider = StreamProvider<List<EventCareModel>>((ref) {
   return ref.watch(eventCareServiceProvider).getCaresStream();
 });
