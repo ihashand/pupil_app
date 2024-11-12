@@ -50,6 +50,8 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
                 padding: const EdgeInsets.all(10.0),
                 child: _buildContainer([
                   const SizedBox(height: 20),
+                  _buildFrequencyControl(),
+                  const SizedBox(height: 10),
                   ..._buildTimeSelectors(),
                   const SizedBox(height: 20),
                 ]),
@@ -79,6 +81,48 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFrequencyControl() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: _selectedTimes.length > 1
+              ? () {
+                  setState(() {
+                    _selectedTimes.removeLast();
+                  });
+                }
+              : null,
+          icon: Icon(
+            Icons.remove_circle,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+        Text(
+          'Reminders: ${_selectedTimes.length}',
+          style: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        IconButton(
+          onPressed: _selectedTimes.length < 6
+              ? () {
+                  setState(() {
+                    _selectedTimes.add(const TimeOfDay(hour: 12, minute: 0));
+                  });
+                }
+              : null,
+          icon: Icon(
+            Icons.add_circle,
+            color: Theme.of(context).primaryColorDark,
+          ),
+        ),
+      ],
     );
   }
 
