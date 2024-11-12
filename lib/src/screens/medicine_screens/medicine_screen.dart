@@ -7,8 +7,19 @@ import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/screens/medicine_screens/add_medicine_screen.dart';
+import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
+/// A screen that displays medicine-related information.
+///
+/// This screen is a stateful widget that uses the ConsumerStatefulWidget
+/// from the Riverpod package to manage its state.
+///
+/// The `MedicineScreen` class is responsible for rendering the UI
+/// and handling any user interactions related to medicine.
+///
+/// It is part of the `medicine_screens` module in the application.
 class MedicineScreen extends ConsumerStatefulWidget {
   final String petId;
 
@@ -149,23 +160,9 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                      child: SlideAnimationHelper(
-                    duration: const Duration(milliseconds: 2600),
-                    curve: Curves.bounceOut,
-                    child: EmptyStateWidget(
-                      message: isCurrentSelected
-                          ? "No current medicines found."
-                          : "No medicine history available.",
-                      icon: Icons.pets,
-                    ),
-                  ));
-                }
 
-                final petMedicines = snapshot.data;
-
-                final filteredMedicines = petMedicines!.where((medicine) {
+                final petMedicines = snapshot.data ?? [];
+                final filteredMedicines = petMedicines.where((medicine) {
                   final endDate = medicine.endDate ?? DateTime.now();
                   if (isCurrentSelected) {
                     return endDate.isAfter(now) ||
@@ -175,14 +172,33 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                   }
                 }).toList();
 
+                if (filteredMedicines.isEmpty) {
+                  return Center(
+                    child: SlideAnimationHelper(
+                      duration: const Duration(milliseconds: 1600),
+                      curve: Curves.bounceOut,
+                      child: EmptyStateWidget(
+                        message: isCurrentSelected
+                            ? "No current medicines found."
+                            : "No medicine history available.",
+                        icon: Icons.pets,
+                      ),
+                    ),
+                  );
+                }
+
                 return ListView.builder(
                   itemCount: filteredMedicines.length,
                   itemBuilder: (context, index) {
                     final medicine = filteredMedicines[index];
                     return MedicineTile(
                       medicine: medicine,
-                      onDelete: () => deletePill(context, ref, widget.petId,
-                          medicine: medicine),
+                      onDelete: () => deletePill(
+                        context,
+                        ref,
+                        widget.petId,
+                        medicine: medicine,
+                      ),
                     );
                   },
                 );
@@ -200,13 +216,24 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
     String petId, {
     EventMedicineModel? medicine,
   }) async {
+    // Usuń lek z bazy danych
     await ref.read(eventMedicineServiceProvider).deleteMedicine(medicine!.id);
 
-    // Usunięcie wszystkich powiązanych eventów z pigułką
+    // Usunięcie powiązanych eventów z bazy danych
     final events =
         await ref.read(eventServiceProvider).getEventsByPillId(medicine.id);
     for (var event in events) {
       await ref.read(eventServiceProvider).deleteEvent(event.id);
+    }
+
+    // Usunięcie przypomnień i anulowanie powiadomień
+    final reminders = await ref
+        .read(reminderServiceProvider)
+        .getRemindersByEventId(medicine.id);
+
+    for (var reminder in reminders) {
+      await ref.read(reminderServiceProvider).deleteReminder(reminder.id);
+      await NotificationService().cancelNotification(reminder.notificationId);
     }
   }
 }
@@ -281,29 +308,15 @@ class _MedicineTileState extends State<MedicineTile>
                   style: const TextStyle(fontSize: 24),
                 ),
               ),
-              title: Row(
-                children: [
-                  Text(
-                    widget.medicine.name,
-                    style: TextStyle(
-                      color: Theme.of(context).primaryColorDark,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (widget.medicine.dosage != null &&
-                      widget.medicine.dosage!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        widget.medicine.dosage ?? '',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColorDark,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                ],
+              title: Text(
+                widget.medicine.name,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               trailing: IconButton(
                 icon: Icon(Icons.delete,

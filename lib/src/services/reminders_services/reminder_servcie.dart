@@ -11,6 +11,22 @@ class ReminderService {
   DateTime? _lastFetchTime;
   final _reminderController = StreamController<List<ReminderModel>>.broadcast();
 
+  Future<List<ReminderModel>> getRemindersByEventId(String eventId) async {
+    if (_currentUser == null) {
+      return [];
+    }
+
+    final querySnapshot = await _firestore
+        .collection('reminders')
+        .where('userId', isEqualTo: _currentUser.uid)
+        .where('eventId', isEqualTo: eventId)
+        .get();
+
+    return querySnapshot.docs
+        .map((doc) => ReminderModel.fromDocument(doc))
+        .toList();
+  }
+
   Stream<List<ReminderModel>> getReminderStream() {
     if (_currentUser == null) {
       return Stream.value([]);

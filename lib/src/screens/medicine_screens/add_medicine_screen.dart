@@ -13,6 +13,14 @@ import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
+/// A screen that allows users to add a new medicine.
+///
+/// This screen is a stateful widget that provides a form for users to input
+/// details about a new medicine they want to add to their list.
+///
+/// The form includes fields for the medicine name, dosage, frequency, and
+/// other relevant information. Once the form is filled out, users can submit
+/// it to save the new medicine.
 class AddMedicineScreen extends StatefulWidget {
   final WidgetRef ref;
   final String petId;
@@ -163,10 +171,12 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       final totalDays =
           _selectedEndDate.difference(_selectedStartDate).inDays + 1;
 
-      print('Starting reminder creation for medicine: ${newMedicine.name}');
+      print(
+          'Starting reminder creation for medicine: ${newMedicine.name} with $totalDays days');
 
       for (int dayOffset = 0; dayOffset < totalDays; dayOffset++) {
         final day = _selectedStartDate.add(Duration(days: dayOffset));
+        int daysLeft = _selectedEndDate.difference(day).inDays + 1;
 
         if (_shouldScheduleOnDay(day)) {
           for (var time in _selectedTimes) {
@@ -174,7 +184,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 DateTime(day.year, day.month, day.day, time.hour, time.minute);
 
             print(
-                'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}');
+                'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}, days left: $daysLeft');
 
             events.add(Event(
               id: generateUniqueId(),
@@ -190,20 +200,21 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               emoticon: _selectedTypeEmoji,
             ));
 
-            // Now using a more complex ID generation
+            // Używamy dayOffset, aby zapewnić unikalność ID
             int notificationId =
-                ('${medicineId.hashCode}${eventDateTime.millisecondsSinceEpoch % 1000000}')
+                ('${medicineId.hashCode}${eventDateTime.millisecondsSinceEpoch % 1000000}$dayOffset')
                     .hashCode;
+
             if (!uniqueNotificationIds.contains(notificationId)) {
               uniqueNotificationIds.add(notificationId);
 
               String title = 'Reminder: ${newMedicine.name}';
               String body = _dosageController.text.isNotEmpty
-                  ? 'It’s time to take ${_dosageController.text} $_selectedUnit of ${newMedicine.name}. ${_selectedEndDate.difference(day).inDays + 1} days left.'
-                  : 'It’s time to take your medication: ${newMedicine.name}. ${_selectedEndDate.difference(day).inDays + 1} days left.';
+                  ? 'It’s time to take ${_dosageController.text} $_selectedUnit of ${newMedicine.name}. $daysLeft days left.'
+                  : 'It’s time to take your medication: ${newMedicine.name}. $daysLeft days left.';
 
               print(
-                  'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}');
+                  'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}, days left: $daysLeft');
 
               await NotificationService().createNotification(
                 id: notificationId,
@@ -222,6 +233,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 description: body,
                 eventId: newMedicine.id,
                 isActive: true,
+                notificationId: notificationId,
               );
               reminders.add(reminder);
             } else {

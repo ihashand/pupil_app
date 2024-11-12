@@ -10,7 +10,7 @@ class ReminderModel {
   late String description;
   late String eventId;
   late bool isActive;
-
+  late int notificationId;
   ReminderModel({
     required this.id,
     required this.name,
@@ -21,6 +21,7 @@ class ReminderModel {
     this.description = '',
     this.eventId = '',
     this.isActive = true,
+    required this.notificationId,
   });
 
   ReminderModel.fromDocument(DocumentSnapshot doc) {
@@ -34,6 +35,7 @@ class ReminderModel {
     description = doc.get('description') ?? '';
     eventId = doc.get('eventId') ?? '';
     isActive = doc.get('isActive') ?? true;
+    notificationId = doc.get('notificationId') ?? 0;
   }
 
   Map<String, dynamic> toMap() {
@@ -47,6 +49,7 @@ class ReminderModel {
       'description': description,
       'eventId': eventId,
       'isActive': isActive,
+      'notificationId': notificationId,
     };
   }
 }
