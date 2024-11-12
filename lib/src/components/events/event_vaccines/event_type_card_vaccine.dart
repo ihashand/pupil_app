@@ -67,6 +67,7 @@ void showVaccineOptions(BuildContext context, WidgetRef ref,
     // Wyświetlenie dialogu z pytaniem o przypomnienie po zapisaniu szczepionki
     Future.delayed(Duration.zero, () {
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (BuildContext dialogContext) {
           return AlertDialog(

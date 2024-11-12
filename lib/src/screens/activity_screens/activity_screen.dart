@@ -1,16 +1,17 @@
-import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/helpers/animations/slide_animation_helper.dart';
+import 'package:pet_diary/src/helpers/messages/empty_state_widget.dart';
 import 'package:pet_diary/src/screens/walk_screens/walk_summary_screen.dart';
 import 'package:pet_diary/src/providers/walks_providers/global_walk_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
-  final String? petId; // Opcjonalne petId, aby filtrować spacery po zwierzęciu
+  final String? petId;
 
   const ActivityScreen({super.key, this.petId});
 
@@ -18,41 +19,9 @@ class ActivityScreen extends ConsumerStatefulWidget {
   ConsumerState<ActivityScreen> createState() => _ActivityScreenState();
 }
 
-class _ActivityScreenState extends ConsumerState<ActivityScreen>
-    with SingleTickerProviderStateMixin {
+class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   int _loadedItems = 3;
   bool _isLoadingMore = false;
-  late AnimationController _controller;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Inicjalizacja kontrolera animacji
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    );
-
-    // Ustawienie animacji przesuwania
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1), // Zaczyna się powyżej ekranu
-      end: Offset.zero, // Kończy się na normalnej pozycji
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.bounceOut, // Dodanie efektu odbicia
-    ));
-
-    // Uruchomienie animacji przy pierwszym wyświetleniu
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +42,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       ),
       body: globalWalksAsyncValue.when(
         data: (walks) {
-          // Filtrowanie spacerów, jeśli podano petId
           if (widget.petId != null) {
             walks = walks
                 .where((walk) => walk.petIds.contains(widget.petId))
@@ -81,11 +49,18 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
           }
 
           if (walks.isEmpty) {
-            // Jeśli brak spacerów, wyświetlamy animowany stan pusty
-            return _buildEmptyState(context);
+            return const Center(
+                child: SlideAnimationHelper(
+              duration: Duration(milliseconds: 2600),
+              curve: Curves.bounceOut,
+              child: EmptyStateWidget(
+                message:
+                    "No walks activities yet.\nStart exploring with your pet!",
+                icon: Icons.pets,
+              ),
+            ));
           }
 
-          // Sortowanie spacerów od najnowszego do najstarszego
           walks.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
           return NotificationListener<ScrollNotification>(
@@ -93,13 +68,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
               if (scrollInfo.metrics.pixels ==
                       scrollInfo.metrics.maxScrollExtent &&
                   !_isLoadingMore) {
-                // Ładowanie więcej spacerów, gdy użytkownik przewinie do końca
                 setState(() {
                   _isLoadingMore = true;
                   _loadedItems += 3;
                 });
 
-                // Symulowanie opóźnienia w ładowaniu
                 Future.delayed(const Duration(seconds: 1), () {
                   setState(() {
                     _isLoadingMore = false;
@@ -114,7 +87,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                   : _loadedItems + 1,
               itemBuilder: (context, index) {
                 if (index == _loadedItems) {
-                  // Wyświetlanie wskaźnika ładowania na dole
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
                     child: Center(
@@ -126,7 +98,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                 final walk = walks[index];
                 return GestureDetector(
                   onTap: () async {
-                    // Pobieranie zwierząt biorących udział w spacerze
                     final pets = await ref
                         .read(petServiceProvider)
                         .getPetsByUserId(
@@ -135,19 +106,16 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                         .where((pet) => walk.petIds.contains(pet.id))
                         .toList();
 
-                    // Przejście do ekranu WalkSummaryScreen
                     // ignore: use_build_context_synchronously
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => WalkSummaryScreen(
-                          eventLines:
-                              _buildEventLines(walk.routePoints), // Linie trasy
-                          addedEvents: walk.stoolsAndUrine, // Wydarzenia
+                          eventLines: _buildEventLines(walk.routePoints),
+                          addedEvents: walk.stoolsAndUrine,
                           photos: _convertImagesToXFiles(walk.images),
-                          totalDistance: walk.steps.toStringAsFixed(2), // Kroki
-                          totalTimeInSeconds:
-                              walk.walkTime.toInt(), // Czas trwania
-                          pets: petsInWalk, // Zwierzęta biorące udział
+                          totalDistance: walk.steps.toStringAsFixed(2),
+                          totalTimeInSeconds: walk.walkTime.toInt(),
+                          pets: petsInWalk,
                           notes: walk.noteId ?? '',
                           isFromWalksListScreen: true,
                         ),
@@ -245,7 +213,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Wyświetlanie kroków i czasu trwania
                                   Text(
                                     'Steps: ${walk.steps.toStringAsFixed(0)}',
                                     style: TextStyle(
@@ -282,81 +249,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
     );
   }
 
-  // Budowanie animowanego stanu pustego
-  Widget _buildEmptyState(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 100.0),
-      child: Center(
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 40),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 25.0),
-                  child: ShaderMask(
-                    shaderCallback: (bounds) =>
-                        _generateRandomGradient().createShader(bounds),
-                    child: const Icon(
-                      Icons.pets,
-                      size: 50,
-                      color:
-                          Colors.white, // The icon is masked, so set to white
-                    ),
-                  ),
-                ),
-                Text(
-                  "No walks activities yet.\nStart exploring with your pet!",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Generowanie losowego gradientu dla ikony
-  LinearGradient _generateRandomGradient() {
-    final random = Random();
-    final colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.pink
-    ];
-    return LinearGradient(
-      colors: [
-        colors[random.nextInt(colors.length)],
-        colors[random.nextInt(colors.length)],
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-  }
-
-  // Widget for generating map thumbnail
   Widget _buildMapThumbnail(List<dynamic> routePoints) {
     final points = routePoints.map((point) {
       final Map<String, dynamic> castedPoint = point;
       return LatLng(castedPoint['latitude'], castedPoint['longitude']);
     }).toList();
 
-    // Tworzenie bounds, aby zoom kamery objął całą trasę
     LatLngBounds bounds;
     if (points.isNotEmpty) {
       bounds = LatLngBounds(
@@ -379,18 +277,17 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
       child: AppleMap(
         initialCameraPosition: CameraPosition(
           target: points.isNotEmpty ? points.first : const LatLng(51.5, -0.09),
-          zoom: 16, // Ustawienie domyślnego zoomu
+          zoom: 16,
         ),
         polylines: {
           Polyline(
             polylineId: PolylineId('route'),
             points: points,
-            width: 5, // Zmniejszenie szerokości linii
+            width: 5,
             color: Colors.blue,
           ),
         },
         onMapCreated: (controller) {
-          // Skalowanie kamery po załadowaniu mapy
           if (points.isNotEmpty) {
             controller.moveCamera(CameraUpdate.newLatLngBounds(bounds, 120));
           }
@@ -399,21 +296,18 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen>
     );
   }
 
-  // Formatowanie czasu trwania spaceru
   String _formatDuration(double totalTimeInSeconds) {
     final int hours = (totalTimeInSeconds ~/ 3600);
     final int minutes = ((totalTimeInSeconds % 3600) ~/ 60);
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
   }
 
-  // Konwersja obrazów do formatu XFile
   List<XFile> _convertImagesToXFiles(List<String>? images) {
     return images != null
         ? images.map((imageUrl) => XFile(imageUrl)).toList()
         : [];
   }
 
-  // Tworzenie linii trasy spaceru
   List<Polyline> _buildEventLines(List<dynamic> routePoints) {
     final List<LatLng> points = routePoints.map((point) {
       final Map<String, dynamic> castedPoint = point;

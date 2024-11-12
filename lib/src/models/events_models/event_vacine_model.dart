@@ -9,9 +9,9 @@ class EventVaccineModel {
   String description;
   DateTime dateTime;
   String? dose;
-  String userId; // Dodane pole identyfikatora użytkownika
-  String? name; // Opcjonalne pole dla nazwy
-  TimeOfDay? time; // Opcjonalne pole dla godziny
+  String userId;
+  String? name;
+  TimeOfDay? time;
 
   EventVaccineModel({
     required this.id,
@@ -34,14 +34,14 @@ class EventVaccineModel {
         description = doc.get('description'),
         dateTime = (doc.get('dateTime') as Timestamp).toDate(),
         dose = doc.get('dose'),
-        userId = doc.get('userId'), // Pobieranie identyfikatora użytkownika
-        name = doc.get('name'), // Pobieranie nazwy (opcjonalne)
+        userId = doc.get('userId'),
+        name = doc.get('name'),
         time = doc.get('time') != null
             ? TimeOfDay(
                 hour: (doc.get('time') as Map)['hour'],
                 minute: (doc.get('time') as Map)['minute'],
               )
-            : null; // Pobieranie godziny (opcjonalne)
+            : null;
 
   Map<String, dynamic> toMap() {
     return {
@@ -52,14 +52,14 @@ class EventVaccineModel {
       'description': description,
       'dateTime': Timestamp.fromDate(dateTime),
       'dose': dose,
-      'userId': userId, // Zapis identyfikatora użytkownika
-      'name': name, // Zapis nazwy
+      'userId': userId,
+      'name': name,
       'time': time != null
           ? {
               'hour': time!.hour,
               'minute': time!.minute,
             }
-          : null, // Zapis godziny w formie mapy (opcjonalnie)
+          : null,
     };
   }
 }

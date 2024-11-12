@@ -22,7 +22,6 @@ Future<void> main() async {
 
   await EasyLocalization.ensureInitialized();
   await initializeDateFormatting('en_US', null);
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Inicjalizacja osiągnięć i ustawień użytkownika

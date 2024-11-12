@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:pet_diary/src/helpers/animations/slide_animation_helper.dart';
+import 'package:pet_diary/src/helpers/messages/empty_state_widget.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
@@ -147,9 +149,18 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No medicine found.'));
+                  return Center(
+                      child: SlideAnimationHelper(
+                    duration: const Duration(milliseconds: 2600),
+                    curve: Curves.bounceOut,
+                    child: EmptyStateWidget(
+                      message: isCurrentSelected
+                          ? "No current medicines found."
+                          : "No medicine history available.",
+                      icon: Icons.pets,
+                    ),
+                  ));
                 }
 
                 final petMedicines = snapshot.data;

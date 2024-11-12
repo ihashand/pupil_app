@@ -15,9 +15,7 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    // Inicjalizacja stref czasowych
     tz.initializeTimeZones();
-
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -71,11 +69,10 @@ class NotificationService {
       body,
       _convertToTZDateTime(scheduledDate),
       platformDetails,
-      // ignore: deprecated_member_use
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: DateTimeComponents.dateAndTime,
     );
   }
 

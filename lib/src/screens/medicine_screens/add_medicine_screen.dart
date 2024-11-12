@@ -1,5 +1,4 @@
 import 'package:intl/intl.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
@@ -7,8 +6,11 @@ import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
+import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
+import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
 class AddMedicineScreen extends StatefulWidget {
@@ -24,17 +26,19 @@ class AddMedicineScreen extends StatefulWidget {
 class _AddMedicineScreenState extends State<AddMedicineScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _dosageController;
   late TextEditingController _startDateController;
   late TextEditingController _endDateController;
-  late TextEditingController _frequencyController;
   late TextEditingController _intervalController;
 
   DateTime _selectedStartDate = DateTime.now();
-  DateTime? _selectedEndDate;
-  String _selectedEmoji = '💊';
+  DateTime _selectedEndDate = DateTime.now();
+  String _selectedTypeEmoji = '💊';
+  String _selectedTypeName = 'Tablet';
   String _selectedUnit = 'mg';
-  String _selectedType = 'Capsule';
   String _selectedSchedule = 'Daily';
+  int _frequency = 0;
+
   final Map<String, bool> _daysOfWeek = {
     'Monday': false,
     'Tuesday': false,
@@ -45,59 +49,80 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     'Sunday': false,
   };
 
-  final List<TimeOfDay> _selectedTimes = [const TimeOfDay(hour: 8, minute: 0)];
+  final List<TimeOfDay> _selectedTimes = [];
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
+    _dosageController = TextEditingController();
     _startDateController = TextEditingController();
     _endDateController = TextEditingController();
-    _frequencyController = TextEditingController();
     _intervalController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _dosageController.dispose();
     _startDateController.dispose();
     _endDateController.dispose();
-    _frequencyController.dispose();
     _intervalController.dispose();
     super.dispose();
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Empty Fields',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'OK',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void _incrementFrequency() {
+    setState(() {
+      _frequency++;
+      _updateDoses();
+    });
+  }
+
+  void _decrementFrequency() {
+    if (_frequency > 0) {
+      setState(() {
+        _frequency--;
+        _updateDoses();
+      });
+    }
+  }
+
+  void _updateDoses() {
+    setState(() {
+      while (_selectedTimes.length < _frequency) {
+        _selectedTimes.add(const TimeOfDay(hour: 8, minute: 0));
+      }
+      while (_selectedTimes.length > _frequency) {
+        _selectedTimes.removeLast();
+      }
+    });
+  }
+
+  void _cycleType() {
+    const List<Map<String, String>> typeOptions = [
+      {'emoji': '💊', 'name': 'Tablet'},
+      {'emoji': '💉', 'name': 'Injection'},
+      {'emoji': '🧴', 'name': 'Cream'},
+      {'emoji': '🩹', 'name': 'Patch'},
+      {'emoji': '🧪', 'name': 'Liquid'},
+      {'emoji': '💧', 'name': 'Drops'},
+    ];
+
+    final currentIndex =
+        typeOptions.indexWhere((type) => type['emoji'] == _selectedTypeEmoji);
+    final nextIndex = (currentIndex + 1) % typeOptions.length;
+
+    setState(() {
+      _selectedTypeEmoji = typeOptions[nextIndex]['emoji']!;
+      _selectedTypeName = typeOptions[nextIndex]['name']!;
+    });
   }
 
   void _saveMedicine() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_selectedEndDate == null) {
-        _showErrorDialog('End date must be set before saving.');
-        return;
-      }
+    // Anulowanie wszystkich powiadomień przed stworzeniem nowych
+    await NotificationService().cancelAllNotifications();
 
+    if (_formKey.currentState?.validate() ?? false) {
       String scheduleDetails;
       if (_selectedSchedule == 'Every X Days' ||
           _selectedSchedule == 'Every X Weeks' ||
@@ -119,25 +144,27 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         name: _nameController.text,
         petId: widget.petId,
         eventId: generateUniqueId(),
-        frequency: _frequencyController.text,
-        dosage: '${_frequencyController.text} $_selectedUnit',
-        emoji: _selectedEmoji,
+        frequency: _frequency.toString(),
+        dosage: _dosageController.text.isNotEmpty
+            ? '${_dosageController.text} $_selectedUnit'
+            : null,
+        emoji: _selectedTypeEmoji,
         startDate: _selectedStartDate,
-        endDate: _selectedEndDate!,
+        endDate: _selectedEndDate,
         remindersEnabled: true,
         scheduleDetails: scheduleDetails,
-        medicineType: _selectedType,
+        medicineType: _selectedTypeName,
         times: times,
       );
 
       List<Event> events = [];
-      Set<int> uniqueNotificationIds =
-          {}; // Set do przechowywania unikalnych identyfikatorów powiadomień
-
+      Set<int> uniqueNotificationIds = {};
+      List<ReminderModel> reminders = [];
       final totalDays =
-          _selectedEndDate!.difference(_selectedStartDate).inDays + 1;
+          _selectedEndDate.difference(_selectedStartDate).inDays + 1;
 
-      // Iterujemy przez każdy dzień w okresie leczenia
+      print('Starting reminder creation for medicine: ${newMedicine.name}');
+
       for (int dayOffset = 0; dayOffset < totalDays; dayOffset++) {
         final day = _selectedStartDate.add(Duration(days: dayOffset));
 
@@ -145,30 +172,61 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           for (var time in _selectedTimes) {
             DateTime eventDateTime =
                 DateTime(day.year, day.month, day.day, time.hour, time.minute);
+
+            print(
+                'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}');
+
             events.add(Event(
               id: generateUniqueId(),
               title: 'Medicine: ${newMedicine.name}',
               eventDate: eventDateTime,
               dateWhenEventAdded: DateTime.now(),
-              userId: FirebaseAuth.instance.currentUser!.uid,
+              userId: widget.ref.read(userIdProvider)!,
               petId: widget.petId,
               pillId: newMedicine.id,
               description:
                   '${newMedicine.name} - ${eventDateTime.hour}:${eventDateTime.minute}',
               avatarImage: 'assets/images/pill_avatar.png',
-              emoticon: _selectedEmoji,
+              emoticon: _selectedTypeEmoji,
             ));
 
-            // Generowanie ID na podstawie samej godziny
-            int notificationId = time.hashCode;
+            // Now using a more complex ID generation
+            int notificationId =
+                ('${medicineId.hashCode}${eventDateTime.millisecondsSinceEpoch % 1000000}')
+                    .hashCode;
             if (!uniqueNotificationIds.contains(notificationId)) {
               uniqueNotificationIds.add(notificationId);
+
+              String title = 'Reminder: ${newMedicine.name}';
+              String body = _dosageController.text.isNotEmpty
+                  ? 'It’s time to take ${_dosageController.text} $_selectedUnit of ${newMedicine.name}. ${_selectedEndDate.difference(day).inDays + 1} days left.'
+                  : 'It’s time to take your medication: ${newMedicine.name}. ${_selectedEndDate.difference(day).inDays + 1} days left.';
+
+              print(
+                  'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}');
+
               await NotificationService().createNotification(
-                id: notificationId, // Używamy unikalnego ID na podstawie godziny
-                title: 'Przypomnienie o leku',
-                body: 'Czas na lek: ${newMedicine.name}',
+                id: notificationId,
+                title: title,
+                body: body,
                 scheduledDate: eventDateTime,
               );
+
+              final reminder = ReminderModel(
+                id: generateUniqueId(),
+                name: newMedicine.name,
+                petId: widget.petId,
+                userId: widget.ref.read(userIdProvider)!,
+                scheduledDate: eventDateTime,
+                emoji: _selectedTypeEmoji,
+                description: body,
+                eventId: newMedicine.id,
+                isActive: true,
+              );
+              reminders.add(reminder);
+            } else {
+              print(
+                  'Skipped duplicate notification for time ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}');
             }
           }
         }
@@ -183,38 +241,15 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             .addEvent(event, widget.petId);
       }
 
+      for (var reminder in reminders) {
+        await widget.ref.read(reminderServiceProvider).addReminder(reminder);
+      }
+
+      print('Reminder creation completed.');
+
       // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     }
-  }
-
-  int generateUniqueIdForNotification(DateTime day, TimeOfDay time) {
-    // Funkcja pomocnicza do tworzenia unikalnego ID powiadomienia na podstawie dnia i godziny
-    return DateTime(day.year, day.month, day.day, time.hour, time.minute)
-            .millisecondsSinceEpoch %
-        2147483647;
-  }
-
-  bool _shouldScheduleOnDay(DateTime day) {
-    if (_selectedSchedule == 'Daily') return true;
-    if (_selectedSchedule == 'Every X Days') {
-      final interval = int.tryParse(_intervalController.text) ?? 1;
-      return day.difference(_selectedStartDate).inDays % interval == 0;
-    } else if (_selectedSchedule == 'Every X Weeks') {
-      final interval = int.tryParse(_intervalController.text) ?? 1;
-      return day.difference(_selectedStartDate).inDays ~/ 7 % interval == 0;
-    } else if (_selectedSchedule == 'Every X Months') {
-      final interval = int.tryParse(_intervalController.text) ?? 1;
-      return (day.month -
-                  _selectedStartDate.month +
-                  (day.year - _selectedStartDate.year) * 12) %
-              interval ==
-          0;
-    } else if (_selectedSchedule == 'Selected Days of the Week') {
-      final dayName = DateFormat('EEEE').format(day);
-      return _daysOfWeek[dayName] ?? false;
-    }
-    return false;
   }
 
   @override
@@ -238,7 +273,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           key: _formKey,
           child: Column(
             children: [
-              _buildEmojiAndUnit(),
+              _buildEmojiAndType(),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.all(10.0),
@@ -246,77 +281,82 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child:
-                        _buildTextInput(_nameController, 'Medicine Name', '💊'),
+                    child: _buildTextInput(
+                        _nameController, 'Medicine Name', '🏷️'),
                   ),
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: _buildDateInput(
-                        context, _startDateController, 'Start Date',
-                        (DateTime date) {
-                      setState(() {
-                        _selectedStartDate = date;
-                      });
-                    }),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child:
-                        _buildDateInput(context, _endDateController, 'End Date',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildDateInput(
+                            context,
+                            _startDateController,
+                            'Start Date',
+                            '📆',
                             (DateTime date) {
-                      setState(() {
-                        _selectedEndDate = date;
-                      });
-                    }),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: _buildDropdownInput(
-                      label: 'Type',
-                      items: [
-                        'Capsule',
-                        'Tablet',
-                        'Liquid',
-                        'Aerosol',
-                        'Suppository',
-                        'Inhaler',
-                        'Cream',
-                        'Drops',
-                        'Ointment',
-                        'Foam',
-                        'Injection',
-                        'Other'
+                              setState(() {
+                                _selectedStartDate = date;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildDateInput(
+                            context,
+                            _endDateController,
+                            'End Date',
+                            '📅',
+                            (DateTime date) {
+                              setState(() {
+                                _selectedEndDate = date;
+                              });
+                            },
+                          ),
+                        ),
                       ],
-                      selectedValue: _selectedType,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedType = value!;
-                        });
-                      },
                     ),
                   ),
                   const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildTextInput(_dosageController, 'Dosage', '⚖️'),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: _buildDropdownInput(
-                      label: 'Schedule',
-                      items: [
-                        'Daily',
-                        'Every X Days',
-                        'Every X Weeks',
-                        'Every X Months',
-                        'Selected Days of the Week'
-                      ],
-                      selectedValue: _selectedSchedule,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedSchedule = value!;
-                        });
-                      },
-                    ),
+                        label: 'Unit',
+                        items: ['mg', 'ml', 'g', 'mcg', 'Unit'],
+                        selectedValue: _selectedUnit,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedUnit = value!;
+                          });
+                        },
+                        emoji: '🔢'),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: _buildDropdownInput(
+                        label: 'Schedule',
+                        items: [
+                          'Daily',
+                          'Every X Days',
+                          'Every X Weeks',
+                          'Every X Months',
+                          'Selected Days of the Week'
+                        ],
+                        selectedValue: _selectedSchedule,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSchedule = value!;
+                          });
+                        },
+                        emoji: '🗓️'),
                   ),
                   const SizedBox(height: 10),
                   if (_selectedSchedule == 'Every X Days' ||
@@ -325,26 +365,17 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 15.0, vertical: 10.0),
-                      child:
-                          _buildTextInput(_intervalController, 'Interval', '⏳'),
+                      child: _buildTextInput(
+                          _intervalController, 'Interval', '🕒'),
                     ),
                   if (_selectedSchedule == 'Selected Days of the Week')
-                    _buildDaysOfWeekSelector(),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 15.0),
+                      child: _buildDaysOfWeekSelector(),
+                    ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: _buildTextInput(
-                      _frequencyController,
-                      'Frequency',
-                      '⏰',
-                      onChanged: (value) {
-                        int frequency = int.tryParse(value) ?? 1;
-                        if (frequency > 12) {
-                          _showErrorDialog('Maximum 12 doses allowed per day');
-                          frequency = 12;
-                        }
-                        _updateDoses(frequency);
-                      },
-                    ),
+                    child: _buildFrequencyInput(),
                   ),
                   const SizedBox(height: 10),
                   ..._buildTimeSelectors(),
@@ -379,15 +410,106 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     );
   }
 
-  void _updateDoses(int frequency) {
-    setState(() {
-      while (_selectedTimes.length < frequency) {
-        _selectedTimes.add(const TimeOfDay(hour: 8, minute: 0));
-      }
-      while (_selectedTimes.length > frequency) {
-        _selectedTimes.removeLast();
-      }
-    });
+  Widget _buildEmojiAndType() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(22),
+          bottomRight: Radius.circular(22),
+        ),
+      ),
+      child: Column(
+        children: [
+          Divider(
+            color: Theme.of(context).colorScheme.surface,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 40.0),
+                  child: GestureDetector(
+                    onTap: _cycleType,
+                    child: CircleAvatar(
+                      radius: 35,
+                      child: Text(_selectedTypeEmoji,
+                          style: const TextStyle(fontSize: 35)),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 40.0),
+                  child: GestureDetector(
+                    onTap: _cycleType,
+                    child: Text(
+                      _selectedTypeName,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).primaryColorDark,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFrequencyInput() {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: 'Frequency (optional)',
+        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
+        prefixIcon: const Padding(
+          padding: EdgeInsets.only(left: 12, top: 2),
+          child: Text('⏰', style: TextStyle(fontSize: 30)),
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          GestureDetector(
+            onTap: _decrementFrequency,
+            child: Icon(
+              Icons.remove,
+              size: 25,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            child: Text(
+              '$_frequency',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).primaryColorDark,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: _incrementFrequency,
+            child: Icon(
+              Icons.add,
+              size: 25,
+              color: Theme.of(context).primaryColorDark,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildTimeSelectors() {
@@ -410,9 +532,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           child: InputDecorator(
             decoration: InputDecoration(
               labelText: 'Dose ${index + 1} Time',
+              labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
               prefixIcon: const Padding(
                 padding: EdgeInsets.all(15),
-                child: Text('⏱️', style: TextStyle(fontSize: 24)),
+                child: Text('🔔', style: TextStyle(fontSize: 30)),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
@@ -427,7 +550,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               _selectedTimes[index].format(context),
               style: TextStyle(
                 color: Theme.of(context).primaryColorDark,
-                fontSize: 16,
+                fontSize: 14,
               ),
             ),
           ),
@@ -446,79 +569,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     );
   }
 
-  Widget _buildEmojiAndUnit() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(22),
-          bottomRight: Radius.circular(22),
-        ),
-      ),
-      child: Column(
-        children: [
-          Divider(color: Theme.of(context).colorScheme.secondary),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  const emojis = ['💊', '💉', '🩹', '🧴', '⚕️', '🧪'];
-                  setState(() {
-                    _selectedEmoji = emojis[
-                        (emojis.indexOf(_selectedEmoji) + 1) % emojis.length];
-                  });
-                },
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 35,
-                      child: Text(_selectedEmoji,
-                          style: const TextStyle(fontSize: 35)),
-                    ),
-                    Text(
-                      'Emoji',
-                      style:
-                          TextStyle(color: Theme.of(context).primaryColorDark),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedUnit = _selectedUnit == 'mg' ? 'ml' : 'mg';
-                  });
-                },
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: Text(
-                        _selectedUnit,
-                        style: TextStyle(
-                            fontSize: 30,
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: Text(
-                        'Unit',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTextInput(
     TextEditingController controller,
     String label,
@@ -529,9 +579,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
         prefixIcon: Padding(
           padding: const EdgeInsets.only(left: 12, right: 20),
-          child: Text(emoji, style: const TextStyle(fontSize: 35)),
+          child: Text(emoji, style: const TextStyle(fontSize: 30)),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
@@ -541,6 +592,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
       ),
+      style: TextStyle(fontSize: 14, color: Theme.of(context).primaryColorDark),
       validator: (value) =>
           value == null || value.isEmpty ? 'Please enter $label' : null,
       onChanged: onChanged,
@@ -551,6 +603,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     BuildContext context,
     TextEditingController controller,
     String label,
+    String emoji,
     Function(DateTime) onDateSelected,
   ) {
     return TextFormField(
@@ -572,9 +625,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       },
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Padding(
-          padding: EdgeInsets.only(left: 12, right: 20),
-          child: Text('📅', style: TextStyle(fontSize: 35)),
+        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 12, right: 20, top: 2),
+          child: Text(emoji, style: const TextStyle(fontSize: 30)),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
@@ -584,6 +638,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
       ),
+      style: TextStyle(fontSize: 14, color: Theme.of(context).primaryColorDark),
     );
   }
 
@@ -592,6 +647,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     required List<String> items,
     required String selectedValue,
     required ValueChanged<String?> onChanged,
+    required String emoji,
   }) {
     return DropdownButtonFormField<String>(
       value: selectedValue,
@@ -601,9 +657,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Padding(
-          padding: EdgeInsets.only(left: 12, right: 20),
-          child: Text('📦', style: TextStyle(fontSize: 35)),
+        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 12, right: 20, top: 4),
+          child: Text(emoji, style: const TextStyle(fontSize: 30)),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
@@ -613,6 +670,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           borderSide: BorderSide(color: Theme.of(context).primaryColorDark),
         ),
       ),
+      style: TextStyle(fontSize: 14, color: Theme.of(context).primaryColorDark),
     );
   }
 
@@ -645,5 +703,27 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         }).toList(),
       ),
     );
+  }
+
+  bool _shouldScheduleOnDay(DateTime day) {
+    if (_selectedSchedule == 'Daily') return true;
+    if (_selectedSchedule == 'Every X Days') {
+      final interval = int.tryParse(_intervalController.text) ?? 1;
+      return day.difference(_selectedStartDate).inDays % interval == 0;
+    } else if (_selectedSchedule == 'Every X Weeks') {
+      final interval = int.tryParse(_intervalController.text) ?? 1;
+      return day.difference(_selectedStartDate).inDays ~/ 7 % interval == 0;
+    } else if (_selectedSchedule == 'Every X Months') {
+      final interval = int.tryParse(_intervalController.text) ?? 1;
+      return (day.month -
+                  _selectedStartDate.month +
+                  (day.year - _selectedStartDate.year) * 12) %
+              interval ==
+          0;
+    } else if (_selectedSchedule == 'Selected Days of the Week') {
+      final dayName = DateFormat('EEEE').format(day);
+      return _daysOfWeek[dayName] ?? false;
+    }
+    return false;
   }
 }
