@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
+import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/models/events_models/event_issue_model.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
@@ -264,7 +265,7 @@ void showIssuesOptions(BuildContext context, WidgetRef ref,
                               // Wybór daty
                               GestureDetector(
                                 onTap: () async {
-                                  final pickedDate = await showDatePicker(
+                                  final pickedDate = await showStyledDatePicker(
                                     context: context,
                                     initialDate: selectedDate,
                                     firstDate: DateTime(2000),

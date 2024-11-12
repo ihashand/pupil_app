@@ -25,7 +25,7 @@ class VaccineService {
 
     // Jeśli cache wygasł, wykonaj nowe zapytanie do Firestore
     final querySnapshot = await _firestore
-        .collection('eventVaccines')
+        .collection('event_vaccines')
         .where('userId', isEqualTo: _currentUser?.uid)
         .get();
 
@@ -43,7 +43,7 @@ class VaccineService {
     }
 
     _firestore
-        .collection('eventVaccines')
+        .collection('event_vaccines')
         .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
         .listen((snapshot) {
@@ -59,14 +59,14 @@ class VaccineService {
 
   Future<void> addVaccine(EventVaccineModel vaccine) async {
     await _firestore
-        .collection('eventVaccines')
+        .collection('event_vaccines')
         .doc(vaccine.id)
         .set(vaccine.toMap());
     _cachedVaccineEvents = null;
   }
 
   Future<void> deleteVaccine(String vaccineId) async {
-    await _firestore.collection('eventVaccines').doc(vaccineId).delete();
+    await _firestore.collection('event_vaccines').doc(vaccineId).delete();
     _cachedVaccineEvents = null;
   }
 

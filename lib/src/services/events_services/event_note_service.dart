@@ -25,7 +25,7 @@ class EventNoteService {
     } else {
       _firestore
           .collection('event_notes')
-          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('userId', isEqualTo: _currentUser.uid)
           .where('petId', isEqualTo: petId)
           .snapshots()
           .listen((snapshot) {

@@ -11,20 +11,22 @@ import 'package:pet_diary/src/screens/login_register_screens/login_screen.dart';
 import 'package:pet_diary/src/screens/other_screens/settings_screen.dart';
 import 'package:pet_diary/src/services/achievements_services/achievement_service.dart';
 import 'package:pet_diary/src/services/events_services/event_type_service.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await EasyLocalization.ensureInitialized();
-  tz.initializeTimeZones();
-  await initializeDateFormatting('en_US', null);
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
+  await EasyLocalization.ensureInitialized();
+  await initializeDateFormatting('en_US', null);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService().init();
+
+  // Inicjalizacja osiągnięć i ustawień użytkownika
   await AchievementService().initializeAchievements();
+  await initializeUserSettings();
 
   runApp(ProviderScope(
     overrides: [
@@ -43,11 +45,9 @@ Future<void> main() async {
 }
 
 Future<void> initializeUserSettings() async {
-  final currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser != null) {
-    final eventTypeService = EventTypeService();
-    await eventTypeService.initializeEventTypePreferences();
-  }
+  // Inicjalizacja preferencji typu wydarzeń
+  final eventTypeService = EventTypeService();
+  await eventTypeService.initializeEventTypePreferences();
 }
 
 class MyApp extends StatelessWidget {

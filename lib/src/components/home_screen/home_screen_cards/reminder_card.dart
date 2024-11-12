@@ -97,9 +97,7 @@ class _ReminderCardState extends ConsumerState<ReminderCard> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const AddReminderScreen(
-                                  petId: 'samplePetId',
-                                ),
+                                builder: (context) => const AddReminderScreen(),
                               ),
                             );
                           },

@@ -21,9 +21,6 @@ void showNotesModal(
 }) {
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
-  TextEditingController dateController = TextEditingController(
-    text: DateFormat('dd-MM-yyyy').format(selectedDate),
-  );
   bool showDetails = false;
   final double screenHeight = MediaQuery.of(context).size.height;
   double initialSize = screenHeight > 800 ? 0.4 : 0.5;
