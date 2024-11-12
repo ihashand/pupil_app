@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -171,8 +172,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       final totalDays =
           _selectedEndDate.difference(_selectedStartDate).inDays + 1;
 
-      print(
-          'Starting reminder creation for medicine: ${newMedicine.name} with $totalDays days');
+      if (kDebugMode) {
+        print(
+            'Starting reminder creation for medicine: ${newMedicine.name} with $totalDays days');
+      }
 
       for (int dayOffset = 0; dayOffset < totalDays; dayOffset++) {
         final day = _selectedStartDate.add(Duration(days: dayOffset));
@@ -183,8 +186,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             DateTime eventDateTime =
                 DateTime(day.year, day.month, day.day, time.hour, time.minute);
 
-            print(
-                'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}, days left: $daysLeft');
+            if (kDebugMode) {
+              print(
+                  'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}, days left: $daysLeft');
+            }
 
             events.add(Event(
               id: generateUniqueId(),
@@ -213,8 +218,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   ? 'It’s time to take ${_dosageController.text} $_selectedUnit of ${newMedicine.name}. $daysLeft days left.'
                   : 'It’s time to take your medication: ${newMedicine.name}. $daysLeft days left.';
 
-              print(
-                  'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}, days left: $daysLeft');
+              if (kDebugMode) {
+                print(
+                    'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}, days left: $daysLeft');
+              }
 
               await NotificationService().createNotification(
                 id: notificationId,
@@ -237,8 +244,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               );
               reminders.add(reminder);
             } else {
-              print(
-                  'Skipped duplicate notification for time ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}');
+              if (kDebugMode) {
+                print(
+                    'Skipped duplicate notification for time ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}');
+              }
             }
           }
         }
@@ -257,7 +266,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         await widget.ref.read(reminderServiceProvider).addReminder(reminder);
       }
 
-      print('Reminder creation completed.');
+      if (kDebugMode) {
+        print('Reminder creation completed.');
+      }
 
       // ignore: use_build_context_synchronously
       Navigator.of(context).pop();

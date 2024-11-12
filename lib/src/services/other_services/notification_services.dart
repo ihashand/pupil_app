@@ -2,6 +2,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+/// A service class responsible for handling notifications within the application.
+///
+/// This class provides methods to manage and display notifications to the user.
+/// It interacts with the underlying notification system to schedule, show, and
+/// cancel notifications as needed.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
 

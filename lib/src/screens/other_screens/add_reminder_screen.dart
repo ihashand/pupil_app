@@ -1,14 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pet_diary/src/helpers/others/generate_unique_id.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
-import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
-import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
 
 class AddReminderScreen extends ConsumerStatefulWidget {
   const AddReminderScreen({super.key});
@@ -63,7 +58,7 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
         return;
       }
 
-      String reminderTitle = _selectedPetIds
+      _selectedPetIds
           .map((id) {
             final pet =
                 ref.read(petsProvider).value?.firstWhere((p) => p.id == id);
@@ -72,45 +67,13 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
           .where((name) => name.isNotEmpty)
           .join(', ');
 
-      String description = _descriptionController.text;
-
       DateTime currentDate = _selectedStartDate;
       DateTime endDate = _selectedEndDate ?? _selectedStartDate;
 
       while (currentDate.isBefore(endDate.add(const Duration(days: 1)))) {
+        // ignore: unused_local_variable
         for (var petId in _selectedPetIds) {
-          for (var time in _selectedTimes) {
-            DateTime eventDateTime = DateTime(
-              currentDate.year,
-              currentDate.month,
-              currentDate.day,
-              time.hour,
-              time.minute,
-            );
-
-            EventReminderModel reminder = EventReminderModel(
-              id: generateUniqueId(),
-              title: reminderTitle,
-              description: description,
-              userId: FirebaseAuth.instance.currentUser!.uid,
-              selectedPets: _selectedPetIds,
-              repeatOption: _repeatOption,
-              dateTime: eventDateTime,
-              endDate: endDate,
-              time: time,
-              objectId: petId,
-              selectedDays: [],
-            );
-
-            await ref.read(eventReminderServiceProvider).addReminder(reminder);
-
-            await NotificationService().createNotification(
-              id: reminder.hashCode,
-              title: 'Reminder: ${reminder.title}',
-              body: reminder.description,
-              scheduledDate: eventDateTime,
-            );
-          }
+          for (var time in _selectedTimes) {}
         }
         currentDate = currentDate.add(const Duration(days: 1));
       }

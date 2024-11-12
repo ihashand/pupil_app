@@ -3,6 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 
+/// A service class responsible for handling reminder-related operations.
+///
+/// This class provides methods to create, update, delete, and retrieve reminders.
+/// It interacts with the underlying data storage to persist reminder information.
 class ReminderService {
   final _firestore = FirebaseFirestore.instance;
   final _currentUser = FirebaseAuth.instance.currentUser;

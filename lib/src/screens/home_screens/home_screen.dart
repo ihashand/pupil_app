@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/reminder_card.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/providers/home_providers/home_preferences_provider.dart';
@@ -11,10 +12,11 @@ import 'package:pet_diary/src/components/home_screen/home_screen_cards/active_wa
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/appoitment_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/friend_request_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/walk_card.dart';
-import 'package:pet_diary/src/components/home_screen/home_screen_cards/reminder_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_others/home_screen_animal_section.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_others/home_screen_shake_animation.dart';
 
+/// A `ConsumerStatefulWidget` that represents the home screen of the application.
+/// This widget listens to changes in the state and rebuilds accordingly.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
