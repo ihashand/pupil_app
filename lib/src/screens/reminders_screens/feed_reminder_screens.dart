@@ -7,10 +7,10 @@ import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
-/// FeedReminderScreen - ekran umożliwiający użytkownikowi ustawienie powiadomień
-/// dotyczących karmienia zwierząt. Każde przypomnienie można włączyć/wyłączyć
-/// oraz ustawić dla wybranych godzin i przypisanych zwierząt.
-
+/// A screen that displays feed reminders.
+///
+/// This screen is a [ConsumerStatefulWidget] which means it can listen to
+/// changes in the provider and update the UI accordingly.
 class FeedReminderScreen extends ConsumerStatefulWidget {
   const FeedReminderScreen({super.key});
 
@@ -29,8 +29,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     _settingsFuture = _initializeSettings();
   }
 
-  /// Metoda inicjalizująca ustawienia przypomnień.
-  /// Jeśli użytkownik nie ma zapisanych ustawień, tworzy domyślne z 3 godzinami.
   Future<FeedReminderSettingsModel> _initializeSettings() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final pets = await ref.read(petsProvider.future);
@@ -51,11 +49,11 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
                 assignedPetIds: petIds,
                 isActive: false),
             ReminderSetting(
-                time: const TimeOfDay(hour: 12, minute: 0),
+                time: const TimeOfDay(hour: 16, minute: 0),
                 assignedPetIds: petIds,
                 isActive: false),
             ReminderSetting(
-                time: const TimeOfDay(hour: 18, minute: 0),
+                time: const TimeOfDay(hour: 22, minute: 0),
                 assignedPetIds: petIds,
                 isActive: false),
           ],
@@ -102,7 +100,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const Divider(color: Colors.grey),
                   _buildGlobalToggle(settings),
                   const SizedBox(height: 20),
                   if (globalIsActive) ..._buildReminderContainers(settings),
@@ -141,7 +138,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  /// Przycisk dodania nowego przypomnienia.
   Widget _buildAddReminderButton(FeedReminderSettingsModel settings) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -181,10 +177,8 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  /// Globalny przełącznik aktywacji/deaktywacji wszystkich przypomnień.
   Widget _buildGlobalToggle(FeedReminderSettingsModel settings) {
     return Container(
-      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
         borderRadius: const BorderRadius.only(
@@ -194,39 +188,45 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Activate All Reminders',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColorDark,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Switch(
-                activeColor: Theme.of(context).primaryColorDark,
-                value: globalIsActive,
-                onChanged: (value) {
-                  setState(() {
-                    globalIsActive = value;
-                    settings.globalIsActive = value;
-                    for (var reminder in settings.reminders) {
-                      reminder.isActive = value;
-                    }
-                  });
-                },
-              ),
-            ],
+          Divider(
+            color: Theme.of(context).colorScheme.surface,
           ),
-          const Divider(color: Colors.grey),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Activate All Reminders',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColorDark,
+                    fontSize: 16,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 100.0),
+                  child: Switch(
+                    activeColor: Theme.of(context).primaryColorDark,
+                    value: globalIsActive,
+                    onChanged: (value) {
+                      setState(() {
+                        globalIsActive = value;
+                        settings.globalIsActive = value;
+                        for (var reminder in settings.reminders) {
+                          reminder.isActive = value;
+                        }
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  /// Lista kontenerów przypomnień z opcjami wyboru czasu, przypisania zwierząt i aktywacji.
   List<Widget> _buildReminderContainers(FeedReminderSettingsModel settings) {
     return settings.reminders.map((reminder) {
       return Padding(
@@ -272,7 +272,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     }).toList();
   }
 
-  /// Przełącznik aktywacji/deaktywacji indywidualnego przypomnienia.
   Widget _buildReminderToggle(ReminderSetting reminder) {
     return SwitchListTile(
       title: const Text('Activate Reminder'),
@@ -286,7 +285,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  /// Selektor czasu przypomnienia.
   Widget _buildTimePicker(ReminderSetting reminder) {
     return GestureDetector(
       onTap: () async {
@@ -310,7 +308,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  /// Selektor zwierząt dla przypomnienia.
   Widget _buildPetSelection(ReminderSetting reminder) {
     final asyncPets = ref.watch(petsProvider);
     return asyncPets.when(
@@ -355,27 +352,36 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     // Anulujemy wszystkie powiadomienia przypomnień o karmieniu
     await _cancelFeedNotifications(settings.reminders);
 
-    // Zapisujemy nowe ustawienia w bazie danych
     await ref.read(reminderServiceProvider).saveFeedReminderSettings(settings);
 
     // Tworzymy nowe powiadomienia na podstawie aktualnych ustawień
+    final asyncPets = await ref.read(petsProvider.future);
     for (var reminder in settings.reminders) {
       if (reminder.isActive) {
+        final petNames = asyncPets
+            .where((pet) => reminder.assignedPetIds.contains(pet.id))
+            .map((pet) => pet.name)
+            .toList();
+        final body = petNames.isNotEmpty
+            ? 'It\'s time to feed: ${petNames.join(', ')}!'
+            : 'It\'s time to feed your pet!';
+
         await NotificationService().createDailyNotification(
           id: reminder.hashCode,
           title: 'Feed Reminder',
-          body: 'It\'s time to feed your pet!',
+          body: body,
           time: reminder.time,
+          payload: 'feed_reminder', // dodatkowy parametr
         );
         debugPrint(
-            'Utworzono powiadomienie: ID=${reminder.hashCode}, czas=${reminder.time}');
+            'Utworzono powiadomienie: ID=${reminder.hashCode}, czas=${reminder.time}, tekst=$body');
       }
     }
 
+    // ignore: use_build_context_synchronously
     Navigator.pop(context);
   }
 
-  /// Funkcja anulująca tylko powiadomienia przypomnień o karmieniu
   Future<void> _cancelFeedNotifications(List<ReminderSetting> reminders) async {
     for (var reminder in reminders) {
       await NotificationService().cancelNotification(reminder.hashCode);

@@ -3,7 +3,20 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Klasa odpowiedzialna za obsługę powiadomień w aplikacji.
+/// A service class responsible for handling notifications within the application.
+///
+/// This class provides methods to schedule, display, and manage notifications.
+/// It interacts with the underlying platform's notification system to deliver
+/// notifications to the user.
+///
+/// Example usage:
+///
+/// ```dart
+/// final notificationService = NotificationService();
+/// notificationService.scheduleNotification(...);
+/// ```
+///
+/// Note: Ensure that the necessary permissions are granted before using this service.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
 
@@ -84,6 +97,7 @@ class NotificationService {
         body,
         _convertToTZDateTime(scheduledDate),
         platformDetails,
+        // ignore: deprecated_member_use
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
@@ -97,61 +111,40 @@ class NotificationService {
     }
   }
 
-  /// Metoda do planowania codziennego powiadomienia
   Future<void> createDailyNotification({
     required int id,
     required String title,
     required String body,
     required TimeOfDay time,
+    String? payload,
   }) async {
     final now = DateTime.now();
     final scheduledDate =
         DateTime(now.year, now.month, now.day, time.hour, time.minute);
 
-    try {
-      await _flutterLocalNotificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        _convertToTZDateTime(scheduledDate),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'daily_channel_id',
-            'Daily Notifications',
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-          iOS: DarwinNotificationDetails(),
+    await _flutterLocalNotificationsPlugin.zonedSchedule(
+      id,
+      title,
+      body,
+      tz.TZDateTime.from(scheduledDate, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_channel_id',
+          'Daily Notifications',
+          importance: Importance.high,
+          priority: Priority.high,
         ),
-        androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents:
-            DateTimeComponents.time, // Codzienna powtarzalność
-      );
-
-      debugPrint(
-          'Utworzono codzienne powiadomienie: ID=$id, tytuł=$title, treść=$body, czas=$time');
-    } catch (e) {
-      debugPrint('Błąd podczas tworzenia codziennego powiadomienia: $e');
-    }
+      ),
+      // ignore: deprecated_member_use
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: payload, // przesyłanie ładunku
+    );
   }
 
   Future<void> cancelNotification(int id) async {
-    try {
-      await _flutterLocalNotificationsPlugin.cancel(id);
-      debugPrint('Anulowano powiadomienie o ID=$id');
-    } catch (e) {
-      debugPrint('Błąd podczas anulowania powiadomienia o ID=$id: $e');
-    }
-  }
-
-  Future<void> cancelAllNotifications() async {
-    try {
-      await _flutterLocalNotificationsPlugin.cancelAll();
-      debugPrint('Anulowano wszystkie powiadomienia');
-    } catch (e) {
-      debugPrint('Błąd podczas anulowania wszystkich powiadomień: $e');
-    }
+    await _flutterLocalNotificationsPlugin.cancel(id);
   }
 }
