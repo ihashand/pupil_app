@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/screens/medicine_screens/add_medicine_screen.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
+import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// A screen that displays medicine-related information.
 ///

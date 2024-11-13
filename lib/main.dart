@@ -13,7 +13,7 @@ import 'package:pet_diary/src/services/achievements_services/achievement_service
 import 'package:pet_diary/src/services/events_services/event_type_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
+import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

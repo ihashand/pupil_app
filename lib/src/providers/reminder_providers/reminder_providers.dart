@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/models/reminder_models/feed_reminder_settings_model.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 import 'package:pet_diary/src/services/reminders_services/reminder_servcie.dart';
 
@@ -28,4 +29,9 @@ final reminderNameControllerProvider = Provider<TextEditingController>((ref) {
 // Provider do kontrolera dla daty przypomnienia
 final reminderDateControllerProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
+});
+
+final feedReminderSettingsProvider =
+    FutureProvider.family<FeedReminderSettingsModel?, String>((ref, userId) {
+  return ref.read(reminderServiceProvider).getFeedReminderSettings(userId);
 });

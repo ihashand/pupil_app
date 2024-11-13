@@ -12,16 +12,8 @@ import 'package:pet_diary/src/providers/events_providers/event_medicine_provider
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
+import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
-/// A screen that allows users to add a new medicine.
-///
-/// This screen is a stateful widget that provides a form for users to input
-/// details about a new medicine they want to add to their list.
-///
-/// The form includes fields for the medicine name, dosage, frequency, and
-/// other relevant information. Once the form is filled out, users can submit
-/// it to save the new medicine.
 class AddMedicineScreen extends StatefulWidget {
   final WidgetRef ref;
   final String petId;
@@ -128,9 +120,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   }
 
   void _saveMedicine() async {
-    // Anulowanie wszystkich powiadomień przed stworzeniem nowych
-    await NotificationService().cancelAllNotifications();
-
     if (_formKey.currentState?.validate() ?? false) {
       String scheduleDetails;
       if (_selectedSchedule == 'Every X Days' ||
@@ -173,13 +162,11 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           _selectedEndDate.difference(_selectedStartDate).inDays + 1;
 
       if (kDebugMode) {
-        print(
-            'Starting reminder creation for medicine: ${newMedicine.name} with $totalDays days');
+        print('Starting reminder creation for medicine: ${newMedicine.name}');
       }
 
       for (int dayOffset = 0; dayOffset < totalDays; dayOffset++) {
         final day = _selectedStartDate.add(Duration(days: dayOffset));
-        int daysLeft = _selectedEndDate.difference(day).inDays + 1;
 
         if (_shouldScheduleOnDay(day)) {
           for (var time in _selectedTimes) {
@@ -188,7 +175,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
 
             if (kDebugMode) {
               print(
-                  'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}, days left: $daysLeft');
+                  'Creating event on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)} for ${newMedicine.name}');
             }
 
             events.add(Event(
@@ -205,22 +192,21 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               emoticon: _selectedTypeEmoji,
             ));
 
-            // Używamy dayOffset, aby zapewnić unikalność ID
+            // Now using a more complex ID generation
             int notificationId =
-                ('${medicineId.hashCode}${eventDateTime.millisecondsSinceEpoch % 1000000}$dayOffset')
+                ('${medicineId.hashCode}${eventDateTime.millisecondsSinceEpoch % 1000000}')
                     .hashCode;
-
             if (!uniqueNotificationIds.contains(notificationId)) {
               uniqueNotificationIds.add(notificationId);
 
               String title = 'Reminder: ${newMedicine.name}';
               String body = _dosageController.text.isNotEmpty
-                  ? 'It’s time to take ${_dosageController.text} $_selectedUnit of ${newMedicine.name}. $daysLeft days left.'
-                  : 'It’s time to take your medication: ${newMedicine.name}. $daysLeft days left.';
+                  ? 'It’s time to take ${_dosageController.text} $_selectedUnit of ${newMedicine.name}. ${_selectedEndDate.difference(day).inDays + 1} days left.'
+                  : 'It’s time to take your medication: ${newMedicine.name}. ${_selectedEndDate.difference(day).inDays + 1} days left.';
 
               if (kDebugMode) {
                 print(
-                    'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}, days left: $daysLeft');
+                    'Creating notification with ID $notificationId on ${DateFormat('yyyy-MM-dd HH:mm').format(eventDateTime)}');
               }
 
               await NotificationService().createNotification(
@@ -351,7 +337,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: _buildDropdownInput(
-                        label: 'Unit',
+                        label: 'Unit ',
                         items: ['mg', 'ml', 'g', 'mcg', 'Unit'],
                         selectedValue: _selectedUnit,
                         onChanged: (value) {
@@ -682,7 +668,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         labelText: label,
         labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
         prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 12, right: 20, top: 4),
+          padding: const EdgeInsets.only(left: 12, right: 20),
           child: Text(emoji, style: const TextStyle(fontSize: 30)),
         ),
         border: OutlineInputBorder(

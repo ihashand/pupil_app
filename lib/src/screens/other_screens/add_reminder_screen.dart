@@ -71,10 +71,6 @@ class _AddReminderScreenState extends ConsumerState<AddReminderScreen> {
       DateTime endDate = _selectedEndDate ?? _selectedStartDate;
 
       while (currentDate.isBefore(endDate.add(const Duration(days: 1)))) {
-        // ignore: unused_local_variable
-        for (var petId in _selectedPetIds) {
-          for (var time in _selectedTimes) {}
-        }
         currentDate = currentDate.add(const Duration(days: 1));
       }
 
