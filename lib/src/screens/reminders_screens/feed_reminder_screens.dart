@@ -104,7 +104,7 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
                   const SizedBox(height: 20),
                   if (globalIsActive) ..._buildReminderContainers(settings),
                   if (settings.reminders.length < 6)
-                    _buildAddReminderButton(settings),
+                    if (globalIsActive) _buildAddReminderButton(settings),
                 ],
               ),
             ),
@@ -162,7 +162,7 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
           color: Theme.of(context).primaryColorDark,
         ),
         label: Text(
-          'Add New Reminder',
+          'New Reminder',
           style: TextStyle(color: Theme.of(context).primaryColorDark),
         ),
         style: ElevatedButton.styleFrom(
@@ -240,16 +240,11 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
               ),
               child: Column(
                 children: [
-                  _buildReminderToggle(reminder),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18.0, vertical: 12.0),
+                    padding: const EdgeInsets.all(18.0),
                     child: _buildTimePicker(reminder),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: _buildPetSelection(reminder),
-                  ),
+                  _buildPetSelection(reminder),
                 ],
               ),
             ),
@@ -270,19 +265,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
         ),
       );
     }).toList();
-  }
-
-  Widget _buildReminderToggle(ReminderSetting reminder) {
-    return SwitchListTile(
-      title: const Text('Activate Reminder'),
-      value: reminder.isActive,
-      activeColor: Theme.of(context).primaryColorDark,
-      onChanged: (value) {
-        setState(() {
-          reminder.isActive = value;
-        });
-      },
-    );
   }
 
   Widget _buildTimePicker(ReminderSetting reminder) {
