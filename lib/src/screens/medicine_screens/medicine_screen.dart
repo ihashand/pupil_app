@@ -103,7 +103,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Current Medicine',
+                            'Current',
                             style: TextStyle(
                               color: isCurrentSelected
                                   ? Theme.of(context).primaryColorDark
@@ -131,7 +131,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Medicine History',
+                            'History',
                             style: TextStyle(
                               color: !isCurrentSelected
                                   ? Theme.of(context).primaryColorDark

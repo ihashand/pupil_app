@@ -87,8 +87,8 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
               return IconButton(
                 icon: Icon(
                   Icons.save,
-                  color: Theme.of(context).primaryColorDark.withOpacity(0.65),
-                  size: 32,
+                  color: Theme.of(context).primaryColorDark.withOpacity(0.85),
+                  size: 30,
                 ),
                 onPressed: snapshot.connectionState == ConnectionState.done
                     ? () async {
@@ -356,6 +356,7 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
       }
     }
 
+    // ignore: use_build_context_synchronously
     if (context.mounted) Navigator.pop(context);
   }
 

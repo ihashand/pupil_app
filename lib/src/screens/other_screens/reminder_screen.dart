@@ -6,6 +6,7 @@ import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/screens/reminders_screens/feed_reminder_screen.dart';
+import 'package:pet_diary/src/screens/reminders_screens/vet_appointment_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/walk_reminder_screen.dart';
 
 class ReminderScreen extends ConsumerStatefulWidget {
@@ -131,7 +132,11 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
           title: 'Vet Appointment',
           image: 'assets/images/reminder_cards/vet_dog.jpg',
           onTap: () {
-            // Placeholder for future screens
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const VetAppointmentScreen(),
+              ),
+            );
           },
         ),
         _buildCreatorCard(
@@ -158,7 +163,7 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
     required VoidCallback onTap,
   }) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -169,7 +174,7 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
               Positioned.fill(
                 child: Image.asset(
                   image,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                 ),
               ),
               Container(
@@ -178,24 +183,27 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              ListTile(
-                title: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                trailing: ElevatedButton(
-                  onPressed: onTap,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColorDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: ListTile(
+                  title: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  child: const Text('Create'),
+                  trailing: ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColorDark,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Create'),
+                  ),
                 ),
               ),
             ],

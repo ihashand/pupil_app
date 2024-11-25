@@ -51,14 +51,14 @@ class NotificationService {
     final bool? initialized = await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        debugPrint('Powiadomienie otrzymane: ${response.payload}');
+        debugPrint('Notification received: ${response.payload}');
       },
     );
 
     if (initialized != null && initialized) {
-      debugPrint('Powiadomienia zostały zainicjalizowane.');
+      debugPrint('Notifications have been initialized.');
     } else {
-      debugPrint('Błąd podczas inicjalizacji powiadomień.');
+      debugPrint('Error during notification initialization.');
     }
   }
 
@@ -105,9 +105,9 @@ class NotificationService {
       );
 
       debugPrint(
-          'Utworzono powiadomienie: ID=$id, tytuł=$title, treść=$body, data=$scheduledDate');
+          'Notification created: ID=$id, title=$title, body=$body, date=$scheduledDate');
     } catch (e) {
-      debugPrint('Błąd podczas tworzenia powiadomienia: $e');
+      debugPrint('Error creating notification: $e');
     }
   }
 
@@ -140,8 +140,89 @@ class NotificationService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
-      payload: payload, // przesyłanie ładunku
+      payload: payload, // Payload for additional data
     );
+  }
+
+  /// Creates a single notification for a specific date and time.
+  ///
+  /// This method schedules a one-time notification at the given `dateTime`.
+  ///
+  /// Parameters:
+  /// - [id]: Unique identifier for the notification.
+  /// - [title]: Title of the notification.
+  /// - [body]: Body content of the notification.
+  /// - [dateTime]: The specific date and time when the notification should be triggered.
+  /// - [payload]: Optional payload data for the notification.
+  ///
+  /// Example:
+  /// ```dart
+  /// NotificationService().createSingleNotification(
+  ///   id: 101,
+  ///   title: 'Vet Appointment',
+  ///   body: 'Your vet appointment is scheduled.',
+  ///   dateTime: DateTime.now().add(Duration(hours: 1)),
+  /// );
+  /// ```
+  /// Creates a one-time notification.
+  /// Creates a single notification for a specific date and time.
+  /// Ensures that the provided `dateTime` is valid and in the future.
+  Future<void> createSingleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime dateTime,
+    String? payload,
+  }) async {
+    // Sprawdź, czy `dateTime` jest w przyszłości
+    if (dateTime.isBefore(DateTime.now())) {
+      debugPrint('Notification time is in the past. Skipping creation.');
+      return;
+    }
+
+    try {
+      // Szczegóły dla Androida
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        'single_notification_channel',
+        'Single Notifications',
+        channelDescription: 'Notifications for one-time events',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+      );
+
+      // Szczegóły dla iOS
+      const DarwinNotificationDetails darwinDetails =
+          DarwinNotificationDetails();
+
+      // Szczegóły platformowe
+      const NotificationDetails platformDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: darwinDetails,
+        macOS: darwinDetails,
+      );
+
+      // Konwersja daty na strefę czasową
+      final tzDateTime = _convertToTZDateTime(dateTime);
+
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzDateTime,
+        platformDetails,
+        androidAllowWhileIdle: true,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: payload,
+      );
+
+      debugPrint(
+          'Single notification scheduled: ID=$id, Title=$title, DateTime=$dateTime');
+    } catch (e) {
+      debugPrint('Error scheduling single notification: $e');
+    }
   }
 
   Future<void> cancelNotification(int id) async {
