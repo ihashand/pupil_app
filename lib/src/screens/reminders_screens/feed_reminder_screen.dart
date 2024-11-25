@@ -8,9 +8,6 @@ import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.da
 import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// A screen that displays feed reminders.
-///
-/// This screen is a [ConsumerStatefulWidget] which means it can listen to
-/// changes in the provider and update the UI accordingly.
 class FeedReminderScreen extends ConsumerStatefulWidget {
   const FeedReminderScreen({super.key});
 
@@ -83,6 +80,27 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         iconTheme: IconThemeData(color: Theme.of(context).primaryColorDark),
+        actions: [
+          FutureBuilder<FeedReminderSettingsModel>(
+            future: _settingsFuture,
+            builder: (context, snapshot) {
+              return IconButton(
+                icon: Icon(
+                  Icons.save,
+                  color: Theme.of(context).primaryColorDark.withOpacity(0.65),
+                  size: 32,
+                ),
+                onPressed: snapshot.connectionState == ConnectionState.done
+                    ? () async {
+                        if (snapshot.data != null) {
+                          await _saveReminder(snapshot.data!);
+                        }
+                      }
+                    : null,
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<FeedReminderSettingsModel>(
         future: _settingsFuture,
@@ -110,30 +128,6 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
             ),
           );
         },
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: ElevatedButton(
-          onPressed: () async {
-            final settings = await _settingsFuture;
-            await _saveReminder(settings);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            padding: const EdgeInsets.all(12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: Text(
-            'S A V E  R E M I N D E R',
-            style: TextStyle(
-              color: Theme.of(context).primaryColorDark,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -331,14 +325,14 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
   }
 
   Future<void> _saveReminder(FeedReminderSettingsModel settings) async {
-    // Anulujemy wszystkie powiadomienia przypomnień o karmieniu
+    // Cancel all feed notifications
     await _cancelFeedNotifications(settings.reminders);
 
     await ref
         .read(feedReminderServiceProvider)
         .saveFeedReminderSettings(settings);
 
-    // Tworzymy nowe powiadomienia na podstawie aktualnych ustawień
+    // Create new feed notifications
     final asyncPets = await ref.read(petsProvider.future);
     for (var reminder in settings.reminders) {
       if (reminder.isActive) {
@@ -355,21 +349,20 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
           title: 'Feed Reminder',
           body: body,
           time: reminder.time,
-          payload: 'feed_reminder', // dodatkowy parametr
+          payload: 'feed_reminder',
         );
         debugPrint(
-            'Utworzono powiadomienie: ID=${reminder.hashCode}, czas=${reminder.time}, tekst=$body');
+            'Notification created: ID=${reminder.hashCode}, time=${reminder.time}, text=$body');
       }
     }
 
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
+    if (context.mounted) Navigator.pop(context);
   }
 
   Future<void> _cancelFeedNotifications(List<ReminderSetting> reminders) async {
     for (var reminder in reminders) {
       await NotificationService().cancelNotification(reminder.hashCode);
-      debugPrint('Anulowano powiadomienie: ID=${reminder.hashCode}');
+      debugPrint('Notification canceled: ID=${reminder.hashCode}');
     }
   }
 }

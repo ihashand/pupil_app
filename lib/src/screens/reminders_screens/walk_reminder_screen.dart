@@ -16,41 +16,15 @@ class WalkReminderScreen extends ConsumerStatefulWidget {
   ConsumerState<WalkReminderScreen> createState() => _WalkReminderScreenState();
 }
 
-class _WalkReminderScreenState extends ConsumerState<WalkReminderScreen>
-    with SingleTickerProviderStateMixin {
+class _WalkReminderScreenState extends ConsumerState<WalkReminderScreen> {
   final _formKey = GlobalKey<FormState>();
   bool globalIsActive = false;
   late Future<WalkReminderSettingsModel> _settingsFuture;
-
-  late AnimationController _animationController;
-  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
     _settingsFuture = _initializeSettings();
-
-    // Initialize animation controller (colors will be set in didChangeDependencies)
-    _animationController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 3))
-          ..repeat(reverse: true);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Initialize color animation after context is ready
-    _colorAnimation = ColorTween(
-            begin: Theme.of(context).primaryColorDark,
-            end: Theme.of(context).primaryColorDark.withOpacity(0.7))
-        .animate(_animationController);
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   Future<WalkReminderSettingsModel> _initializeSettings() async {
@@ -112,14 +86,10 @@ class _WalkReminderScreenState extends ConsumerState<WalkReminderScreen>
             future: _settingsFuture,
             builder: (context, snapshot) {
               return IconButton(
-                icon: AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    return Icon(
-                      Icons.save,
-                      color: _colorAnimation.value,
-                    );
-                  },
+                icon: Icon(
+                  Icons.save,
+                  color: Theme.of(context).primaryColorDark.withOpacity(0.65),
+                  size: 32,
                 ),
                 onPressed: snapshot.connectionState == ConnectionState.done
                     ? () async {
@@ -383,7 +353,7 @@ class _WalkReminderScreenState extends ConsumerState<WalkReminderScreen>
           payload: 'walk_reminder',
         );
         debugPrint(
-            'Utworzono powiadomienie: ID=${reminder.hashCode}, czas=${reminder.time}, tekst=$body');
+            'Notification created: ID=${reminder.hashCode}, time=${reminder.time}, text=$body');
       }
     }
 
@@ -393,7 +363,7 @@ class _WalkReminderScreenState extends ConsumerState<WalkReminderScreen>
   Future<void> _cancelWalkNotifications(List<ReminderSetting> reminders) async {
     for (var reminder in reminders) {
       await NotificationService().cancelNotification(reminder.hashCode);
-      debugPrint('Anulowano powiadomienie: ID=${reminder.hashCode}');
+      debugPrint('Notification canceled: ID=${reminder.hashCode}');
     }
   }
 }

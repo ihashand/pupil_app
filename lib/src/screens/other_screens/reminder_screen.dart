@@ -107,7 +107,7 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
       children: [
         _buildCreatorCard(
           title: 'Feed Reminder',
-          image: 'assets/images/reminder_cards/eating_dog.jpg',
+          image: 'assets/images/reminder_cards/eating_dog_01.jpg',
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -118,20 +118,13 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
         ),
         _buildCreatorCard(
           title: 'Walk Reminder',
-          image: 'assets/images/others/walk_background.jpg',
+          image: 'assets/images/reminder_cards/walk_dog.jpg',
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => const WalkReminderScreen(),
               ),
             );
-          },
-        ),
-        _buildCreatorCard(
-          title: 'Other Reminders',
-          image: 'assets/images/others/walk_background.jpg',
-          onTap: () {
-            // Placeholder for future screens
           },
         ),
         _buildCreatorCard(
@@ -143,7 +136,14 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
         ),
         _buildCreatorCard(
           title: 'Grooming Reminder',
-          image: 'assets/images/reminder_cards/walk_dog.jpg',
+          image: 'assets/images/reminder_cards/bath.jpg',
+          onTap: () {
+            // Placeholder for future screens
+          },
+        ),
+        _buildCreatorCard(
+          title: 'Other Reminders',
+          image: 'assets/images/reminder_cards/other.jpg',
           onTap: () {
             // Placeholder for future screens
           },
