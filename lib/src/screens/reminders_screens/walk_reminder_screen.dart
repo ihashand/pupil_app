@@ -1,66 +1,90 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
-import 'package:pet_diary/src/models/reminder_models/feed_reminder_settings_model.dart';
+import 'package:pet_diary/src/models/reminder_models/walk_reminder_settings_model.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
-/// A screen that displays feed reminders.
-///
-/// This screen is a [ConsumerStatefulWidget] which means it can listen to
-/// changes in the provider and update the UI accordingly.
-class FeedReminderScreen extends ConsumerStatefulWidget {
-  const FeedReminderScreen({super.key});
+/// A screen that displays walk reminders.
+class WalkReminderScreen extends ConsumerStatefulWidget {
+  const WalkReminderScreen({super.key});
 
   @override
-  ConsumerState<FeedReminderScreen> createState() => _FeedReminderScreenState();
+  ConsumerState<WalkReminderScreen> createState() => _WalkReminderScreenState();
 }
 
-class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
+class _WalkReminderScreenState extends ConsumerState<WalkReminderScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   bool globalIsActive = false;
-  late Future<FeedReminderSettingsModel> _settingsFuture;
+  late Future<WalkReminderSettingsModel> _settingsFuture;
+
+  late AnimationController _animationController;
+  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
     _settingsFuture = _initializeSettings();
+
+    // Initialize animation controller (colors will be set in didChangeDependencies)
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 3))
+          ..repeat(reverse: true);
   }
 
-  Future<FeedReminderSettingsModel> _initializeSettings() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Initialize color animation after context is ready
+    _colorAnimation = ColorTween(
+            begin: Theme.of(context).primaryColorDark,
+            end: Theme.of(context).primaryColorDark.withOpacity(0.7))
+        .animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Future<WalkReminderSettingsModel> _initializeSettings() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final pets = await ref.read(petsProvider.future);
     final petIds = pets.map((pet) => pet.id).toList();
 
     if (userId != null) {
       var reminderSettings = await ref
-          .read(reminderServiceProvider)
-          .getFeedReminderSettings(userId);
+          .read(walkReminderServiceProvider)
+          .getWalkReminderSettings(userId);
       if (reminderSettings == null) {
-        reminderSettings = FeedReminderSettingsModel(
+        reminderSettings = WalkReminderSettingsModel(
           id: userId,
           userId: userId,
-          globalIsActive: false,
+          globalIsActive: true,
           reminders: [
             ReminderSetting(
-                time: const TimeOfDay(hour: 8, minute: 0),
+                time: const TimeOfDay(hour: 7, minute: 0),
                 assignedPetIds: petIds,
-                isActive: false),
+                isActive: true),
             ReminderSetting(
-                time: const TimeOfDay(hour: 16, minute: 0),
+                time: const TimeOfDay(hour: 13, minute: 0),
                 assignedPetIds: petIds,
-                isActive: false),
+                isActive: true),
             ReminderSetting(
-                time: const TimeOfDay(hour: 22, minute: 0),
+                time: const TimeOfDay(hour: 19, minute: 0),
                 assignedPetIds: petIds,
-                isActive: false),
+                isActive: true),
           ],
         );
         await ref
-            .read(reminderServiceProvider)
-            .saveFeedReminderSettings(reminderSettings);
+            .read(walkReminderServiceProvider)
+            .saveWalkReminderSettings(reminderSettings);
       }
       globalIsActive = reminderSettings.globalIsActive;
       return reminderSettings;
@@ -74,7 +98,7 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
-          'F E E D  R E M I N D E R',
+          'W A L K  R E M I N D E R',
           style: TextStyle(
             color: Theme.of(context).primaryColorDark,
             fontSize: 13,
@@ -83,8 +107,33 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
         ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         iconTheme: IconThemeData(color: Theme.of(context).primaryColorDark),
+        actions: [
+          FutureBuilder<WalkReminderSettingsModel>(
+            future: _settingsFuture,
+            builder: (context, snapshot) {
+              return IconButton(
+                icon: AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Icon(
+                      Icons.save,
+                      color: _colorAnimation.value,
+                    );
+                  },
+                ),
+                onPressed: snapshot.connectionState == ConnectionState.done
+                    ? () async {
+                        if (snapshot.data != null) {
+                          await _saveReminder(snapshot.data!);
+                        }
+                      }
+                    : null,
+              );
+            },
+          ),
+        ],
       ),
-      body: FutureBuilder<FeedReminderSettingsModel>(
+      body: FutureBuilder<WalkReminderSettingsModel>(
         future: _settingsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -111,34 +160,10 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
           );
         },
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: ElevatedButton(
-          onPressed: () async {
-            final settings = await _settingsFuture;
-            await _saveReminder(settings);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            padding: const EdgeInsets.all(12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: Text(
-            'S A V E  R E M I N D E R',
-            style: TextStyle(
-              color: Theme.of(context).primaryColorDark,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
-  Widget _buildAddReminderButton(FeedReminderSettingsModel settings) {
+  Widget _buildAddReminderButton(WalkReminderSettingsModel settings) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: ElevatedButton.icon(
@@ -147,11 +172,11 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
             setState(() {
               settings.reminders.add(
                 ReminderSetting(
-                  time: const TimeOfDay(hour: 8, minute: 0),
+                  time: const TimeOfDay(hour: 7, minute: 0),
                   assignedPetIds: settings.reminders.isNotEmpty
                       ? settings.reminders.first.assignedPetIds
                       : [],
-                  isActive: false,
+                  isActive: true,
                 ),
               );
             });
@@ -177,7 +202,7 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  Widget _buildGlobalToggle(FeedReminderSettingsModel settings) {
+  Widget _buildGlobalToggle(WalkReminderSettingsModel settings) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
@@ -227,7 +252,7 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  List<Widget> _buildReminderContainers(FeedReminderSettingsModel settings) {
+  List<Widget> _buildReminderContainers(WalkReminderSettingsModel settings) {
     return settings.reminders.map((reminder) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
@@ -330,13 +355,15 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
     );
   }
 
-  Future<void> _saveReminder(FeedReminderSettingsModel settings) async {
-    // Anulujemy wszystkie powiadomienia przypomnień o karmieniu
-    await _cancelFeedNotifications(settings.reminders);
+  Future<void> _saveReminder(WalkReminderSettingsModel settings) async {
+    // Cancel all walk notifications
+    await _cancelWalkNotifications(settings.reminders);
 
-    await ref.read(reminderServiceProvider).saveFeedReminderSettings(settings);
+    await ref
+        .read(walkReminderServiceProvider)
+        .saveWalkReminderSettings(settings);
 
-    // Tworzymy nowe powiadomienia na podstawie aktualnych ustawień
+    // Create new walk notifications
     final asyncPets = await ref.read(petsProvider.future);
     for (var reminder in settings.reminders) {
       if (reminder.isActive) {
@@ -345,26 +372,25 @@ class _FeedReminderScreenState extends ConsumerState<FeedReminderScreen> {
             .map((pet) => pet.name)
             .toList();
         final body = petNames.isNotEmpty
-            ? 'It\'s time to feed: ${petNames.join(', ')}!'
-            : 'It\'s time to feed your pet!';
+            ? 'Time to walk with: ${petNames.join(', ')}!'
+            : 'Walking time!';
 
         await NotificationService().createDailyNotification(
           id: reminder.hashCode,
-          title: 'Feed Reminder',
+          title: 'Walk Reminder',
           body: body,
           time: reminder.time,
-          payload: 'feed_reminder', // dodatkowy parametr
+          payload: 'walk_reminder',
         );
         debugPrint(
             'Utworzono powiadomienie: ID=${reminder.hashCode}, czas=${reminder.time}, tekst=$body');
       }
     }
 
-    // ignore: use_build_context_synchronously
-    Navigator.pop(context);
+    if (context.mounted) Navigator.pop(context);
   }
 
-  Future<void> _cancelFeedNotifications(List<ReminderSetting> reminders) async {
+  Future<void> _cancelWalkNotifications(List<ReminderSetting> reminders) async {
     for (var reminder in reminders) {
       await NotificationService().cancelNotification(reminder.hashCode);
       debugPrint('Anulowano powiadomienie: ID=${reminder.hashCode}');

@@ -5,7 +5,8 @@ import 'package:pet_diary/src/helpers/messages/empty_state_widget.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_diary/src/screens/reminders_screens/feed_reminder_screens.dart';
+import 'package:pet_diary/src/screens/reminders_screens/feed_reminder_screen.dart';
+import 'package:pet_diary/src/screens/reminders_screens/walk_reminder_screen.dart';
 
 class ReminderScreen extends ConsumerStatefulWidget {
   const ReminderScreen({super.key});
@@ -107,35 +108,62 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
         _buildCreatorCard(
           title: 'Feed Reminder',
           image: 'assets/images/reminder_cards/eating_dog.jpg',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const FeedReminderScreen(),
+              ),
+            );
+          },
         ),
         _buildCreatorCard(
           title: 'Walk Reminder',
           image: 'assets/images/others/walk_background.jpg',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const WalkReminderScreen(),
+              ),
+            );
+          },
         ),
         _buildCreatorCard(
           title: 'Other Reminders',
           image: 'assets/images/others/walk_background.jpg',
+          onTap: () {
+            // Placeholder for future screens
+          },
         ),
         _buildCreatorCard(
           title: 'Vet Appointment',
           image: 'assets/images/reminder_cards/vet_dog.jpg',
+          onTap: () {
+            // Placeholder for future screens
+          },
         ),
         _buildCreatorCard(
           title: 'Grooming Reminder',
           image: 'assets/images/reminder_cards/walk_dog.jpg',
+          onTap: () {
+            // Placeholder for future screens
+          },
         ),
       ],
     );
   }
 
-  Widget _buildCreatorCard({required String title, required String image}) {
+  Widget _buildCreatorCard({
+    required String title,
+    required String image,
+    required VoidCallback onTap,
+  }) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          height: 150,
+          height: 200,
           child: Stack(
             children: [
               Positioned.fill(
@@ -160,15 +188,7 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
                   ),
                 ),
                 trailing: ElevatedButton(
-                  onPressed: () {
-                    if (title == 'Feed Reminder') {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const FeedReminderScreen(),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: onTap,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColorDark,
                     shape: RoundedRectangleBorder(
