@@ -6,6 +6,7 @@ import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/screens/reminders_screens/feed_reminder_screen.dart';
+import 'package:pet_diary/src/screens/reminders_screens/grooming_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/vet_appointment_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/walk_reminder_screen.dart';
 
@@ -143,7 +144,11 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
           title: 'Grooming Reminder',
           image: 'assets/images/reminder_cards/bath.jpg',
           onTap: () {
-            // Placeholder for future screens
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const GroomingReminderScreen(),
+              ),
+            );
           },
         ),
         _buildCreatorCard(

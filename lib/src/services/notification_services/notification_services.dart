@@ -212,6 +212,7 @@ class NotificationService {
         body,
         tzDateTime,
         platformDetails,
+        // ignore: deprecated_member_use
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
