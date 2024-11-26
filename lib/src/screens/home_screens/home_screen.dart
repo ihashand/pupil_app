@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pet_diary/src/components/home_screen/home_screen_cards/reminder_card.dart';
+import 'package:pet_diary/src/components/home_screen/home_screen_cards/reminder_carusele_card.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
 import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/providers/home_providers/home_preferences_provider.dart';
@@ -180,8 +180,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           top: 10,
                           bottom: 10,
                         ),
-                        child: ReminderCard(),
+                        child: ReminderCardCarousel(),
                       );
+
                     case 'AppointmentCard':
                       return const Padding(
                         key: ValueKey('AppointmentCard'),

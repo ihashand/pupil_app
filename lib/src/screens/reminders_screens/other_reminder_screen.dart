@@ -7,7 +7,6 @@ import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/providers/reminder_providers/other_service_provider.dart';
-import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Screen for managing other reminders with advanced options.
 class OtherReminderScreen extends ConsumerStatefulWidget {
