@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
+import 'package:pet_diary/src/services/reminders_services/feed_reminder_servcie.dart';
 import 'package:pet_diary/src/services/reminders_services/reminder_servcie.dart';
+import 'package:pet_diary/src/services/reminders_services/walk_reminder_service.dart';
 
 // Provider dla serwisu przypomnień
 final reminderServiceProvider = Provider((ref) {
@@ -29,3 +31,6 @@ final reminderNameControllerProvider = Provider<TextEditingController>((ref) {
 final reminderDateControllerProvider = Provider<TextEditingController>((ref) {
   return TextEditingController();
 });
+
+final feedReminderServiceProvider = Provider((ref) => FeedReminderService());
+final walkReminderServiceProvider = Provider((ref) => WalkReminderService());

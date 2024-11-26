@@ -3,14 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/helpers/others/loading_dialog.dart';
 import 'package:pet_diary/src/models/events_models/event_model.dart';
-import 'package:pet_diary/src/models/events_models/event_reminder_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_care_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_mood_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_note_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_psychic_provider.dart';
-import 'package:pet_diary/src/providers/events_providers/event_reminder_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_service_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_stomach_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_stool_provider.dart';
@@ -30,7 +27,6 @@ void eventDeleteFunc(
   Event? event = allEvents?.where((element) => element.id == eventId).first;
 
   final String noteId = event!.noteId;
-  final String pillId = event.pillId;
   final String temperatureId = event.temperatureId;
   final String walkId = event.walkId;
   final String waterId = event.waterId;
@@ -73,23 +69,6 @@ void eventDeleteFunc(
 
   if (noteId.isNotEmpty) {
     await ref.read(eventNoteServiceProvider).deleteNote(noteId);
-  }
-
-  if (pillId.isNotEmpty) {
-    List<EventReminderModel> reminders =
-        await ref.read(eventReminderServiceProvider).getReminders();
-
-    if (reminders.isNotEmpty) {
-      for (var reminder in reminders) {
-        if (reminder.objectId == pillId) {
-          await ref
-              .read(eventReminderServiceProvider)
-              .deleteReminder(reminder.id);
-        }
-      }
-    }
-
-    await ref.read(eventMedicineServiceProvider).deleteMedicine(pillId);
   }
 
   if (moodId.isNotEmpty) {

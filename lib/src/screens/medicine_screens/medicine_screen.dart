@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:pet_diary/src/helpers/animations/slide_animation_helper.dart';
-import 'package:pet_diary/src/helpers/messages/empty_state_widget.dart';
 import 'package:pet_diary/src/models/events_models/event_medicine_model.dart';
 import 'package:pet_diary/src/providers/events_providers/event_medicine_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:pet_diary/src/screens/medicine_screens/add_medicine_screen.dart';
-import 'package:pet_diary/src/services/other_services/notification_services.dart';
+import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// A screen that displays medicine-related information.
 ///
@@ -103,7 +101,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Current Medicine',
+                            'Current',
                             style: TextStyle(
                               color: isCurrentSelected
                                   ? Theme.of(context).primaryColorDark
@@ -131,7 +129,7 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Medicine History',
+                            'History',
                             style: TextStyle(
                               color: !isCurrentSelected
                                   ? Theme.of(context).primaryColorDark
@@ -174,14 +172,13 @@ class _MedicineScreenState extends ConsumerState<MedicineScreen> {
 
                 if (filteredMedicines.isEmpty) {
                   return Center(
-                    child: SlideAnimationHelper(
-                      duration: const Duration(milliseconds: 1600),
-                      curve: Curves.bounceOut,
-                      child: EmptyStateWidget(
-                        message: isCurrentSelected
-                            ? "No current medicines found."
-                            : "No medicine history available.",
-                        icon: Icons.pets,
+                    child: Text(
+                      isCurrentSelected
+                          ? "No current medicines found."
+                          : "No medicine history available.",
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 14,
                       ),
                     ),
                   );
