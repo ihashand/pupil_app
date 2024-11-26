@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_diary/src/screens/reminders_screens/behaviorist_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/feed_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/grooming_reminder_screen.dart';
+import 'package:pet_diary/src/screens/reminders_screens/other_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/vet_appointment_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/walk_reminder_screen.dart';
 
@@ -167,7 +168,11 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
           title: 'Other Reminders',
           image: 'assets/images/reminder_cards/other.jpg',
           onTap: () {
-            // Placeholder for future screens
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const OtherReminderScreen(),
+              ),
+            );
           },
         ),
       ],
