@@ -8,6 +8,7 @@ class GroomingReminderModel {
   final List<String> assignedPetIds;
   final DateTime date;
   final TimeOfDay time;
+  final List<int> earlyNotificationIds;
 
   GroomingReminderModel({
     required this.id,
@@ -16,7 +17,29 @@ class GroomingReminderModel {
     required this.assignedPetIds,
     required this.date,
     required this.time,
+    this.earlyNotificationIds = const [],
   });
+
+  /// Create a modified copy of the current instance.
+  GroomingReminderModel copyWith({
+    String? id,
+    String? userId,
+    String? reason,
+    List<String>? assignedPetIds,
+    DateTime? date,
+    TimeOfDay? time,
+    List<int>? earlyNotificationIds,
+  }) {
+    return GroomingReminderModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      reason: reason ?? this.reason,
+      assignedPetIds: assignedPetIds ?? this.assignedPetIds,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      earlyNotificationIds: earlyNotificationIds ?? this.earlyNotificationIds,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -26,6 +49,7 @@ class GroomingReminderModel {
       'assignedPetIds': assignedPetIds,
       'date': date.toIso8601String(),
       'time': '${time.hour}:${time.minute}',
+      'earlyNotificationIds': earlyNotificationIds,
     };
   }
 
@@ -41,6 +65,7 @@ class GroomingReminderModel {
         hour: int.parse(timeParts[0]),
         minute: int.parse(timeParts[1]),
       ),
+      earlyNotificationIds: List<int>.from(map['earlyNotificationIds'] ?? []),
     );
   }
 }

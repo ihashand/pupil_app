@@ -256,7 +256,7 @@ class _GroomingReminderScreenState
                       await ref
                           .read(groomingReminderServiceProvider)
                           .deleteGroomingReminder(reminder.id);
-                      setState(() {});
+                      setState(() {}); // Odśwież widok
                     },
                   ),
                 ],
@@ -613,7 +613,8 @@ class _GroomingReminderScreenState
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.black),
+                            icon: Icon(Icons.delete,
+                                color: Theme.of(context).primaryColorDark),
                             onPressed: () {
                               setModalState(() {
                                 _additionalNotifications.removeAt(i);
@@ -742,7 +743,7 @@ class _GroomingReminderScreenState
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Empty fields',
+            'Empty',
             style: TextStyle(color: Theme.of(context).primaryColorDark),
           ),
           content: const Text(
