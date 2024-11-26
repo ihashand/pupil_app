@@ -1,6 +1,6 @@
 class HomePreferencesModel {
-  List<String> sectionOrder;
-  List<String> visibleSections;
+  final List<String> sectionOrder;
+  final List<String> visibleSections;
 
   HomePreferencesModel({
     required this.sectionOrder,

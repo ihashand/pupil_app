@@ -7,16 +7,15 @@ import 'package:pet_diary/src/models/others/app_user_model.dart';
 import 'package:pet_diary/src/providers/home_providers/home_preferences_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
-import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/active_walk_card.dart';
-import 'package:pet_diary/src/components/home_screen/home_screen_cards/appoitment_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/friend_request_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/walk_card.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_others/home_screen_animal_section.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_others/home_screen_shake_animation.dart';
+import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
+import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 
 /// A `ConsumerStatefulWidget` that represents the home screen of the application.
-/// This widget listens to changes in the state and rebuilds accordingly.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -30,7 +29,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(userIdProvider);
     if (userId != null) {
       ref.read(appUserServiceProvider).getAppUserById(userId).then((user) {
         if (mounted) {
@@ -137,20 +136,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               thickness: 1.2,
             ),
             Expanded(
-              child: ReorderableListView(
+              child: ReorderableListView.builder(
+                proxyDecorator: (child, index, animation) {
+                  return Material(
+                    elevation: 8,
+                    color: Colors.transparent,
+                    child: child,
+                  );
+                },
                 onReorder: (oldIndex, newIndex) {
+                  if (newIndex > oldIndex) newIndex -= 1;
+
                   setState(() {
-                    if (newIndex > oldIndex) {
-                      newIndex -= 1;
-                    }
                     final item =
                         homePreferences.sectionOrder.removeAt(oldIndex);
                     homePreferences.sectionOrder.insert(newIndex, item);
-                    homePreferencesNotifier
-                        .updateSectionOrder(homePreferences.sectionOrder);
                   });
+
+                  // Zapisz nową kolejność do Firebase
+                  homePreferencesNotifier
+                      .updateSectionOrder(homePreferences.sectionOrder);
                 },
-                children: homePreferences.sectionOrder.map((section) {
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                itemCount: homePreferences.sectionOrder.length,
+                itemBuilder: (context, index) {
+                  final section = homePreferences.sectionOrder[index];
                   switch (section) {
                     case 'AnimalCard':
                       return const HomeScreenAnimalSection(
@@ -158,47 +168,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     case 'WalkCard':
                       return const Padding(
                         key: ValueKey('WalkCard'),
-                        padding: EdgeInsets.only(
-                          top: 10,
-                          bottom: 10,
-                        ),
+                        padding: EdgeInsets.symmetric(vertical: 5),
                         child: WalkCard(),
                       );
                     case 'ActiveWalkCard':
                       return const Padding(
                         key: ValueKey('ActiveWalkCard'),
-                        padding: EdgeInsets.only(
-                          top: 10,
-                          bottom: 10,
-                        ),
+                        padding: EdgeInsets.symmetric(vertical: 5),
                         child: ActiveWalkCard(),
                       );
                     case 'ReminderCard':
                       return const Padding(
                         key: ValueKey('ReminderCard'),
-                        padding: EdgeInsets.only(
-                          top: 10,
-                          bottom: 10,
-                        ),
-                        child: ReminderCardCarousel(),
-                      );
-
-                    case 'AppointmentCard':
-                      return const Padding(
-                        key: ValueKey('AppointmentCard'),
-                        padding: EdgeInsets.only(
-                          top: 10,
-                          bottom: 10,
-                        ),
-                        child: AppointmentCard(),
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        child: ReminderCardCarousel(), // Karuzela przypomnień
                       );
                     case 'FriendRequestsCard':
                       return Padding(
                         key: const ValueKey('FriendRequestsCard'),
-                        padding: const EdgeInsets.only(
-                          top: 10,
-                          bottom: 10,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 5),
                         child: friendRequestsAsyncValue.when(
                           data: (friendRequests) => friendRequests.isNotEmpty
                               ? const HomeScreenShakeAnimation(
@@ -210,11 +198,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       );
                     default:
-                      return Container(
-                        key: ValueKey(section),
-                      );
+                      return Container(key: ValueKey(section));
                   }
-                }).toList(),
+                },
               ),
             ),
           ],
