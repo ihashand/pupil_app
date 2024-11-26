@@ -5,6 +5,7 @@ import 'package:pet_diary/src/helpers/messages/empty_state_widget.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_providers/reminder_providers.dart';
 import 'package:intl/intl.dart';
+import 'package:pet_diary/src/screens/reminders_screens/behaviorist_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/feed_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/grooming_reminder_screen.dart';
 import 'package:pet_diary/src/screens/reminders_screens/vet_appointment_reminder_screen.dart';
@@ -120,7 +121,7 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
         ),
         _buildCreatorCard(
           title: 'Walk Reminder',
-          image: 'assets/images/reminder_cards/walk_dog.jpg',
+          image: 'assets/images/reminder_cards/walk_2.jpg',
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -130,7 +131,7 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
           },
         ),
         _buildCreatorCard(
-          title: 'Vet Appointment',
+          title: 'Vet Reminder',
           image: 'assets/images/reminder_cards/vet_dog.jpg',
           onTap: () {
             Navigator.of(context).push(
@@ -147,6 +148,17 @@ class _ReminderScreenState extends ConsumerState<ReminderScreen> {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => const GroomingReminderScreen(),
+              ),
+            );
+          },
+        ),
+        _buildCreatorCard(
+          title: 'Behaviorist Reminder',
+          image: 'assets/images/reminder_cards/behawiorist.jpg',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const BehavioristReminderScreen(),
               ),
             );
           },
