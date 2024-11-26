@@ -15,7 +15,7 @@ import 'package:pet_diary/src/components/home_screen/home_screen_others/home_scr
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 
-/// A `ConsumerStatefulWidget` that represents the home screen of the application.
+/// A ConsumerStatefulWidget that represents the home screen of the application.
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,6 +25,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   AppUserModel? _appUser;
+  bool showWelcomeText = true; // State to toggle "Welcome back" visibility
 
   @override
   void initState() {
@@ -39,6 +40,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       });
     }
+    // Trigger the welcome text to disappear after a delay
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          showWelcomeText = false;
+        });
+      }
+    });
   }
 
   String capitalizeFirstLetter(String name) {
@@ -70,11 +79,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Welcome back,',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontFamily: 'San Francisco',
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 700),
+                          opacity: showWelcomeText ? 1 : 0,
+                          child: const Text(
+                            'Welcome back,',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: 'San Francisco',
+                            ),
                           ),
                         ),
                         Text(
@@ -181,7 +194,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       return const Padding(
                         key: ValueKey('ReminderCard'),
                         padding: EdgeInsets.symmetric(vertical: 5),
-                        child: ReminderCardCarousel(), // Karuzela przypomnień
+                        child: ReminderCardCarousel(),
                       );
                     case 'FriendRequestsCard':
                       return Padding(
