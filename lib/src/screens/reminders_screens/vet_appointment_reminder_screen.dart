@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:pet_diary/src/models/reminder_models/vet_appotiment_reminder_model.dart';
 import 'package:pet_diary/src/providers/reminder_providers/vet_appointment_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
@@ -10,7 +9,7 @@ import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
-/// Screen for managing vet appointments.
+/// Ekran do zarządzania wizytami u weterynarza.
 class VetAppointmentScreen extends ConsumerStatefulWidget {
   const VetAppointmentScreen({super.key});
 
@@ -20,16 +19,21 @@ class VetAppointmentScreen extends ConsumerStatefulWidget {
 }
 
 class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
-  bool isCurrentAppointments = true;
+  bool isCurrentAppointments = true; // Przełącznik widoku: obecne/historia
   final TextEditingController _reasonController = TextEditingController();
-  final List<String> _selectedPets = [];
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
+  final List<String> _selectedPets = []; // Wybrane zwierzaki
+  DateTime? _selectedDate; // Wybrana data wizyty
+  TimeOfDay? _selectedTime; // Wybrany czas wizyty
+  List<Map<String, dynamic>> _additionalNotifications = [
+    {'value': 1, 'unit': 'day'}, // Domyślne wczesne powiadomienie
+  ];
+  bool enableAdditionalNotifications =
+      false; // Czy włączono wczesne powiadomienia
 
   @override
   Widget build(BuildContext context) {
-    final userId = ref.read(userIdProvider)!;
-    final now = DateTime.now();
+    final userId = ref.read(userIdProvider)!; // ID użytkownika
+    final now = DateTime.now(); // Aktualny czas
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -51,18 +55,19 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
               color: Theme.of(context).primaryColorDark,
               size: 30,
             ),
-            onPressed: _showAddAppointmentModal,
+            onPressed:
+                _showAddAppointmentModal, // Wyświetlenie modalu dodawania wizyty
           ),
         ],
       ),
       body: Column(
         children: [
-          _buildToggleButtons(),
+          _buildToggleButtons(), // Przełączniki widoków
           Expanded(
             child: StreamBuilder<List<VetAppointmentModel>>(
               stream: ref
                   .read(vetAppointmentServiceProvider)
-                  .getVetAppointments(userId),
+                  .getVetAppointments(userId), // Pobieranie danych z Firestore
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -80,8 +85,8 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
                 }
 
                 final appointments = snapshot.data ?? [];
-                final filteredAppointments =
-                    _filterAppointments(appointments, now);
+                final filteredAppointments = _filterAppointments(
+                    appointments, now); // Filtrowanie danych
 
                 if (filteredAppointments.isEmpty) {
                   return Center(
@@ -100,7 +105,8 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
                   itemCount: filteredAppointments.length,
                   itemBuilder: (context, index) {
                     final appointment = filteredAppointments[index];
-                    return _buildAppointmentCard(appointment);
+                    return _buildAppointmentCard(
+                        appointment); // Tworzenie karty wizyty
                   },
                 );
               },
@@ -111,7 +117,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
-  /// Builds toggle buttons for Current/History.
+  /// Przełączniki między widokami obecnych wizyt i historii.
   Widget _buildToggleButtons() {
     return Container(
       decoration: BoxDecoration(
@@ -139,7 +145,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
-  /// Builds a single toggle button for Current/History selection.
+  /// Tworzenie pojedynczego przycisku przełącznika widoku.
   Widget _buildToggleButton(String label, bool isSelected) {
     final isActive = isSelected == isCurrentAppointments;
     return GestureDetector(
@@ -169,6 +175,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
+  /// Filtrowanie wizyt na obecne lub historyczne.
   List<VetAppointmentModel> _filterAppointments(
       List<VetAppointmentModel> appointments, DateTime now) {
     final today = DateTime(now.year, now.month, now.day);
@@ -184,7 +191,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
             .toList();
   }
 
-  /// Builds a fully expanded appointment card.
+  /// Tworzenie karty wizyty.
   Widget _buildAppointmentCard(VetAppointmentModel appointment) {
     return Card(
       color: Theme.of(context).colorScheme.primary,
@@ -270,58 +277,84 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
-  /// Displays a modal for adding a new vet appointment.
+  /// Wyświetlanie modalu dodawania wizyty.
   void _showAddAppointmentModal() {
+    _reasonController.clear();
+    _selectedDate = null;
+    _selectedTime = null;
+    enableAdditionalNotifications = false;
+    _additionalNotifications = [
+      {'value': 1, 'unit': 'day'},
+    ];
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
-            return Padding(
-              padding: MediaQuery.of(context).viewInsets,
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+            return Container(
+              color: Theme.of(context).colorScheme.primary,
+              child: Padding(
+                padding: MediaQuery.of(context).viewInsets,
+                child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Vet Appointment',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Theme.of(context).primaryColorDark,
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => _saveAppointment(setModalState),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).primaryColorDark,
-                            ),
-                            child: Text(
-                              'Save',
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Add Vet Appointment',
                               style: TextStyle(
-                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Theme.of(context).primaryColorDark,
                               ),
                             ),
-                          ),
-                        ],
+                            ElevatedButton(
+                              onPressed: () => _saveAppointment(setModalState),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).primaryColorDark,
+                              ),
+                              child: Text(
+                                'Save',
+                                style: TextStyle(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       Divider(color: Theme.of(context).colorScheme.secondary),
-                      const SizedBox(height: 12),
-                      _buildPetSelection(setModalState),
-                      const SizedBox(height: 12),
-                      _buildReasonInput(setModalState),
-                      const SizedBox(height: 12),
-                      _buildDatePicker(setModalState),
-                      const SizedBox(height: 12),
-                      _buildTimePicker(setModalState),
-                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildPetSelection(setModalState),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildReasonInput(setModalState),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildDatePicker(setModalState),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildTimePicker(setModalState),
+                      ),
+                      Divider(color: Theme.of(context).colorScheme.secondary),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _buildAdditionalNotifications(setModalState),
+                      ),
+                      const SizedBox(
+                        height: 25,
+                      )
                     ],
                   ),
                 ),
@@ -333,7 +366,270 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
-  /// Builds the pet selection widget for the modal.
+  Widget _buildAdditionalNotifications(StateSetter setModalState) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: enableAdditionalNotifications ? 8.0 : 15.0,
+            right: enableAdditionalNotifications ? 8.0 : 15.0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Early Notifications',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColorDark,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Switch(
+                value: enableAdditionalNotifications,
+                activeColor: Theme.of(context).primaryColorDark,
+                onChanged: (value) {
+                  setModalState(() {
+                    enableAdditionalNotifications = value;
+                    if (!value) _additionalNotifications.clear();
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+        if (enableAdditionalNotifications)
+          Column(
+            children: [
+              for (int i = 0; i < _additionalNotifications.length; i++)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 185,
+                        child: TextField(
+                          decoration: InputDecoration(
+                            labelText: 'Value',
+                            labelStyle: TextStyle(
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorDark,
+                                width: 1,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorDark,
+                                width: 1,
+                              ),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 15,
+                            ),
+                          ),
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColorDark,
+                          ),
+                          cursorColor: Theme.of(context).primaryColorDark,
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            setModalState(() {
+                              _additionalNotifications[i]['value'] =
+                                  int.tryParse(value) ?? 0;
+                            });
+                          },
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          DropdownButton<String>(
+                            value: _additionalNotifications[i]['unit'],
+                            items: ['minute', 'hour', 'day']
+                                .map(
+                                  (unit) => DropdownMenuItem(
+                                    value: unit,
+                                    child: Text(unit),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (unit) {
+                              setModalState(() {
+                                _additionalNotifications[i]['unit'] = unit!;
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.black),
+                            onPressed: () {
+                              setModalState(() {
+                                _additionalNotifications.removeAt(i);
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              if (_additionalNotifications.length < 3)
+                TextButton(
+                  onPressed: () {
+                    setModalState(() {
+                      if (_additionalNotifications.length < 3) {
+                        _additionalNotifications.add({
+                          'value': 1,
+                          'unit': 'minute',
+                        });
+                      }
+                    });
+                  },
+                  child: Text(
+                    '+ Add Notification',
+                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                  ),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Future<void> _saveAppointment(StateSetter setModalState) async {
+    if (_selectedDate == null ||
+        _selectedTime == null ||
+        _reasonController.text.isEmpty ||
+        _selectedPets.isEmpty) {
+      await _showValidationError(context);
+      return;
+    }
+
+    final userId = ref.read(userIdProvider)!;
+
+    final appointment = VetAppointmentModel(
+      id: UniqueKey().toString(),
+      userId: userId,
+      date: _selectedDate!,
+      time: _selectedTime!,
+      reason: _reasonController.text,
+      assignedPetIds: _selectedPets,
+    );
+
+    final appointmentDateTime = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _selectedTime!.hour,
+      _selectedTime!.minute,
+    );
+
+    final List<int> earlyNotificationIds = [];
+
+    // Główne powiadomienie
+    if (appointmentDateTime.isAfter(DateTime.now())) {
+      await NotificationService().createSingleNotification(
+        id: appointment.hashCode,
+        title: 'Vet Appointment',
+        body: _generateNotificationBody(appointment),
+        dateTime: appointmentDateTime,
+        payload: 'vet_appointment',
+      );
+    }
+
+    // Wczesne powiadomienia
+    for (var notification in _additionalNotifications) {
+      final int value = notification['value'];
+      final String unit = notification['unit'];
+
+      DateTime earlyNotificationTime;
+      if (unit == 'minute') {
+        earlyNotificationTime = appointmentDateTime.subtract(
+          Duration(minutes: value),
+        );
+      } else if (unit == 'hour') {
+        earlyNotificationTime = appointmentDateTime.subtract(
+          Duration(hours: value),
+        );
+      } else {
+        earlyNotificationTime = appointmentDateTime.subtract(
+          Duration(days: value),
+        );
+      }
+
+      if (earlyNotificationTime.isAfter(DateTime.now())) {
+        final earlyNotificationId = appointment.hashCode + value; // Unique ID
+        earlyNotificationIds.add(earlyNotificationId);
+        await NotificationService().createSingleNotification(
+          id: earlyNotificationId,
+          title: 'Early Vet Appointment Reminder',
+          body: _generateNotificationBody(appointment),
+          dateTime: earlyNotificationTime,
+          payload: 'vet_appointment_early',
+        );
+      }
+    }
+
+    // Zaktualizuj model wizyty z wczesnymi powiadomieniami
+    final updatedAppointment = appointment.copyWith(
+      earlyNotificationIds: earlyNotificationIds,
+    );
+
+    await ref
+        .read(vetAppointmentServiceProvider)
+        .addAppointment(updatedAppointment);
+
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  String _generateNotificationBody(VetAppointmentModel appointment) {
+    final selectedPets = _selectedPets.map((id) {
+      return ref.read(petsProvider).maybeWhen(
+          data: (pets) => pets.firstWhere((pet) => pet.id == id).name,
+          orElse: () => '');
+    }).join(', ');
+
+    return 'Vet appointment for: $selectedPets - ${appointment.reason}';
+  }
+
+  Future<void> _showValidationError(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Empty fields',
+            style: TextStyle(color: Theme.of(context).primaryColorDark),
+          ),
+          content: const Text(
+            'Please fill in all required fields!',
+            textAlign: TextAlign.left,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'OK',
+                style: TextStyle(color: Theme.of(context).primaryColorDark),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildPetSelection(StateSetter setModalState) {
     final asyncPets = ref.watch(petsProvider);
     return asyncPets.when(
@@ -371,24 +667,52 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
-  /// Builds the reason input widget for the modal.
   Widget _buildReasonInput(StateSetter setModalState) {
     return TextField(
       controller: _reasonController,
       decoration: InputDecoration(
         labelText: 'Reason',
-        labelStyle: TextStyle(color: Theme.of(context).primaryColorDark),
-        border: OutlineInputBorder(
+        labelStyle: TextStyle(
+          color: Theme.of(context).primaryColorDark, // Kolor etykiety
+        ),
+        focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(
+            color: Theme.of(context)
+                .primaryColorDark, // Kolor obramowania po fokusie
+            width: 1, // Grubość obramowania
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(
+            color: Theme.of(context)
+                .primaryColorDark, // Kolor obramowania aktywnego
+            width: 1,
+          ),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15), // Zaokrąglenie ramki
+          borderSide: BorderSide(
+            color: Theme.of(context)
+                .primaryColorDark, // Kolor domyślnego obramowania
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 10, // Odstęp góra/dół
+          horizontal: 15, // Odstęp lewo/prawo
         ),
       ),
+      style: TextStyle(
+        color: Theme.of(context).primaryColorDark, // Kolor tekstu w polu
+      ),
+      cursorColor: Theme.of(context).primaryColorDark, // Kolor kursora
       onChanged: (value) {
-        setModalState(() {}); // Update modal state
+        setModalState(() {});
       },
     );
   }
 
-  /// Builds the date picker widget for the modal.
   Widget _buildDatePicker(StateSetter setModalState) {
     return GestureDetector(
       onTap: () async {
@@ -419,7 +743,6 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     );
   }
 
-  /// Builds the time picker widget for the modal.
   Widget _buildTimePicker(StateSetter setModalState) {
     return GestureDetector(
       onTap: () async {
@@ -448,53 +771,5 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
         ),
       ),
     );
-  }
-
-  /// Saves the appointment and closes the modal.
-  Future<void> _saveAppointment(StateSetter setModalState) async {
-    if (_selectedDate == null ||
-        _selectedTime == null ||
-        _reasonController.text.isEmpty ||
-        _selectedPets.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields.')),
-      );
-      return;
-    }
-
-    final userId = ref.read(userIdProvider)!;
-
-    final appointment = VetAppointmentModel(
-      id: UniqueKey().toString(),
-      userId: userId,
-      date: _selectedDate!,
-      time: _selectedTime!,
-      reason: _reasonController.text,
-      assignedPetIds: _selectedPets,
-    );
-
-    await ref.read(vetAppointmentServiceProvider).addAppointment(appointment);
-
-    final appointmentDateTime = DateTime(
-      _selectedDate!.year,
-      _selectedDate!.month,
-      _selectedDate!.day,
-      _selectedTime!.hour,
-      _selectedTime!.minute,
-    );
-
-    if (appointmentDateTime.isAfter(DateTime.now())) {
-      await NotificationService().createSingleNotification(
-        id: appointment.hashCode,
-        title: 'Vet Appointment',
-        body: appointment.reason,
-        dateTime: appointmentDateTime,
-        payload: 'vet_appointment',
-      );
-    }
-
-    if (mounted) {
-      Navigator.pop(context);
-    }
   }
 }

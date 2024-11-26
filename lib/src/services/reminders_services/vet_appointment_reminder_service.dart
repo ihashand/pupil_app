@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/reminder_models/vet_appotiment_reminder_model.dart';
+import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Service to manage vet appointments.
 class VetAppointmentService {
@@ -74,9 +75,36 @@ class VetAppointmentService {
     _cachedAppointments = null; // Clear cache
   }
 
-  /// Delete an appointment from Firestore.
+  /// Delete an appointment and cancel related notifications.
   Future<void> deleteAppointment(String appointmentId) async {
-    await _firestore.collection('vetAppointments').doc(appointmentId).delete();
-    _cachedAppointments = null; // Clear cache
+    try {
+      // Pobierz szczegóły wizyty z bazy danych
+      final doc = await _firestore
+          .collection('vetAppointments')
+          .doc(appointmentId)
+          .get();
+      if (!doc.exists) {
+        throw Exception('Appointment not found');
+      }
+
+      final appointment = VetAppointmentModel.fromMap(doc.data()!);
+
+      // Anuluj główne powiadomienie
+      await NotificationService().cancelNotification(appointment.hashCode);
+
+      // Anuluj wszystkie wczesne powiadomienia
+      for (final notificationId in appointment.earlyNotificationIds) {
+        await NotificationService().cancelNotification(notificationId);
+      }
+
+      // Usuń wizytę z bazy danych
+      await _firestore
+          .collection('vetAppointments')
+          .doc(appointmentId)
+          .delete();
+      _cachedAppointments = null; // Wyczyść cache
+    } catch (e) {
+      throw Exception('Failed to delete appointment: $e');
+    }
   }
 }

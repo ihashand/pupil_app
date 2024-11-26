@@ -8,6 +8,7 @@ class VetAppointmentModel {
   final TimeOfDay time;
   final List<String> assignedPetIds;
   final String reason;
+  final List<int> earlyNotificationIds; // IDs of early notifications
 
   VetAppointmentModel({
     required this.id,
@@ -16,7 +17,29 @@ class VetAppointmentModel {
     required this.time,
     required this.assignedPetIds,
     required this.reason,
+    this.earlyNotificationIds = const [], // Default empty list
   });
+
+  /// Create a modified copy of the current instance.
+  VetAppointmentModel copyWith({
+    String? id,
+    String? userId,
+    DateTime? date,
+    TimeOfDay? time,
+    List<String>? assignedPetIds,
+    String? reason,
+    List<int>? earlyNotificationIds,
+  }) {
+    return VetAppointmentModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      assignedPetIds: assignedPetIds ?? this.assignedPetIds,
+      reason: reason ?? this.reason,
+      earlyNotificationIds: earlyNotificationIds ?? this.earlyNotificationIds,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -26,6 +49,7 @@ class VetAppointmentModel {
       'time': '${time.hour}:${time.minute}',
       'assignedPetIds': assignedPetIds,
       'reason': reason,
+      'earlyNotificationIds': earlyNotificationIds,
     };
   }
 
@@ -41,6 +65,7 @@ class VetAppointmentModel {
       ),
       assignedPetIds: List<String>.from(map['assignedPetIds']),
       reason: map['reason'],
+      earlyNotificationIds: List<int>.from(map['earlyNotificationIds'] ?? []),
     );
   }
 }
