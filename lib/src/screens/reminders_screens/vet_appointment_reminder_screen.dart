@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_models/vet_appotiment_reminder_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/vet_appointment_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
@@ -262,10 +264,29 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
                       color: Theme.of(context).primaryColorDark,
                     ),
                     onPressed: () async {
-                      await ref
-                          .read(vetAppointmentServiceProvider)
-                          .deleteAppointment(appointment.id);
-                      setState(() {});
+                      final eventService = ref.read(eventServiceProvider);
+                      final vetAppointmentService =
+                          ref.read(vetAppointmentServiceProvider);
+
+                      // Usuń wszystkie powiązane wydarzenia
+                      for (final eventId in appointment.eventIds) {
+                        await eventService.deleteEvent(eventId);
+                      }
+                      // Anuluj główne powiadomienie
+                      await NotificationService()
+                          .cancelNotification(appointment.hashCode);
+
+                      // Anuluj wszystkie wczesne powiadomienia
+                      for (final notificationId
+                          in appointment.earlyNotificationIds) {
+                        await NotificationService()
+                            .cancelNotification(notificationId);
+                      }
+                      // Usuń wizytę
+                      await vetAppointmentService
+                          .deleteAppointment(appointment);
+
+                      setState(() {}); // Odśwież widok po usunięciu
                     },
                   ),
                 ],
@@ -513,15 +534,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
     }
 
     final userId = ref.read(userIdProvider)!;
-
-    final appointment = VetAppointmentModel(
-      id: UniqueKey().toString(),
-      userId: userId,
-      date: _selectedDate!,
-      time: _selectedTime!,
-      reason: _reasonController.text,
-      assignedPetIds: _selectedPets,
-    );
+    final appointmentId = UniqueKey().toString();
 
     final appointmentDateTime = DateTime(
       _selectedDate!.year,
@@ -531,9 +544,37 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
       _selectedTime!.minute,
     );
 
+    final List<String> eventIds = [];
+    for (final petId in _selectedPets) {
+      final eventId = UniqueKey().toString();
+      final event = Event(
+        id: eventId,
+        title: 'Vet Appointment',
+        eventDate: appointmentDateTime,
+        dateWhenEventAdded: DateTime.now(),
+        userId: userId,
+        petId: petId,
+        description: _reasonController.text,
+        emoticon: '🐾',
+        vetAppointmentId: appointmentId,
+      );
+
+      await ref.read(eventServiceProvider).addEvent(event);
+      eventIds.add(eventId);
+    }
+
+    final appointment = VetAppointmentModel(
+      id: appointmentId,
+      userId: userId,
+      date: _selectedDate!,
+      time: _selectedTime!,
+      reason: _reasonController.text,
+      assignedPetIds: _selectedPets,
+      eventIds: eventIds,
+    );
+
     final List<int> earlyNotificationIds = [];
 
-    // Główne powiadomienie
     if (appointmentDateTime.isAfter(DateTime.now())) {
       await NotificationService().createSingleNotification(
         id: appointment.hashCode,
@@ -544,7 +585,6 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
       );
     }
 
-    // Wczesne powiadomienia
     for (var notification in _additionalNotifications) {
       final int value = notification['value'];
       final String unit = notification['unit'];
@@ -565,7 +605,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
       }
 
       if (earlyNotificationTime.isAfter(DateTime.now())) {
-        final earlyNotificationId = appointment.hashCode + value; // Unique ID
+        final earlyNotificationId = appointment.hashCode + value;
         earlyNotificationIds.add(earlyNotificationId);
         await NotificationService().createSingleNotification(
           id: earlyNotificationId,
@@ -577,7 +617,6 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
       }
     }
 
-    // Zaktualizuj model wizyty z wczesnymi powiadomieniami
     final updatedAppointment = appointment.copyWith(
       earlyNotificationIds: earlyNotificationIds,
     );

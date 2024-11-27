@@ -76,31 +76,12 @@ class VetAppointmentService {
   }
 
   /// Delete an appointment and cancel related notifications.
-  Future<void> deleteAppointment(String appointmentId) async {
+  Future<void> deleteAppointment(VetAppointmentModel appointment) async {
     try {
-      // Pobierz szczegóły wizyty z bazy danych
-      final doc = await _firestore
-          .collection('vetAppointments')
-          .doc(appointmentId)
-          .get();
-      if (!doc.exists) {
-        throw Exception('Appointment not found');
-      }
-
-      final appointment = VetAppointmentModel.fromMap(doc.data()!);
-
-      // Anuluj główne powiadomienie
-      await NotificationService().cancelNotification(appointment.hashCode);
-
-      // Anuluj wszystkie wczesne powiadomienia
-      for (final notificationId in appointment.earlyNotificationIds) {
-        await NotificationService().cancelNotification(notificationId);
-      }
-
       // Usuń wizytę z bazy danych
       await _firestore
           .collection('vetAppointments')
-          .doc(appointmentId)
+          .doc(appointment.id)
           .delete();
       _cachedAppointments = null; // Wyczyść cache
     } catch (e) {

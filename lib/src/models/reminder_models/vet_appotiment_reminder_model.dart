@@ -9,6 +9,7 @@ class VetAppointmentModel {
   final List<String> assignedPetIds;
   final String reason;
   final List<int> earlyNotificationIds; // IDs of early notifications
+  final List<String> eventIds; // IDs of related events
 
   VetAppointmentModel({
     required this.id,
@@ -18,6 +19,7 @@ class VetAppointmentModel {
     required this.assignedPetIds,
     required this.reason,
     this.earlyNotificationIds = const [], // Default empty list
+    this.eventIds = const [], // Default empty list
   });
 
   /// Create a modified copy of the current instance.
@@ -29,6 +31,7 @@ class VetAppointmentModel {
     List<String>? assignedPetIds,
     String? reason,
     List<int>? earlyNotificationIds,
+    List<String>? eventIds,
   }) {
     return VetAppointmentModel(
       id: id ?? this.id,
@@ -38,6 +41,7 @@ class VetAppointmentModel {
       assignedPetIds: assignedPetIds ?? this.assignedPetIds,
       reason: reason ?? this.reason,
       earlyNotificationIds: earlyNotificationIds ?? this.earlyNotificationIds,
+      eventIds: eventIds ?? this.eventIds,
     );
   }
 
@@ -50,6 +54,7 @@ class VetAppointmentModel {
       'assignedPetIds': assignedPetIds,
       'reason': reason,
       'earlyNotificationIds': earlyNotificationIds,
+      'eventIds': eventIds,
     };
   }
 
@@ -66,6 +71,7 @@ class VetAppointmentModel {
       assignedPetIds: List<String>.from(map['assignedPetIds']),
       reason: map['reason'],
       earlyNotificationIds: List<int>.from(map['earlyNotificationIds'] ?? []),
+      eventIds: List<String>.from(map['eventIds'] ?? []),
     );
   }
 }
