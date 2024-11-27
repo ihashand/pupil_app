@@ -31,6 +31,7 @@ class Event {
   String vaccineId = '';
   String issueId = '';
   String vetAppointmentId = '';
+  String otherReminderId = '';
 
   Event({
     required this.id,
@@ -62,6 +63,7 @@ class Event {
     this.vetVisitId = '',
     this.vaccineId = '',
     this.vetAppointmentId = '',
+    this.otherReminderId = '',
   });
 
   Event.fromDocument(DocumentSnapshot doc) {
@@ -97,6 +99,7 @@ class Event {
     vetVisitId = doc.get('vetVisitId') ?? '';
     groomingId = doc.get('groomingId') ?? '';
     vetAppointmentId = doc.get('vetAppointmentId') ?? '';
+    otherReminderId = doc.get('otherReminderId') ?? '';
   }
 
   Map<String, dynamic> toMap() {
@@ -129,6 +132,7 @@ class Event {
       'behavioristId': behavioristId,
       'groomingId': groomingId,
       'vetAppointmentId': vetAppointmentId,
+      'otherReminderId': otherReminderId,
     };
   }
 }

@@ -46,26 +46,10 @@ class OtherReminderService {
   }
 
   /// Delete an other reminder by ID.
-  Future<void> deleteOtherReminder(String reminderId) async {
+  Future<void> deleteOtherReminder(OtherReminderModel reminder) async {
     try {
-      final doc =
-          await _firestore.collection('otherReminders').doc(reminderId).get();
-      if (!doc.exists) {
-        throw Exception('Reminder not found');
-      }
-
-      final reminder = OtherReminderModel.fromMap(doc.data()!);
-
-      // Cancel main notification
-      await NotificationService().cancelNotification(reminder.hashCode);
-
-      // Cancel early notifications
-      for (final notificationId in reminder.earlyNotificationIds) {
-        await NotificationService().cancelNotification(notificationId);
-      }
-
       // Delete reminder from the database
-      await _firestore.collection('otherReminders').doc(reminderId).delete();
+      await _firestore.collection('otherReminders').doc(reminder.id).delete();
     } catch (e) {
       throw Exception('Failed to delete other reminder: $e');
     }

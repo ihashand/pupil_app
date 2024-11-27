@@ -1,12 +1,15 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_models/other_reminder_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_time_picker.dart';
 import 'package:pet_diary/src/helpers/others/show_styled_date_picker.dart';
 import 'package:pet_diary/src/providers/reminder_providers/other_service_provider.dart';
+import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Screen for managing other reminders with advanced options.
 class OtherReminderScreen extends ConsumerStatefulWidget {
@@ -266,10 +269,29 @@ class _OtherReminderScreenState extends ConsumerState<OtherReminderScreen> {
                       color: Theme.of(context).primaryColorDark,
                     ),
                     onPressed: () async {
-                      await ref
-                          .read(otherReminderServiceProvider)
-                          .deleteOtherReminder(reminder.id);
-                      setState(() {});
+                      final eventService = ref.read(eventServiceProvider);
+                      final otherReminderService =
+                          ref.read(otherReminderServiceProvider);
+
+                      // Usuń wszystkie powiązane wydarzenia
+                      for (final eventId in reminder.eventIds) {
+                        await eventService.deleteEvent(eventId);
+                      }
+                      // Cancel main notification
+                      await NotificationService()
+                          .cancelNotification(reminder.hashCode);
+
+                      // Cancel early notifications
+                      for (final notificationId
+                          in reminder.earlyNotificationIds) {
+                        await NotificationService()
+                            .cancelNotification(notificationId);
+                      }
+
+                      // Usuń przypomnienie
+                      await otherReminderService.deleteOtherReminder(reminder);
+
+                      setState(() {}); // Odśwież widok po usunięciu
                     },
                   ),
                 ],
@@ -648,113 +670,121 @@ class _OtherReminderScreenState extends ConsumerState<OtherReminderScreen> {
     );
   }
 
-  /// Saves the reminder, handles repeat logic
   Future<void> _saveReminder(StateSetter setModalState) async {
     if (_nameController.text.isEmpty ||
         _selectedDate == null ||
         _selectedTime == null ||
-        _reasonController.text.isEmpty) {
+        _reasonController.text.isEmpty ||
+        _selectedPets.isEmpty) {
       await _showValidationError(context);
       return;
     }
 
     final userId = ref.read(userIdProvider)!;
+    final reminderId = UniqueKey().toString();
 
+    final reminderDateTime = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _selectedTime!.hour,
+      _selectedTime!.minute,
+    );
+
+    // Tworzenie powiązanych wydarzeń
+    final List<String> eventIds = [];
+    for (final petId in _selectedPets) {
+      final eventId = UniqueKey().toString();
+      final event = Event(
+        id: eventId,
+        title: _nameController.text,
+        eventDate: reminderDateTime,
+        dateWhenEventAdded: DateTime.now(),
+        userId: userId,
+        petId: petId,
+        description: _reasonController.text,
+        emoticon: '🔔',
+        otherReminderId: reminderId,
+      );
+
+      await ref.read(eventServiceProvider).addEvent(event);
+      eventIds.add(eventId);
+    }
+
+    // Tworzenie przypomnienia
     final reminder = OtherReminderModel(
-      id: UniqueKey().toString(),
+      id: reminderId,
       userId: userId,
       reason: _reasonController.text,
       assignedPetIds: _selectedPets,
       date: _selectedDate!,
       time: _selectedTime!,
       earlyNotificationIds: [],
+      eventIds: eventIds,
     );
 
-    const int maxRepeats = 100; // Maksymalna liczba powtórzeń
-    int repeatCount = 0;
+    // Tworzenie wczesnych powiadomień
+    final earlyNotificationIds = <int>[];
+    for (var notification in _additionalNotifications) {
+      final int value = notification['value'];
+      final String unit = notification['unit'];
 
-    if (enableRepeat) {
-      DateTime nextReminderDate = _selectedDate!;
+      DateTime earlyNotificationTime;
+      if (unit == 'minute') {
+        earlyNotificationTime =
+            reminderDateTime.subtract(Duration(minutes: value));
+      } else if (unit == 'hour') {
+        earlyNotificationTime =
+            reminderDateTime.subtract(Duration(hours: value));
+      } else {
+        earlyNotificationTime =
+            reminderDateTime.subtract(Duration(days: value));
+      }
 
-      while (true) {
-        // Zwiększ licznik powtórzeń
-        repeatCount++;
-
-        // Jeśli liczba powtórzeń przekracza limit, wyświetl komunikat i zakończ zapis
-        if (repeatCount > maxRepeats) {
-          await _showTooManyRepeatsError(context, repeatCount);
-          return;
-        }
-
-        // Oblicz datę kolejnego przypomnienia
-        switch (repeatUnit) {
-          case 'day':
-            nextReminderDate = nextReminderDate.add(const Duration(days: 1));
-            break;
-          case 'week':
-            nextReminderDate = nextReminderDate.add(const Duration(days: 7));
-            break;
-          case 'month':
-            nextReminderDate = DateTime(
-              nextReminderDate.year,
-              nextReminderDate.month + 1,
-              nextReminderDate.day,
-            );
-            break;
-          case 'year':
-            nextReminderDate = DateTime(
-              nextReminderDate.year + 1,
-              nextReminderDate.month,
-              nextReminderDate.day,
-            );
-            break;
-        }
-
-        // Jeśli osiągnięto datę końcową, przerwij pętlę
-        if (repeatEndDate != null && nextReminderDate.isAfter(repeatEndDate!)) {
-          break;
-        }
+      if (earlyNotificationTime.isAfter(DateTime.now())) {
+        final earlyNotificationId = reminderId.hashCode + value;
+        earlyNotificationIds.add(earlyNotificationId);
+        await NotificationService().createSingleNotification(
+          id: earlyNotificationId,
+          title: 'Early Reminder',
+          body: _generateNotificationBody(reminder),
+          dateTime: earlyNotificationTime,
+          payload: 'other_reminder_early',
+        );
       }
     }
 
-    await ref.read(otherReminderServiceProvider).addOtherReminder(reminder);
+    // Tworzenie głównej notyfikacji
+    final mainNotificationId = reminderId.hashCode;
+    await NotificationService().createSingleNotification(
+      id: mainNotificationId,
+      title: 'Reminder: ${_nameController.text}',
+      body: _generateNotificationBody(reminder),
+      dateTime: reminderDateTime,
+      payload: 'other_reminder',
+    );
+
+    // Aktualizacja przypomnienia z ID wczesnych notyfikacji
+    final updatedReminder = reminder.copyWith(
+      earlyNotificationIds: earlyNotificationIds,
+    );
+
+    await ref
+        .read(otherReminderServiceProvider)
+        .addOtherReminder(updatedReminder);
 
     if (mounted) {
       Navigator.pop(context);
     }
   }
 
-  /// Wyświetla komunikat o przekroczeniu limitu powtórzeń
-  Future<void> _showTooManyRepeatsError(
-      BuildContext context, int repeatCount) async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Too Many Repeats',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-          content: Text(
-            'This reminder would generate $repeatCount notifications. '
-            'This may cause slow performance and is not allowed. '
-            'Please reduce the repeat frequency or end date.',
-            style: TextStyle(color: Theme.of(context).primaryColorDark),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'OK',
-                style: TextStyle(color: Theme.of(context).primaryColorDark),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  String _generateNotificationBody(OtherReminderModel reminder) {
+    final selectedPets = _selectedPets.map((id) {
+      return ref.read(petsProvider).maybeWhen(
+          data: (pets) => pets.firstWhere((pet) => pet.id == id).name,
+          orElse: () => '');
+    }).join(', ');
+    return 'Reminder for: $selectedPets - ${reminder.reason}';
   }
 
   Future<void> _showValidationError(BuildContext context) async {
