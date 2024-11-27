@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/reminder_models/behaviorist_reminder_model.dart';
-import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Service to manage behaviorist reminders.
 class BehavioristReminderService {
@@ -46,31 +45,13 @@ class BehavioristReminderService {
     });
   }
 
-  Future<void> deleteBehavioristReminder(String reminderId) async {
+  Future<void> deleteBehavioristReminder(
+      BehavioristReminderModel reminder) async {
     try {
-      // Pobierz szczegóły przypomnienia
-      final doc = await _firestore
-          .collection('behavioristReminders')
-          .doc(reminderId)
-          .get();
-      if (!doc.exists) {
-        throw Exception('Reminder not found');
-      }
-
-      final reminder = BehavioristReminderModel.fromMap(doc.data()!);
-
-      // Anuluj główne powiadomienie
-      await NotificationService().cancelNotification(reminder.hashCode);
-
-      // Anuluj wczesne powiadomienia
-      for (final notificationId in reminder.earlyNotificationIds) {
-        await NotificationService().cancelNotification(notificationId);
-      }
-
       // Usuń przypomnienie z bazy danych
       await _firestore
           .collection('behavioristReminders')
-          .doc(reminderId)
+          .doc(reminder.id)
           .delete();
     } catch (e) {
       throw Exception('Failed to delete behaviorist reminder: $e');

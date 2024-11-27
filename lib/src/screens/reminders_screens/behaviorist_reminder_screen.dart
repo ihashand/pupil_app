@@ -255,9 +255,28 @@ class _BehavioristReminderScreenState
                       color: Theme.of(context).primaryColorDark,
                     ),
                     onPressed: () async {
-                      await ref
-                          .read(behavioristReminderServiceProvider)
-                          .deleteBehavioristReminder(reminder.id);
+                      final eventService = ref.read(eventServiceProvider);
+                      final reminderService =
+                          ref.read(behavioristReminderServiceProvider);
+
+                      // Usuń wszystkie powiązane eventy
+                      for (final eventId in reminder.eventIds) {
+                        await eventService.deleteEvent(eventId);
+                      }
+
+                      // Usuń przypomnienie z bazy danych
+                      await reminderService.deleteBehavioristReminder(reminder);
+
+                      // Anuluj główne powiadomienie
+                      await NotificationService()
+                          .cancelNotification(reminder.hashCode);
+
+                      // Anuluj wczesne powiadomienia
+                      for (final notificationId
+                          in reminder.earlyNotificationIds) {
+                        await NotificationService()
+                            .cancelNotification(notificationId);
+                      }
                       setState(() {});
                     },
                   ),
@@ -658,14 +677,14 @@ class _BehavioristReminderScreenState
       final eventId = UniqueKey().toString();
       final event = Event(
         id: eventId,
-        title: 'Behaviorist Appointment',
+        title: 'Behaviorist reminder',
         eventDate: reminderDateTime,
         dateWhenEventAdded: DateTime.now(),
         userId: userId,
         petId: petId,
         description: _reasonController.text,
         emoticon: '💼',
-        behavioristId: reminderId, // Link the event to the reminder
+        behavioristId: reminderId,
       );
 
       await ref.read(eventServiceProvider).addEvent(event);
@@ -681,7 +700,7 @@ class _BehavioristReminderScreenState
       reason: _reasonController.text,
       assignedPetIds: _selectedPets,
       earlyNotificationIds: [],
-      eventIds: eventIds, // Store related event IDs
+      eventIds: eventIds,
     );
 
     await ref

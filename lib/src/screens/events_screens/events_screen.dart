@@ -56,7 +56,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final asyncEvents = ref.watch(eventsProvider);
+    final asyncEvents = ref.watch(eventsByPetIdProvider(widget.petId));
 
     return asyncEvents.when(
       loading: () => const Center(child: CircularProgressIndicator()),

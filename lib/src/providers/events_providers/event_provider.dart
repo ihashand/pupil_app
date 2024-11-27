@@ -13,3 +13,8 @@ final eventDateControllerProvider = StateProvider<DateTime>((ref) {
 final eventsProvider = StreamProvider<List<Event>>((ref) {
   return ref.watch(eventServiceProvider).getEventsStream();
 });
+
+final eventsByPetIdProvider =
+    StreamProvider.family<List<Event>, String>((ref, petId) {
+  return ref.watch(eventServiceProvider).getEventsByPetId(petId);
+});

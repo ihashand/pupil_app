@@ -20,6 +20,21 @@ class EventService {
     return _eventsController.stream;
   }
 
+  Stream<List<Event>> getEventsByPetId(String petId) {
+    return _firestore
+        .collection('events')
+        .where('petId', isEqualTo: petId)
+        .snapshots()
+        .map((snapshot) {
+      final events = snapshot.docs.map((doc) {
+        final event = Event.fromDocument(doc);
+        _cache[event.id] = event;
+        return event;
+      }).toList();
+      return events;
+    });
+  }
+
   Stream<Event?> getEventByIdStream(String eventId) {
     return Stream.fromFuture(getEventById(eventId));
   }
