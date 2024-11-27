@@ -284,7 +284,7 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
                       }
                       // Usuń wizytę
                       await vetAppointmentService
-                          .deleteAppointment(appointment);
+                          .deleteAppointment(appointment.id);
 
                       setState(() {}); // Odśwież widok po usunięciu
                     },

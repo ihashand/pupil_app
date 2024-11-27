@@ -45,13 +45,12 @@ class BehavioristReminderService {
     });
   }
 
-  Future<void> deleteBehavioristReminder(
-      BehavioristReminderModel reminder) async {
+  Future<void> deleteBehavioristReminder(String reminderid) async {
     try {
       // Usuń przypomnienie z bazy danych
       await _firestore
           .collection('behavioristReminders')
-          .doc(reminder.id)
+          .doc(reminderid)
           .delete();
     } catch (e) {
       throw Exception('Failed to delete behaviorist reminder: $e');

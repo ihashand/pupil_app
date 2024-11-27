@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/reminder_models/other_reminder_model.dart';
-import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Service to manage other reminders.
 class OtherReminderService {
@@ -46,10 +45,10 @@ class OtherReminderService {
   }
 
   /// Delete an other reminder by ID.
-  Future<void> deleteOtherReminder(OtherReminderModel reminder) async {
+  Future<void> deleteOtherReminder(String reminderId) async {
     try {
       // Delete reminder from the database
-      await _firestore.collection('otherReminders').doc(reminder.id).delete();
+      await _firestore.collection('otherReminders').doc(reminderId).delete();
     } catch (e) {
       throw Exception('Failed to delete other reminder: $e');
     }

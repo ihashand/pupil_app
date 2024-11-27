@@ -265,7 +265,7 @@ class _GroomingReminderScreenState
                       }
 
                       // Usuń przypomnienie z bazy danych
-                      await reminderService.deleteGroomingReminder(reminder);
+                      await reminderService.deleteGroomingReminder(reminder.id);
 
                       // Anuluj główne powiadomienie
                       await NotificationService()

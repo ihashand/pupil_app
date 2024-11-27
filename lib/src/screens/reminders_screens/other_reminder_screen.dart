@@ -289,7 +289,8 @@ class _OtherReminderScreenState extends ConsumerState<OtherReminderScreen> {
                       }
 
                       // Usuń przypomnienie
-                      await otherReminderService.deleteOtherReminder(reminder);
+                      await otherReminderService
+                          .deleteOtherReminder(reminder.id);
 
                       setState(() {}); // Odśwież widok po usunięciu
                     },

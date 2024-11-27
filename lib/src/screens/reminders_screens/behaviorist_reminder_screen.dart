@@ -265,7 +265,8 @@ class _BehavioristReminderScreenState
                       }
 
                       // Usuń przypomnienie z bazy danych
-                      await reminderService.deleteBehavioristReminder(reminder);
+                      await reminderService
+                          .deleteBehavioristReminder(reminder.id);
 
                       // Anuluj główne powiadomienie
                       await NotificationService()

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/reminder_models/vet_appotiment_reminder_model.dart';
-import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Service to manage vet appointments.
 class VetAppointmentService {
@@ -76,12 +75,12 @@ class VetAppointmentService {
   }
 
   /// Delete an appointment and cancel related notifications.
-  Future<void> deleteAppointment(VetAppointmentModel appointment) async {
+  Future<void> deleteAppointment(String appointmentId) async {
     try {
       // Usuń wizytę z bazy danych
       await _firestore
           .collection('vetAppointments')
-          .doc(appointment.id)
+          .doc(appointmentId)
           .delete();
       _cachedAppointments = null; // Wyczyść cache
     } catch (e) {

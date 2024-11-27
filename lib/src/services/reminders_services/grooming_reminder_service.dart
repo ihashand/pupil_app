@@ -36,13 +36,10 @@ class GroomingReminderService {
         .set(reminder.toMap());
   }
 
-  Future<void> deleteGroomingReminder(GroomingReminderModel reminder) async {
+  Future<void> deleteGroomingReminder(String reminderId) async {
     try {
       // Usuń przypomnienie z bazy danych
-      await _firestore
-          .collection('groomingReminders')
-          .doc(reminder.id)
-          .delete();
+      await _firestore.collection('groomingReminders').doc(reminderId).delete();
     } catch (e) {
       throw Exception('Failed to delete behaviorist reminder: $e');
     }

@@ -16,6 +16,10 @@ import 'package:pet_diary/src/providers/events_providers/event_urine_provider.da
 import 'package:pet_diary/src/providers/events_providers/event_walk_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_water_provider.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
+import 'package:pet_diary/src/providers/reminder_providers/behaviorist_reminder_provider.dart';
+import 'package:pet_diary/src/providers/reminder_providers/grooming_reminder_provider.dart';
+import 'package:pet_diary/src/providers/reminder_providers/other_service_provider.dart';
+import 'package:pet_diary/src/providers/reminder_providers/vet_appointment_reminder_provider.dart';
 
 void eventDeleteFunc(
   WidgetRef ref,
@@ -33,11 +37,15 @@ void eventDeleteFunc(
   final String weightId = event.weightId;
   final String moodId = event.moodId;
   final String stomachId = event.stomachId;
-  final String isssueId = event.issueId;
+  final String issueId = event.issueId;
   final String stoolId = event.stoolId;
   final String urineId = event.urineId;
   final String serviceId = event.serviceId;
   final String careId = event.careId;
+  final String vetId = event.vetAppointmentId;
+  final String groomingId = event.groomingId;
+  final String behavioristId = event.behavioristId;
+  final String otherReminderId = event.otherReminderId;
 
   ref.read(eventServiceProvider).deleteEvent(eventId);
 
@@ -79,8 +87,8 @@ void eventDeleteFunc(
     await ref.read(eventStomachServiceProvider).deleteStomach(stomachId);
   }
 
-  if (isssueId.isNotEmpty) {
-    await ref.read(eventIssueServiceProvider).deleteIssue(isssueId);
+  if (issueId.isNotEmpty) {
+    await ref.read(eventIssueServiceProvider).deleteIssue(issueId);
   }
 
   if (stoolId.isNotEmpty) {
@@ -97,6 +105,28 @@ void eventDeleteFunc(
 
   if (careId.isNotEmpty) {
     await ref.read(eventCareServiceProvider).deleteCare(careId);
+  }
+
+  if (vetId.isNotEmpty) {
+    await ref.read(vetAppointmentServiceProvider).deleteAppointment(vetId);
+  }
+
+  if (groomingId.isNotEmpty) {
+    await ref
+        .read(groomingReminderServiceProvider)
+        .deleteGroomingReminder(groomingId);
+  }
+
+  if (behavioristId.isNotEmpty) {
+    await ref
+        .read(behavioristReminderServiceProvider)
+        .deleteBehavioristReminder(behavioristId);
+  }
+
+  if (otherReminderId.isNotEmpty) {
+    await ref
+        .read(otherReminderServiceProvider)
+        .deleteOtherReminder(otherReminderId);
   }
 
   Navigator.of(context).pop();
