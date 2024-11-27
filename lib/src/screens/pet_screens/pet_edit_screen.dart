@@ -159,7 +159,7 @@ class _PetEditScreenState extends State<PetEditScreen> {
       emoticon: '⚖️',
     );
 
-    widget.ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    widget.ref.read(eventServiceProvider).addEvent(newEvent);
     widget.ref.read(eventWeightServiceProvider).addWeight(newWeight);
   }
 

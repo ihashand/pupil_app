@@ -355,7 +355,7 @@ void _saveUrineEvent(
     urineId: newUrine.id,
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
 // Główny widget eventTypeCardUrine

@@ -41,7 +41,7 @@ class EventService {
     }
   }
 
-  Future<void> addEvent(Event event, String petId) async {
+  Future<void> addEvent(Event event) async {
     await _firestore.collection('events').doc(event.id).set(event.toMap());
     _cache[event.id] = event;
   }

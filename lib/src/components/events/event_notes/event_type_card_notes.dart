@@ -370,7 +370,7 @@ void recordNoteEvent(
       emoticon: '📝',
     );
 
-    ref.read(eventServiceProvider).addEvent(newEvent, id);
+    ref.read(eventServiceProvider).addEvent(newEvent);
     ref.read(eventNoteServiceProvider).addNote(newNote);
   }
 }

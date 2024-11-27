@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_models/behaviorist_reminder_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/behaviorist_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
@@ -640,21 +642,9 @@ class _BehavioristReminderScreenState
     }
 
     final userId = ref.read(userIdProvider)!;
+    final reminderId = UniqueKey().toString();
 
-    final reminder = BehavioristReminderModel(
-      id: UniqueKey().toString(),
-      userId: userId,
-      date: _selectedDate!,
-      time: _selectedTime!,
-      reason: _reasonController.text,
-      assignedPetIds: _selectedPets,
-      earlyNotificationIds: [],
-    );
-
-    await ref
-        .read(behavioristReminderServiceProvider)
-        .addBehavioristReminder(reminder);
-
+    // Prepare related events
     final reminderDateTime = DateTime(
       _selectedDate!.year,
       _selectedDate!.month,
@@ -663,6 +653,42 @@ class _BehavioristReminderScreenState
       _selectedTime!.minute,
     );
 
+    final List<String> eventIds = [];
+    for (final petId in _selectedPets) {
+      final eventId = UniqueKey().toString();
+      final event = Event(
+        id: eventId,
+        title: 'Behaviorist Appointment',
+        eventDate: reminderDateTime,
+        dateWhenEventAdded: DateTime.now(),
+        userId: userId,
+        petId: petId,
+        description: _reasonController.text,
+        emoticon: '💼',
+        behavioristId: reminderId, // Link the event to the reminder
+      );
+
+      await ref.read(eventServiceProvider).addEvent(event);
+      eventIds.add(eventId);
+    }
+
+    // Create the reminder
+    final reminder = BehavioristReminderModel(
+      id: reminderId,
+      userId: userId,
+      date: _selectedDate!,
+      time: _selectedTime!,
+      reason: _reasonController.text,
+      assignedPetIds: _selectedPets,
+      earlyNotificationIds: [],
+      eventIds: eventIds, // Store related event IDs
+    );
+
+    await ref
+        .read(behavioristReminderServiceProvider)
+        .addBehavioristReminder(reminder);
+
+    // Schedule the main notification
     if (reminderDateTime.isAfter(DateTime.now())) {
       final mainNotificationId = reminder.hashCode;
       await NotificationService().createSingleNotification(
@@ -673,6 +699,7 @@ class _BehavioristReminderScreenState
         payload: 'behaviorist_reminder',
       );
 
+      // Schedule additional notifications
       final earlyNotificationIds = <int>[];
       for (var notification in _additionalNotifications) {
         final int value = notification['value'];
@@ -706,6 +733,7 @@ class _BehavioristReminderScreenState
         }
       }
 
+      // Update the reminder with additional notification IDs
       await ref
           .read(behavioristReminderServiceProvider)
           .updateAdditionalNotificationIds(reminder.id, earlyNotificationIds);

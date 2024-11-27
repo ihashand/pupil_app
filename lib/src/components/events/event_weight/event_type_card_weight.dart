@@ -423,7 +423,7 @@ void _saveWeightEvent(
     emoticon: '⚖️',
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
   ref.read(eventWeightServiceProvider).addWeight(newWeight);
 }
 

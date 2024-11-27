@@ -444,7 +444,7 @@ void _saveVaccineEvent(WidgetRef ref, String petId, String eventId,
     vaccineId: newVaccine.id,
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
 Widget eventTypeCardVaccines(BuildContext context, WidgetRef ref,

@@ -1479,7 +1479,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       emoticon: '💦',
     );
 
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    ref.read(eventServiceProvider).addEvent(newEvent);
   }
 
   void _saveStoolEvent(String petId, DateTime eventTime, String eventId) {
@@ -1505,7 +1505,7 @@ class _WalkInProgressScreenState extends ConsumerState<WalkInProgressScreen>
       emoticon: '💩',
     );
 
-    ref.read(eventServiceProvider).addEvent(newEvent, petId);
+    ref.read(eventServiceProvider).addEvent(newEvent);
   }
 
   void _removeEvent(Map<String, dynamic> event) {

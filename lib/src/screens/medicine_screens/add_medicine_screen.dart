@@ -243,9 +243,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           .read(eventMedicineServiceProvider)
           .addMedicine(newMedicine);
       for (var event in events) {
-        await widget.ref
-            .read(eventServiceProvider)
-            .addEvent(event, widget.petId);
+        await widget.ref.read(eventServiceProvider).addEvent(event);
       }
 
       for (var reminder in reminders) {

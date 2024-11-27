@@ -375,7 +375,7 @@ void _saveStoolEvent(
     stoolId: newStool.id,
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
 // Główny widget eventTypeCardStool

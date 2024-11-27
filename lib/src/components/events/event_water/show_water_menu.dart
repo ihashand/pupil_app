@@ -472,5 +472,5 @@ void _saveWaterEvent(
     avatarImage: 'assets/images/water_bowl.png',
     emoticon: '💧',
   );
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }

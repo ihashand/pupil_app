@@ -379,7 +379,6 @@ void showCareOptions(BuildContext context, WidgetRef ref,
   );
 }
 
-// Funkcja pomocnicza do zapisywania eventu Care
 void _saveCareEvent(
     BuildContext context,
     WidgetRef ref,
@@ -410,15 +409,13 @@ void _saveCareEvent(
     userId: FirebaseAuth.instance.currentUser!.uid,
     petId: petId,
     description: careDescription,
-    avatarImage: 'assets/images/dog_avatar_014.png',
     emoticon: emoji,
     careId: newCare.id,
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
-// Główny widget eventTypeCardCare, który wywołuje showCareOptions
 Widget eventTypeCardCare(BuildContext context, WidgetRef ref,
     {String? petId, List<String>? petIds}) {
   return eventTypeCard(

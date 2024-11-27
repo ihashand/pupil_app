@@ -617,5 +617,5 @@ void _saveFoodEvent(
             : 'assets/images/food/food_other.png',
     emoticon: '🍲',
   );
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }

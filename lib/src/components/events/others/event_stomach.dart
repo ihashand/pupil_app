@@ -114,7 +114,7 @@ class EventStomach extends ConsumerWidget {
 
                                 ref
                                     .read(eventServiceProvider)
-                                    .addEvent(newEvent, petId);
+                                    .addEvent(newEvent);
 
                                 Navigator.of(context).pop();
                                 Navigator.of(context).pop();

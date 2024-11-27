@@ -357,7 +357,7 @@ void _saveMoodEvent(WidgetRef ref, String petId, String eventId,
     moodId: newMood.id,
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
 // Główny widget karty dla mood

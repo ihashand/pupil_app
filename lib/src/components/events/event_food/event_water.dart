@@ -234,9 +234,7 @@ class _EventWaterState extends ConsumerState<EventWater> {
                                 emoticon: '💧',
                               );
 
-                              ref
-                                  .read(eventServiceProvider)
-                                  .addEvent(newEvent, widget.petId);
+                              ref.read(eventServiceProvider).addEvent(newEvent);
                               ref
                                   .read(eventWaterServiceProvider)
                                   .addWater(newWater);

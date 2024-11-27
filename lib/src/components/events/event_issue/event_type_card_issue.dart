@@ -393,7 +393,7 @@ void _saveIssueEvent(WidgetRef ref, String petId, String eventId,
     issueId: newIssue.id,
   );
 
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
 // Główny widget karty dla issues

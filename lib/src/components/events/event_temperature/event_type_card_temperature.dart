@@ -421,7 +421,7 @@ void _saveTemperatureEvent(
   );
 
   ref.read(eventTemperatureServiceProvider).addTemperature(newTemperature);
-  ref.read(eventServiceProvider).addEvent(newEvent, petId);
+  ref.read(eventServiceProvider).addEvent(newEvent);
 }
 
 // Funkcja wyświetlająca dialog błędu

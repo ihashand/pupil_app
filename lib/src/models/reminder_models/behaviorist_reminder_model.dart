@@ -8,7 +8,8 @@ class BehavioristReminderModel {
   final List<String> assignedPetIds;
   final DateTime date;
   final TimeOfDay time;
-  final List<int> earlyNotificationIds; // Dodane pole
+  final List<int> earlyNotificationIds;
+  final List<String> eventIds; // Store related event IDs
 
   BehavioristReminderModel({
     required this.id,
@@ -17,7 +18,8 @@ class BehavioristReminderModel {
     required this.assignedPetIds,
     required this.date,
     required this.time,
-    required this.earlyNotificationIds, // Dodane w konstruktorze
+    required this.earlyNotificationIds,
+    required this.eventIds,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,7 +30,8 @@ class BehavioristReminderModel {
       'assignedPetIds': assignedPetIds,
       'date': date.toIso8601String(),
       'time': '${time.hour}:${time.minute}',
-      'earlyNotificationIds': earlyNotificationIds, // Mapowanie
+      'earlyNotificationIds': earlyNotificationIds,
+      'eventIds': eventIds,
     };
   }
 
@@ -44,8 +47,8 @@ class BehavioristReminderModel {
         hour: int.parse(timeParts[0]),
         minute: int.parse(timeParts[1]),
       ),
-      earlyNotificationIds:
-          List<int>.from(map['earlyNotificationIds'] ?? []), // Mapowanie
+      earlyNotificationIds: List<int>.from(map['earlyNotificationIds'] ?? []),
+      eventIds: List<String>.from(map['eventIds'] ?? []),
     );
   }
 }
