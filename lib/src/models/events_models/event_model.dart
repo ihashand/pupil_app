@@ -24,6 +24,7 @@ class Event {
   String personId = '';
   String careId = '';
   String behavioristId = '';
+  String groomingId = '';
   String avatarImage = '';
   String emoticon = '';
   String vetVisitId = '';
@@ -55,6 +56,7 @@ class Event {
     this.serviceId = '',
     this.careId = '',
     this.behavioristId = '',
+    this.groomingId = '',
     this.issueId = '',
     this.vetVisitId = '',
     this.vaccineId = '',
@@ -91,6 +93,7 @@ class Event {
     avatarImage = doc.get('avatarImage') ?? '';
     emoticon = doc.get('emoticon') ?? '';
     vetVisitId = doc.get('vetVisitId') ?? '';
+    groomingId = doc.get('groomingId') ?? '';
   }
 
   Map<String, dynamic> toMap() {
@@ -121,6 +124,7 @@ class Event {
       'vetVisitId': vetVisitId,
       'vaccineId': vaccineId,
       'behavioristId': behavioristId,
+      'groomingId': groomingId,
     };
   }
 }

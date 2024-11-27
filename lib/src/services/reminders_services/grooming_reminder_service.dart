@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/models/reminder_models/grooming_reminder_model.dart';
-import 'package:pet_diary/src/services/notification_services/notification_services.dart';
 
 /// Service to manage grooming reminders.
 class GroomingReminderService {
@@ -37,32 +36,15 @@ class GroomingReminderService {
         .set(reminder.toMap());
   }
 
-  /// Delete a grooming reminder and cancel related notifications.
-  Future<void> deleteGroomingReminder(String reminderId) async {
+  Future<void> deleteGroomingReminder(GroomingReminderModel reminder) async {
     try {
-      // Pobierz szczegóły przypomnienia
-      final doc = await _firestore
-          .collection('groomingReminders')
-          .doc(reminderId)
-          .get();
-      if (!doc.exists) {
-        throw Exception('Reminder not found');
-      }
-
-      final reminder = GroomingReminderModel.fromMap(doc.data()!);
-
-      // Anuluj główne powiadomienie
-      await NotificationService().cancelNotification(reminder.hashCode);
-
-      // Anuluj wczesne powiadomienia
-      for (final notificationId in reminder.earlyNotificationIds) {
-        await NotificationService().cancelNotification(notificationId);
-      }
-
       // Usuń przypomnienie z bazy danych
-      await _firestore.collection('groomingReminders').doc(reminderId).delete();
+      await _firestore
+          .collection('groomingReminders')
+          .doc(reminder.id)
+          .delete();
     } catch (e) {
-      throw Exception('Failed to delete grooming reminder: $e');
+      throw Exception('Failed to delete behaviorist reminder: $e');
     }
   }
 }

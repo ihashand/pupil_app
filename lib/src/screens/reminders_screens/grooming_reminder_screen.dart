@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pet_diary/src/models/events_models/event_model.dart';
 import 'package:pet_diary/src/models/reminder_models/grooming_reminder_model.dart';
+import 'package:pet_diary/src/providers/events_providers/event_provider.dart';
 import 'package:pet_diary/src/providers/reminder_providers/grooming_reminder_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
@@ -253,9 +255,29 @@ class _GroomingReminderScreenState
                       color: Theme.of(context).primaryColorDark,
                     ),
                     onPressed: () async {
-                      await ref
-                          .read(groomingReminderServiceProvider)
-                          .deleteGroomingReminder(reminder.id);
+                      final eventService = ref.read(eventServiceProvider);
+                      final reminderService =
+                          ref.read(groomingReminderServiceProvider);
+
+                      // Usuń wszystkie powiązane wydarzenia
+                      for (final eventId in reminder.eventIds) {
+                        await eventService.deleteEvent(eventId);
+                      }
+
+                      // Usuń przypomnienie z bazy danych
+                      await reminderService.deleteGroomingReminder(reminder);
+
+                      // Anuluj główne powiadomienie
+                      await NotificationService()
+                          .cancelNotification(reminder.hashCode);
+
+                      // Anuluj wczesne powiadomienia
+                      for (final notificationId
+                          in reminder.earlyNotificationIds) {
+                        await NotificationService()
+                            .cancelNotification(notificationId);
+                      }
+
                       setState(() {}); // Odśwież widok
                     },
                   ),
@@ -653,25 +675,12 @@ class _GroomingReminderScreenState
     if (_selectedDate == null ||
         _selectedTime == null ||
         _reasonController.text.isEmpty) {
-      // Wyświetlanie błędu jako okno dialogowe
       await _showValidationError(context);
       return;
     }
 
     final userId = ref.read(userIdProvider)!;
-
-    final reminder = GroomingReminderModel(
-      id: UniqueKey().toString(),
-      userId: userId,
-      date: _selectedDate!,
-      time: _selectedTime!,
-      reason: _reasonController.text,
-      assignedPetIds: _selectedPets,
-    );
-
-    await ref
-        .read(groomingReminderServiceProvider)
-        .addGroomingReminder(reminder);
+    final reminderId = UniqueKey().toString();
 
     final reminderDateTime = DateTime(
       _selectedDate!.year,
@@ -681,47 +690,87 @@ class _GroomingReminderScreenState
       _selectedTime!.minute,
     );
 
-    if (reminderDateTime.isAfter(DateTime.now())) {
-      // Main notification
-      await NotificationService().createSingleNotification(
-        id: reminder.hashCode,
+    // Tworzenie powiązanych wydarzeń
+    final List<String> eventIds = [];
+    for (final petId in _selectedPets) {
+      final eventId = UniqueKey().toString();
+      final event = Event(
+        id: eventId,
         title: 'Grooming Reminder',
-        body: _generateNotificationBody(reminder),
-        dateTime: reminderDateTime,
-        payload: 'grooming_reminder',
+        eventDate: reminderDateTime,
+        dateWhenEventAdded: DateTime.now(),
+        userId: userId,
+        petId: petId,
+        description: _reasonController.text,
+        emoticon: '✂️',
+        groomingId: reminderId,
       );
 
-      // Early notifications
-      for (var notification in _additionalNotifications) {
-        final int value = notification['value'];
-        final String unit = notification['unit'];
+      await ref.read(eventServiceProvider).addEvent(event);
+      eventIds.add(eventId);
+    }
 
-        DateTime earlyNotificationTime;
-        if (unit == 'minute') {
-          earlyNotificationTime = reminderDateTime.subtract(
-            Duration(minutes: value),
-          );
-        } else if (unit == 'hour') {
-          earlyNotificationTime = reminderDateTime.subtract(
-            Duration(hours: value),
-          );
-        } else {
-          earlyNotificationTime = reminderDateTime.subtract(
-            Duration(days: value),
-          );
-        }
+    // Tworzenie przypomnienia
+    final reminder = GroomingReminderModel(
+      id: reminderId,
+      userId: userId,
+      date: _selectedDate!,
+      time: _selectedTime!,
+      reason: _reasonController.text,
+      assignedPetIds: _selectedPets,
+      earlyNotificationIds: [],
+      eventIds: eventIds,
+    );
 
-        if (earlyNotificationTime.isAfter(DateTime.now())) {
-          await NotificationService().createSingleNotification(
-            id: reminder.hashCode + value, // Unique ID
-            title: 'Early Grooming Reminder',
-            body: _generateNotificationBody(reminder),
-            dateTime: earlyNotificationTime,
-            payload: 'grooming_reminder_early',
-          );
-        }
+    // Tworzenie wczesnych powiadomień
+    final earlyNotificationIds = <int>[];
+    for (var notification in _additionalNotifications) {
+      final int value = notification['value'];
+      final String unit = notification['unit'];
+
+      DateTime earlyNotificationTime;
+      if (unit == 'minute') {
+        earlyNotificationTime =
+            reminderDateTime.subtract(Duration(minutes: value));
+      } else if (unit == 'hour') {
+        earlyNotificationTime =
+            reminderDateTime.subtract(Duration(hours: value));
+      } else {
+        earlyNotificationTime =
+            reminderDateTime.subtract(Duration(days: value));
+      }
+
+      if (earlyNotificationTime.isAfter(DateTime.now())) {
+        final earlyNotificationId = reminderId.hashCode + value;
+        earlyNotificationIds.add(earlyNotificationId);
+        await NotificationService().createSingleNotification(
+          id: earlyNotificationId,
+          title: 'Early Grooming Reminder',
+          body: _generateNotificationBody(reminder),
+          dateTime: earlyNotificationTime,
+          payload: 'grooming_reminder_early',
+        );
       }
     }
+
+    // Tworzenie głównej notyfikacji
+    final mainNotificationId = reminderId.hashCode;
+    await NotificationService().createSingleNotification(
+      id: mainNotificationId,
+      title: 'Grooming Reminder',
+      body: _generateNotificationBody(reminder),
+      dateTime: reminderDateTime,
+      payload: 'grooming_reminder',
+    );
+
+    // Aktualizacja przypomnienia z ID wczesnych notyfikacji
+    final updatedReminder = reminder.copyWith(
+      earlyNotificationIds: earlyNotificationIds,
+    );
+
+    await ref
+        .read(groomingReminderServiceProvider)
+        .addGroomingReminder(updatedReminder);
 
     if (mounted) {
       Navigator.pop(context);

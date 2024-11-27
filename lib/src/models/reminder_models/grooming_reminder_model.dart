@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Model for grooming reminders.
 class GroomingReminderModel {
   final String id;
   final String userId;
@@ -9,6 +8,7 @@ class GroomingReminderModel {
   final DateTime date;
   final TimeOfDay time;
   final List<int> earlyNotificationIds;
+  final List<String> eventIds;
 
   GroomingReminderModel({
     required this.id,
@@ -17,10 +17,10 @@ class GroomingReminderModel {
     required this.assignedPetIds,
     required this.date,
     required this.time,
-    this.earlyNotificationIds = const [],
+    required this.earlyNotificationIds,
+    required this.eventIds,
   });
 
-  /// Create a modified copy of the current instance.
   GroomingReminderModel copyWith({
     String? id,
     String? userId,
@@ -29,6 +29,7 @@ class GroomingReminderModel {
     DateTime? date,
     TimeOfDay? time,
     List<int>? earlyNotificationIds,
+    List<String>? eventIds,
   }) {
     return GroomingReminderModel(
       id: id ?? this.id,
@@ -38,6 +39,7 @@ class GroomingReminderModel {
       date: date ?? this.date,
       time: time ?? this.time,
       earlyNotificationIds: earlyNotificationIds ?? this.earlyNotificationIds,
+      eventIds: eventIds ?? this.eventIds,
     );
   }
 
@@ -50,6 +52,7 @@ class GroomingReminderModel {
       'date': date.toIso8601String(),
       'time': '${time.hour}:${time.minute}',
       'earlyNotificationIds': earlyNotificationIds,
+      'eventIds': eventIds,
     };
   }
 
@@ -66,6 +69,7 @@ class GroomingReminderModel {
         minute: int.parse(timeParts[1]),
       ),
       earlyNotificationIds: List<int>.from(map['earlyNotificationIds'] ?? []),
+      eventIds: List<String>.from(map['eventIds'] ?? []),
     );
   }
 }
