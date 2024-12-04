@@ -54,15 +54,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
         // Filtrowanie wydarzeń na podstawie wybranej kategorii
         final filteredEvents = allEvents.where((event) {
           if (isCurrentSelected) {
-            // Dla "Current" (dzisiaj i przyszłość)
             return event.eventDate.isAtSameMomentAs(today) ||
                 event.eventDate.isAfter(today) &&
                     event.eventDate.isBefore(monthLater);
           } else {
-            // Dla "History" (od wczoraj wstecz, bez dzisiejszych)
             return event.eventDate.isBefore(today) &&
-                    event.eventDate.isAtSameMomentAs(yesterday) ||
-                event.eventDate.isBefore(yesterday);
+                (event.eventDate.isAtSameMomentAs(yesterday) ||
+                    event.eventDate.isBefore(yesterday));
           }
         }).toList();
 
@@ -128,10 +126,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                               setState(() => selectedDate = selectedDay);
                             },
                             eventLoader: (day) {
-                              return allEvents
-                                  .where((event) =>
+                              // Zwracamy jedną wartość na dzień z wydarzeniami
+                              return allEvents.any((event) =>
                                       isSameDay(event.eventDate, day))
-                                  .toList();
+                                  ? [true]
+                                  : [];
                             },
                             headerStyle: HeaderStyle(
                               formatButtonVisible: true,
@@ -156,6 +155,27 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                                 color: Theme.of(context).primaryColorDark,
                               ),
                             ),
+                            calendarBuilders: CalendarBuilders(
+                              markerBuilder: (context, date, events) {
+                                // Wyświetlamy tylko jedną kropkę dla dni z wydarzeniami
+                                if (events.isNotEmpty) {
+                                  return Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Container(
+                                      width: 8.0,
+                                      height: 8.0,
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .primaryColorDark
+                                            .withOpacity(0.5),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return null;
+                              },
+                            ),
                             calendarStyle: CalendarStyle(
                               todayDecoration: BoxDecoration(
                                 color: Theme.of(context)
@@ -167,15 +187,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                                 color: Theme.of(context).colorScheme.secondary,
                                 shape: BoxShape.circle,
                               ),
-                              // Kropka wskazująca obecność eventu
-                              markerDecoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .primaryColorDark
-                                    .withOpacity(0.5),
-                                shape: BoxShape.circle,
-                              ),
                             ),
                           ),
+                          const SizedBox(
+                            height: 6,
+                          )
                         ],
                       ),
                     ),
