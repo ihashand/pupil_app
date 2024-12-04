@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:pet_diary/src/components/pet_components/pet_mood_and_needs_container.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
@@ -632,33 +631,6 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
-  /// Buduje widżet z motywującym tekstem
-  Widget _buildMotivationalTextWidget() {
-    final motivationalTexts = [
-      'Great start, keep it up!',
-      'Amazing effort, don’t stop now!',
-      'Incredible progress, well done!',
-      'One step at a time, keep going!',
-      'No limits, just possibilities!',
-    ];
-
-    final randomText =
-        motivationalTexts[Random().nextInt(motivationalTexts.length)];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Text(
-        randomText,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).primaryColorDark,
-        ),
-        textAlign: TextAlign.left,
-      ),
-    );
-  }
-
   /// Buduje przyciski akcji
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
@@ -753,20 +725,6 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       age--;
     }
     return '$age years';
-  }
-
-  /// Pobiera emotikonę osiągnięcia na podstawie procentu ukończenia
-  String _getAchievementEmoticon(double percentage) {
-    if (percentage < 10) return '💪';
-    if (percentage < 20) return '🔥';
-    if (percentage < 30) return '🏆';
-    if (percentage < 40) return '🚀';
-    if (percentage < 50) return '💯';
-    if (percentage < 60) return '🎉';
-    if (percentage < 70) return '🌟';
-    if (percentage < 80) return '🏅';
-    if (percentage < 90) return '⭐';
-    return '👑';
   }
 
   void _showWeightInfoDialog(BuildContext context) {

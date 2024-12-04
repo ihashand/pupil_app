@@ -17,35 +17,19 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
     with SingleTickerProviderStateMixin {
   bool isCurrentSelected = true;
   bool isCalendarView = true;
-  bool isLoadingMore = false;
   int itemsToLoad = 5;
-  late AnimationController _animationController;
-  late Animation<Offset> _bounceAnimation;
-  Map<String, bool> expandedEvents = {};
+  CalendarFormat calendarFormat = CalendarFormat.week;
   DateTime selectedDate = DateTime.now();
+
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
-
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 300),
     );
-
-    _bounceAnimation = Tween<Offset>(
-      begin: const Offset(0, -1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.bounceOut,
-    ));
-  }
-
-  void _triggerNoEventsAnimation() {
-    if (mounted) {
-      _animationController.forward(from: 0.0);
-    }
   }
 
   @override
@@ -63,14 +47,23 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
       error: (err, stack) => Center(child: Text('Error: $err')),
       data: (allEvents) {
         final now = DateTime.now();
-        final monthLater = now.add(const Duration(days: 30));
+        final today = DateTime(now.year, now.month, now.day);
+        final yesterday = today.subtract(const Duration(days: 1));
+        final monthLater = today.add(const Duration(days: 30));
 
+        // Filtrowanie wydarzeń na podstawie wybranej kategorii
         final filteredEvents = allEvents.where((event) {
-          return isCurrentSelected
-              ? event.eventDate
-                      .isAfter(now.subtract(const Duration(days: 1))) &&
-                  event.eventDate.isBefore(monthLater)
-              : event.eventDate.isBefore(now);
+          if (isCurrentSelected) {
+            // Dla "Current" (dzisiaj i przyszłość)
+            return event.eventDate.isAtSameMomentAs(today) ||
+                event.eventDate.isAfter(today) &&
+                    event.eventDate.isBefore(monthLater);
+          } else {
+            // Dla "History" (od wczoraj wstecz, bez dzisiejszych)
+            return event.eventDate.isBefore(today) &&
+                    event.eventDate.isAtSameMomentAs(yesterday) ||
+                event.eventDate.isBefore(yesterday);
+          }
         }).toList();
 
         final eventsOnSelectedDate = allEvents
@@ -104,6 +97,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
           body: isCalendarView
               ? Column(
                   children: [
+                    // Widok kalendarza
                     Container(
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.primary,
@@ -122,17 +116,16 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                             firstDay: DateTime.utc(2010, 10, 16),
                             lastDay: DateTime.utc(2050, 3, 14),
                             focusedDay: selectedDate,
-                            calendarFormat: CalendarFormat.month,
+                            calendarFormat: calendarFormat,
+                            onFormatChanged: (format) {
+                              setState(() {
+                                calendarFormat = format;
+                              });
+                            },
                             selectedDayPredicate: (day) =>
                                 isSameDay(selectedDate, day),
                             onDaySelected: (selectedDay, _) {
                               setState(() => selectedDate = selectedDay);
-                              if (allEvents
-                                  .where((event) =>
-                                      isSameDay(event.eventDate, selectedDay))
-                                  .isEmpty) {
-                                _triggerNoEventsAnimation();
-                              }
                             },
                             eventLoader: (day) {
                               return allEvents
@@ -140,29 +133,16 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                                       isSameDay(event.eventDate, day))
                                   .toList();
                             },
-                            calendarBuilders: CalendarBuilders(
-                              markerBuilder: (context, date, events) {
-                                if (events.isNotEmpty) {
-                                  return Align(
-                                    alignment: Alignment.topRight,
-                                    child: Container(
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.red,
-                                      ),
-                                      width: 5.0,
-                                      height: 5.0,
-                                      margin: const EdgeInsets.only(
-                                          top: 7, right: 7),
-                                    ),
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
                             headerStyle: HeaderStyle(
-                              formatButtonVisible: false,
+                              formatButtonVisible: true,
                               titleCentered: true,
+                              formatButtonTextStyle: TextStyle(
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                              formatButtonDecoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               titleTextStyle: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontWeight: FontWeight.bold,
@@ -170,12 +150,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                               leftChevronIcon: Icon(
                                 Icons.chevron_left,
                                 color: Theme.of(context).primaryColorDark,
-                                size: 24,
                               ),
                               rightChevronIcon: Icon(
                                 Icons.chevron_right,
                                 color: Theme.of(context).primaryColorDark,
-                                size: 24,
                               ),
                             ),
                             calendarStyle: CalendarStyle(
@@ -186,15 +164,17 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                                 shape: BoxShape.circle,
                               ),
                               selectedDecoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.secondary,
+                                shape: BoxShape.circle,
+                              ),
+                              // Kropka wskazująca obecność eventu
+                              markerDecoration: BoxDecoration(
                                 color: Theme.of(context)
-                                    .colorScheme
-                                    .inversePrimary
-                                    .withOpacity(0.9),
+                                    .primaryColorDark
+                                    .withOpacity(0.5),
                                 shape: BoxShape.circle,
                               ),
                             ),
-                            daysOfWeekVisible: false,
-                            startingDayOfWeek: StartingDayOfWeek.monday,
                           ),
                         ],
                       ),
@@ -206,18 +186,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                               itemCount: eventsOnSelectedDate.length,
                               itemBuilder: (context, index) {
                                 final event = eventsOnSelectedDate[index];
-                                return GestureDetector(
-                                  onTap: () => setState(() {
-                                    expandedEvents[event.id] =
-                                        !(expandedEvents[event.id] ?? false);
-                                  }),
-                                  child: EventTile(
-                                    ref: ref,
-                                    event: event,
-                                    isExpanded:
-                                        expandedEvents[event.id] ?? false,
-                                    petId: widget.petId,
-                                  ),
+                                return EventTile(
+                                  ref: ref,
+                                  event: event,
+                                  petId: widget.petId,
+                                  isExpanded: true,
                                 );
                               },
                             ),
@@ -227,62 +200,21 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
               : Column(
                   children: [
                     _buildToggleButtons(context),
-                    if (filteredEvents.isEmpty) _buildNoEventsMessage(context),
                     Expanded(
-                      child: NotificationListener<ScrollNotification>(
-                        onNotification: (scrollInfo) {
-                          if (scrollInfo.metrics.pixels ==
-                                  scrollInfo.metrics.maxScrollExtent &&
-                              !isLoadingMore &&
-                              scrollInfo.metrics.axisDirection ==
-                                  AxisDirection.down) {
-                            if (mounted) {
-                              setState(() {
-                                isLoadingMore = true;
-                              });
-                            }
-                            Future.delayed(const Duration(seconds: 2), () {
-                              if (mounted) {
-                                setState(() {
-                                  itemsToLoad += 5;
-                                  isLoadingMore = false;
-                                });
-                              }
-                            });
-                          }
-                          return false;
-                        },
-                        child: ListView.builder(
-                          itemCount:
-                              eventsToDisplay.length + (isLoadingMore ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index >= eventsToDisplay.length) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 20),
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: Theme.of(context).primaryColorDark,
-                                  ),
-                                ),
-                              );
-                            }
-                            final event = eventsToDisplay[index];
-                            return GestureDetector(
-                              onTap: () => setState(() {
-                                expandedEvents[event.id] =
-                                    !(expandedEvents[event.id] ?? false);
-                              }),
-                              child: EventTile(
-                                ref: ref,
-                                event: event,
-                                isExpanded: expandedEvents[event.id] ?? false,
-                                petId: widget.petId,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      child: filteredEvents.isEmpty
+                          ? _buildNoEventsMessage(context)
+                          : ListView.builder(
+                              itemCount: eventsToDisplay.length,
+                              itemBuilder: (context, index) {
+                                final event = eventsToDisplay[index];
+                                return EventTile(
+                                  ref: ref,
+                                  event: event,
+                                  petId: widget.petId,
+                                  isExpanded: true,
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -362,43 +294,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
   }
 
   Widget _buildNoEventsMessage(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 100.0),
-      child: Center(
-        child: FadeTransition(
-          opacity: _animationController.drive(
-            Tween<double>(begin: 0.0, end: 1.0),
-          ),
-          child: SlideTransition(
-            position: _bounceAnimation,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 40),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.event_busy,
-                    size: 50,
-                    color: Theme.of(context).primaryColorDark,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "No events scheduled for this date.\nCheck back later or add a new event!",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColorDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    return Center(
+      child: Text(
+        "No events scheduled for this date.",
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).primaryColorDark,
         ),
       ),
     );
