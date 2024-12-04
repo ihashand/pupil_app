@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-
 import 'package:pet_diary/src/components/pet_components/pet_mood_and_needs_container.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:pet_diary/src/models/others/achievement.dart';
@@ -8,15 +7,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/providers/events_providers/event_weight_provider.dart';
-import 'package:pet_diary/src/screens/events_screens/event_type_selection_screen.dart';
+import 'package:pet_diary/src/providers/others_providers/app_user_provider.dart';
+import 'package:pet_diary/src/providers/others_providers/friend_provider.dart';
 import 'package:pet_diary/src/screens/events_screens/events_screen.dart';
+import 'package:pet_diary/src/screens/friends_screens/friend_profile_screen.dart';
 import 'package:pet_diary/src/screens/friends_screens/friend_statistic_screen.dart';
 import 'package:pet_diary/src/components/achievement_widgets/achievement_card.dart';
 import 'package:pet_diary/src/screens/activity_screens/activity_screen.dart';
 import 'package:pet_diary/src/helpers/others/helper_show_avatar_selection.dart';
-import 'package:pet_diary/src/components/events/event_cards/event_health_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_diary/src/providers/others_providers/pet_provider.dart';
+import 'package:pet_diary/src/screens/friends_screens/friends_screen.dart';
 import 'package:pet_diary/src/screens/pet_screens/pet_edit_screen.dart';
 
 // ignore: must_be_immutable
@@ -98,12 +99,13 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
                 children: [
                   _buildHeaderSection(context),
                   const SizedBox(height: 10),
-                  PetMoodAndNeedsContainer(
-                    petName: widget.pet.name,
-                    petId: widget.pet.id,
-                    ref: ref,
-                  ),
-                  if (isOwner) _buildHealthEventSection(),
+                  if (isOwner)
+                    PetMoodAndNeedsContainer(
+                      petName: widget.pet.name,
+                      petId: widget.pet.id,
+                      ref: ref,
+                    ),
+                  _buildFriendsSection(context),
                   _buildAchievementsSection(context),
                   _buildActionButtons(context),
                 ],
@@ -353,6 +355,10 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               child: Column(
                 children: [
                   _buildAchievementsHeader(context, allAchievements),
+                  Divider(
+                    color: Theme.of(context).colorScheme.surface,
+                    thickness: 1.0,
+                  ),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -414,11 +420,11 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 18.0),
+          padding: const EdgeInsets.only(left: 12.0),
           child: Text(
             "Achievements",
             style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColorDark),
           ),
@@ -430,7 +436,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
               _showAllAchievementsMenu(context, achievements);
             },
             child: Text(
-              'See all',
+              '. . .',
               style: TextStyle(
                 color: Theme.of(context).primaryColorDark,
                 fontSize: 16,
@@ -472,84 +478,71 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
 
               int totalAchievements = filteredAchievements.length;
               int earnedAchievementsCount = earnedAchievements.length;
-              double percentage = totalAchievements == 0
-                  ? 0
-                  : (earnedAchievementsCount / totalAchievements) * 100;
 
               return Column(
                 children: [
                   _buildAchievementModalHeader(context),
-                  _buildCategoryFilterButtons(context, setState),
-                  Divider(
-                    color: Theme.of(context).colorScheme.primary,
-                    thickness: 1.0,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Divider(
+                      color: Theme.of(context).colorScheme.primary,
+                      thickness: 1.0,
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 4.0),
+                    padding: const EdgeInsets.only(
+                        left: 8, right: 8, top: 10, bottom: 20),
                     child: Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Row(
-                                children: [
-                                  Text(
-                                    '🎯',
-                                    style: TextStyle(fontSize: 40),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '$earnedAchievementsCount / $totalAchievements',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Total achievements earned',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).primaryColorDark,
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  Text(
-                                    _getAchievementEmoticon(percentage),
-                                    style: const TextStyle(fontSize: 40),
+                                  const Padding(
+                                    padding: EdgeInsets.only(left: 8.0),
+                                    child: Text(
+                                      '🎯',
+                                      style: TextStyle(fontSize: 40),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 10, left: 15.0),
+                                    child: Text(
+                                      '$earnedAchievementsCount / $totalAchievements',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            Theme.of(context).primaryColorDark,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
-                              _buildMotivationalTextWidget(),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 10.0),
+                                child: Text(
+                                  'Total achievements earned',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).primaryColorDark,
+                                  ),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Divider(
-                    color: Theme.of(context).colorScheme.primary,
-                    thickness: 1.0,
-                  ),
+                  _buildCategoryFilterButtons(context, setState),
                   Expanded(
                     child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
@@ -606,9 +599,9 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
         Padding(
           padding: const EdgeInsets.only(top: 18.0, left: 20, bottom: 2),
           child: Text(
-            'A C H I E V E M E N T S',
+            'Achievements',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryColorDark,
             ),
@@ -666,22 +659,6 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
     );
   }
 
-  /// Buduje sekcję zdarzeń zdrowotnych
-  Widget _buildHealthEventSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: EventHealthCard(
-        onCreatePressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                EventTypeSelectionScreen(petId: widget.pet.id),
-          ),
-        ),
-      ),
-    );
-  }
-
   /// Buduje przyciski akcji
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
@@ -694,21 +671,23 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
         padding: const EdgeInsets.all(5),
         child: Column(
           children: [
-            ListTile(
-              leading:
-                  Icon(Icons.event, color: Theme.of(context).primaryColorDark),
-              title: Text('Events',
-                  style: TextStyle(
-                      color: Theme.of(context).primaryColorDark, fontSize: 14)),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EventsScreen(widget.pet.id),
-                  ),
-                );
-              },
-            ),
+            if (isOwner)
+              ListTile(
+                leading: Icon(Icons.event,
+                    color: Theme.of(context).primaryColorDark),
+                title: Text('Events',
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 14)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EventsScreen(widget.pet.id),
+                    ),
+                  );
+                },
+              ),
             Divider(
               color: Theme.of(context).colorScheme.surface,
             ),
@@ -825,7 +804,7 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
   Widget _buildCategoryFilterButtons(
       BuildContext context, StateSetter setState) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -868,6 +847,171 @@ class _PetProfileScreenState extends ConsumerState<PetProfileScreen> {
             color: Theme.of(context).primaryColorDark,
             fontSize: 12,
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Buduje sekcję znajomych
+  Widget _buildFriendsSection(BuildContext context) {
+    final friendsAsyncValue = ref.watch(friendsStreamProvider);
+    int currentPage = 0;
+
+    void navigateToPage(int page, int totalPages) {
+      if (page >= 0 && page < totalPages) {
+        setState(() {
+          currentPage = page;
+        });
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 12.0, right: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Friends',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColorDark,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.person_add),
+                    color: Theme.of(context).primaryColorDark,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FriendsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            friendsAsyncValue.when(
+              data: (friends) {
+                if (friends.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'You have no friends yet!',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context).primaryColorDark,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                const int pageSize = 5;
+                final totalPages = (friends.length / pageSize).ceil();
+                final startIndex = currentPage * pageSize;
+                final endIndex =
+                    (startIndex + pageSize).clamp(0, friends.length);
+                final currentFriends = friends.sublist(startIndex, endIndex);
+                return Column(
+                  children: [
+                    ...currentFriends.map(
+                      (friend) => Consumer(
+                        builder: (context, ref, child) {
+                          final userAsyncValue = ref
+                              .watch(appUserDetailsProvider(friend.friendId));
+                          return userAsyncValue.when(
+                            data: (user) => ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: AssetImage(user.avatarUrl),
+                              ),
+                              title: Text(
+                                user.username,
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
+                              subtitle: Text(user.email),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        FriendProfileScreen(userId: user.id),
+                                  ),
+                                );
+                              },
+                            ),
+                            loading: () => const Center(
+                                child: CircularProgressIndicator()),
+                            error: (error, stack) =>
+                                Text('Error loading friend: $error'),
+                          );
+                        },
+                      ),
+                    ),
+                    if (totalPages > 1)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_left),
+                              onPressed: currentPage > 0
+                                  ? () => navigateToPage(
+                                      currentPage - 1, totalPages)
+                                  : null,
+                            ),
+                            Text(
+                              'Page ${currentPage + 1} of $totalPages',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).primaryColorDark,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_right),
+                              onPressed: currentPage < totalPages - 1
+                                  ? () => navigateToPage(
+                                      currentPage + 1, totalPages)
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Text(
+                  'Error loading friends: $error',
+                  style: TextStyle(color: Theme.of(context).primaryColorDark),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

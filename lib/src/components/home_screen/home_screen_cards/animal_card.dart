@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pet_diary/src/components/home_screen/home_screen_cards/animated_paw_print.dart';
-import 'package:pet_diary/src/helpers/walk_strike.dart';
+import 'package:pet_diary/src/helpers/others/walk_strike.dart';
 import 'package:pet_diary/src/models/events_models/event_walk_model.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 import 'package:flutter/material.dart';
