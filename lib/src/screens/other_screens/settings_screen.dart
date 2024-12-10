@@ -32,18 +32,22 @@ class SettingsScreen extends ConsumerWidget {
                 margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
                 padding: const EdgeInsets.all(12),
                 child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Dark Mode",
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                      CupertinoSwitch(
-                        value: theme.isDarkMode,
-                        onChanged: ((value) => theme.toggleTheme()),
-                      ),
-                    ]),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Dark Mode",
+                      style:
+                          TextStyle(color: Theme.of(context).primaryColorDark),
+                    ),
+                    CupertinoSwitch(
+                      value: theme.isDarkMode,
+                      onChanged: ((value) {
+                        print("Przełącznik trybu ciemnego: $value");
+                        theme.toggleTheme();
+                      }),
+                    ),
+                  ],
+                ),
               ),
               Container(
                 decoration: BoxDecoration(
@@ -52,21 +56,23 @@ class SettingsScreen extends ConsumerWidget {
                 margin: const EdgeInsets.only(left: 25, right: 25, top: 10),
                 padding: const EdgeInsets.all(12),
                 child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Mood Notifications",
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                      CupertinoSwitch(
-                        value: isNotificationEnabled,
-                        onChanged: (value) {
-                          ref.read(notificationEnabledProvider.notifier).state =
-                              value;
-                        },
-                      ),
-                    ]),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Mood Notifications",
+                      style:
+                          TextStyle(color: Theme.of(context).primaryColorDark),
+                    ),
+                    CupertinoSwitch(
+                      value: isNotificationEnabled,
+                      onChanged: (value) {
+                        print("Powiadomienia zmienione na: $value");
+                        ref.read(notificationEnabledProvider.notifier).state =
+                            value;
+                      },
+                    ),
+                  ],
+                ),
               ),
               if (isNotificationEnabled)
                 Container(
@@ -85,11 +91,14 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       TextButton(
                         onPressed: () async {
+                          print("Rozpoczęcie wyboru czasu powiadomienia.");
                           final TimeOfDay? picked = await showTimePicker(
                             context: context,
                             initialTime: notificationTime,
                           );
                           if (picked != null && picked != notificationTime) {
+                            print(
+                                "Nowy czas powiadomienia: ${picked.format(context)}");
                             ref.read(notificationTimeProvider.notifier).state =
                                 picked;
                           }
@@ -114,17 +123,30 @@ class SettingsScreen extends ConsumerWidget {
                 style: TextStyle(color: Theme.of(context).primaryColorDark),
               ),
               onTap: () async {
+                debugPrint("Rozpoczęcie procesu wylogowania.");
                 try {
+                  debugPrint("Przed wywołaniem FirebaseAuth.signOut");
                   await FirebaseAuth.instance.signOut();
+                  debugPrint("Po wywołaniu FirebaseAuth.signOut");
+
                   if (context.mounted) {
-                    Navigator.popUntil(context, ModalRoute.withName("/"));
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/login_screen', (route) => false);
                   }
+                } on FirebaseAuthException catch (e) {
+                  debugPrint("Błąd Firebase przy wylogowaniu: ${e.code}");
+                  String message = "Error signing out";
+                  if (e.code == 'permission-denied') {
+                    message =
+                        "You do not have permission to perform this operation.";
+                  }
+                  displayMessageToUser(message, context);
                 } catch (e) {
+                  debugPrint("Nieoczekiwany błąd: $e");
                   displayMessageToUser(
-                      // ignore: use_build_context_synchronously
-                      "Error signing out: ${e.toString()}",
-                      // ignore: use_build_context_synchronously
-                      context);
+                    "Unexpected error: ${e.toString()}",
+                    context,
+                  );
                 }
               },
             ),

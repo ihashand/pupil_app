@@ -8,6 +8,7 @@ import 'package:pet_diary/src/auth/auth.dart';
 import 'package:pet_diary/src/providers/others_providers/theme_provider.dart';
 import 'package:pet_diary/src/providers/others_providers/user_provider.dart';
 import 'package:pet_diary/src/screens/login_register_screens/login_screen.dart';
+import 'package:pet_diary/src/screens/login_register_screens/register_screen.dart';
 import 'package:pet_diary/src/screens/other_screens/settings_screen.dart';
 import 'package:pet_diary/src/services/achievements_services/achievement_service.dart';
 import 'package:pet_diary/src/services/events_services/event_type_service.dart';
@@ -26,7 +27,9 @@ Future<void> main() async {
 
   // Inicjalizacja osiągnięć i ustawień użytkownika
   await AchievementService().initializeAchievements();
-  await initializeUserSettings();
+  if (FirebaseAuth.instance.currentUser != null) {
+    await EventTypeService().initializeEventTypePreferences();
+  }
 
   runApp(ProviderScope(
     overrides: [
@@ -45,7 +48,6 @@ Future<void> main() async {
 }
 
 Future<void> initializeUserSettings() async {
-  // Inicjalizacja preferencji typu wydarzeń
   final eventTypeService = EventTypeService();
   await eventTypeService.initializeEventTypePreferences();
 }
@@ -66,6 +68,7 @@ class MyApp extends StatelessWidget {
           '/home_screen': (context) => const BotomAppBar(),
           '/settings_screen': (context) => const SettingsScreen(),
           '/login_screen': (context) => const LoginScreen(),
+          '/register_screen': (context) => const RegisterScreen(),
         },
       );
     });

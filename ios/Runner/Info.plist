@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -26,44 +24,6 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to your camera to scan QR codes.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to track your walking routes.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to your location to track your walking routes even when the app is in the background.</string>
-	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
-	<dict>
-		<key>List of features</key>
-		<string>This app needs access to your location to track your walking routes.</string>
-	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to track your walking routes.</string>
-	<key>NSMotionUsageDescription</key>
-	<string>This application tracks your steps</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Pupil App would like to access your photo library.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>We need your consent to track ads</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>This app requires access to local network for notifications</string>
-	<key>NSLocalNotificationUsageDescription</key>
-	<string>This app requires access to local notifications to remind you about events</string>
-	<key>UNUserNotificationCenter</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-		<string>location</string>
-	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -81,10 +41,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UNNotificationCategoryOptions</key>
-	<array>
-		<string>allowInCarPlay</string>
-		<string>customDismissAction</string>
-	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>
