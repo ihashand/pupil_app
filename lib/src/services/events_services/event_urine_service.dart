@@ -1,67 +1,95 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/events_models/event_urine_model.dart';
 
 class EventUrineService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  // Kontroler do zarządzania cachem i streamem dla aktualizacji w czasie rzeczywistym
-  final _urineEventsController =
+  // StreamController for broadcasting urine events stream
+  final StreamController<List<EventUrineModel>> _urineEventsController =
       StreamController<List<EventUrineModel>>.broadcast();
 
-  // Cache dla pobranych eventów, aby zoptymalizować wydajność
-  List<EventUrineModel> _cachedUrineEvents =
-      []; // Inicjalizacja jako pusta lista
+  // Cache for fetched urine events
+  List<EventUrineModel>? _cachedUrineEvents;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
-  /// Strumień zapewniający aktualizacje w czasie rzeczywistym dla eventów urine dla danego `petId`
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
+
+  /// Stream to get real-time updates of urine events for a specific petId.
   Stream<List<EventUrineModel>> getUrineEventsStream(String petId) {
     if (_currentUser == null) {
-      return Stream.value(
-          []); // Zwróć pusty strumień, gdy użytkownik nie jest zalogowany
+      return Stream.value([]);
     }
 
-    _firestore
-        .collection('event_urines')
-        .where('petId', isEqualTo: petId)
-        .where('userId', isEqualTo: _currentUser.uid)
-        .snapshots()
-        .listen((snapshot) {
-      _cachedUrineEvents = snapshot.docs
-          .map((doc) => EventUrineModel.fromDocument(doc))
-          .toList();
+    try {
+      if (_cachedUrineEvents != null &&
+          _lastFetchTime != null &&
+          DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+        _urineEventsController.add(_cachedUrineEvents!);
+      } else {
+        final subscription = _firestore
+            .collection('event_urines')
+            .where('petId', isEqualTo: petId)
+            .where('userId', isEqualTo: _currentUser.uid)
+            .snapshots()
+            .listen((snapshot) {
+          final urineEvents = snapshot.docs
+              .map((doc) => EventUrineModel.fromDocument(doc))
+              .toList();
+          _cachedUrineEvents = urineEvents;
+          _lastFetchTime = DateTime.now();
+          _urineEventsController.add(urineEvents);
+        }, onError: (error) {
+          debugPrint('Error listening to urine events stream: $error');
+          _urineEventsController.addError(error);
+        });
 
-      _urineEventsController
-          .add(_cachedUrineEvents); // Aktualizacja strumienia z cachem
-    });
+        _subscriptions.add(subscription);
+      }
 
-    return _urineEventsController.stream;
+      return _urineEventsController.stream;
+    } catch (e) {
+      debugPrint('Error in getUrineEventsStream: $e');
+      return Stream.error(e);
+    }
   }
 
-  /// Dodaje nowy event urine do Firestore
+  /// Adds a new urine event to Firestore.
   Future<void> addUrineEvent(EventUrineModel event) async {
-    await _firestore
-        .collection('event_urines')
-        .doc(event.id)
-        .set(event.toMap());
-
-    // Aktualizacja cache natychmiast po dodaniu
-    _cachedUrineEvents.add(event);
-    _urineEventsController.add(_cachedUrineEvents); // Aktualizacja strumienia
+    try {
+      await _firestore
+          .collection('event_urines')
+          .doc(event.id)
+          .set(event.toMap());
+      _cachedUrineEvents = null; // Invalidate cache after adding
+    } catch (e) {
+      debugPrint('Error adding urine event: $e');
+    }
   }
 
-  /// Usuwa event urine z Firestore
+  /// Deletes a urine event from Firestore by ID.
   Future<void> deleteUrineEvent(String eventId) async {
-    await _firestore.collection('event_urines').doc(eventId).delete();
-
-    // Usuwanie eventu z cache'u i aktualizacja strumienia
-    _cachedUrineEvents.removeWhere((event) => event.id == eventId);
-    _urineEventsController.add(_cachedUrineEvents); // Aktualizacja strumienia
+    try {
+      await _firestore.collection('event_urines').doc(eventId).delete();
+      _cachedUrineEvents?.removeWhere((event) => event.id == eventId);
+      _urineEventsController
+          .add(_cachedUrineEvents!); // Update stream after deletion
+    } catch (e) {
+      debugPrint('Error deleting urine event: $e');
+    }
   }
 
-  /// Zamyka kontroler strumienia podczas usuwania instancji
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _urineEventsController.close();
   }
 }

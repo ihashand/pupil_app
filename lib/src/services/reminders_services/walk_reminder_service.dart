@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/reminder_models/walk_reminder_settings_model.dart';
 
 /// A service class responsible for handling Walk Reminder operations.
@@ -13,11 +14,12 @@ class WalkReminderService {
   DateTime? _lastFetchTime;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _settingsSubscription;
+  final StreamController<WalkReminderSettingsModel?> _settingsController =
+      StreamController<WalkReminderSettingsModel?>.broadcast();
 
   /// Fetch walk reminder settings from cache or Firestore.
   Future<WalkReminderSettingsModel?> getWalkReminderSettings(
       String userId) async {
-    // Return cached data if it's still valid.
     if (_cachedWalkReminderSettings != null &&
         _lastFetchTime != null &&
         DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
@@ -39,7 +41,7 @@ class WalkReminderService {
         return null;
       }
     } catch (e) {
-      print('Error fetching walk reminder settings: $e');
+      debugPrint('Error fetching walk reminder settings: $e');
       return null;
     }
   }
@@ -55,7 +57,7 @@ class WalkReminderService {
       _cachedWalkReminderSettings = settings;
       _lastFetchTime = DateTime.now();
     } catch (e) {
-      print('Error saving walk reminder settings: $e');
+      debugPrint('Error saving walk reminder settings: $e');
     }
   }
 
@@ -71,14 +73,16 @@ class WalkReminderService {
         await saveWalkReminderSettings(settings);
       }
     } catch (e) {
-      print('Error toggling global reminder: $e');
+      debugPrint('Error toggling global reminder: $e');
     }
   }
 
   /// Subscribe to changes in the walk reminder settings in Firestore.
   Stream<WalkReminderSettingsModel?> subscribeToWalkReminderSettings(
       String userId) {
-    final controller = StreamController<WalkReminderSettingsModel?>();
+    if (_currentUser == null) {
+      return Stream.value(null);
+    }
 
     _settingsSubscription = _firestore
         .collection('walkReminders')
@@ -90,20 +94,26 @@ class WalkReminderService {
             WalkReminderSettingsModel.fromDocument(querySnapshot.docs.first);
         _cachedWalkReminderSettings = settings;
         _lastFetchTime = DateTime.now();
-        controller.add(settings);
+        _settingsController.add(settings);
       } else {
-        controller.add(null);
+        _settingsController.add(null);
       }
     }, onError: (error) {
-      print('Error subscribing to walk reminder settings: $error');
-      controller.addError(error);
+      debugPrint('Error subscribing to walk reminder settings: $error');
+      _settingsController.addError(error);
     });
 
-    return controller.stream;
+    return _settingsController.stream;
   }
 
-  /// Cancel the active subscription when no longer needed.
+  /// Cancel the active subscription and clean up resources.
   void cancelSubscription() {
     _settingsSubscription?.cancel();
+  }
+
+  /// Dispose the service by closing the stream controller.
+  void dispose() {
+    cancelSubscription();
+    _settingsController.close();
   }
 }

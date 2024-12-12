@@ -19,6 +19,7 @@ class AuthWidget extends StatelessWidget {
           if (user != null) {
             // Nawigacja do HomeScreen z animacją
             Future.microtask(() {
+              // ignore: use_build_context_synchronously
               Navigator.of(context).pushReplacement(
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
@@ -44,6 +45,7 @@ class AuthWidget extends StatelessWidget {
           } else {
             // Nawigacja do LoginScreen z animacją
             Future.microtask(() {
+              // ignore: use_build_context_synchronously
               Navigator.of(context).pushReplacement(
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>

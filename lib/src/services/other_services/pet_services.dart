@@ -1,45 +1,65 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:pet_diary/src/models/others/pet_model.dart';
 
 class PetService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _petsSubscription;
+  // StreamController for managing pets stream
   final StreamController<List<Pet>> _petsController =
       StreamController<List<Pet>>.broadcast();
 
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
+
   /// Stream of pets for the current user.
   Stream<List<Pet>> getPets() {
-    if (_currentUser == null) {
-      return Stream.value([]);
+    try {
+      if (_currentUser == null) {
+        return Stream.value([]);
+      }
+
+      final subscription = _firestore
+          .collection('pets')
+          .where('userId', isEqualTo: _currentUser.uid)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final pets =
+              snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
+          _petsController.add(pets);
+        },
+        onError: (error) {
+          debugPrint('Error fetching pets stream: $error');
+          _petsController.addError(error);
+        },
+      );
+
+      _subscriptions.add(subscription);
+      return _petsController.stream;
+    } catch (e) {
+      debugPrint('Error in getPets: $e');
+      return Stream.error(e);
     }
-
-    _petsSubscription = _firestore
-        .collection('pets')
-        .where('userId', isEqualTo: _currentUser!.uid)
-        .snapshots()
-        .listen(
-      (snapshot) {
-        final pets = snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
-        _petsController.add(pets);
-      },
-      onError: (error) {
-        print('Error fetching pets stream: $error');
-        _petsController.addError(error);
-      },
-    );
-
-    return _petsController.stream;
   }
 
   /// Stream a specific pet by its ID.
   Stream<Pet?> getPetByIdStream(String petId) {
-    return _firestore.collection('pets').doc(petId).snapshots().map((snapshot) {
-      return snapshot.exists ? Pet.fromDocument(snapshot) : null;
-    });
+    try {
+      return _firestore
+          .collection('pets')
+          .doc(petId)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.exists ? Pet.fromDocument(snapshot) : null;
+      });
+    } catch (e) {
+      debugPrint('Error in getPetByIdStream: $e');
+      return Stream.error(e);
+    }
   }
 
   /// Fetch a specific pet by its ID (one-time).
@@ -50,7 +70,7 @@ class PetService {
       final docSnapshot = await _firestore.collection('pets').doc(petId).get();
       return docSnapshot.exists ? Pet.fromDocument(docSnapshot) : null;
     } catch (e) {
-      print('Error fetching pet by ID: $e');
+      debugPrint('Error fetching pet by ID: $e');
       throw Exception('Failed to fetch pet by ID');
     }
   }
@@ -60,7 +80,7 @@ class PetService {
     try {
       await _firestore.collection('pets').doc(pet.id).set(pet.toMap());
     } catch (e) {
-      print('Error adding pet: $e');
+      debugPrint('Error adding pet: $e');
       throw Exception('Failed to add pet');
     }
   }
@@ -70,7 +90,7 @@ class PetService {
     try {
       await _firestore.collection('pets').doc(pet.id).update(pet.toMap());
     } catch (e) {
-      print('Error updating pet: $e');
+      debugPrint('Error updating pet: $e');
       throw Exception('Failed to update pet');
     }
   }
@@ -80,7 +100,7 @@ class PetService {
     try {
       await _firestore.collection('pets').doc(petId).delete();
     } catch (e) {
-      print('Error deleting pet: $e');
+      debugPrint('Error deleting pet: $e');
       throw Exception('Failed to delete pet');
     }
   }
@@ -94,20 +114,25 @@ class PetService {
           .get();
       return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
     } catch (e) {
-      print('Error fetching pets by user ID: $e');
+      debugPrint('Error fetching pets by user ID: $e');
       throw Exception('Failed to fetch pets by user ID');
     }
   }
 
   /// Stream all pets owned by a friend.
   Stream<List<Pet>> getPetsFriendStream(String friendId) {
-    return _firestore
-        .collection('pets')
-        .where('userId', isEqualTo: friendId)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
-    });
+    try {
+      return _firestore
+          .collection('pets')
+          .where('userId', isEqualTo: friendId)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
+      });
+    } catch (e) {
+      debugPrint('Error in getPetsFriendStream: $e');
+      return Stream.error(e);
+    }
   }
 
   /// Fetch all pets owned by a friend as a one-time operation.
@@ -119,19 +144,17 @@ class PetService {
           .get();
       return querySnapshot.docs.map((doc) => Pet.fromDocument(doc)).toList();
     } catch (e) {
-      print('Error fetching friend\'s pets: $e');
+      debugPrint('Error fetching friend\'s pets: $e');
       throw Exception('Failed to fetch friend\'s pets');
     }
   }
 
-  /// Cancel active subscription to pets.
-  void cancelSubscription() {
-    _petsSubscription?.cancel();
-  }
-
-  /// Dispose the service by closing the stream controller.
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
-    cancelSubscription();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _petsController.close();
   }
 }

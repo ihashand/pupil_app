@@ -5,16 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 
 /// A service class responsible for handling general reminder operations.
-///
-/// This class provides methods to create, update, delete, and retrieve reminders.
-/// It interacts with the underlying data storage to persist reminder information.
 class ReminderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _reminderSubscription;
+
+  // Cache and subscription management
+  List<ReminderModel>? _cachedReminders;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
+
   final StreamController<List<ReminderModel>> _reminderController =
       StreamController<List<ReminderModel>>.broadcast();
+  final List<StreamSubscription> _subscriptions = [];
 
   /// Get reminders by event ID.
   Future<List<ReminderModel>> getRemindersByEventId(String eventId) async {
@@ -45,8 +47,9 @@ class ReminderService {
           .collection('reminders')
           .doc(reminder.id)
           .set(reminder.toMap());
+      _cachedReminders = null; // Invalidate cache
     } catch (e) {
-      print('Error adding reminder: $e');
+      debugPrint('Error adding reminder: $e');
       throw Exception('Failed to add reminder');
     }
   }
@@ -58,8 +61,9 @@ class ReminderService {
           .collection('reminders')
           .doc(reminder.id)
           .update(reminder.toMap());
+      _cachedReminders = null; // Invalidate cache
     } catch (e) {
-      print('Error updating reminder: $e');
+      debugPrint('Error updating reminder: $e');
       throw Exception('Failed to update reminder');
     }
   }
@@ -68,8 +72,9 @@ class ReminderService {
   Future<void> deleteReminder(String reminderId) async {
     try {
       await _firestore.collection('reminders').doc(reminderId).delete();
+      _cachedReminders = null; // Invalidate cache
     } catch (e) {
-      print('Error deleting reminder: $e');
+      debugPrint('Error deleting reminder: $e');
       throw Exception('Failed to delete reminder');
     }
   }
@@ -80,26 +85,36 @@ class ReminderService {
       return Stream.value([]);
     }
 
-    _reminderSubscription = _firestore
+    final subscription = _firestore
         .collection('reminders')
         .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
         .listen((snapshot) {
       final reminders =
           snapshot.docs.map((doc) => ReminderModel.fromDocument(doc)).toList();
+
+      _cachedReminders = reminders;
+      _lastFetchTime = DateTime.now();
       _reminderController.add(reminders);
     }, onError: (error) {
-      print('Error in reminder stream: $error');
+      debugPrint('Error in reminder stream: $error');
       _reminderController.addError(error);
     });
 
+    _subscriptions.add(subscription);
     return _reminderController.stream;
   }
 
-  /// Get reminders for the current user as a one-time fetch.
+  /// Get reminders for the current user as a one-time fetch with caching.
   Future<List<ReminderModel>> getRemindersOnce() async {
     if (_currentUser == null) {
       return [];
+    }
+
+    if (_cachedReminders != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return _cachedReminders!;
     }
 
     try {
@@ -108,23 +123,30 @@ class ReminderService {
           .where('userId', isEqualTo: _currentUser.uid)
           .get();
 
-      return querySnapshot.docs
+      final reminders = querySnapshot.docs
           .map((doc) => ReminderModel.fromDocument(doc))
           .toList();
+
+      _cachedReminders = reminders;
+      _lastFetchTime = DateTime.now();
+      return reminders;
     } catch (e) {
-      print('Error fetching reminders once: $e');
+      debugPrint('Error fetching reminders once: $e');
       return [];
     }
   }
 
-  /// Cancel the active reminder stream subscription.
-  void cancelSubscription() {
-    _reminderSubscription?.cancel();
+  /// Cancel all active subscriptions.
+  void cancelAllSubscriptions() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
   }
 
   /// Dispose the reminder stream controller.
   void dispose() {
-    cancelSubscription();
+    cancelAllSubscriptions();
     _reminderController.close();
   }
 }

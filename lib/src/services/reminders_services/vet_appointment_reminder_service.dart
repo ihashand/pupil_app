@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/reminder_models/vet_appotiment_reminder_model.dart';
 
 /// Service to manage vet appointments.
@@ -8,14 +9,15 @@ class VetAppointmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
+  // Cache and subscription management
   List<VetAppointmentModel>? _cachedAppointments;
   DateTime? _lastFetchTime;
   final Duration _cacheDuration = const Duration(minutes: 5);
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _appointmentsSubscription;
 
-  /// Getter to access cached appointments
-  List<VetAppointmentModel>? get cachedAppointments => _cachedAppointments;
+  final StreamController<List<VetAppointmentModel>> _appointmentsController =
+      StreamController<List<VetAppointmentModel>>.broadcast();
+
+  final List<StreamSubscription> _subscriptions = [];
 
   /// Fetch appointments with caching mechanism.
   Future<List<VetAppointmentModel>> getCachedAppointments(String userId) async {
@@ -42,22 +44,22 @@ class VetAppointmentService {
 
       return _cachedAppointments!;
     } catch (e) {
-      print('Error fetching vet appointments: $e');
+      debugPrint('Error fetching vet appointments: $e');
       throw Exception('Failed to fetch appointments');
     }
   }
 
-  /// Stream appointments from Firestore with live updates.
-  Stream<List<VetAppointmentModel>> getVetAppointments(String userId) {
+  /// Stream appointments with caching and real-time updates.
+  Stream<List<VetAppointmentModel>> getVetAppointmentsStream(String userId) {
     if (_currentUser == null) {
-      return Stream.value([]); // Return an empty list if no user is logged in
+      return Stream.value([]);
     }
 
-    return _firestore
+    final subscription = _firestore
         .collection('vetAppointments')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .listen((snapshot) {
       final appointments = snapshot.docs.map((doc) {
         return VetAppointmentModel.fromMap(doc.data());
       }).toList();
@@ -67,16 +69,46 @@ class VetAppointmentService {
 
       _cachedAppointments = appointments;
       _lastFetchTime = DateTime.now();
+      _appointmentsController.add(appointments);
+    }, onError: (error) {
+      debugPrint('Error streaming vet appointments: $error');
+      _appointmentsController.addError(error);
+    });
+
+    _subscriptions.add(subscription);
+    return _appointmentsController.stream;
+  }
+
+  /// Fetch all appointments for the current user as a one-time operation.
+  Future<List<VetAppointmentModel>> getVetAppointments(String userId) async {
+    if (_currentUser == null) {
+      return [];
+    }
+
+    try {
+      final querySnapshot = await _firestore
+          .collection('vetAppointments')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final appointments = querySnapshot.docs.map((doc) {
+        return VetAppointmentModel.fromMap(doc.data());
+      }).toList();
+
+      appointments.sort((a, b) => a.date.compareTo(b.date));
 
       return appointments;
-    });
+    } catch (e) {
+      debugPrint('Error fetching vet appointments: $e');
+      return [];
+    }
   }
 
   /// Subscribe to live updates of appointments.
   Stream<List<VetAppointmentModel>> subscribeToAppointments(String userId) {
     final controller = StreamController<List<VetAppointmentModel>>();
 
-    _appointmentsSubscription = _firestore
+    final subscription = _firestore
         .collection('vetAppointments')
         .where('userId', isEqualTo: userId)
         .snapshots()
@@ -92,16 +124,12 @@ class VetAppointmentService {
       _lastFetchTime = DateTime.now();
       controller.add(appointments);
     }, onError: (error) {
-      print('Error subscribing to vet appointments: $error');
+      debugPrint('Error subscribing to vet appointments: $error');
       controller.addError(error);
     });
 
+    _subscriptions.add(subscription);
     return controller.stream;
-  }
-
-  /// Cancel the active subscription to Firestore.
-  void cancelSubscription() {
-    _appointmentsSubscription?.cancel();
   }
 
   /// Add a new appointment to Firestore.
@@ -113,12 +141,12 @@ class VetAppointmentService {
           .set(appointment.toMap());
       _cachedAppointments = null; // Clear cache
     } catch (e) {
-      print('Error adding appointment: $e');
+      debugPrint('Error adding appointment: $e');
       throw Exception('Failed to add appointment');
     }
   }
 
-  /// Delete an appointment and cancel related notifications.
+  /// Delete an appointment and clear cache.
   Future<void> deleteAppointment(String appointmentId) async {
     try {
       await _firestore
@@ -127,8 +155,22 @@ class VetAppointmentService {
           .delete();
       _cachedAppointments = null; // Clear cache
     } catch (e) {
-      print('Error deleting appointment: $e');
-      throw Exception('Failed to delete appointment: $e');
+      debugPrint('Error deleting appointment: $e');
+      throw Exception('Failed to delete appointment');
     }
+  }
+
+  /// Cancel all active subscriptions.
+  void cancelAllSubscriptions() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+  }
+
+  /// Dispose the service to free up resources.
+  void dispose() {
+    cancelAllSubscriptions();
+    _appointmentsController.close();
   }
 }

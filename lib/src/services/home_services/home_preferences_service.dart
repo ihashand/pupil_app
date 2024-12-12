@@ -31,11 +31,24 @@ class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Ładowanie preferencji z bazy danych
+  /// Cache to reduce unnecessary Firestore reads
+  HomePreferencesModel? _cachedPreferences;
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
+
+  /// Loads preferences from Firestore or cache.
   Future<void> _loadPreferences() async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
       debugPrint('Error: User is not logged in.');
+      return;
+    }
+
+    // Check if cached preferences are still valid
+    if (_cachedPreferences != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      state = _cachedPreferences!;
       return;
     }
 
@@ -52,6 +65,8 @@ class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
         if (data != null) {
           final loadedPreferences = HomePreferencesModel.fromMap(data);
           state = loadedPreferences;
+          _cachedPreferences = loadedPreferences;
+          _lastFetchTime = DateTime.now();
         }
       } else {
         debugPrint('No preferences found, using default.');
@@ -61,7 +76,7 @@ class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
     }
   }
 
-  /// Zapisywanie preferencji do bazy danych
+  /// Saves preferences to Firestore and updates the cache.
   Future<void> _savePreferences() async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
@@ -76,12 +91,14 @@ class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
           .collection('preferences')
           .doc('home_preferences')
           .set(state.toMap());
+      _cachedPreferences = state;
+      _lastFetchTime = DateTime.now();
     } catch (e) {
       debugPrint('Error saving preferences: $e');
     }
   }
 
-  /// Aktualizacja widocznych sekcji
+  /// Updates the visible sections and saves preferences.
   void updateVisibleSections(List<String> newVisibleSections) {
     state = HomePreferencesModel(
       sectionOrder: state.sectionOrder,
@@ -90,7 +107,7 @@ class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
     _savePreferences();
   }
 
-  /// Aktualizacja kolejności sekcji
+  /// Updates the order of sections and saves preferences.
   void updateSectionOrder(List<String> newSectionOrder) {
     state = HomePreferencesModel(
       sectionOrder: newSectionOrder,
@@ -99,7 +116,7 @@ class HomePreferencesService extends StateNotifier<HomePreferencesModel> {
     _savePreferences();
   }
 
-  /// Ręczna aktualizacja całego modelu
+  /// Manually updates the entire model and saves preferences.
   Future<void> updatePreferences(HomePreferencesModel newPreferences) async {
     state = newPreferences;
     await _savePreferences();

@@ -14,10 +14,3 @@ final vetAppointmentsFutureProvider =
         .getCachedAppointments(userId);
   },
 );
-
-final vetAppointmentsStreamProvider =
-    StreamProvider.autoDispose.family<List<VetAppointmentModel>, String>(
-  (ref, userId) {
-    return ref.read(vetAppointmentServiceProvider).getVetAppointments(userId);
-  },
-);

@@ -9,58 +9,69 @@ class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _friendsSubscription;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _friendRequestsSubscription;
-
+  // StreamControllers for managing streams
   final StreamController<List<Friend>> _friendsController =
       StreamController<List<Friend>>.broadcast();
   final StreamController<List<FriendRequest>> _friendRequestsController =
       StreamController<List<FriendRequest>>.broadcast();
 
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
+
   /// Stream of friends for the logged-in user.
   Stream<List<Friend>> getFriendsStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
-    }
-
-    _friendsSubscription = _firestore
-        .collection('friends')
-        .where('userId', isEqualTo: _currentUser!.uid)
-        .snapshots()
-        .listen((snapshot) {
-      final friends =
-          snapshot.docs.map((doc) => Friend.fromDocument(doc)).toList();
-      _friendsController.add(friends);
-    }, onError: (error) {
-      if (kDebugMode) {
-        print('Error fetching friends: $error');
+    try {
+      if (_currentUser == null) {
+        return Stream.value([]);
       }
-      _friendsController.addError(error);
-    });
 
-    return _friendsController.stream;
+      final subscription = _firestore
+          .collection('friends')
+          .where('userId', isEqualTo: _currentUser.uid)
+          .snapshots()
+          .listen((snapshot) {
+        final friends =
+            snapshot.docs.map((doc) => Friend.fromDocument(doc)).toList();
+        _friendsController.add(friends);
+      }, onError: (error) {
+        debugPrint('Error fetching friends: $error');
+        _friendsController.addError(error);
+      });
+
+      _subscriptions.add(subscription);
+      return _friendsController.stream;
+    } catch (e) {
+      debugPrint('Error in getFriendsStream: $e');
+      return Stream.error(e);
+    }
   }
 
   /// Stream of friend requests for the logged-in user.
   Stream<List<FriendRequest>> getFriendRequestsStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
-    }
-
-    _friendRequestsSubscription =
-        _firestore.collection('friend_requests').snapshots().listen((snapshot) {
-      final requests =
-          snapshot.docs.map((doc) => FriendRequest.fromDocument(doc)).toList();
-      _friendRequestsController.add(requests);
-    }, onError: (error) {
-      if (kDebugMode) {
-        print('Error fetching friend requests: $error');
+    try {
+      if (_currentUser == null) {
+        return Stream.value([]);
       }
-      _friendRequestsController.addError(error);
-    });
 
-    return _friendRequestsController.stream;
+      final subscription = _firestore
+          .collection('friend_requests')
+          .snapshots()
+          .listen((snapshot) {
+        final requests = snapshot.docs
+            .map((doc) => FriendRequest.fromDocument(doc))
+            .toList();
+        _friendRequestsController.add(requests);
+      }, onError: (error) {
+        debugPrint('Error fetching friend requests: $error');
+        _friendRequestsController.addError(error);
+      });
+
+      _subscriptions.add(subscription);
+      return _friendRequestsController.stream;
+    } catch (e) {
+      debugPrint('Error in getFriendRequestsStream: $e');
+      return Stream.error(e);
+    }
   }
 
   /// Add a new friend.
@@ -68,9 +79,7 @@ class FriendService {
     try {
       await _firestore.collection('friends').doc(friend.id).set(friend.toMap());
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding friend: $e');
-      }
+      debugPrint('Error adding friend: $e');
       throw Exception('Failed to add friend');
     }
   }
@@ -91,7 +100,7 @@ class FriendService {
 
       final friendDocs = await _firestore
           .collection('friends')
-          .where('friendId', isEqualTo: _currentUser!.uid)
+          .where('friendId', isEqualTo: _currentUser.uid)
           .where('userId', isEqualTo: friendId)
           .get();
 
@@ -99,9 +108,7 @@ class FriendService {
         await doc.reference.delete();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error removing friend: $e');
-      }
+      debugPrint('Error removing friend: $e');
       throw Exception('Failed to remove friend');
     }
   }
@@ -119,9 +126,7 @@ class FriendService {
           .get();
 
       if (existingRequest.docs.isNotEmpty) {
-        if (kDebugMode) {
-          print('Friend request already sent.');
-        }
+        debugPrint('Friend request already sent.');
         return;
       }
 
@@ -132,9 +137,7 @@ class FriendService {
           .get();
 
       if (existingFriend.docs.isNotEmpty) {
-        if (kDebugMode) {
-          print('User is already your friend.');
-        }
+        debugPrint('User is already your friend.');
         return;
       }
 
@@ -145,9 +148,7 @@ class FriendService {
           .get();
 
       if (reverseRequest.docs.isNotEmpty) {
-        if (kDebugMode) {
-          print('You have a pending request from this user.');
-        }
+        debugPrint('You have a pending request from this user.');
         return;
       }
 
@@ -158,9 +159,7 @@ class FriendService {
         'timestamp': Timestamp.now(),
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error sending friend request: $e');
-      }
+      debugPrint('Error sending friend request: $e');
       throw Exception('Failed to send friend request');
     }
   }
@@ -178,9 +177,7 @@ class FriendService {
         await doc.reference.delete();
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error cancelling friend request: $e');
-      }
+      debugPrint('Error cancelling friend request: $e');
       throw Exception('Failed to cancel friend request');
     }
   }
@@ -196,9 +193,7 @@ class FriendService {
       await addFriend(
           Friend(id: toUserId, friendId: toUserId, userId: fromUserId));
     } catch (e) {
-      if (kDebugMode) {
-        print('Error accepting friend request: $e');
-      }
+      debugPrint('Error accepting friend request: $e');
       throw Exception('Failed to accept friend request');
     }
   }
@@ -215,21 +210,17 @@ class FriendService {
 
       return requestDocs.docs.isNotEmpty;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error checking pending requests: $e');
-      }
+      debugPrint('Error checking pending requests: $e');
       throw Exception('Failed to check pending requests');
     }
   }
 
-  /// Cancel active subscriptions and dispose streams.
-  void cancelSubscriptions() {
-    _friendsSubscription?.cancel();
-    _friendRequestsSubscription?.cancel();
-  }
-
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
-    cancelSubscriptions();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _friendsController.close();
     _friendRequestsController.close();
   }

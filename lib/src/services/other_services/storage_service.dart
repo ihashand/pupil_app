@@ -22,7 +22,7 @@ class StorageService {
 
     try {
       final String fileName = basename(photo.path);
-      final String storagePath = 'user_photos/${_currentUser!.uid}/$fileName';
+      final String storagePath = 'user_photos/${_currentUser.uid}/$fileName';
 
       final File? compressedPhoto = await _compressImage(photo);
       if (compressedPhoto == null) {
@@ -82,7 +82,7 @@ class StorageService {
 
     try {
       await _firestore.collection('user_photos').add({
-        'userId': _currentUser!.uid,
+        'userId': _currentUser.uid,
         'downloadUrl': downloadUrl,
         'storagePath': storagePath,
         'timestamp': FieldValue.serverTimestamp(),
@@ -102,7 +102,7 @@ class StorageService {
     try {
       final QuerySnapshot querySnapshot = await _firestore
           .collection('user_photos')
-          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('userId', isEqualTo: _currentUser.uid)
           .get();
 
       for (final QueryDocumentSnapshot doc in querySnapshot.docs) {

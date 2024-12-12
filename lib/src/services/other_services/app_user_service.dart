@@ -7,31 +7,41 @@ import 'package:pet_diary/src/models/others/app_user_model.dart';
 class AppUserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _usersSubscription;
+
+  // StreamController for broadcasting app users stream
   final StreamController<List<AppUserModel>> _usersController =
       StreamController<List<AppUserModel>>.broadcast();
 
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
+
   /// Stream for fetching all app users.
   Stream<List<AppUserModel>> getAppUsersStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
+    try {
+      if (_currentUser == null) {
+        return Stream.value([]);
+      }
+
+      final subscription =
+          _firestore.collection('app_users').snapshots().listen(
+        (snapshot) {
+          final users = snapshot.docs
+              .map((doc) => AppUserModel.fromDocument(doc))
+              .toList();
+          _usersController.add(users);
+        },
+        onError: (error) {
+          debugPrint('Error fetching app users stream: $error');
+          _usersController.addError(error);
+        },
+      );
+
+      _subscriptions.add(subscription);
+      return _usersController.stream;
+    } catch (e) {
+      debugPrint('Error in getAppUsersStream: $e');
+      return Stream.error(e);
     }
-
-    _usersSubscription = _firestore.collection('app_users').snapshots().listen(
-      (snapshot) {
-        final users =
-            snapshot.docs.map((doc) => AppUserModel.fromDocument(doc)).toList();
-        _usersController.add(users);
-      },
-      onError: (error) {
-        if (kDebugMode) {
-          print('Error fetching app users stream: $error');
-        }
-        _usersController.addError(error);
-      },
-    );
-
-    return _usersController.stream;
   }
 
   /// Fetch a user by ID.
@@ -46,9 +56,7 @@ class AppUserService {
         return null;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching user by ID: $e');
-      }
+      debugPrint('Error fetching user by ID: $e');
       return null;
     }
   }
@@ -68,9 +76,7 @@ class AppUserService {
         return null;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching user by email: $e');
-      }
+      debugPrint('Error fetching user by email: $e');
       return null;
     }
   }
@@ -83,9 +89,7 @@ class AppUserService {
           .doc(appUser.id)
           .set(appUser.toMap());
     } catch (e) {
-      if (kDebugMode) {
-        print('Error adding app user: $e');
-      }
+      debugPrint('Error adding app user: $e');
       throw Exception('Failed to add app user');
     }
   }
@@ -95,9 +99,7 @@ class AppUserService {
     try {
       await _firestore.collection('app_users').doc(appUserId).delete();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting app user: $e');
-      }
+      debugPrint('Error deleting app user: $e');
       throw Exception('Failed to delete app user');
     }
   }
@@ -110,21 +112,17 @@ class AppUserService {
           .doc(user.id)
           .update(user.toMap());
     } catch (e) {
-      if (kDebugMode) {
-        print('Error updating app user: $e');
-      }
+      debugPrint('Error updating app user: $e');
       throw Exception('Failed to update app user');
     }
   }
 
-  /// Cancel the active users stream subscription.
-  void cancelSubscription() {
-    _usersSubscription?.cancel();
-  }
-
-  /// Dispose the app user service.
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
-    cancelSubscription();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _usersController.close();
   }
 }

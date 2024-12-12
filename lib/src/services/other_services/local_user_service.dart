@@ -8,31 +8,39 @@ class LocalUserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _localUsersSubscription;
+  // StreamController for managing local users stream
   final StreamController<List<LocalUser>> _localUserController =
       StreamController<List<LocalUser>>.broadcast();
 
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
+
   /// Get a stream of local users.
   Stream<List<LocalUser>> getLocalUsersStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
+    try {
+      if (_currentUser == null) {
+        return Stream.value([]);
+      }
+
+      final subscription =
+          _firestore.collection('localUsers').snapshots().listen(
+        (snapshot) {
+          final localUsers =
+              snapshot.docs.map((doc) => LocalUser.fromDocument(doc)).toList();
+          _localUserController.add(localUsers);
+        },
+        onError: (error) {
+          debugPrint('Error fetching local users stream: $error');
+          _localUserController.addError(error);
+        },
+      );
+
+      _subscriptions.add(subscription);
+      return _localUserController.stream;
+    } catch (e) {
+      debugPrint('Error in getLocalUsersStream: $e');
+      return Stream.error(e);
     }
-
-    _localUsersSubscription =
-        _firestore.collection('localUsers').snapshots().listen(
-      (snapshot) {
-        final localUsers =
-            snapshot.docs.map((doc) => LocalUser.fromDocument(doc)).toList();
-        _localUserController.add(localUsers);
-      },
-      onError: (error) {
-        debugPrint('Error fetching local users stream: $error');
-        _localUserController.addError(error);
-      },
-    );
-
-    return _localUserController.stream;
   }
 
   /// Get a specific local user by ID.
@@ -85,14 +93,12 @@ class LocalUserService {
     }
   }
 
-  /// Cancel active subscriptions and clean up resources.
-  void cancelSubscription() {
-    _localUsersSubscription?.cancel();
-  }
-
-  /// Dispose the service by closing the stream controller.
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
-    cancelSubscription();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _localUserController.close();
   }
 }

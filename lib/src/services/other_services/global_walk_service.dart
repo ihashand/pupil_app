@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/others/global_walk_model.dart';
 
 class GlobalWalkService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _walksSubscription;
+  // StreamController for managing global walks stream
   final StreamController<List<GlobalWalkModel>> _walksController =
       StreamController<List<GlobalWalkModel>>.broadcast();
+
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
 
   /// Add a new global walk to Firestore.
   Future<void> addGlobalWalk(GlobalWalkModel globalWalk) async {
@@ -20,7 +24,7 @@ class GlobalWalkService {
           .doc(globalWalk.id)
           .set(globalWalk.toMap());
     } catch (e) {
-      print('Error adding global walk: $e');
+      debugPrint('Error adding global walk: $e');
       throw Exception('Failed to add global walk');
     }
   }
@@ -38,7 +42,7 @@ class GlobalWalkService {
 
       return null;
     } catch (e) {
-      print('Error fetching global walk by ID: $e');
+      debugPrint('Error fetching global walk by ID: $e');
       throw Exception('Failed to fetch global walk');
     }
   }
@@ -52,7 +56,7 @@ class GlobalWalkService {
           .doc(globalWalk.id)
           .update(globalWalk.toMap());
     } catch (e) {
-      print('Error updating global walk: $e');
+      debugPrint('Error updating global walk: $e');
       throw Exception('Failed to update global walk');
     }
   }
@@ -63,42 +67,46 @@ class GlobalWalkService {
       if (_currentUser == null) throw Exception('User not logged in');
       await _firestore.collection('global_walks').doc(walkId).delete();
     } catch (e) {
-      print('Error deleting global walk: $e');
+      debugPrint('Error deleting global walk: $e');
       throw Exception('Failed to delete global walk');
     }
   }
 
   /// Stream of global walks from Firestore.
   Stream<List<GlobalWalkModel>> getGlobalWalksStream() {
-    if (_currentUser == null) {
-      return Stream.value([]);
+    try {
+      if (_currentUser == null) {
+        return Stream.value([]);
+      }
+
+      final subscription =
+          _firestore.collection('global_walks').snapshots().listen(
+        (snapshot) {
+          final walks = snapshot.docs
+              .map((doc) => GlobalWalkModel.fromDocument(doc))
+              .toList();
+          _walksController.add(walks);
+        },
+        onError: (error) {
+          debugPrint('Error streaming global walks: $error');
+          _walksController.addError(error);
+        },
+      );
+
+      _subscriptions.add(subscription);
+      return _walksController.stream;
+    } catch (e) {
+      debugPrint('Error in getGlobalWalksStream: $e');
+      return Stream.error(e);
     }
-
-    _walksSubscription =
-        _firestore.collection('global_walks').snapshots().listen(
-      (snapshot) {
-        final walks = snapshot.docs
-            .map((doc) => GlobalWalkModel.fromDocument(doc))
-            .toList();
-        _walksController.add(walks);
-      },
-      onError: (error) {
-        print('Error streaming global walks: $error');
-        _walksController.addError(error);
-      },
-    );
-
-    return _walksController.stream;
   }
 
-  /// Cancel active subscription.
-  void cancelSubscription() {
-    _walksSubscription?.cancel();
-  }
-
-  /// Dispose the service by closing the stream controller.
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
-    cancelSubscription();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _walksController.close();
   }
 }

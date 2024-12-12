@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/reminder_models/feed_reminder_settings_model.dart';
 
 /// A service class responsible for handling Feed Reminder operations.
@@ -11,10 +12,9 @@ class FeedReminderService {
 
   FeedReminderSettingsModel? _cachedFeedReminderSettings;
   DateTime? _lastFetchTime;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _settingsSubscription;
   final StreamController<FeedReminderSettingsModel?> _settingsController =
       StreamController<FeedReminderSettingsModel?>.broadcast();
+  final List<StreamSubscription> _subscriptions = [];
 
   /// Fetch Feed Reminder Settings with caching.
   Future<FeedReminderSettingsModel?> getFeedReminderSettings(
@@ -40,7 +40,7 @@ class FeedReminderService {
         return null;
       }
     } catch (e) {
-      print('Error fetching feed reminder settings: $e');
+      debugPrint('Error fetching feed reminder settings: $e');
       return null;
     }
   }
@@ -56,7 +56,7 @@ class FeedReminderService {
       _cachedFeedReminderSettings = settings;
       _lastFetchTime = DateTime.now();
     } catch (e) {
-      print('Error saving feed reminder settings: $e');
+      debugPrint('Error saving feed reminder settings: $e');
       throw Exception('Failed to save feed reminder settings');
     }
   }
@@ -73,7 +73,7 @@ class FeedReminderService {
         await saveFeedReminderSettings(settings);
       }
     } catch (e) {
-      print('Error toggling global reminder: $e');
+      debugPrint('Error toggling global reminder: $e');
       throw Exception('Failed to toggle global reminder');
     }
   }
@@ -81,7 +81,7 @@ class FeedReminderService {
   /// Subscribe to changes in the Feed Reminder Settings.
   Stream<FeedReminderSettingsModel?> subscribeToFeedReminderSettings(
       String userId) {
-    _settingsSubscription = _firestore
+    final subscription = _firestore
         .collection('feedReminders')
         .where('userId', isEqualTo: userId)
         .snapshots()
@@ -96,21 +96,25 @@ class FeedReminderService {
         _settingsController.add(null);
       }
     }, onError: (error) {
-      print('Error subscribing to feed reminder settings: $error');
+      debugPrint('Error subscribing to feed reminder settings: $error');
       _settingsController.addError(error);
     });
 
+    _subscriptions.add(subscription);
     return _settingsController.stream;
   }
 
-  /// Cancel the active subscription.
-  void cancelSubscription() {
-    _settingsSubscription?.cancel();
+  /// Cancel all active subscriptions and clear the list.
+  void cancelAllSubscriptions() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
   }
 
-  /// Dispose the settings stream controller.
+  /// Dispose the settings stream controller and cancel subscriptions.
   void dispose() {
-    cancelSubscription();
+    cancelAllSubscriptions();
     _settingsController.close();
   }
 }

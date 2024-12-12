@@ -42,7 +42,7 @@ class SettingsScreen extends ConsumerWidget {
                     CupertinoSwitch(
                       value: theme.isDarkMode,
                       onChanged: ((value) {
-                        print("Przełącznik trybu ciemnego: $value");
+                        debugPrint("Przełącznik trybu ciemnego: $value");
                         theme.toggleTheme();
                       }),
                     ),
@@ -66,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
                     CupertinoSwitch(
                       value: isNotificationEnabled,
                       onChanged: (value) {
-                        print("Powiadomienia zmienione na: $value");
+                        debugPrint("Powiadomienia zmienione na: $value");
                         ref.read(notificationEnabledProvider.notifier).state =
                             value;
                       },
@@ -91,13 +91,14 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       TextButton(
                         onPressed: () async {
-                          print("Rozpoczęcie wyboru czasu powiadomienia.");
+                          debugPrint("Rozpoczęcie wyboru czasu powiadomienia.");
                           final TimeOfDay? picked = await showTimePicker(
                             context: context,
                             initialTime: notificationTime,
                           );
                           if (picked != null && picked != notificationTime) {
-                            print(
+                            debugPrint(
+                                // ignore: use_build_context_synchronously
                                 "Nowy czas powiadomienia: ${picked.format(context)}");
                             ref.read(notificationTimeProvider.notifier).state =
                                 picked;
@@ -140,11 +141,13 @@ class SettingsScreen extends ConsumerWidget {
                     message =
                         "You do not have permission to perform this operation.";
                   }
+                  // ignore: use_build_context_synchronously
                   displayMessageToUser(message, context);
                 } catch (e) {
                   debugPrint("Nieoczekiwany błąd: $e");
                   displayMessageToUser(
                     "Unexpected error: ${e.toString()}",
+                    // ignore: use_build_context_synchronously
                     context,
                   );
                 }

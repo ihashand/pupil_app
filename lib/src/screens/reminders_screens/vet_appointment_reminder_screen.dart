@@ -69,7 +69,8 @@ class _VetAppointmentScreenState extends ConsumerState<VetAppointmentScreen> {
             child: StreamBuilder<List<VetAppointmentModel>>(
               stream: ref
                   .read(vetAppointmentServiceProvider)
-                  .getVetAppointments(userId), // Pobieranie danych z Firestore
+                  .getVetAppointmentsStream(userId),
+              // Pobieranie danych z Firestore
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

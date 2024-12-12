@@ -107,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else if (e.code == 'wrong-password') {
         message = "Incorrect password.";
       }
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -114,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen>
       setState(() {
         isLoading = false; // Ukryj spinner ładowania w przypadku błędu
       });
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Unexpected error occurred.")),
       );

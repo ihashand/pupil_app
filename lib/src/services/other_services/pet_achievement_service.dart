@@ -6,31 +6,39 @@ import 'package:pet_diary/src/models/others/pet_achievement.dart';
 class PetAchievementService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
-      _achievementsSubscription;
+  // StreamController for managing pet achievements stream
   final StreamController<List<PetAchievement>> _achievementsController =
       StreamController<List<PetAchievement>>.broadcast();
 
+  // Subscriptions to manage Firestore listeners
+  final List<StreamSubscription> _subscriptions = [];
+
   /// Get a stream of pet achievements for a specific pet.
   Stream<List<PetAchievement>> getPetAchievementsStream(String petId) {
-    _achievementsSubscription = _firestore
-        .collection('pet_achievements')
-        .where('petId', isEqualTo: petId)
-        .snapshots()
-        .listen(
-      (snapshot) {
-        final achievements = snapshot.docs
-            .map((doc) => PetAchievement.fromDocument(doc))
-            .toList();
-        _achievementsController.add(achievements);
-      },
-      onError: (error) {
-        debugPrint('Error fetching pet achievements stream: $error');
-        _achievementsController.addError(error);
-      },
-    );
+    try {
+      final subscription = _firestore
+          .collection('pet_achievements')
+          .where('petId', isEqualTo: petId)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final achievements = snapshot.docs
+              .map((doc) => PetAchievement.fromDocument(doc))
+              .toList();
+          _achievementsController.add(achievements);
+        },
+        onError: (error) {
+          debugPrint('Error fetching pet achievements stream: $error');
+          _achievementsController.addError(error);
+        },
+      );
 
-    return _achievementsController.stream;
+      _subscriptions.add(subscription);
+      return _achievementsController.stream;
+    } catch (e) {
+      debugPrint('Error in getPetAchievementsStream: $e');
+      return Stream.error(e);
+    }
   }
 
   /// Fetch all achievements for a specific pet as a one-time operation.
@@ -89,14 +97,12 @@ class PetAchievementService {
     }
   }
 
-  /// Cancel active subscription to achievements.
-  void cancelSubscription() {
-    _achievementsSubscription?.cancel();
-  }
-
-  /// Dispose the service by closing the stream controller.
+  /// Dispose method to clean up resources and cancel subscriptions
   void dispose() {
-    cancelSubscription();
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _achievementsController.close();
   }
 }
