@@ -7,53 +7,85 @@ import 'package:pet_diary/src/models/reminder_models/behaviorist_reminder_model.
 class BehavioristReminderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _reminderSubscription;
+  final StreamController<List<BehavioristReminderModel>> _reminderController =
+      StreamController<List<BehavioristReminderModel>>.broadcast();
 
-  /// Fetch behaviorist reminders for the logged-in user.
+  /// Fetch behaviorist reminders for the logged-in user as a stream.
   Stream<List<BehavioristReminderModel>> getBehavioristReminders(
       String userId) {
     if (_currentUser == null) {
       return Stream.value([]);
     }
 
-    return _firestore
+    _reminderSubscription = _firestore
         .collection('behavioristReminders')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .listen((snapshot) {
       final reminders = snapshot.docs.map((doc) {
         return BehavioristReminderModel.fromMap(doc.data());
       }).toList();
 
       reminders.sort((a, b) => a.date.compareTo(b.date));
-      return reminders;
+      _reminderController.add(reminders);
+    }, onError: (error) {
+      print('Error fetching behaviorist reminders: $error');
+      _reminderController.addError(error);
     });
+
+    return _reminderController.stream;
   }
 
   /// Add a new behaviorist reminder.
   Future<void> addBehavioristReminder(BehavioristReminderModel reminder) async {
-    await _firestore
-        .collection('behavioristReminders')
-        .doc(reminder.id)
-        .set(reminder.toMap());
+    try {
+      await _firestore
+          .collection('behavioristReminders')
+          .doc(reminder.id)
+          .set(reminder.toMap());
+    } catch (e) {
+      print('Error adding behaviorist reminder: $e');
+      throw Exception('Failed to add behaviorist reminder');
+    }
   }
 
   /// Update additional notification IDs for a specific reminder.
   Future<void> updateAdditionalNotificationIds(
       String reminderId, List<int> notificationIds) async {
-    await _firestore.collection('behavioristReminders').doc(reminderId).update({
-      'additionalNotificationIds': notificationIds,
-    });
-  }
-
-  Future<void> deleteBehavioristReminder(String reminderid) async {
     try {
-      // Usuń przypomnienie z bazy danych
       await _firestore
           .collection('behavioristReminders')
-          .doc(reminderid)
+          .doc(reminderId)
+          .update({'additionalNotificationIds': notificationIds});
+    } catch (e) {
+      print('Error updating additional notification IDs: $e');
+      throw Exception('Failed to update additional notification IDs');
+    }
+  }
+
+  /// Delete a behaviorist reminder by ID.
+  Future<void> deleteBehavioristReminder(String reminderId) async {
+    try {
+      await _firestore
+          .collection('behavioristReminders')
+          .doc(reminderId)
           .delete();
     } catch (e) {
-      throw Exception('Failed to delete behaviorist reminder: $e');
+      print('Error deleting behaviorist reminder: $e');
+      throw Exception('Failed to delete behaviorist reminder');
     }
+  }
+
+  /// Cancel the active behaviorist reminder stream subscription.
+  void cancelSubscription() {
+    _reminderSubscription?.cancel();
+  }
+
+  /// Dispose the behaviorist reminder stream controller.
+  void dispose() {
+    cancelSubscription();
+    _reminderController.close();
   }
 }

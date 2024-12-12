@@ -8,9 +8,12 @@ import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 /// This class provides methods to create, update, delete, and retrieve reminders.
 /// It interacts with the underlying data storage to persist reminder information.
 class ReminderService {
-  final _firestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
-  final _reminderController = StreamController<List<ReminderModel>>.broadcast();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _reminderSubscription;
+  final StreamController<List<ReminderModel>> _reminderController =
+      StreamController<List<ReminderModel>>.broadcast();
 
   /// Get reminders by event ID.
   Future<List<ReminderModel>> getRemindersByEventId(String eventId) async {
@@ -18,36 +21,56 @@ class ReminderService {
       return [];
     }
 
-    final querySnapshot = await _firestore
-        .collection('reminders')
-        .where('userId', isEqualTo: _currentUser.uid)
-        .where('eventId', isEqualTo: eventId)
-        .get();
+    try {
+      final querySnapshot = await _firestore
+          .collection('reminders')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('eventId', isEqualTo: eventId)
+          .get();
 
-    return querySnapshot.docs
-        .map((doc) => ReminderModel.fromDocument(doc))
-        .toList();
+      return querySnapshot.docs
+          .map((doc) => ReminderModel.fromDocument(doc))
+          .toList();
+    } catch (e) {
+      print('Error fetching reminders by eventId: $e');
+      return [];
+    }
   }
 
   /// Add a new reminder to the database.
   Future<void> addReminder(ReminderModel reminder) async {
-    await _firestore
-        .collection('reminders')
-        .doc(reminder.id)
-        .set(reminder.toMap());
+    try {
+      await _firestore
+          .collection('reminders')
+          .doc(reminder.id)
+          .set(reminder.toMap());
+    } catch (e) {
+      print('Error adding reminder: $e');
+      throw Exception('Failed to add reminder');
+    }
   }
 
   /// Update an existing reminder in the database.
   Future<void> updateReminder(ReminderModel reminder) async {
-    await _firestore
-        .collection('reminders')
-        .doc(reminder.id)
-        .update(reminder.toMap());
+    try {
+      await _firestore
+          .collection('reminders')
+          .doc(reminder.id)
+          .update(reminder.toMap());
+    } catch (e) {
+      print('Error updating reminder: $e');
+      throw Exception('Failed to update reminder');
+    }
   }
 
   /// Delete a reminder from the database.
   Future<void> deleteReminder(String reminderId) async {
-    await _firestore.collection('reminders').doc(reminderId).delete();
+    try {
+      await _firestore.collection('reminders').doc(reminderId).delete();
+    } catch (e) {
+      print('Error deleting reminder: $e');
+      throw Exception('Failed to delete reminder');
+    }
   }
 
   /// Get a stream of reminders for the current user.
@@ -55,13 +78,18 @@ class ReminderService {
     if (_currentUser == null) {
       return Stream.value([]);
     }
-    _firestore
+
+    _reminderSubscription = _firestore
         .collection('reminders')
-        .where('userId', isEqualTo: _currentUser.uid)
+        .where('userId', isEqualTo: _currentUser!.uid)
         .snapshots()
         .listen((snapshot) {
-      _reminderController.add(
-          snapshot.docs.map((doc) => ReminderModel.fromDocument(doc)).toList());
+      final reminders =
+          snapshot.docs.map((doc) => ReminderModel.fromDocument(doc)).toList();
+      _reminderController.add(reminders);
+    }, onError: (error) {
+      print('Error in reminder stream: $error');
+      _reminderController.addError(error);
     });
 
     return _reminderController.stream;
@@ -73,18 +101,29 @@ class ReminderService {
       return [];
     }
 
-    final querySnapshot = await _firestore
-        .collection('reminders')
-        .where('userId', isEqualTo: _currentUser.uid)
-        .get();
+    try {
+      final querySnapshot = await _firestore
+          .collection('reminders')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .get();
 
-    return querySnapshot.docs
-        .map((doc) => ReminderModel.fromDocument(doc))
-        .toList();
+      return querySnapshot.docs
+          .map((doc) => ReminderModel.fromDocument(doc))
+          .toList();
+    } catch (e) {
+      print('Error fetching reminders once: $e');
+      return [];
+    }
+  }
+
+  /// Cancel the active reminder stream subscription.
+  void cancelSubscription() {
+    _reminderSubscription?.cancel();
   }
 
   /// Dispose the reminder stream controller.
   void dispose() {
+    cancelSubscription();
     _reminderController.close();
   }
 }

@@ -7,50 +7,80 @@ import 'package:pet_diary/src/models/reminder_models/other_reminder_model.dart';
 class OtherReminderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _reminderSubscription;
+  final StreamController<List<OtherReminderModel>> _reminderController =
+      StreamController<List<OtherReminderModel>>.broadcast();
 
-  /// Fetch other reminders for the logged-in user.
+  /// Fetch other reminders for the logged-in user as a stream.
   Stream<List<OtherReminderModel>> getOtherReminders(String userId) {
     if (_currentUser == null) {
       return Stream.value([]);
     }
 
-    return _firestore
+    _reminderSubscription = _firestore
         .collection('otherReminders')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .listen((snapshot) {
       final reminders = snapshot.docs.map((doc) {
         return OtherReminderModel.fromMap(doc.data());
       }).toList();
 
       reminders.sort((a, b) => a.date.compareTo(b.date));
-      return reminders;
+      _reminderController.add(reminders);
+    }, onError: (error) {
+      print('Error fetching other reminders: $error');
+      _reminderController.addError(error);
     });
+
+    return _reminderController.stream;
   }
 
   /// Add a new other reminder.
   Future<void> addOtherReminder(OtherReminderModel reminder) async {
-    await _firestore
-        .collection('otherReminders')
-        .doc(reminder.id)
-        .set(reminder.toMap());
+    try {
+      await _firestore
+          .collection('otherReminders')
+          .doc(reminder.id)
+          .set(reminder.toMap());
+    } catch (e) {
+      print('Error adding other reminder: $e');
+      throw Exception('Failed to add other reminder');
+    }
   }
 
   /// Update additional notification IDs for a specific reminder.
   Future<void> updateAdditionalNotificationIds(
       String reminderId, List<int> notificationIds) async {
-    await _firestore.collection('otherReminders').doc(reminderId).update({
-      'additionalNotificationIds': notificationIds,
-    });
+    try {
+      await _firestore.collection('otherReminders').doc(reminderId).update({
+        'additionalNotificationIds': notificationIds,
+      });
+    } catch (e) {
+      print('Error updating notification IDs: $e');
+      throw Exception('Failed to update notification IDs');
+    }
   }
 
   /// Delete an other reminder by ID.
   Future<void> deleteOtherReminder(String reminderId) async {
     try {
-      // Delete reminder from the database
       await _firestore.collection('otherReminders').doc(reminderId).delete();
     } catch (e) {
-      throw Exception('Failed to delete other reminder: $e');
+      print('Error deleting other reminder: $e');
+      throw Exception('Failed to delete other reminder');
     }
+  }
+
+  /// Cancel the active reminder stream subscription.
+  void cancelSubscription() {
+    _reminderSubscription?.cancel();
+  }
+
+  /// Dispose the reminder stream controller.
+  void dispose() {
+    cancelSubscription();
+    _reminderController.close();
   }
 }
