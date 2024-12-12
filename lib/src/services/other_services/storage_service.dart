@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,95 +13,118 @@ class StorageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
 
+  /// Upload a photo to Firebase Storage and save metadata in Firestore.
   Future<String?> uploadPhoto(File photo) async {
+    if (_currentUser == null) {
+      debugPrint('Error: No user logged in.');
+      return null;
+    }
+
     try {
-      if (_currentUser == null) {
-        return null;
-      }
-      String fileName = basename(photo.path);
-      String storagePath = 'user_photos/${_currentUser.uid}/$fileName';
+      final String fileName = basename(photo.path);
+      final String storagePath = 'user_photos/${_currentUser!.uid}/$fileName';
 
-      File? compressedPhoto = await _compressImage(photo);
-
+      final File? compressedPhoto = await _compressImage(photo);
       if (compressedPhoto == null) {
+        debugPrint('Error: Failed to compress photo.');
         return null;
       }
 
-      try {
-        UploadTask uploadTask =
-            _storage.ref(storagePath).putFile(compressedPhoto);
+      final UploadTask uploadTask =
+          _storage.ref(storagePath).putFile(compressedPhoto);
+      final TaskSnapshot snapshot = await uploadTask;
 
-        uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {});
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
 
-        TaskSnapshot snapshot = await uploadTask;
+      await _savePhotoMetadata(downloadUrl, storagePath);
 
-        String downloadUrl = await snapshot.ref.getDownloadURL();
+      // Clean up temporary file
+      await compressedPhoto.delete();
 
-        await _savePhotoMetadata(downloadUrl, storagePath);
-
-        return downloadUrl;
-      } catch (e) {
-        return null;
-      }
+      return downloadUrl;
     } catch (e) {
+      debugPrint('Error uploading photo: $e');
       return null;
     }
   }
 
+  /// Compress the image to reduce its size.
   Future<File?> _compressImage(File photo) async {
     try {
-      img.Image? image = img.decodeImage(await photo.readAsBytes());
-
+      final img.Image? image = img.decodeImage(await photo.readAsBytes());
       if (image == null) {
+        debugPrint('Error: Failed to decode image.');
         return null;
       }
 
-      img.Image resizedImage = img.copyResize(image, width: 1024);
+      final img.Image resizedImage = img.copyResize(image, width: 1024);
+      final List<int> compressedBytes =
+          img.encodeJpg(resizedImage, quality: 25);
 
-      List<int> compressedBytes = img.encodeJpg(resizedImage, quality: 25);
-
-      String tempDir = (await getTemporaryDirectory()).path;
-      File compressedFile = File('$tempDir/${basename(photo.path)}')
+      final String tempDir = (await getTemporaryDirectory()).path;
+      final File compressedFile = File('$tempDir/${basename(photo.path)}')
         ..writeAsBytesSync(compressedBytes);
 
       return compressedFile;
     } catch (e) {
+      debugPrint('Error compressing image: $e');
       return null;
     }
   }
 
+  /// Save photo metadata to Firestore.
   Future<void> _savePhotoMetadata(
       String downloadUrl, String storagePath) async {
-    if (_currentUser == null) return;
+    if (_currentUser == null) {
+      debugPrint('Error: No user logged in.');
+      return;
+    }
 
-    await _firestore.collection('user_photos').add({
-      'userId': _currentUser.uid,
-      'downloadUrl': downloadUrl,
-      'storagePath': storagePath,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
-
-  Future<void> deleteExpiredPhotos() async {
-    if (_currentUser == null) return;
-
-    QuerySnapshot querySnapshot = await _firestore
-        .collection('user_photos')
-        .where('userId', isEqualTo: _currentUser.uid)
-        .get();
-
-    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-      Timestamp? timestamp = doc.get('timestamp') as Timestamp?;
-      if (timestamp != null &&
-          DateTime.now().difference(timestamp.toDate()).inHours >= 24) {
-        String storagePath = doc.get('storagePath');
-        await _deletePhoto(storagePath, doc.id);
-      }
+    try {
+      await _firestore.collection('user_photos').add({
+        'userId': _currentUser!.uid,
+        'downloadUrl': downloadUrl,
+        'storagePath': storagePath,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error saving photo metadata: $e');
     }
   }
 
+  /// Delete expired photos (older than 24 hours).
+  Future<void> deleteExpiredPhotos() async {
+    if (_currentUser == null) {
+      debugPrint('Error: No user logged in.');
+      return;
+    }
+
+    try {
+      final QuerySnapshot querySnapshot = await _firestore
+          .collection('user_photos')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .get();
+
+      for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
+        final Timestamp? timestamp = doc.get('timestamp') as Timestamp?;
+        if (timestamp != null &&
+            DateTime.now().difference(timestamp.toDate()).inHours >= 24) {
+          final String storagePath = doc.get('storagePath');
+          await _deletePhoto(storagePath, doc.id);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error deleting expired photos: $e');
+    }
+  }
+
+  /// Delete a photo from Firebase Storage and Firestore.
   Future<void> _deletePhoto(String storagePath, String docId) async {
-    await _storage.ref(storagePath).delete();
-    await _firestore.collection('user_photos').doc(docId).delete();
+    try {
+      await _storage.ref(storagePath).delete();
+      await _firestore.collection('user_photos').doc(docId).delete();
+    } catch (e) {
+      debugPrint('Error deleting photo: $e');
+    }
   }
 }

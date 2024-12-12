@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_diary/src/models/reminder_models/reminder_model.dart';
 
 /// A service class responsible for handling general reminder operations.
@@ -24,7 +25,7 @@ class ReminderService {
     try {
       final querySnapshot = await _firestore
           .collection('reminders')
-          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('userId', isEqualTo: _currentUser.uid)
           .where('eventId', isEqualTo: eventId)
           .get();
 
@@ -32,7 +33,7 @@ class ReminderService {
           .map((doc) => ReminderModel.fromDocument(doc))
           .toList();
     } catch (e) {
-      print('Error fetching reminders by eventId: $e');
+      debugPrint('Error fetching reminders by eventId: $e');
       return [];
     }
   }
@@ -81,7 +82,7 @@ class ReminderService {
 
     _reminderSubscription = _firestore
         .collection('reminders')
-        .where('userId', isEqualTo: _currentUser!.uid)
+        .where('userId', isEqualTo: _currentUser.uid)
         .snapshots()
         .listen((snapshot) {
       final reminders =
@@ -104,7 +105,7 @@ class ReminderService {
     try {
       final querySnapshot = await _firestore
           .collection('reminders')
-          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('userId', isEqualTo: _currentUser.uid)
           .get();
 
       return querySnapshot.docs

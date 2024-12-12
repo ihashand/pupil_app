@@ -81,7 +81,7 @@ class FriendsNotifier extends StateNotifier<List<Friend>> {
   }
 
   Future<void> addFriend(Friend friend) async {
-    await _friendService.addFriend(friend, friend.id);
+    await _friendService.addFriend(friend);
     state = [...state, friend];
   }
 
